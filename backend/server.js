@@ -38,7 +38,7 @@ app.get('/api/health', (req, res) =>
 app.use((req, res) => res.status(404).json({ success: false, error: 'Route not found' }))
 app.use((err, req, res, next) => {
   console.error(err.stack)
-  res.status(500).json({ success: false, error: 'Something went wrong' })
+  res.status(500).json({ success: false, error: err.message || 'Something went wrong' })
 })
 
 const PORT = process.env.PORT || 5000
