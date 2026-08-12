@@ -1,0 +1,139 @@
+const express = require('express')
+const Resource = require('../models/Resource')
+const { protect, guard, optionalAuth } = require('../middleware/auth')
+const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
+
+const router = express.Router()
+
+// ── GET /api/resources ─────────────────────────────────────────────────────
+// Public — supports ?type=notes&semester=5
+router.get('/', optionalAuth, async (req, res) => {
+  try {
+    const { type, semester } = req.query
+    const filter = {}
+    if (type) filter.type = type
+    if (semester) filter.semester = Number(semester)
+
+    // Batch Isolation Logic
+    if (req.user && (req.user.role === 'student' || req.user.role === 'cr')) {
+      // Students/CRs see global content (batch: '') AND their own batch's content
+      filter.batch = { $in: ['', req.user.batch] }
+    } else if (!req.user) {
+      // Public visitors see only global content (batch: '')
+      filter.batch = ''
+    }
+
+    const resources = await Resource.find(filter)
+      .populate('uploadedBy', 'name')
+      .sort({ createdAt: -1 })
+
+    res.json({ success: true, data: resources })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── GET /api/resources/:id/download ───────────────────────────────────────
+// Increments download count then redirects to the file
+router.get('/:id/download', async (req, res) => {
+  try {
+    const resource = await Resource.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { downloadCount: 1 } },
+      { new: true }
+    )
+    if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
+
+    // Redirect the browser to the Cloudinary URL
+    res.redirect(resource.fileUrl)
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /api/resources ────────────────────────────────────────────────────
+// Upload a file — CR, faculty and admin
+// The file comes as multipart/form-data with field name "file"
+router.post(
+  '/',
+  protect,
+  guard('cr', 'faculty', 'super_admin', 'admin'),
+  upload.single('file'),   // multer processes the file first
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ success: false, error: 'No file uploaded' })
+      }
+
+      const { title, type, semester, subject, dueDate } = req.body
+
+      // Determine Cloudinary folder based on type
+      const folderMap = {
+        notes: 'notes',
+        pyq: 'previous-year-papers',
+        assignment: 'assignments',
+        lab_manual: 'lab-manuals',
+        syllabus: 'syllabus',
+      }
+      const folder = `electro-infinity/${folderMap[type] || 'resources'}`
+
+      const isPdf = req.file.mimetype === 'application/pdf';
+      const resourceType = isPdf ? 'raw' : 'auto';
+
+      // Upload the file buffer to Cloudinary
+      const { url, publicId } = await uploadToCloudinary(req.file.buffer, {
+        folder,
+        resource_type: 'auto',
+        // Use original filename (cleaned) as the Cloudinary public ID
+        public_id: req.file.originalname.replace(/\.[^/.]+$/, ''),
+        overwrite: false,
+      })
+
+      const resource = await Resource.create({
+        title,
+        type,
+        semester: semester ? Number(semester) : null,
+        subject,
+        dueDate: dueDate || null,
+        fileUrl: url,
+        filePublicId: publicId,
+        fileName: req.file.originalname,
+        uploadedBy: req.user._id,
+        batch: req.user.role === 'cr' ? req.user.batch : '', // Set batch if CR
+      })
+
+      res.status(201).json({ success: true, data: resource })
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message })
+    }
+  }
+)
+
+// ── DELETE /api/resources/:id ──────────────────────────────────────────────
+router.delete('/:id', protect, guard('cr', 'faculty', 'super_admin', 'admin'), async (req, res) => {
+  try {
+    const resource = await Resource.findById(req.params.id)
+    if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
+
+    // Faculty and CR can only delete their own uploads
+    if (
+      (req.user.role === 'faculty' || req.user.role === 'cr') &&
+      resource.uploadedBy.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({ success: false, error: 'Not your upload' })
+    }
+
+    // Delete from Cloudinary first
+    if (resource.filePublicId) {
+      const isRaw = resource.fileUrl.includes('/raw/upload/');
+      await deleteFromCloudinary(resource.filePublicId, isRaw ? 'raw' : 'image')
+    }
+
+    await resource.deleteOne()
+    res.json({ success: true, message: 'Resource deleted' })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+module.exports = router
