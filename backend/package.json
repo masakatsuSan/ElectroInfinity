@@ -8,7 +8,6 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
-    "@getbrevo/brevo": "^6.0.3",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.2.0",
     "cors": "^2.8.5",

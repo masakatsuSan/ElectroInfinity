@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import Lenis from '@studio-freight/lenis'
 import Navbar         from './components/Navbar'

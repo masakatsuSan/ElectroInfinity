@@ -1,6 +1,6 @@
 const express      = require('express')
 const jwt          = require('jsonwebtoken')
-const brevo        = require('@getbrevo/brevo')
+const axios        = require('axios')
 const User         = require('../models/User')
 const { protect }  = require('../middleware/auth')
 
@@ -18,27 +18,34 @@ function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString()
 }
 
-// ── Helper: send email via Brevo API ──────────────────────────────────────
+// ── Helper: send email via Brevo API // Standardized Email Sender using Axios and Brevo API
 async function sendEmail({ to, subject, html }) {
-  const apiInstance = new brevo.TransactionalEmailsApi()
-
-  apiInstance.setApiKey(
-    brevo.TransactionalEmailsApiApiKeys.apiKey,
-    process.env.BREVO_API_KEY
-  )
-
-  const sendSmtpEmail = new brevo.SendSmtpEmail()
-  sendSmtpEmail.subject = subject
-  sendSmtpEmail.htmlContent = html
-  sendSmtpEmail.sender = { name: "Electro Infinity | AGEMC", email: process.env.EMAIL_USER || "noreply@electroinfinity.com" }
-  sendSmtpEmail.to = [{ email: to }]
+  if (!process.env.BREVO_API_KEY) {
+    throw new Error("BREVO_API_KEY is not defined in environment variables");
+  }
+  
+  const payload = {
+    sender: { 
+      name: "Electro Infinity | AGEMC", 
+      email: process.env.EMAIL_USER || "noreply@electroinfinity.com" 
+    },
+    to: [{ email: to }],
+    subject: subject,
+    htmlContent: html
+  }
 
   try {
-    const data = await apiInstance.sendTransacEmail(sendSmtpEmail)
-    console.log('Email sent successfully via Brevo. ID: ' + JSON.stringify(data))
+    const response = await axios.post('https://api.brevo.com/v3/smtp/email', payload, {
+      headers: {
+        'api-key': process.env.BREVO_API_KEY,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+    console.log('Email sent successfully via Brevo API. ID: ' + response.data?.messageId)
   } catch (error) {
-    console.error('Error sending email via Brevo:', error)
-    throw error
+    console.error('Error sending email via Brevo API:', error.response?.data || error.message)
+    throw new Error(error.response?.data?.message || error.message)
   }
 }
 

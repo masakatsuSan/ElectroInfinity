@@ -1,41 +1,53 @@
 const express = require('express')
-const brevo = require('@getbrevo/brevo')
+const axios = require('axios')
 
 const router = express.Router()
 
-// ── POST /api/contact ──────────────────────────────────────────────────────
+// ── POST /api/contact ──────────────────────────────────────────────────────// POST /api/contact - Handle contact form submission
 router.post('/', async (req, res) => {
+  const { name, email, subject, message } = req.body
+
+  if (!name || !email || !message) {
+    return res.status(400).json({ success: false, error: 'Name, email, and message are required' })
+  }
+  
+  if (!process.env.BREVO_API_KEY) {
+    return res.status(500).json({ success: false, error: 'BREVO_API_KEY is missing in server environment' })
+  }
+
+  // Create email HTML for admin
+  const htmlContent = `
+    <h2>New Contact Form Submission</h2>
+    <p><strong>Name:</strong> ${name}</p>
+    <p><strong>Email:</strong> ${email}</p>
+    <p><strong>Subject:</strong> ${subject || 'No Subject'}</p>
+    <br/>
+    <p><strong>Message:</strong></p>
+    <p>${message.replace(/\n/g, '<br/>')}</p>
+  `
+
+  const payload = {
+    sender: { name: "Electro Infinity Website", email: process.env.EMAIL_USER || "noreply@electroinfinity.com" },
+    to: [{ email: process.env.EMAIL_USER || "admin@electroinfinity.com" }],
+    replyTo: { email: email, name: name },
+    subject: `Contact Form: ${subject || 'New Message'}`,
+    htmlContent: htmlContent
+  }
+
   try {
-    const { name, email, message } = req.body
+    const response = await axios.post('https://api.brevo.com/v3/smtp/email', payload, {
+      headers: {
+        'api-key': process.env.BREVO_API_KEY,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
 
-    if (!name || !email || !message) {
-      return res.status(400).json({ success: false, error: 'All fields are required' })
-    }
-
-    const apiInstance = new brevo.TransactionalEmailsApi()
-
-    apiInstance.setApiKey(
-      brevo.TransactionalEmailsApiApiKeys.apiKey,
-      process.env.BREVO_API_KEY
-    )
-
-    const sendSmtpEmail = new brevo.SendSmtpEmail()
-    sendSmtpEmail.subject = `Electro Infinity website enquiry from ${name}`
-    sendSmtpEmail.htmlContent = `
-      <h2>New message from Electro Infinity website</h2>
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Message:</strong><br>${message.replace(/\n/g, '<br>')}</p>
-    `
-    sendSmtpEmail.sender = { name, email }
-    sendSmtpEmail.to = [{ email: process.env.EMAIL_TO || process.env.EMAIL_USER }]
-
-    await apiInstance.sendTransacEmail(sendSmtpEmail)
-
-    res.json({ success: true, message: 'Message sent successfully!' })
-  } catch (err) {
-    console.error('Email error:', err.message)
-    res.status(500).json({ success: false, error: 'Could not send message. Try again later.' })
+    console.log('Contact email sent. ID:', response.data?.messageId)
+    res.json({ success: true, message: 'Message sent successfully' })
+  } catch (error) {
+    console.error('Brevo API Error (Contact):', error.response?.data || error.message)
+    res.status(500).json({ success: false, error: 'Failed to send message. Please try again later.' })
   }
 })
 
