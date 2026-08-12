@@ -24,6 +24,12 @@ app.use('/api/deadlines',  require('./src/routes/deadlines'))
 app.use('/api/routines',   require('./src/routes/routines'))
 app.use('/api/assignments',require('./src/routes/assignments'))
 app.use('/api/forum',      require('./src/routes/forum'))
+// Phase 4 - Dynamic Data
+app.use('/api/faculty',    require('./src/routes/faculty'))
+app.use('/api/placements', require('./src/routes/placements'))
+app.use('/api/labs',       require('./src/routes/labs'))
+app.use('/api/achievements',require('./src/routes/achievements'))
+app.use('/api/gallery',    require('./src/routes/gallery'))
 
 app.get('/api/health', (req, res) =>
   res.json({ success: true, message: 'Electro Infinity API is running ⚡' })

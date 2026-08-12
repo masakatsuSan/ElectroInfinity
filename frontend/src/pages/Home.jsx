@@ -58,6 +58,8 @@ function StatNum({ target, suffix = '' }) {
   return <span ref={ref}>{val}{suffix}</span>
 }
 
+import SEO from '../components/SEO'
+
 // ── Main component ───────────────────────────────────────────────────────────
 export default function Home() {
   const typeText = useTypewriter([
@@ -88,6 +90,11 @@ export default function Home() {
 
   return (
     <div>
+      <SEO 
+        title="Home" 
+        description="Electro Infinity — Electrical Engineering Club, Alipurduar Government Engineering and Management College" 
+        path="/" 
+      />
       {/* ── HERO ── */}
       <section className="min-h-screen flex flex-col justify-center pt-32 pb-0 relative overflow-hidden bg-canvas">
         {/* Abstract Gradient Background & Orbital Lines */}

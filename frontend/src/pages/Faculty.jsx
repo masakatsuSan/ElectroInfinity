@@ -1,41 +1,13 @@
-export default function Faculty() {
-  const fallbackFaculty = [
-    {
-      _id: '1',
-      name: 'Dr. Bikash Patel',
-      designation: 'Head of Department',
-      qualification: 'B.E. in Electrical (JU), M.E. in Electrical (JU) and Ph.D. in Electrical (JU)',
-      email: 'bikash.patel@ee.agemc.ac.in',
-      photo: '/faculty/dr_bikash_patel.jpg',
-      isHOD: true
-    },
-    {
-      _id: '2',
-      name: 'Dr. Parthasarathi Bera',
-      designation: 'Associate Professor',
-      qualification: 'B.E.(NBU), M.Tech. (JU), PHD (IIT Kharagpur)',
-      email: 'partha.bera@ee.agemc.ac.in',
-      photo: '/faculty/dr_parthasarathi_bera.jpg'
-    },
-    {
-      _id: '3',
-      name: 'Mr. Md. Tasinul Hoque',
-      designation: 'Assistant Professor',
-      qualification: 'B.Tech in EE (DIET), M.Tech in EE (Power Systems, KGEC)',
-      email: 'tasinul.hoque@ee.agemc.ac.in',
-      photo: '/faculty/mr_md_tasinul_hoque.jpg'
-    },
-    {
-      _id: '4',
-      name: 'Dr. Tapan Santra',
-      designation: 'Assistant Professor',
-      qualification: 'B.E.(VU), M.E.(Besu Shibpur), PHD (IIEST Shibpur)',
-      email: 'tapan.santra@ee.agemc.ac.in',
-      photo: '/faculty/dr_tapan_santra.jpg'
-    }
-  ]
+import { useQuery } from '@tanstack/react-query'
+import { getFaculty } from '../api/faculty'
 
-  const faculty = fallbackFaculty
+export default function Faculty() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['faculty'],
+    queryFn: () => getFaculty().then(r => r.data),
+  })
+
+  const faculty = data?.data || []
 
   return (
     <div className="page-wrap pt-32 pb-20 bg-canvas text-ink min-h-screen">

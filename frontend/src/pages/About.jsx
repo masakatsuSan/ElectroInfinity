@@ -18,9 +18,16 @@ const HIGHLIGHTS = [
   { stat: '5',    label: 'Labs Access' },
 ]
 
+import SEO from '../components/SEO'
+
 export default function About() {
   return (
     <div className="page-wrap pt-32 pb-20 bg-canvas text-ink">
+      <SEO 
+        title="About Us" 
+        description="Learn more about Electro Infinity, the official Electrical Engineering Club of AGEMC." 
+        path="/about" 
+      />
       {/* Heading */}
       <h2 className="font-sans text-[14px] font-semibold tracking-widest uppercase text-ink-muted-48 mb-2">
         About the Club

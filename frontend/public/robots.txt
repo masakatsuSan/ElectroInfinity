@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://electro-infinity.vercel.app/sitemap.xml

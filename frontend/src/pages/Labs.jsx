@@ -1,37 +1,14 @@
-const LABS = [
-  {
-    name: 'Power System Lab',
-    icon: '⚡',
-    desc: 'Equipped with power system simulator, load flow analysis tools, fault analysis kits and SCADA demo panels. Students conduct experiments on transmission line models and protective relays.',
-    equip: ['Power System Simulator', 'Load Flow Kit', 'Fault Analysis Unit', 'SCADA Panel', 'Protective Relay Trainer', 'Transmission Line Model'],
-  },
-  {
-    name: 'Electrical Machines Lab',
-    icon: '⚙️',
-    desc: 'Houses DC motors, AC motors, transformers, alternators and special machines. All machines are wired for standard speed-torque characteristic experiments and efficiency tests.',
-    equip: ['DC Motor-Generator Set', '3-Phase Induction Motor', 'Single-Phase Transformer', 'Alternator', 'Servo Motor', 'Universal Motor'],
-  },
-  {
-    name: 'Power Electronics Lab',
-    icon: '🔋',
-    desc: 'SCRs, MOSFETs, IGBTs and complete converter/inverter kits for hands-on power electronics. Includes firing circuit trainers and DC drive experiment panels.',
-    equip: ['SCR/TRIAC Trainer', 'Buck-Boost Converter', 'Single/Three Phase Inverter', 'DC Drive Panel', 'IGBT Module', 'Gate Drive Circuit Trainer'],
-  },
-  {
-    name: 'Control System Lab',
-    icon: '🎛️',
-    desc: 'PID controllers, analog and digital control system trainers, servo systems and MATLAB-based simulations. Students design and test closed-loop control systems.',
-    equip: ['PID Controller Trainer', 'Servo System Trainer', 'Process Control Simulator', 'MATLAB/Simulink Station', 'Root Locus Plotter', 'Digital Controller Kit'],
-  },
-  {
-    name: 'Measurement Lab',
-    icon: '📏',
-    desc: 'Precision measurement instruments including CROs, function generators, LCR meters, energy meters and calibration equipment for electrical measurements and instrumentation.',
-    equip: ['Cathode Ray Oscilloscope', 'Digital LCR Meter', 'Energy Meter Calibration Kit', 'Function Generator', 'Digital Multimeter', 'Kelvin Double Bridge'],
-  },
-]
+import { useQuery } from '@tanstack/react-query'
+import { getLabs } from '../api/labs'
 
 export default function Laboratory() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['labs'],
+    queryFn: () => getLabs().then(r => r.data),
+  })
+
+  const LABS = data?.data || []
+
   return (
     <div className="page-wrap pt-32 pb-20 min-h-screen bg-canvas text-ink">
       <h2 className="font-sans text-[14px] font-semibold tracking-widest uppercase text-ink-muted-48 mb-2">

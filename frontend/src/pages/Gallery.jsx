@@ -1,18 +1,19 @@
 import { useState } from 'react'
-
-// Gallery arrays can be managed manually or connected to backend later.
+import { useQuery } from '@tanstack/react-query'
+import { getGallery } from '../api/gallery'
 
 const CATEGORIES = ['All', 'Workshops', 'Events', 'Lab', 'Campus']
-
-const GALLERY = [
-  // Add real Cloudinary image URLs here after uploading via admin panel
-  // Example:
-  // { url:'https://res.cloudinary.com/your-cloud/image/upload/v.../photo.jpg', label:'Workshop Session', category:'Workshops' },
-]
 
 export default function Gallery() {
   const [active, setActive] = useState('All')
 
+  const { data, isLoading } = useQuery({
+    queryKey: ['gallery'],
+    queryFn: () => getGallery().then(r => r.data),
+  })
+
+  const GALLERY = (data?.data || []).map(p => ({ url: p.imageUrl, label: p.title, category: p.category ? p.category.charAt(0).toUpperCase() + p.category.slice(1) : 'Campus' }))
+  
   const filtered = GALLERY.filter(g => active === 'All' || g.category === active)
 
   return (

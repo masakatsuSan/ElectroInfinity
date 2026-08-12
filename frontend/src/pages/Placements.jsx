@@ -1,35 +1,18 @@
-// Phase 4: Placements page
-// These arrays should eventually be moved to MongoDB + admin panel
-// For now they're static — easy to update directly in this file
-
-const STATS = [
-  { n: '78%',   l: 'Placement Rate 2025' },
-  { n: '32',    l: 'Companies Visited'   },
-  { n: '₹4.2L', l: 'Avg. Package'        },
-]
-
-const RECRUITERS = [
-  { name:'WBSEDCL',   role:'Junior Engineer (Electrical)',  placed: 12 },
-  { name:'CESC',      role:'Assistant Engineer',            placed: 8  },
-  { name:'Tata Power',role:'Graduate Engineer Trainee',     placed: 5  },
-  { name:'ABB India', role:'Field Service Engineer',        placed: 4  },
-  { name:'L&T Power', role:'Site Engineer',                 placed: 6  },
-  { name:'NTPC',      role:'Executive Trainee',             placed: 3  },
-]
-
-const INTERNSHIPS = [
-  { title:'Electrical Engineering Intern', company:'WBSEDCL, Alipurduar Division', stipend:'₹8,000/month',  deadline:'2026-07-30' },
-  { title:'Power System Intern',           company:'Tata Power, North Bengal',      stipend:'₹10,000/month', deadline:'2026-08-15' },
-  { title:'Control System Intern',         company:'ABB India — Remote + Onsite',   stipend:'₹12,000/month', deadline:'2026-07-20' },
-]
-
-const ALUMNI = [
-  { initials:'RD', name:'Rahul Das',     role:'Junior Engineer, WBSEDCL', desc:'Managing distribution grid for Alipurduar district. Selected via WBSEDCL 2024 recruitment.', batch:'2020–2024' },
-  { initials:'PS', name:'Priya Sharma',  role:'GET, NTPC Farakka',        desc:'GATE 2024 qualified with AIR 1100. Working on thermal plant operations.', batch:'2020–2024' },
-  { initials:'AR', name:'Aditya Roy',    role:'M.Tech Student, NIT Durgapur', desc:'Full scholarship in Power Systems. GATE score 720.', batch:'2019–2023' },
-]
+import { useQuery } from '@tanstack/react-query'
+import { getPlacements } from '../api/placements'
 
 export default function Placements() {
+  const { data: allData, isLoading } = useQuery({
+    queryKey: ['placements'],
+    queryFn: () => getPlacements().then(r => r.data),
+  })
+
+  const placements = allData?.data || []
+  const STATS = placements.filter(p => p.type === 'stat').map(p => ({ n: p.statValue, l: p.statLabel }))
+  const RECRUITERS = placements.filter(p => p.type === 'recruiter').map(p => ({ name: p.companyName, role: p.roleOffered, placed: p.studentsPlaced }))
+  const INTERNSHIPS = placements.filter(p => p.type === 'internship').map(p => ({ title: p.internshipTitle, company: p.internshipCompany, stipend: p.stipend, deadline: p.deadline ? new Date(p.deadline).toISOString().split('T')[0] : '' }))
+  const ALUMNI = placements.filter(p => p.type === 'alumni').map(p => ({ initials: p.alumniInitials, name: p.alumniName, role: p.alumniRole, desc: p.alumniDesc, batch: p.alumniBatch }))
+
   return (
     <div className="page-wrap pt-28 pb-20 min-h-screen">
       <span className="eyebrow">Career & Industry</span>

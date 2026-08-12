@@ -1,6 +1,6 @@
 const express      = require('express')
 const jwt          = require('jsonwebtoken')
-const nodemailer   = require('nodemailer')
+const brevo        = require('@getbrevo/brevo')
 const User         = require('../models/User')
 const { protect }  = require('../middleware/auth')
 
@@ -18,21 +18,28 @@ function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString()
 }
 
-// ── Helper: send email via Nodemailer (Gmail SMTP) ────────────────────────
+// ── Helper: send email via Brevo API ──────────────────────────────────────
 async function sendEmail({ to, subject, html }) {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,  // Gmail App Password
-    },
-  })
-  await transporter.sendMail({
-    from: `"Electro Infinity | AGEMC" <${process.env.EMAIL_USER}>`,
-    to,
-    subject,
-    html,
-  })
+  const apiInstance = new brevo.TransactionalEmailsApi()
+
+  apiInstance.setApiKey(
+    brevo.TransactionalEmailsApiApiKeys.apiKey,
+    process.env.BREVO_API_KEY
+  )
+
+  const sendSmtpEmail = new brevo.SendSmtpEmail()
+  sendSmtpEmail.subject = subject
+  sendSmtpEmail.htmlContent = html
+  sendSmtpEmail.sender = { name: "Electro Infinity | AGEMC", email: process.env.EMAIL_USER || "noreply@electroinfinity.com" }
+  sendSmtpEmail.to = [{ email: to }]
+
+  try {
+    const data = await apiInstance.sendTransacEmail(sendSmtpEmail)
+    console.log('Email sent successfully via Brevo. ID: ' + JSON.stringify(data))
+  } catch (error) {
+    console.error('Error sending email via Brevo:', error)
+    throw error
+  }
 }
 
 // ── GET /api/auth/check-roll/:rollNo ──────────────────────────────────────

@@ -1,21 +1,6 @@
 import React from 'react'
-
-const STUDENT_ACH = [
-  { name:'Ankita Barman',   desc:'GATE 2026 qualified — score 618, EE branch topper from AGEMC.', year:'2026', photo: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=800' },
-  { name:'Rajesh Mondal',   desc:'Selected as Junior Engineer at WBSEDCL. Top ranker in written exam.', year:'2025', photo: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&q=80&w=800' },
-  { name:'Suman Karmakar',  desc:'1st Prize, Circuit Design Competition — MAKAUT Tech Fest 2025.', year:'2025', photo: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&q=80&w=800' },
-  { name:'Priti Dey',       desc:'Internship at ABB India. Published paper on power factor correction.', year:'2025', photo: 'https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&q=80&w=800' },
-]
-
-const FACULTY_ACH = [
-  { name:'Dr. Placeholder', desc:'Published research paper in IEEE Transactions on Power Systems.', year:'2026', photo: 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?auto=format&fit=crop&q=80&w=800' },
-  { name:'Prof. Placeholder',desc:'Best Teacher Award — MAKAUT 2025.', year:'2025', photo: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&q=80&w=800' },
-]
-
-const AWARDS = [
-  { name:'Best EE Department',        desc:'MAKAUT Regional Assessment 2025 — ranked top 5 EE departments.',    year:'2025', photo: 'https://images.unsplash.com/photo-1561489422-45e3d2ce350f?auto=format&fit=crop&q=80&w=800' },
-  { name:'Lab Infrastructure Award',  desc:'State Technical Education Board recognition for lab upgrade.',       year:'2024', photo: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800' },
-]
+import { useQuery } from '@tanstack/react-query'
+import { getAchievements } from '../api/achievements'
 
 function AchCard({ item, badgeText }) {
   return (
@@ -52,6 +37,25 @@ function AchCard({ item, badgeText }) {
 }
 
 export default function Achievements() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['achievements'],
+    queryFn: () => getAchievements().then(r => r.data),
+  })
+
+  const allAchievements = data?.data || []
+  
+  // Assuming the DB schema has name as title, desc as description, year as date (we'll format it), photo as image
+  const formatAch = (a) => ({
+    name: a.title,
+    desc: a.description,
+    year: a.date ? new Date(a.date).getFullYear() : '',
+    photo: a.image
+  })
+
+  const STUDENT_ACH = allAchievements.filter(a => a.category === 'academic' || a.category === 'sports').map(formatAch)
+  const FACULTY_ACH = allAchievements.filter(a => a.category === 'other').map(formatAch) // assuming faculty falls under other or create a new category later
+  const AWARDS = allAchievements.filter(a => a.category === 'cultural').map(formatAch) // just placeholder categorizations
+
   return (
     <div className="min-h-screen pb-20 bg-canvas pt-28">
       <div className="px-6 mx-auto max-w-7xl">

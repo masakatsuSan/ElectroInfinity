@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
+import { HelmetProvider } from 'react-helmet-async'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
@@ -20,17 +21,19 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {/* BrowserRouter: enables URL-based navigation */}
-    <BrowserRouter>
-      {/* QueryClientProvider: makes React Query available anywhere */}
-      <QueryClientProvider client={queryClient}>
-        {/* AuthProvider: makes login state available anywhere */}
-        <AuthProvider>
-          <ThemeProvider>
-            <App />
-          </ThemeProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+    {/* HelmetProvider: manages document head tags */}
+    <HelmetProvider>
+      <BrowserRouter>
+        {/* QueryClientProvider: makes React Query available anywhere */}
+        <QueryClientProvider client={queryClient}>
+          {/* AuthProvider: makes login state available anywhere */}
+          <AuthProvider>
+            <ThemeProvider>
+              <App />
+            </ThemeProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   </React.StrictMode>
 )
