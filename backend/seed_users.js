@@ -6,13 +6,23 @@ const seedUsers = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/electro-infinity');
     
-    const password = '1234';
+    const password = '12345678';
 
     // Create Student
-    const student = await User.create({
+    const student1 = await User.create({
       name: 'Test Student',
       rollNumber: 'STUDENT123',
       email: 'student@gmail.com',
+      password: password,
+      role: 'student',
+      batch: '2027',
+      semester: 3
+    });
+
+    const student2 = await User.create({
+      name: 'Sumith',
+      rollNumber: 'SUMITH4002',
+      email: 'heyysumith@gmail.com',
       password: password,
       role: 'student',
       batch: '2027',
@@ -40,14 +50,17 @@ const seedUsers = async () => {
     });
 
     console.log('--- TEST USERS CREATED SUCCESSFULY ---');
-    console.log('1. Student');
-    console.log(`   Roll Number: ${student.rollNumber}`);
+    console.log('1. Student 1');
+    console.log(`   Roll Number: ${student1.rollNumber}`);
     console.log(`   Password: ${password}`);
     console.log('2. CR');
     console.log(`   Roll Number: ${cr.rollNumber}`);
     console.log(`   Password: ${password}`);
     console.log('3. Admin');
     console.log(`   Roll Number: ${admin.rollNumber}`);
+    console.log(`   Password: ${password}`);
+    console.log('3. Student 2');
+    console.log(`   Roll Number: ${student2.rollNumber}`);
     console.log(`   Password: ${password}`);
     
     process.exit(0);
