@@ -2,7 +2,6 @@ const express = require('express')
 const router = express.Router()
 const Routine = require('../models/Routine')
 const { protect, guard } = require('../middleware/auth')
-const { protect, guard } = require('../middleware/auth')
 // const { requireAuth, requireRole } = require('../middleware/auth')
 // const { guard } = require('../middleware/guard')
 
