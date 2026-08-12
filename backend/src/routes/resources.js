@@ -52,12 +52,12 @@ router.get('/:id/download', async (req, res) => {
 })
 
 // ── POST /api/resources ────────────────────────────────────────────────────
-// Upload a file — CR, faculty and admin
+// Upload a file — CR, and admin
 // The file comes as multipart/form-data with field name "file"
 router.post(
   '/',
   protect,
-  guard('cr', 'faculty', 'super_admin', 'admin'),
+  guard('cr', 'super_admin', 'admin'),
   upload.single('file'),   // multer processes the file first
   async (req, res) => {
     try {
@@ -110,14 +110,14 @@ router.post(
 )
 
 // ── DELETE /api/resources/:id ──────────────────────────────────────────────
-router.delete('/:id', protect, guard('cr', 'faculty', 'super_admin', 'admin'), async (req, res) => {
+router.delete('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, res) => {
   try {
     const resource = await Resource.findById(req.params.id)
     if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
 
-    // Faculty and CR can only delete their own uploads
+    // CR can only delete their own uploads
     if (
-      (req.user.role === 'faculty' || req.user.role === 'cr') &&
+      req.user.role === 'cr' &&
       resource.uploadedBy.toString() !== req.user._id.toString()
     ) {
       return res.status(403).json({ success: false, error: 'Not your upload' })

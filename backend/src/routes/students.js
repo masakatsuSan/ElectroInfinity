@@ -107,8 +107,8 @@ router.post('/bulk-import', protect, guard('super_admin', 'admin'), async (req, 
 })
 
 // ── GET /api/students ─────────────────────────────────────────────────────
-// Faculty/admin — list all students, optional ?batch=2024-2028&semester=3
-router.get('/', protect, guard('faculty', 'super_admin', 'admin'), async (req, res) => {
+// Admin — list all students, optional ?batch=2024-2028&semester=3
+router.get('/', protect, guard('super_admin', 'admin'), async (req, res) => {
   try {
     const { batch, semester } = req.query
     const filter = { role: 'student' }
@@ -126,7 +126,7 @@ router.get('/', protect, guard('faculty', 'super_admin', 'admin'), async (req, r
 })
 
 // ── GET /api/students/batches ─────────────────────────────────────────────
-router.get('/batches', protect, guard('faculty', 'super_admin', 'admin'), async (req, res) => {
+router.get('/batches', protect, guard('super_admin', 'admin'), async (req, res) => {
   try {
     const batches = await User.distinct('batch', { role: 'student', batch: { $ne: '' } })
     res.json({ success: true, data: batches.sort().reverse() })

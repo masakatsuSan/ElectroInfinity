@@ -6,10 +6,10 @@ export const addStudent   = (data)   => api.post('/students/add', data)
 // Admin: bulk import students from parsed CSV array
 export const bulkImport   = (data)   => api.post('/students/bulk-import', data)
 
-// Faculty/admin: get student directory
+// Admin: get student directory
 export const getStudents  = (params) => api.get('/students', { params })
 
-// Faculty/admin: get unique batch years for filter
+// Admin: get unique batch years for filter
 export const getBatches   = ()       => api.get('/students/batches')
 
 // CR: get roster for their batch

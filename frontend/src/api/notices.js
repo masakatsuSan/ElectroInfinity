@@ -8,7 +8,7 @@ export const getNotices = (params) =>
 export const getNotice = (id) =>
   api.get(`/notices/${id}`)
 
-// Create a notice (faculty/admin only)
+// Create a notice (admin only)
 export const createNotice = (data) =>
   api.post('/notices', data)
 

@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
 
   // Login — call the API, save token + user to localStorage
   // data can be { rollNumber, password } for students
-  // or { email, password } for faculty/admin
+  // or { email, password } for admin
   const login = async (data) => {
     const res = await loginApi(data)
     const { token, user: userData } = res.data
@@ -43,12 +43,11 @@ export function AuthProvider({ children }) {
   }
 
   // Helpers for checking roles in components
-  const isAdmin   = user?.role === 'super_admin'
-  const isFaculty = user?.role === 'faculty' || isAdmin
+  const isAdmin   = user?.role === 'super_admin' || user?.role === 'admin'
   const isStudent = !!user  // any logged-in user
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin, isFaculty, isStudent }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin, isStudent }}>
       {children}
     </AuthContext.Provider>
   )

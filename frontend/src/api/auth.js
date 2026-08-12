@@ -9,7 +9,7 @@ export const checkRoll = (rollNumber) =>
 export const activateAccount = (data) =>
   api.post('/auth/activate', data)
 
-// Login — students: { rollNumber, password } | faculty/admin: { email, password }
+// Login — students: { rollNumber, password } | admin: { email, password }
 export const login = (data) =>
   api.post('/auth/login', data)
 

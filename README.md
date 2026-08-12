@@ -1,175 +1,177 @@
-# Electro Infinity — Full Stack Website
-EE Club website for AGEMC. React + Express + MongoDB.
+# Electro Infinity
 
----
+Electro Infinity is the digital hub for the Electrical Engineering community at **Alipurduar Government Engineering and Management College (AGEMC)**. It combines a public-facing department website with a secure academic workspace where students, Class Representatives (CRs), and administrators can share information, organise academic work, and stay connected.
+
+The project is a full-stack JavaScript application: a React single-page frontend powered by Vite, and an Express/MongoDB API. It is more than a static college site: public visitors can explore the department, while authenticated users receive information and tools appropriate to their batch and role.
+
+## What the platform provides
+
+### Public department experience
+
+- Department overview, faculty, laboratories, courses and detailed subject syllabi.
+- Department news, events, study resources, gallery, achievements and placement highlights.
+- A contact form for enquiries.
+- Responsive navigation and page transitions built with Tailwind CSS and Framer Motion.
+
+### Academic workspace
+
+- Student account activation using a pre-created roll number, then sign-in with roll number and password.
+- Email OTP password recovery for activated student and CR accounts.
+- Batch-aware notices, events and resources, so students see their own material and content published for everyone.
+- Student dashboard for deadlines, assignments, routines and academic updates.
+- A protected forum where authenticated users can create posts, comment and upvote.
+- Profile photo upload and student directory tools.
+
+### Role-based administration
+
+| Role | Main responsibilities |
+| --- | --- |
+| Student | Activates their account, accesses batch content, follows deadlines/routines and participates in the forum. |
+| CR | Publishes and manages notices, events, resources, deadlines, assignments and routines for their own batch. |
+| Admin | Manages the whole platform, including students, content, deadlines and routines across batches. |
+
+The admin area is available at `/admin`; CRs use the same area with restricted, batch-scoped controls.
+
+## Tech stack
+
+| Layer | Technology |
+| --- | --- |
+| Frontend | React 18, Vite, React Router, Tailwind CSS |
+| UI and motion | Framer Motion, Lenis |
+| API | Node.js, Express |
+| Database | MongoDB with Mongoose |
+| Authentication | JSON Web Tokens and bcryptjs |
+| File hosting | Cloudinary with Multer |
+| Email | Nodemailer using Gmail SMTP |
 
 ## Project structure
-```
+
+```text
 electro-infinity/
-├── backend/                    ← Express API
-│   ├── server.js               ← Entry point
-│   ├── .env.example            ← Copy to .env and fill in
-│   └── src/
-│       ├── config/
-│       │   ├── db.js           ← MongoDB connection
-│       │   └── cloudinary.js   ← Cloudinary setup
-│       ├── models/             ← User, Notice, Faculty, Resource, Event, Attendance
-│       ├── routes/             ← auth, notices, faculty, resources, events, contact, students, attendance
-│       ├── middleware/auth.js  ← JWT protect + role guard
-│       └── utils/upload.js     ← Multer + Cloudinary upload helper
-└── frontend/                   ← React + Vite + Tailwind
-    └── src/
-        ├── api/                ← axios calls per resource
-        ├── components/         ← Navbar, Footer, NoticeCard, GlobalSearch, ProtectedRoute
-        ├── context/            ← AuthContext (login state)
-        └── pages/
-            ├── Home, About, Faculty, Labs, Courses
-            ├── Resources, Events, Placements, Gallery, Achievements
-            ├── Contact, Login, Register
-            ├── Students (dashboard), Directory
-            └── admin/          ← Dashboard, Notices, Faculty, Resources, Events, Students
++-- frontend/                 # React + Vite client
+|   +-- public/               # Static images
+|   `-- src/
+|       +-- api/              # Axios API clients
+|       +-- components/       # Shared UI and route guards
+|       +-- context/          # Authentication and theme state
+|       +-- data/             # Course and syllabus data
+|       `-- pages/            # Public, student, forum and admin screens
++-- backend/                  # Express API
+|   +-- server.js             # API entry point
+|   +-- seed_users.js         # Local demo-account seed script
+|   `-- src/
+|       +-- config/           # MongoDB and Cloudinary configuration
+|       +-- middleware/       # Authentication and role checks
+|       +-- models/           # MongoDB schemas
+|       +-- routes/           # API route handlers
+|       `-- utils/            # Upload helpers
+`-- pdfExtract/               # Small standalone PDF-extraction utility
 ```
 
----
+## Run locally
 
-## Quick start
+### Prerequisites
+
+- Node.js 18 or newer
+- A MongoDB database (MongoDB Atlas or a local MongoDB instance)
+- A Cloudinary account for resource and profile-image uploads
+- A Gmail account with an App Password if contact emails and OTP recovery are required
 
 ### 1. Install dependencies
-```bash
-cd backend  && npm install
-cd ../frontend && npm install
-```
 
-### 2. Set up MongoDB Atlas
-1. [mongodb.com/atlas](https://mongodb.com/atlas) → Create free M0 cluster
-2. Connect → Drivers → copy connection string
-3. Paste into `backend/.env` as `MONGO_URI`
+Install each application separately:
 
-### 3. Set up Cloudinary
-1. [cloudinary.com](https://cloudinary.com) → free account
-2. Dashboard → copy Cloud Name, API Key, API Secret
-3. Paste into `backend/.env`
-
-### 4. Set up Gmail for contact form
-1. Google Account → Security → 2-Step Verification → App Passwords
-2. Generate an App Password for "Mail"
-3. Paste into `backend/.env` as `EMAIL_USER` and `EMAIL_PASS`
-
-### 5. Fill in .env
-```bash
+```powershell
 cd backend
-cp .env.example .env
-# Open .env and fill in all values
+npm install
+
+cd ../frontend
+npm install
 ```
 
-Generate JWT_SECRET:
-```bash
+### 2. Configure the backend
+
+Create `backend/.env` with values for your environment:
+
+```env
+PORT=5000
+MONGO_URI=mongodb+srv://<username>:<password>@<cluster>/<database>
+JWT_SECRET=replace-with-a-long-random-secret
+JWT_EXPIRES_IN=7d
+CLIENT_URL=http://localhost:5173
+
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+
+EMAIL_USER=your-gmail-address@gmail.com
+EMAIL_PASS=your-gmail-app-password
+EMAIL_TO=recipient-address@gmail.com
+```
+
+Generate a suitable JWT secret with:
+
+```powershell
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
 
-### 6. Run both servers
-```bash
-# Terminal 1 — backend
-cd backend && npm run dev
+`EMAIL_TO` is optional; when it is not set, contact-form messages are sent to `EMAIL_USER`.
 
-# Terminal 2 — frontend
-cd frontend && npm run dev
-```
+### 3. Start the API and client
 
-Open http://localhost:5173
+```powershell
+# Terminal 1
+cd backend
+npm run dev
 
-### 7. Create your admin account
-```
-POST http://localhost:5000/api/auth/register
-{
-  "name": "Your Name",
-  "email": "admin@email.com",
-  "password": "yourpassword"
-}
-```
-Then in MongoDB Atlas → Browse Collections → users → find your user → change:
-- `role` → `"super_admin"`
-- `isVerified` → `true`
-
----
-
-## All API routes
-
-| Method | Route | Access |
-|--------|-------|--------|
-| POST | /api/auth/register | Public |
-| POST | /api/auth/login | Public |
-| GET | /api/auth/me | Logged in |
-| PATCH | /api/auth/me | Logged in |
-| GET | /api/notices | Public |
-| POST | /api/notices | Faculty+ |
-| PATCH | /api/notices/:id/pin | Admin |
-| DELETE | /api/notices/:id | Faculty(own)/Admin |
-| GET | /api/faculty | Public |
-| POST | /api/faculty | Admin |
-| PATCH | /api/faculty/:id | Admin |
-| DELETE | /api/faculty/:id | Admin |
-| GET | /api/resources | Public |
-| POST | /api/resources | Faculty+ |
-| GET | /api/resources/:id/download | Public |
-| DELETE | /api/resources/:id | Faculty(own)/Admin |
-| GET | /api/events | Public |
-| POST | /api/events | Admin |
-| PATCH | /api/events/:id | Admin |
-| DELETE | /api/events/:id | Admin |
-| POST | /api/contact | Public |
-| GET | /api/students | Faculty+ |
-| GET | /api/students/pending | Admin |
-| GET | /api/students/batches | Faculty+ |
-| PATCH | /api/students/:id/verify | Admin |
-| PATCH | /api/students/:id/reject | Admin |
-| PATCH | /api/students/me/photo | Logged in |
-| POST | /api/attendance/mark | Faculty+ |
-| GET | /api/attendance/my | Logged in |
-| GET | /api/attendance/class | Faculty+ |
-| GET | /api/attendance/report | Faculty+ |
-
----
-
-## Deploy
-
-### Frontend → Vercel (free)
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
+# Terminal 2
 cd frontend
-vercel
-# Follow prompts — set root to frontend, framework to Vite
+npm run dev
 ```
 
-Or: Push to GitHub → vercel.com → Import repo → root directory = `frontend`
+Open the Vite URL shown in the terminal, normally `http://localhost:5173`. During development, Vite forwards `/api` requests to `http://localhost:5000`. Confirm the API is running at `http://localhost:5000/api/health`.
 
-### Backend → Render (free)
-1. Push to GitHub
-2. render.com → New Web Service → connect repo
-3. Root directory: `backend`
-4. Build command: `npm install`
-5. Start command: `npm start`
-6. Add all `.env` variables in Render's Environment tab
-7. Update `CLIENT_URL` to your Vercel URL
+### 4. Optional: add local demo users
 
-### After deploying
-Update `backend/.env` on Render:
-```
-CLIENT_URL=https://your-site.vercel.app
+After MongoDB is configured, run:
+
+```powershell
+cd backend
+node seed_users.js
 ```
 
-Update frontend to point to backend:
-Create `frontend/.env.production`:
-```
-VITE_API_URL=https://your-backend.onrender.com
-```
+This creates sample student, CR and admin accounts for local testing. Use a disposable development database: the script creates fixed records and does not check for duplicates first.
 
----
+## Main API areas
 
-## Phase status
-- ✅ Phase 1 — Foundation (auth, notices, faculty, 3 pages)
-- ✅ Phase 2 — Core content (Cloudinary, admin panel, 5 new pages)
-- ✅ Phase 3 — Student features (dashboard, attendance, directory)
-- ✅ Phase 4 — Polish (placements, gallery, achievements, global search, deploy)
+| Base path | Purpose |
+| --- | --- |
+| `/api/auth` | Account activation, login, profile, password change and OTP reset. |
+| `/api/notices` | Batch-aware notices and admin pinning. |
+| `/api/resources` | Study-resource listing, upload and download. |
+| `/api/events` | Event publishing and management. |
+| `/api/deadlines` | Batch deadlines and submissions. |
+| `/api/assignments` | Batch assignments. |
+| `/api/routines` | Batch class routines. |
+| `/api/students` | Student creation, import, listing and profile photo upload. |
+| `/api/forum` | Authenticated discussions, comments and upvotes. |
+| `/api/contact` | Contact-form email delivery. |
+
+Protected requests use `Authorization: Bearer <token>`. The frontend stores the session token locally and attaches it automatically to its API requests.
+
+## Deployment notes
+
+Deploy the frontend as a Vite static site (such as Vercel or Netlify) and the backend as a Node web service (such as Render). Set the production frontend URL in the backend's `CLIENT_URL`, then configure a rewrite/proxy or API base URL so production frontend requests reach the deployed API.
+
+Never commit `backend/.env`, database credentials, Cloudinary credentials, Gmail App Passwords or JWT secrets.
+
+## Available scripts
+
+| Location | Command | Description |
+| --- | --- | --- |
+| `frontend` | `npm run dev` | Start the Vite development server. |
+| `frontend` | `npm run build` | Build the production frontend. |
+| `frontend` | `npm run preview` | Preview a production build locally. |
+| `backend` | `npm run dev` | Start the API with Nodemon. |
+| `backend` | `npm start` | Start the API with Node.js. |
+| `backend` | `node seed_users.js` | Seed local demo users. |

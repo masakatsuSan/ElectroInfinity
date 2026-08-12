@@ -48,7 +48,7 @@ export default function Login() {
 
       const user = await login(payload)
 
-      if (user.role === 'admin' || user.role === 'super_admin' || user.role === 'faculty') {
+      if (user.role === 'admin' || user.role === 'super_admin') {
         navigate('/admin')
       } else {
         navigate('/students')
@@ -137,11 +137,11 @@ export default function Login() {
             Student
           </button>
           <button 
-            onClick={() => { setTab('faculty'); setError('') }}
-            className={`flex-1 py-2.5 rounded-lg font-sans text-[14px] font-semibold flex items-center justify-center gap-2 transition-all ${tab === 'faculty' ? 'bg-canvas text-ink shadow-sm' : 'text-ink-muted-48 hover:text-ink'}`}
+            onClick={() => { setTab('admin'); setError('') }}
+            className={`flex-1 py-2.5 rounded-lg font-sans text-[14px] font-semibold flex items-center justify-center gap-2 transition-all ${tab === 'admin' ? 'bg-canvas text-ink shadow-sm' : 'text-ink-muted-48 hover:text-ink'}`}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-            Faculty
+            Admin
           </button>
         </div>
 

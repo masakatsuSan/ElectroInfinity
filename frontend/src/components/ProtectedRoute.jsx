@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext'
 // Usage:
 // <ProtectedRoute>                    → any logged-in user
 // <ProtectedRoute role="super_admin"> → admin only
-// <ProtectedRoute role="faculty">     → faculty or admin
 
 export default function ProtectedRoute({ children, role }) {
   const { user, loading } = useAuth()
