@@ -3,7 +3,7 @@ import axios from 'axios'
 // Create a custom axios instance so we don't have to
 // repeat the base URL and headers in every API call
 const api = axios.create({
-  baseURL: '/api',   // Vite's proxy will forward /api/* to http://localhost:5000
+  baseURL: import.meta.env.VITE_API_URL || '/api',   // Vite's proxy will forward /api/* to http://localhost:5000
 })
 
 // ─── Request interceptor ───────────────────────────────────────────────────
