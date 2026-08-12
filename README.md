@@ -1,23 +1,23 @@
 # Electro Infinity
 
-Electro Infinity is the digital hub for the Electrical Engineering community at **Alipurduar Government Engineering and Management College (AGEMC)**. It combines a public-facing department website with a secure academic workspace where students, Class Representatives (CRs), and administrators can share information, organise academic work, and stay connected.
+Electro Infinity is the official digital platform for the Electrical Engineering community at **Alipurduar Government Engineering and Management College (AGEMC)**. It combines a public department website with a secure academic workspace for students, Class Representatives (CRs), and administrators.
 
-The project is a full-stack JavaScript application: a React single-page frontend powered by Vite, and an Express/MongoDB API. It is more than a static college site: public visitors can explore the department, while authenticated users receive information and tools appropriate to their batch and role.
+Built as a full-stack JavaScript application, the project includes a React single-page frontend powered by Vite and an Express/MongoDB API. Visitors can explore the department publicly, while authenticated users access information and tools tailored to their batch and role.
 
 ## What the platform provides
 
 ### Public department experience
 
-- Department overview, faculty, laboratories, courses and detailed subject syllabi.
-- Department news, events, study resources, gallery, achievements and placement highlights.
-- A contact form for enquiries.
+- Department overview, faculty profiles, laboratories, courses, and detailed subject syllabi.
+- Department news, events, study resources, galleries, achievements, and placement highlights.
+- A contact form for general enquiries.
 - Responsive navigation and page transitions built with Tailwind CSS and Framer Motion.
 
 ### Academic workspace
 
 - Student account activation using a pre-created roll number, then sign-in with roll number and password.
 - Email OTP password recovery for activated student and CR accounts.
-- Batch-aware notices, events and resources, so students see their own material and content published for everyone.
+- Batch-aware notices, events, and resources, ensuring students see both their own material and content published for all students.
 - Student dashboard for deadlines, assignments, routines and academic updates.
 - A protected forum where authenticated users can create posts, comment and upvote.
 - Profile photo upload and student directory tools.
@@ -42,7 +42,7 @@ The admin area is available at `/admin`; CRs use the same area with restricted, 
 | Database | MongoDB with Mongoose |
 | Authentication | JSON Web Tokens and bcryptjs |
 | File hosting | Cloudinary with Multer |
-| Email | Nodemailer using Gmail SMTP |
+| Email | Brevo transactional email API |
 
 ## Project structure
 
@@ -75,7 +75,7 @@ electro-infinity/
 - Node.js 18 or newer
 - A MongoDB database (MongoDB Atlas or a local MongoDB instance)
 - A Cloudinary account for resource and profile-image uploads
-- A Gmail account with an App Password if contact emails and OTP recovery are required
+- A Brevo account and API key if contact emails and OTP recovery are required
 
 ### 1. Install dependencies
 
@@ -104,8 +104,8 @@ CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
 
-EMAIL_USER=your-gmail-address@gmail.com
-EMAIL_PASS=your-gmail-app-password
+BREVO_API_KEY=your-brevo-api-key
+EMAIL_USER=verified-sender@example.com
 EMAIL_TO=recipient-address@gmail.com
 ```
 
@@ -156,6 +156,11 @@ This creates sample student, CR and admin accounts for local testing. Use a disp
 | `/api/students` | Student creation, import, listing and profile photo upload. |
 | `/api/forum` | Authenticated discussions, comments and upvotes. |
 | `/api/contact` | Contact-form email delivery. |
+| `/api/faculty` | Faculty profiles and management. |
+| `/api/placements` | Placement highlights and management. |
+| `/api/labs` | Laboratory information and management. |
+| `/api/achievements` | Department achievements and management. |
+| `/api/gallery` | Gallery content and management. |
 
 Protected requests use `Authorization: Bearer <token>`. The frontend stores the session token locally and attaches it automatically to its API requests.
 
@@ -163,7 +168,7 @@ Protected requests use `Authorization: Bearer <token>`. The frontend stores the 
 
 Deploy the frontend as a Vite static site (such as Vercel or Netlify) and the backend as a Node web service (such as Render). Set the production frontend URL in the backend's `CLIENT_URL`, then configure a rewrite/proxy or API base URL so production frontend requests reach the deployed API.
 
-Never commit `backend/.env`, database credentials, Cloudinary credentials, Gmail App Passwords or JWT secrets.
+Never commit `backend/.env`, database credentials, Cloudinary credentials, Brevo API keys, or JWT secrets.
 
 ## Available scripts
 
