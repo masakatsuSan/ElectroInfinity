@@ -17,7 +17,7 @@ export default function Gallery() {
   const filtered = GALLERY.filter(g => active === 'All' || g.category === active)
 
   return (
-    <div className="page-wrap pt-32 pb-20 min-h-screen bg-canvas text-ink">
+    <div className="container pt-32 pb-20 min-h-screen bg-canvas text-ink">
       <h2 className="font-sans text-[14px] font-semibold tracking-widest uppercase text-ink-muted-48 mb-2">
         Visual Archive
       </h2>

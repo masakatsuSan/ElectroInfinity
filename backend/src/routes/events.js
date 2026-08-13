@@ -16,12 +16,12 @@ router.get('/', optionalAuth, async (req, res) => {
     if (req.user && (req.user.role === 'student' || req.user.role === 'cr')) {
       batchCondition = {
         $or: [
-          { batch: req.user.batch },
-          { isUniversal: true }
+          { visibility: 'BATCH', batchId: req.user.batch },
+          { visibility: 'GLOBAL' }
         ]
       }
     } else if (!req.user) {
-      batchCondition = { isUniversal: true }
+      batchCondition = { visibility: 'GLOBAL' }
     }
 
     if (Object.keys(batchCondition).length > 0) {
@@ -72,15 +72,15 @@ router.post(
         bannerPublicId = result.publicId
       }
 
-      const isUniversal = req.user.role === 'admin' || req.user.role === 'super_admin' ? (req.body.isUniversal || false) : false
-      const batch = req.user.role === 'cr' ? req.user.batch : (req.body.batch || '')
+      const visibility = req.user.role === 'admin' || req.user.role === 'super_admin' ? (req.body.visibility || 'BATCH') : 'BATCH'
+      const batchId = req.user.role === 'cr' ? req.user.batch : (req.body.batchId || '')
 
       const event = await Event.create({
         title, type, description, date, venue, registrationLink,
         bannerUrl, bannerPublicId,
         createdBy: req.user._id,
-        batch,
-        isUniversal
+        batchId,
+        visibility
       })
 
       res.status(201).json({ success: true, data: event })
@@ -96,8 +96,8 @@ router.patch('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, r
     let event = await Event.findById(req.params.id)
     if (!event) return res.status(404).json({ success: false, error: 'Not found' })
     
-    // CR can only patch their own events
-    if (req.user.role === 'cr' && event.createdBy.toString() !== req.user._id.toString()) {
+    // CR can only patch their own batch's events
+    if (req.user.role === 'cr' && event.batchId !== req.user.batch) {
         return res.status(403).json({ success: false, error: 'Not authorized' })
     }
     
@@ -116,8 +116,8 @@ router.delete('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, 
     const event = await Event.findById(req.params.id)
     if (!event) return res.status(404).json({ success: false, error: 'Not found' })
 
-    // CR can only delete their own events
-    if (req.user.role === 'cr' && event.createdBy.toString() !== req.user._id.toString()) {
+    // CR can only delete their own batch's events
+    if (req.user.role === 'cr' && event.batchId !== req.user.batch) {
         return res.status(403).json({ success: false, error: 'Not authorized' })
     }
 

@@ -42,7 +42,14 @@ const resourceSchema = new mongoose.Schema(
     dueDate: { type: Date, default: null },
 
     // Batch isolation
-    batch: { type: String, default: '' },
+    batchId: { type: String, default: '' },
+
+    // Visibility control: GLOBAL (all batches) or BATCH (only specific batchId)
+    visibility: {
+      type: String,
+      enum: ['GLOBAL', 'BATCH'],
+      default: 'BATCH',
+    },
   },
   { timestamps: true }
 )

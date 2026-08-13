@@ -4,55 +4,14 @@
 
 @layer base {
   :root {
-    /* Light Mode - Mastercard Aesthetic */
-    --color-primary: #141413; /* Primary buttons are Ink Black */
-    --color-primary-focus: #262627;
-    --color-primary-on-dark: #FFFFFF;
-    
-    --color-ink: #141413;
-    --color-body: #141413;
-    --color-body-on-dark: #FFFFFF;
-    --color-body-muted: #D1CDC7;
-    --color-ink-muted-80: #262627;
-    --color-ink-muted-48: #696969;
-    
-    --color-canvas: #F3F0EE; /* Canvas Cream */
-    --color-canvas-parchment: #FCFBFA; /* Lifted Cream */
-    --color-surface-pearl: #FFFFFF; /* White for modals/cards */
-    --color-surface-tile-1: #F4F4F4; /* Soft Bone */
-    --color-surface-tile-2: #E8E2DA; /* Darkened cream for ghost text */
-    --color-surface-tile-3: #D1CDC7;
-    --color-surface-black: #141413;
-    --color-surface-chip-translucent: rgba(255, 255, 255, 0.8);
-    
-    --color-divider-soft: rgba(0, 0, 0, 0.08);
-    --color-hairline: rgba(0, 0, 0, 0.04);
-  }
-
-  .dark {
-    /* Dark Mode - Warm Deep Blacks */
-    --color-primary: #F3F0EE; /* Primary buttons are Canvas Cream */
-    --color-primary-focus: #FCFBFA;
-    --color-primary-on-dark: #141413;
-    
-    --color-ink: #F3F0EE;
-    --color-body: #F3F0EE;
-    --color-body-on-dark: #141413;
-    --color-body-muted: #696969;
-    --color-ink-muted-80: #D1CDC7;
-    --color-ink-muted-48: #696969;
-    
-    --color-canvas: #0A0A09; /* Deep warm black */
-    --color-canvas-parchment: #141413; /* Ink black as elevated surface */
-    --color-surface-pearl: #1C1C1A;
-    --color-surface-tile-1: #262627;
-    --color-surface-tile-2: #2C2C2E;
-    --color-surface-tile-3: #3A3A3C;
-    --color-surface-black: #000000;
-    --color-surface-chip-translucent: rgba(38, 38, 39, 0.8);
-    
-    --color-divider-soft: rgba(255, 255, 255, 0.08);
-    --color-hairline: rgba(255, 255, 255, 0.04);
+    --color-accent-blue: #5266eb;
+    --color-light-blue: #9cb4e8;
+    --color-light-purple: #cdddff;
+    --color-hover-state: #5266eb29;
+    --color-dark-gray: #1e1e2a;
+    --color-medium-gray: #afb2ce;
+    --color-light-gray: #ededf3;
+    --color-border-color: #272735;
   }
 
   * {
@@ -61,203 +20,181 @@
   }
 
   html, body {
-    background-color: theme('colors.canvas');
-    color: theme('colors.ink');
-    /* Lenis smooth scroll requires html/body height 100% or default auto. Removing overflow-hidden and scroll-behavior: smooth as Lenis handles it */
+    background-color: var(--color-dark-gray);
+    color: var(--color-light-gray);
   }
 
   body {
-    font-family: 'Sofia Sans', system-ui, -apple-system, sans-serif;
+    font-family: arcadia, ui-sans-serif, system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-size: 16px;
-    font-weight: 450;
-    line-height: 1.4;
-    letter-spacing: 0px;
-  }
-
-  ::selection {
-    background: var(--color-ink);
-    color: var(--color-canvas);
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Sofia Sans', system-ui, -apple-system, sans-serif;
-    font-weight: 500;
-    letter-spacing: -0.02em; /* -2% */
-    margin-bottom: 0;
-  }
-}
-
-@layer utilities {
-  .page-wrap {
-    width: 100%;
-    max-width: 1280px; /* Align with navbar/footer max-w-7xl */
-    margin: 0 auto;
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-  @media (min-width: 768px) {
-    .page-wrap {
-      padding-left: 2rem;
-      padding-right: 2rem;
-    }
-  }
-
-  .blob {
-    position: absolute;
-    filter: blur(100px);
-    z-index: -1;
-    opacity: 0.6;
-    animation: float 12s ease-in-out infinite;
-    mix-blend-mode: multiply;
-  }
-
-  .dark .blob {
-    mix-blend-mode: screen;
-    opacity: 0.25;
-  }
-  
-  .blob-1 {
-    background: radial-gradient(circle, #E3D9C6 0%, rgba(227,217,198,0) 70%); /* Soft Sand / Gold */
-    width: 600px;
-    height: 600px;
-    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-  }
-
-  .blob-2 {
-    background: radial-gradient(circle, #D4C5C7 0%, rgba(212,197,199,0) 70%); /* Dusty Rose / Mauve */
-    width: 500px;
-    height: 500px;
-    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-    animation-delay: -4s;
-  }
-
-  .blob-3 {
-    background: radial-gradient(circle, #C2D1C0 0%, rgba(194,209,192,0) 70%); /* Muted Sage Green */
-    width: 550px;
-    height: 550px;
-    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-    animation-delay: -8s;
-  }
-
-  .dark .blob-1 {
-    background: radial-gradient(circle, #8C7C61 0%, rgba(140,124,97,0) 70%);
-  }
-
-  .dark .blob-2 {
-    background: radial-gradient(circle, #8C6D73 0%, rgba(140,109,115,0) 70%);
-  }
-
-  .dark .blob-3 {
-    background: radial-gradient(circle, #6C8C67 0%, rgba(108,140,103,0) 70%);
-  }
-  
-  @keyframes float {
-    0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-    33% { transform: translate(50px, -50px) rotate(10deg) scale(1.05); }
-    66% { transform: translate(-30px, 30px) rotate(-5deg) scale(0.95); }
-    100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+    font-weight: 400;
+    line-height: 1.5;
   }
 }
 
 @layer components {
-  /* Mastercard Primary Button - Ink Pill */
+  /* Buttons */
   .button-primary {
-    @apply rounded-[20px] cursor-pointer inline-flex items-center justify-center;
-    background-color: var(--color-ink);
-    color: var(--color-canvas);
-    border: 1.5px solid var(--color-ink);
-    font-family: 'Sofia Sans', system-ui, sans-serif;
+    background-color: #5266eb;
+    color: #ffffff;
+    padding: 0px 20px;
+    border-radius: 32px;
+    font-weight: 420;
     font-size: 16px;
-    font-weight: 500;
-    letter-spacing: -0.32px;
-    padding: 6px 24px;
-    transition: transform 0.15s ease;
-  }
-  .button-primary:active {
-    transform: scale(0.96);
-  }
-
-  /* Mastercard Secondary Button - Outlined Pill */
-  .button-secondary-pill {
-    @apply rounded-[20px] cursor-pointer inline-flex items-center justify-center;
-    background-color: var(--color-canvas);
-    color: var(--color-ink);
-    border: 1.5px solid var(--color-ink);
-    font-family: 'Sofia Sans', system-ui, sans-serif;
-    font-size: 16px;
-    font-weight: 450;
-    line-height: 20.8px;
-    padding: 6px 24px;
-    transition: transform 0.15s ease;
-  }
-  .button-secondary-pill:active {
-    transform: scale(0.96);
-  }
-
-  /* Consent/Signal Pill - Orange */
-  .button-consent {
-    @apply rounded-[24px] cursor-pointer inline-flex items-center justify-center;
-    background-color: #CF4500;
-    color: #FFFFFF;
+    height: 40px; /* From iteration guide: consistent at 40px */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
     border: none;
-    font-family: 'Sofia Sans', system-ui, sans-serif;
-    font-size: 13px;
+    cursor: pointer;
+  }
+  .button-primary:hover {
+    background-color: #5266eb29;
+  }
+  .button-primary:disabled {
+    background-color: #272735;
+    color: #70707d;
+    cursor: not-allowed;
+  }
+
+  .button-secondary {
+    background-color: transparent;
+    color: #ededf3;
+    border: 1px solid #ededf3;
+    padding: 0px 20px;
+    border-radius: 40px;
+    font-weight: 420;
+    font-size: 16px;
+    height: 40px; /* From iteration guide: consistent at 40px */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+  }
+  .button-secondary:hover {
+    background-color: #5266eb29;
+  }
+  .button-secondary:disabled {
+    background-color: #272735;
+    color: #70707d;
+    border-color: #272735;
+    cursor: not-allowed;
+  }
+
+  /* Cards & Containers */
+  .card {
+    background-color: #171721;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 8px 12px;
+  }
+
+  /* Inputs & Forms */
+  .input {
+    background-color: #ededf3;
+    border: 1px solid #272735;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 16px;
+    color: #1e1e2a; /* Assuming input text should be dark on light bg */
+    width: 100%;
+    outline: none;
+  }
+  .input:focus {
+    outline: 2px solid #5266eb;
+  }
+  .input:disabled {
+    background-color: #f4f5f9;
+    color: #70707d;
+  }
+
+  /* Navigation */
+  .navbar {
+    background-color: #1e1e2a;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav-link {
+    color: #ffffff;
+    padding: 8px 16px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .nav-link:hover {
+    color: #9cb4e8;
+  }
+
+  /* Links */
+  .link {
+    color: #5266eb;
+    text-decoration: none;
+  }
+  .link:hover {
+    text-decoration: underline;
+  }
+
+  /* Badges */
+  .badge-success {
+    background-color: #9cb4e8;
+    color: #ffffff;
+    border-radius: 4px;
+    padding: 4px 8px;
+    display: inline-block;
+    font-size: 12px;
+  }
+  .badge-alert {
+    background-color: #d03275;
+    color: #ffffff;
+    border-radius: 4px;
+    padding: 4px 8px;
+    display: inline-block;
+    font-size: 12px;
+  }
+
+  /* Layout Principles */
+  .container {
+    max-width: 1200px;
+    padding: 0 20px;
+    margin: 0 auto;
+  }
+}
+
+@layer utilities {
+  .text-display {
+    font-size: 65px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+  .text-h1 {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+  .text-h2 {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+  .text-body {
+    font-size: 16px;
     font-weight: 400;
-    letter-spacing: 0.13px;
-    padding: 1px 30px;
-    transition: transform 0.15s ease;
+    line-height: 1.5;
+    letter-spacing: 0;
   }
-
-  /* Satellite Micro-CTA */
-  .satellite-cta {
-    @apply rounded-full flex items-center justify-center absolute shadow-sm;
-    background-color: var(--color-surface-pearl);
-    color: var(--color-ink);
-    width: 56px;
-    height: 56px;
-    bottom: -10%;
-    right: -10%;
-    transition: transform 0.2s ease;
-  }
-  .satellite-cta:hover {
-    transform: scale(1.05);
-  }
-
-  /* Dark Utility Button (for Nav) */
-  .button-dark-utility {
-    @apply rounded-[20px] cursor-pointer inline-flex items-center justify-center;
-    background-color: var(--color-ink);
-    color: var(--color-canvas);
-    font-family: 'Sofia Sans', system-ui, sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: -0.2px;
-    padding: 6px 16px;
-    transition: transform 0.15s ease;
-  }
-  .button-dark-utility:active {
-    transform: scale(0.96);
-  }
-
-  /* Text link inline */
-  .text-link {
-    @apply cursor-pointer;
-    color: #3860BE; /* Mastercard Link Blue */
-    font-family: 'Sofia Sans', system-ui, sans-serif;
-  }
-  .text-link:hover {
-    text-decoration: underline;
-  }
-
-  /* Text link on dark tiles */
-  .text-link-on-dark {
-    @apply cursor-pointer;
-    color: #4A80F6; /* Lighter link blue for dark backgrounds */
-    font-family: 'Sofia Sans', system-ui, sans-serif;
-  }
-  .text-link-on-dark:hover {
-    text-decoration: underline;
+  .text-caption {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0;
   }
 }

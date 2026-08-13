@@ -14,7 +14,7 @@ export default function Placements() {
   const ALUMNI = placements.filter(p => p.type === 'alumni').map(p => ({ initials: p.alumniInitials, name: p.alumniName, role: p.alumniRole, desc: p.alumniDesc, batch: p.alumniBatch }))
 
   return (
-    <div className="page-wrap pt-28 pb-20 min-h-screen">
+    <div className="container pt-28 pb-20 min-h-screen">
       <span className="eyebrow">Career & Industry</span>
       <h1 className="font-display font-black text-[clamp(36px,8vw,64px)] leading-none tracking-tight mb-4">
         Placements

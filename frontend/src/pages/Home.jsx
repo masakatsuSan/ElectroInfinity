@@ -96,7 +96,7 @@ export default function Home() {
         path="/" 
       />
       {/* ── HERO ── */}
-      <section className="min-h-screen flex flex-col justify-center pt-32 pb-0 relative overflow-hidden bg-canvas">
+      <section className="min-h-screen flex flex-col justify-center pt-32 pb-0 relative overflow-hidden bg-gradient-to-b from-[#1a1a2e] to-dark-gray text-light-gray">
         {/* Abstract Gradient Background & Orbital Lines */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-gradient-to-br from-primary/10 to-transparent blur-3xl opacity-50"></div>
@@ -114,21 +114,20 @@ export default function Home() {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="page-wrap relative z-10 text-center flex flex-col items-center w-full px-4"
+          className="container relative z-10 text-center flex flex-col items-center w-full px-4"
         >
-          {/* Main heading */}
-          <motion.h1 variants={itemVariants} className="font-display font-medium text-[clamp(48px,8vw,80px)] leading-[0.95] tracking-[-0.03em] text-ink mb-6">
+          <motion.h1 variants={itemVariants} className="text-display mb-6">
             Electro Infinity.
           </motion.h1>
 
-          <motion.h2 variants={itemVariants} className="font-display font-medium text-[clamp(21px,3vw,28px)] leading-snug tracking-[-0.01em] text-ink-muted-80 mb-6 max-w-2xl">
+          <motion.h2 variants={itemVariants} className="text-h2 text-medium-gray mb-6 max-w-2xl">
             The Official Electrical Engineering Club of AGEMC.
           </motion.h2>
 
           {/* Typewriter */}
-          <motion.p variants={itemVariants} className="font-sans text-[18px] font-[450] leading-relaxed text-ink mb-12 min-h-[28px]">
+          <motion.p variants={itemVariants} className="text-body text-medium-gray mb-12 min-h-[28px]">
             {typeText}
-            <span className="inline-block w-[2px] h-[19px] bg-primary ml-[2px] align-middle animate-pulse" />
+            <span className="inline-block w-[2px] h-[19px] bg-accent-blue ml-[2px] align-middle animate-pulse" />
           </motion.p>
 
           <motion.div variants={itemVariants} className="flex flex-wrap justify-center gap-4 mb-20">
@@ -140,10 +139,10 @@ export default function Home() {
             </Link>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="w-full max-w-[1000px] mt-4 rounded-[40px] overflow-hidden bg-surface-pearl border border-divider-soft shadow-[0_8px_32px_rgba(0,0,0,0.04)] relative">
-             <div className="aspect-[16/9] w-full bg-gradient-to-tr from-[#141413]/5 to-[#141413]/10 flex flex-col items-center justify-center p-8">
-                <span className="font-display font-medium text-ink tracking-[-0.02em] text-[28px] mb-3">Welcome to the Future of Electrical Engineering</span>
-                <span className="font-sans text-ink-muted-80 text-[16px] font-[450]">Experience hands-on projects, workshops, and peer collaboration.</span>
+          <motion.div variants={itemVariants} className="w-full max-w-[1000px] mt-4 rounded-[40px] overflow-hidden card relative !p-0">
+             <div className="aspect-[16/9] w-full bg-gradient-to-tr from-[#1a1a2e] to-[#12121e] flex flex-col items-center justify-center p-8">
+                <span className="text-h2 mb-3">Welcome to the Future of Electrical Engineering</span>
+                <span className="text-body text-medium-gray">Experience hands-on projects, workshops, and peer collaboration.</span>
              </div>
              
              {/* Satellite CTA */}
@@ -154,49 +153,49 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* ── NEXT EVENT countdown (Ink Tile) ── */}
-      <section data-nav-theme="dark" className="bg-ink py-32 text-canvas ">
-        <div className="page-wrap text-center flex flex-col items-center">
-          <h2 className="font-display font-medium text-[48px] leading-tight tracking-[-0.02em] mb-4">
+      {/* ── NEXT EVENT countdown ── */}
+      <section className="bg-gradient-to-b from-dark-gray to-[#1a1a2e] py-32 text-light-gray">
+        <div className="container text-center flex flex-col items-center">
+          <h2 className="text-h1 mb-4">
             Next Event
           </h2>
-          <p className="font-sans text-[20px] font-[450] text-canvas/80 mb-12">
+          <p className="text-body text-medium-gray mb-12">
             Workshop on Smart Grid Technologies
           </p>
           <div className="mb-12">
             <Countdown targetDate="2026-07-15T10:00:00" />
           </div>
-          <Link to="/contact" className="button-secondary-pill !bg-canvas !text-ink">
+          <Link to="/contact" className="button-secondary">
             Reserve a seat
           </Link>
         </div>
       </section>
 
-      {/* ── VISION & MISSION (Light Canvas Tile) ── */}
-      <section className="bg-canvas py-32 text-ink text-center border-b border-divider-soft">
-        <div className="page-wrap flex flex-col items-center">
-          <h2 className="font-display font-medium text-[48px] leading-tight tracking-[-0.02em] mb-16">
+      {/* ── VISION & MISSION ── */}
+      <section className="bg-gradient-to-b from-[#1a1a2e] to-[#12121e] py-32 text-center">
+        <div className="container flex flex-col items-center">
+          <h2 className="text-h1 mb-16">
             Vision & Mission
           </h2>
           <div className="grid md:grid-cols-2 gap-16 max-w-[1000px] text-left">
-            <div className="bg-surface-pearl rounded-[40px] p-10 md:p-14 border border-divider-soft">
-              <h3 className="font-sans text-[20px] font-bold text-ink uppercase tracking-[0.04em] mb-6">Vision</h3>
-              <p className="font-sans text-[16px] font-[450] leading-relaxed text-ink-muted-80">
+            <div className="card">
+              <h3 className="font-bold uppercase tracking-[0.04em] mb-6 text-light-blue">Vision</h3>
+              <p className="text-body text-medium-gray">
                 To be AGEMC's home base for students who'd rather build a circuit than just
                 study one — bridging classroom theory and hands-on power, control and
                 automation work.
               </p>
             </div>
-            <div className="bg-surface-pearl rounded-[40px] p-10 md:p-14 border border-divider-soft">
-              <h3 className="font-sans text-[20px] font-bold text-ink uppercase tracking-[0.04em] mb-6">Mission</h3>
+            <div className="card">
+              <h3 className="font-bold uppercase tracking-[0.04em] mb-6 text-light-blue">Mission</h3>
               <ul className="space-y-5">
                 {[
                   'Run hands-on workshops beyond the syllabus.',
                   'Get members real lab time and project ownership.',
                   'Build a peer network into internships and placements.',
                 ].map((item, i) => (
-                  <li key={i} className="flex gap-4 font-sans text-[16px] font-[450] leading-relaxed text-ink-muted-80">
-                    <span className="text-ink font-bold">{i + 1}.</span>
+                  <li key={i} className="flex gap-4 text-body text-medium-gray">
+                    <span className="font-bold text-light-gray">{i + 1}.</span>
                     {item}
                   </li>
                 ))}
@@ -206,10 +205,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── LATEST NOTICES (White Tile) ── */}
-      <section className="bg-canvas py-32">
-        <div className="page-wrap text-center flex flex-col items-center">
-          <h2 className="font-display font-medium text-[48px] leading-tight tracking-[-0.02em] text-ink mb-6">
+      {/* ── LATEST NOTICES ── */}
+      <section className="bg-gradient-to-b from-[#12121e] to-dark-gray py-32">
+        <div className="container text-center flex flex-col items-center">
+          <h2 className="text-h1 mb-6">
             Announcements
           </h2>
           <Link to="/resources" className="text-link flex items-center justify-center gap-1 font-sans text-[16px] font-medium mb-16">
@@ -220,20 +219,20 @@ export default function Home() {
           <div className="w-full max-w-[1000px] grid gap-8 md:grid-cols-2 text-left">
             {isLoading ? (
               Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="bg-surface-pearl rounded-[32px] p-[32px] border border-divider-soft animate-pulse h-[140px]"></div>
+                <div key={i} className="card animate-pulse h-[140px]"></div>
               ))
             ) : notices.length > 0 ? (
               notices.map(n => (
-                <div key={n._id} className="bg-surface-pearl rounded-[32px] p-[32px] border border-divider-soft flex flex-col justify-between hover:-translate-y-1 transition-transform duration-300">
-                   <h3 className="font-sans text-[18px] font-medium text-ink tracking-tight line-clamp-2 mb-4">{n.title}</h3>
-                   <div className="flex justify-between items-center mt-4 pt-4 border-t border-divider-soft">
-                     <span className="font-sans text-[14px] text-ink-muted-80 font-medium">{new Date(n.createdAt).toLocaleDateString()}</span>
-                     <Link to={`/resources`} className="button-secondary-pill !px-4 !py-1 !text-[14px]">View</Link>
+                <div key={n._id} className="card flex flex-col justify-between hover:-translate-y-1 transition-transform duration-300">
+                   <h3 className="text-[18px] font-medium tracking-tight line-clamp-2 mb-4">{n.title}</h3>
+                   <div className="flex justify-between items-center mt-4 pt-4 border-t border-border-color">
+                     <span className="text-caption text-medium-gray">{new Date(n.createdAt).toLocaleDateString()}</span>
+                     <Link to={`/resources`} className="link">View</Link>
                    </div>
                 </div>
               ))
             ) : (
-              <p className="col-span-full font-sans text-[16px] text-ink-muted-80 text-center">No notices yet.</p>
+              <p className="col-span-full text-body text-medium-gray text-center">No notices yet.</p>
             )}
           </div>
         </div>
@@ -264,10 +263,10 @@ function Countdown({ targetDate }) {
     <div className="flex justify-center gap-4 md:gap-8">
       {[['d', 'Days'], ['h', 'Hours'], ['m', 'Mins'], ['s', 'Secs']].map(([k, label]) => (
         <div key={k} className="text-center">
-          <div className="font-display font-medium text-[clamp(28px,6vw,48px)] leading-none text-ink tabular-nums">
+          <div className="font-display font-medium text-[clamp(28px,6vw,48px)] leading-none text-light-purple tabular-nums">
             {String(parts[k]).padStart(2, '0')}
           </div>
-          <div className="font-sans text-[12px] font-normal tracking-tightest text-ink-muted-80 mt-1">
+          <div className="text-caption text-medium-gray mt-1">
             {label}
           </div>
         </div>

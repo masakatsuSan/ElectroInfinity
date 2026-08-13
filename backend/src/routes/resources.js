@@ -16,11 +16,14 @@ router.get('/', optionalAuth, async (req, res) => {
 
     // Batch Isolation Logic
     if (req.user && (req.user.role === 'student' || req.user.role === 'cr')) {
-      // Students/CRs see global content (batch: '') AND their own batch's content
-      filter.batch = { $in: ['', req.user.batch] }
+      // Students/CRs see global content AND their own batch's content
+      filter.$or = [
+        { visibility: 'BATCH', batchId: req.user.batch },
+        { visibility: 'GLOBAL' }
+      ]
     } else if (!req.user) {
-      // Public visitors see only global content (batch: '')
-      filter.batch = ''
+      // Public visitors see only global content
+      filter.visibility = 'GLOBAL'
     }
 
     const resources = await Resource.find(filter)
@@ -99,7 +102,8 @@ router.post(
         filePublicId: publicId,
         fileName: req.file.originalname,
         uploadedBy: req.user._id,
-        batch: req.user.role === 'cr' ? req.user.batch : '', // Set batch if CR
+        batchId: req.user.role === 'cr' ? req.user.batch : (req.body.batchId || ''),
+        visibility: req.user.role === 'cr' ? 'BATCH' : (req.body.visibility || 'BATCH'),
       })
 
       res.status(201).json({ success: true, data: resource })
@@ -115,10 +119,10 @@ router.delete('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, 
     const resource = await Resource.findById(req.params.id)
     if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
 
-    // CR can only delete their own uploads
+    // CR can only delete their own batch's uploads
     if (
       req.user.role === 'cr' &&
-      resource.uploadedBy.toString() !== req.user._id.toString()
+      resource.batchId !== req.user.batch
     ) {
       return res.status(403).json({ success: false, error: 'Not your upload' })
     }

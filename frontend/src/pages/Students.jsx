@@ -103,7 +103,7 @@ export default function Students() {
   };
 
   return (
-    <div className="page-wrap pt-32 pb-20 min-h-screen">
+    <div className="container pt-32 pb-20 min-h-screen">
       {/* ── Profile header ── */}
       <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12 pb-12 border-b border-divider-soft">
         <div className="relative flex-shrink-0">

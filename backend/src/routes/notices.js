@@ -26,12 +26,12 @@ router.get('/', optionalAuth, async (req, res) => {
     if (req.user && (req.user.role === 'student' || req.user.role === 'cr')) {
       batchCondition = {
         $or: [
-          { batch: req.user.batch },
-          { isUniversal: true }
+          { visibility: 'BATCH', batchId: req.user.batch },
+          { visibility: 'GLOBAL' }
         ]
       }
     } else if (!req.user) {
-      batchCondition = { isUniversal: true }
+      batchCondition = { visibility: 'GLOBAL' }
     }
 
     filter.$and = [expireCondition]
@@ -74,14 +74,14 @@ router.get('/:id', async (req, res) => {
 // Only CR or admin can post notices
 router.post('/', protect, guard('cr', 'super_admin', 'admin'), async (req, res) => {
   try {
-    const isUniversal = req.user.role === 'admin' || req.user.role === 'super_admin' ? (req.body.isUniversal || false) : false
-    const batch = req.user.role === 'cr' ? req.user.batch : (req.body.batch || '')
+    const visibility = req.user.role === 'admin' || req.user.role === 'super_admin' ? (req.body.visibility || 'BATCH') : 'BATCH'
+    const batchId = req.user.role === 'cr' ? req.user.batch : (req.body.batchId || '')
 
     const notice = await Notice.create({
       ...req.body,
       postedBy: req.user._id,
-      batch,
-      isUniversal
+      batchId,
+      visibility
     })
     res.status(201).json({ success: true, data: notice })
   } catch (err) {
@@ -112,12 +112,12 @@ router.delete('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, 
     const notice = await Notice.findById(req.params.id)
     if (!notice) return res.status(404).json({ success: false, error: 'Not found' })
 
-    // CR can only delete notices they posted
+    // CR can only delete notices for their own batch
     if (
       req.user.role === 'cr' &&
-      notice.postedBy.toString() !== req.user._id.toString()
+      notice.batchId !== req.user.batch
     ) {
-      return res.status(403).json({ success: false, error: 'Can only delete your own notices' })
+      return res.status(403).json({ success: false, error: 'Can only delete your own batch notices' })
     }
 
     await notice.deleteOne()

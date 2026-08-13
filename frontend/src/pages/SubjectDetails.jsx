@@ -7,7 +7,7 @@ export default function SubjectDetails() {
   const course = getCourseDetails(courseId);
 
   return (
-    <div className="page-wrap pt-32 pb-20 min-h-screen bg-canvas text-ink">
+    <div className="container pt-32 pb-20 min-h-screen bg-canvas text-ink">
       <button 
         onClick={() => navigate('/courses')}
         className="inline-flex items-center gap-2 font-sans text-[14px] font-medium text-ink-muted-80 hover:text-ink transition-colors mb-8"

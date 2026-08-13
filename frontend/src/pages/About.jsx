@@ -22,7 +22,7 @@ import SEO from '../components/SEO'
 
 export default function About() {
   return (
-    <div className="page-wrap pt-32 pb-20 bg-canvas text-ink">
+    <div className="container pt-32 pb-20 bg-canvas text-ink">
       <SEO 
         title="About Us" 
         description="Learn more about Electro Infinity, the official Electrical Engineering Club of AGEMC." 

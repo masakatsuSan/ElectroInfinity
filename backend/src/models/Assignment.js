@@ -22,9 +22,14 @@ const assignmentSchema = new mongoose.Schema({
     type: Date,
     required: [true, 'Please provide a deadline']
   },
-  batch_year: {
-    type: Number,
-    required: [true, 'Please specify the batch year this assignment is for (e.g. 2027)']
+  batchId: {
+    type: String,
+    default: ''
+  },
+  visibility: {
+    type: String,
+    enum: ['GLOBAL', 'BATCH'],
+    default: 'BATCH'
   },
   createdBy: {
     type: mongoose.Schema.ObjectId,

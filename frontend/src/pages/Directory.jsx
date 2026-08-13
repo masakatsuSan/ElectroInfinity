@@ -28,7 +28,7 @@ export default function Directory() {
   })
 
   return (
-    <div className="page-wrap pt-28 pb-20 min-h-screen">
+    <div className="container pt-28 pb-20 min-h-screen">
       <span className="eyebrow">Faculty / Admin Only</span>
       <h1 className="font-display font-black text-[clamp(32px,7vw,60px)] leading-none tracking-tight mb-8">
         Student Directory

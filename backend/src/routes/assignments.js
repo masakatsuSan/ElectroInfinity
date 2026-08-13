@@ -9,16 +9,16 @@ const { protect, guard } = require('../middleware/auth');
 router.get('/', protect, async (req, res) => {
   try {
     let query = {};
-    // If not super_admin or admin, filter by user's graduation_year (batch_year)
+    // Only fetch assignments for the user's batch, or globally visible assignments
     if (req.user.role === 'student' || req.user.role === 'cr') {
-      if (req.user.graduation_year) {
-        query.batch_year = req.user.graduation_year;
+      if (req.user.batch) {
+        query = {
+          $or: [
+            { visibility: 'BATCH', batchId: req.user.batch },
+            { visibility: 'GLOBAL' }
+          ]
+        };
       }
-    }
-    
-    // Allow filtering by query as well
-    if (req.query.batch_year) {
-      query.batch_year = req.query.batch_year;
     }
 
     const assignments = await Assignment.find(query)
@@ -37,9 +37,12 @@ router.get('/', protect, async (req, res) => {
 router.post('/', protect, guard('cr', 'admin', 'super_admin'), async (req, res) => {
   try {
     req.body.createdBy = req.user.id;
-    // Auto-set batch_year to the CR's graduation_year if not provided
-    if (!req.body.batch_year && req.user.graduation_year) {
-      req.body.batch_year = req.user.graduation_year;
+    // Auto-set batchId and visibility for CRs
+    if (req.user.role === 'cr') {
+      req.body.batchId = req.user.batch;
+      req.body.visibility = 'BATCH';
+    } else if (req.user.role === 'admin' || req.user.role === 'super_admin') {
+      req.body.visibility = req.body.visibility || 'BATCH';
     }
     
     const assignment = await Assignment.create(req.body);
@@ -60,7 +63,7 @@ router.delete('/:id', protect, guard('cr', 'admin', 'super_admin'), async (req, 
     }
     
     // Make sure CR can only delete their own batch's assignments
-    if (req.user.role === 'cr' && assignment.batch_year !== req.user.graduation_year) {
+    if (req.user.role === 'cr' && assignment.batchId !== req.user.batch) {
       return res.status(403).json({ success: false, error: 'Not authorized to delete this assignment' });
     }
     

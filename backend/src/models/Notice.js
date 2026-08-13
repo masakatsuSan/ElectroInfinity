@@ -42,11 +42,15 @@ const noticeSchema = new mongoose.Schema(
       default: null,
     },
 
-    // Batch isolation
-    batch: { type: String, default: '' },
+    // Batch isolation (required for BATCH visibility)
+    batchId: { type: String, default: '' },
 
-    // Universal notice (visible to all batches)
-    isUniversal: { type: Boolean, default: false },
+    // Visibility control: GLOBAL (all batches) or BATCH (only specific batchId)
+    visibility: {
+      type: String,
+      enum: ['GLOBAL', 'BATCH'],
+      default: 'BATCH',
+    },
   },
   { timestamps: true }
 )

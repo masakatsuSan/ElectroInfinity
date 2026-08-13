@@ -21,33 +21,12 @@ export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [onDark, setOnDark] = useState(false);
-  const location = useLocation();
+  const isLightNav = menuOpen;
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [menuOpen]);
-
-  useEffect(() => {
-    const darkSections = document.querySelectorAll('[data-nav-theme="dark"]');
-    if (!darkSections.length) {
-      setOnDark(false);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        setOnDark(entries.some((entry) => entry.isIntersecting));
-      },
-      { rootMargin: '-96px 0px -55% 0px', threshold: 0 }
-    );
-
-    darkSections.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, [location.pathname]);
-
-  const isLightNav = menuOpen || onDark;
 
   // Open search with Cmd/Ctrl+K
   useEffect(() => {
@@ -207,7 +186,7 @@ export default function Navbar() {
       </nav>
 
       {/* Full-screen overlay menu */}
-      <div className={`fixed inset-0 z-40 bg-canvas flex flex-col px-6 transition-opacity duration-300 lg:hidden ${
+      <div className={`fixed inset-0 z-40 bg-dark-gray flex flex-col px-6 transition-opacity duration-300 lg:hidden ${
         menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
         <div className="pt-[120px] flex-1 overflow-y-auto pb-8">
