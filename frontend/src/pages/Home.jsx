@@ -105,7 +105,7 @@ export default function Home() {
                   <span className="font-mono text-[12px] text-muted">v2.4.0-stable</span>
                 </div>
 
-                <h3 className="font-display text-[26px] md:text-[34px] font-normal tracking-tight text-black mb-3">
+                <h3 className="font-display text-[26px] md:text-[34px] font-normal tracking-tight text-white mb-3">
                   Dynamic Geofenced Attendance & Academic Management
                 </h3>
                 <p className="font-sans text-black text-[15px] text-muted leading-relaxed max-w-xl">
