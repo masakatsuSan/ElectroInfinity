@@ -54,7 +54,6 @@ router.post('/admin/faculty', protect, guard('admin', 'super_admin'), async (req
     const formattedAssignments = Array.isArray(teachingAssignments)
       ? teachingAssignments.map(a => ({
           batch: (a.batch || '').trim(),
-          section: (a.section || '').trim(),
           subject: (a.subject || '').trim(),
         })).filter(a => a.batch && a.subject)
       : []
@@ -101,7 +100,6 @@ router.put('/admin/faculty/:id', protect, guard('admin', 'super_admin'), async (
       faculty.teachingAssignments = Array.isArray(teachingAssignments)
         ? teachingAssignments.map(a => ({
             batch: (a.batch || '').trim(),
-            section: (a.section || '').trim(),
             subject: (a.subject || '').trim(),
           })).filter(a => a.batch && a.subject)
         : []

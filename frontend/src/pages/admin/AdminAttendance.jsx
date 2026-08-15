@@ -14,8 +14,6 @@ import {
 } from '../../api/attendance'
 
 const BATCHES = ['2023-2027', '2024-2028', '2025-2029', '2026-2030']
-const SECTIONS = ['A', 'B', 'All']
-const PRESET_SUBJECTS = ['ECT', 'EM-II', 'DE', 'NA', 'Maths', 'ECT Lab', 'EM Lab', 'PS-I', 'CS', 'MPMC', 'PE', 'ACE', 'RES']
 
 export default function AdminAttendance() {
   const { user } = useAuth()
@@ -79,7 +77,7 @@ function FacultyManagementTab() {
     name: '',
     email: '',
     password: '',
-    teachingAssignments: [{ batch: '2024-2028', section: 'A', subject: 'ECT' }],
+    teachingAssignments: [{ batch: '2024-2028', subject: 'ECT' }],
   })
 
   const { data: facultyList = [], isLoading } = useQuery({
@@ -87,13 +85,27 @@ function FacultyManagementTab() {
     queryFn: () => getAdminFaculty().then(r => r.data.data),
   })
 
+  const { data: subjectCatalog = [] } = useQuery({
+    queryKey: ['faculty-subject-options'],
+    queryFn: async () => {
+      const results = await Promise.all(
+        BATCHES.map(batch => getSubjects({ batch }).then(r => r.data.data || []))
+      )
+      return results.flat()
+    },
+  })
+
+  const availableSubjects = [...new Map(
+    (subjectCatalog || []).map(subject => [subject.code || subject.name, subject])
+  ).values()].sort((a, b) => (a.code || a.name).localeCompare(b.code || b.name))
+
   const openCreateModal = () => {
     setEditingFaculty(null)
     setForm({
       name: '',
       email: '',
       password: '',
-      teachingAssignments: [{ batch: '2024-2028', section: 'A', subject: 'ECT' }],
+      teachingAssignments: [{ batch: '2024-2028', subject: 'ECT' }],
     })
     setError('')
     setMsg('')
@@ -107,8 +119,8 @@ function FacultyManagementTab() {
       email: fac.email || '',
       password: '',
       teachingAssignments: fac.teachingAssignments?.length
-        ? fac.teachingAssignments.map(a => ({ batch: a.batch || '', section: a.section || '', subject: a.subject || '' }))
-        : [{ batch: '2024-2028', section: '', subject: 'ECT' }],
+        ? fac.teachingAssignments.map(a => ({ batch: a.batch || '', subject: a.subject || '' }))
+        : [{ batch: '2024-2028', subject: 'ECT' }],
     })
     setError('')
     setMsg('')
@@ -151,7 +163,7 @@ function FacultyManagementTab() {
   const addAssignmentRow = () => {
     setForm(f => ({
       ...f,
-      teachingAssignments: [...f.teachingAssignments, { batch: '2024-2028', section: '', subject: 'ECT' }],
+      teachingAssignments: [...f.teachingAssignments, { batch: '2024-2028', subject: 'ECT' }],
     }))
   }
 
@@ -176,7 +188,7 @@ function FacultyManagementTab() {
         <div>
           <h2 className="font-display text-[20px] font-semibold text-ink">Faculty Accounts</h2>
           <p className="font-sans text-[13px] text-ink-muted-80">
-            Create top-level faculty accounts and configure their assigned batch, section, and subjects.
+            Create top-level faculty accounts and configure their assigned batch and subjects.
           </p>
         </div>
         <button onClick={openCreateModal} className="button-primary text-[14px]">
@@ -281,7 +293,7 @@ function FacultyManagementTab() {
                   {editingFaculty ? 'Edit Faculty Account' : 'Create Faculty Account'}
                 </h3>
                 <p className="font-sans text-[13px] text-ink-muted-80">
-                  Assign batches, sections, and subjects for attendance taking.
+                  Assign batches and subjects for attendance taking.
                 </p>
               </div>
               <button
@@ -341,7 +353,7 @@ function FacultyManagementTab() {
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <label className="font-sans text-[14px] font-bold text-ink">Teaching Assignments</label>
-                    <p className="font-sans text-[12px] text-ink-muted-80">Which batch, section & subject does this faculty teach?</p>
+                    <p className="font-sans text-[12px] text-ink-muted-80">Which batch and subject does this faculty teach?</p>
                   </div>
                   <button
                     type="button"
@@ -366,21 +378,19 @@ function FacultyManagementTab() {
                         ))}
                       </select>
 
-                      {/* Section */}
-                      <input
-                        value={row.section}
-                        placeholder="Sec (A/B/All)"
-                        onChange={e => updateAssignmentField(idx, 'section', e.target.value)}
-                        className="w-24 bg-canvas border border-divider-soft rounded-lg px-2.5 py-1.5 text-[13px] font-sans text-ink uppercase"
-                      />
-
                       {/* Subject */}
-                      <input
-                        value={row.subject}
-                        placeholder="Subject code"
+                      <select
+                        value={row.subject || ''}
                         onChange={e => updateAssignmentField(idx, 'subject', e.target.value)}
                         className="bg-canvas border border-divider-soft rounded-lg px-2.5 py-1.5 text-[13px] font-sans text-ink flex-1"
-                      />
+                      >
+                        <option value="">Select subject</option>
+                        {(availableSubjects.filter(subject => (!subject.batch || subject.batch === row.batch))).map(subject => (
+                          <option key={`${subject.batch || row.batch}-${subject.code || subject.name}`} value={subject.code || subject.name}>
+                            {subject.code || subject.name}
+                          </option>
+                        ))}
+                      </select>
 
                       {form.teachingAssignments.length > 1 && (
                         <button
