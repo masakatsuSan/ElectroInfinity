@@ -82,8 +82,56 @@ export default function StudentAttendance() {
     }
   }
 
+  // Inject animations on mount (MUST be before early returns for hook ordering)
   useEffect(() => {
-    if (!user || (user.role !== 'student' && user.role !== 'cr')) {
+    if (typeof window !== 'undefined' && !window.gpsAnimationsInjected) {
+      const style = document.createElement('style')
+      style.textContent = `
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scale-up {
+          from {
+            opacity: 0;
+            transform: scale(0.8);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        @keyframes checkmark-draw {
+          0% {
+            stroke-dasharray: 50;
+            stroke-dashoffset: 50;
+          }
+          100% {
+            stroke-dasharray: 50;
+            stroke-dashoffset: 0;
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out;
+        }
+        .animate-scale-up {
+          animation: scale-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .animate-checkmark {
+          animation: checkmark-draw 0.6s ease-out 0.2s forwards;
+          stroke-dasharray: 50;
+          stroke-dashoffset: 50;
+        }
+      `
+      document.head.appendChild(style)
+      window.gpsAnimationsInjected = true
+    }
+  }, [])
+
+  useEffect(() => {
+    const currentRole = String(user?.role ?? '').trim().toLowerCase()
+
+    if (!user || (currentRole !== 'student' && currentRole !== 'cr')) {
       navigate('/login')
       return
     }
@@ -214,52 +262,6 @@ export default function StudentAttendance() {
       </div>
     )
   }
-
-  // Inject animations on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !window.gpsAnimationsInjected) {
-      const style = document.createElement('style')
-      style.textContent = `
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes scale-up {
-          from {
-            opacity: 0;
-            transform: scale(0.8);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-        @keyframes checkmark-draw {
-          0% {
-            stroke-dasharray: 50;
-            stroke-dashoffset: 50;
-          }
-          100% {
-            stroke-dasharray: 50;
-            stroke-dashoffset: 0;
-          }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.3s ease-out;
-        }
-        .animate-scale-up {
-          animation: scale-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .animate-checkmark {
-          animation: checkmark-draw 0.6s ease-out 0.2s forwards;
-          stroke-dasharray: 50;
-          stroke-dashoffset: 50;
-        }
-      `
-      document.head.appendChild(style)
-      window.gpsAnimationsInjected = true
-    }
-  }, [])
 
   return (
     <div className="min-h-screen bg-canvas text-ink pt-[48px] pb-16">
@@ -465,21 +467,29 @@ export default function StudentAttendance() {
           </button>
         ) : (
           <div className="space-y-4 border border-divider-soft bg-surface-pearl rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="font-sans text-[14px] font-semibold text-ink">Camera Active</span>
+            <div className="flex items-center justify-between mb-4">
+              <span className="font-sans text-[14px] font-semibold text-ink">📷 Camera Active</span>
               <button
                 onClick={() => setScanning(false)}
-                className="text-[13px] font-medium text-red-500 hover:underline"
+                className="text-[13px] font-semibold text-red-500 hover:underline"
               >
-                Cancel Scanning
+                ✕ Cancel
               </button>
             </div>
 
-            <div id="qr-reader" ref={scannerRef} className="qr-scanner-shell rounded-xl overflow-hidden shadow-inner bg-black" />
+            <div className="relative w-full bg-black rounded-xl overflow-hidden shadow-inner aspect-square">
+              <div id="qr-reader" ref={scannerRef} style={{ width: '100%', height: '100%' }} />
+            </div>
 
             <p className="font-sans text-[12px] text-ink-muted-80 text-center leading-relaxed">
-              Point your camera at the revolving QR code displayed on the classroom screen. Live GPS coordinates will be verified automatically.
+              📱 Point your camera at the revolving QR code displayed on the classroom screen. Live GPS coordinates will be verified automatically.
             </p>
+
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+              <p className="font-sans text-[12px] text-blue-700 dark:text-blue-300">
+                💡 <strong>Tip:</strong> Ensure adequate lighting and hold the camera steady for accurate scanning.
+              </p>
+            </div>
           </div>
         )}
 

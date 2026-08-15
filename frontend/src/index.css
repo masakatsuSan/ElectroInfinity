@@ -247,6 +247,9 @@
   .qr-scanner-shell {
     position: relative;
     min-height: 360px;
+    max-height: 480px;
+    width: 100%;
+    height: 100%;
     background: #000000;
   }
 

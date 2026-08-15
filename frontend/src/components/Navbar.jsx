@@ -22,6 +22,7 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
+  const userRole = String(user?.role ?? '').trim().toLowerCase();
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : '';
@@ -81,7 +82,7 @@ export default function Navbar() {
     }
   };
 
-  const roleInfo = user ? getRoleBadge(user.role) : null;
+  const roleInfo = user ? getRoleBadge(userRole) : null;
 
   return (
     <>
@@ -181,7 +182,7 @@ export default function Navbar() {
                     <div className="space-y-1 text-[13px] font-sans font-medium">
                       
                       {/* Faculty actions */}
-                      {user.role === 'faculty' && (
+                      {userRole === 'faculty' && (
                         <>
                           <Link
                             to="/attendance/faculty"
@@ -201,7 +202,7 @@ export default function Navbar() {
                       )}
 
                       {/* Student & CR actions */}
-                      {(user.role === 'student' || user.role === 'cr') && (
+                      {(userRole === 'student' || userRole === 'cr') && (
                         <>
                           <Link
                             to="/attendance/student"
@@ -235,7 +236,7 @@ export default function Navbar() {
                       )}
 
                       {/* CR Panel Link */}
-                      {user.role === 'cr' && (
+                      {userRole === 'cr' && (
                         <Link
                           to="/admin"
                           onClick={() => setProfileOpen(false)}
@@ -246,7 +247,7 @@ export default function Navbar() {
                       )}
 
                       {/* Admin actions */}
-                      {(user.role === 'admin' || user.role === 'super_admin') && (
+                      {(userRole === 'admin' || userRole === 'super_admin') && (
                         <>
                           <Link
                             to="/admin"

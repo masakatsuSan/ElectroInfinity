@@ -23,7 +23,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     {/* HelmetProvider: manages document head tags */}
     <HelmetProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         {/* QueryClientProvider: makes React Query available anywhere */}
         <QueryClientProvider client={queryClient}>
           {/* AuthProvider: makes login state available anywhere */}

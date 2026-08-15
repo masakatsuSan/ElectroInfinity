@@ -16,10 +16,12 @@ export default function ProtectedRoute({ children, role }) {
     return <Navigate to="/login" replace />
   }
 
+  const userRole = String(user.role ?? '').trim().toLowerCase()
+
   // Role check: super_admin can always pass any role check
-  if (role && user.role !== 'super_admin') {
-    const allowedRoles = role.split(',').map(r => r.trim())
-    if (!allowedRoles.includes(user.role)) {
+  if (role && userRole !== 'super_admin') {
+    const allowedRoles = role.split(',').map(r => r.trim().toLowerCase())
+    if (!allowedRoles.includes(userRole)) {
       return <Navigate to="/" replace />
     }
   }
