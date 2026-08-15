@@ -26,13 +26,21 @@ function getBrowserLocation() {
       return
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({
-        centerLat: pos.coords.latitude,
-        centerLng: pos.coords.longitude,
-        accuracy: Math.round(pos.coords.accuracy),
-      }),
+      (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords
+        // Validate coordinates are within valid range
+        if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
+          reject(new Error('Invalid GPS coordinates received. Please ensure your device GPS is working.'))
+          return
+        }
+        resolve({
+          centerLat: latitude,
+          centerLng: longitude,
+          accuracy: Math.round(accuracy),
+        })
+      },
       (err) => reject(new Error(err.message || 'Could not get device GPS location. Please allow location permissions.')),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
     )
   })
 }
@@ -52,7 +60,6 @@ export default function FacultyAttendance() {
   // Selection form
   const [form, setForm] = useState({
     batch: '',
-    section: '',
     subject: '',
     durationMinutes: 60,
   })
@@ -79,12 +86,8 @@ export default function FacultyAttendance() {
     ? [...new Set(assignments.map(a => a.batch).filter(Boolean))]
     : FALLBACK_BATCHES
 
-  const availableSections = hasAssignments
-    ? [...new Set(assignments.filter(a => !form.batch || a.batch === form.batch).map(a => a.section || 'All'))]
-    : FALLBACK_SECTIONS
-
   const availableSubjects = hasAssignments
-    ? [...new Set(assignments.filter(a => (!form.batch || a.batch === form.batch) && (!form.section || form.section === 'All' || a.section === form.section || !a.section)).map(a => a.subject).filter(Boolean))]
+    ? [...new Set(assignments.filter(a => !form.batch || a.batch === form.batch).map(a => a.subject).filter(Boolean))]
     : FALLBACK_SUBJECTS
 
   // Initialize defaults
@@ -219,7 +222,7 @@ export default function FacultyAttendance() {
 
       const payload = {
         batch: form.batch,
-        section: form.section === 'All' ? '' : form.section,
+        section: '',
         subject: form.subject,
         centerLat: loc.centerLat,
         centerLng: loc.centerLng,
@@ -407,23 +410,6 @@ export default function FacultyAttendance() {
                       >
                         {availableBatches.map(b => (
                           <option key={b} value={b}>{b}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Section */}
-                    <div>
-                      <label className="block font-sans text-[13px] font-semibold uppercase tracking-wider text-ink-muted-80 mb-2">
-                        Class / Section
-                      </label>
-                      <select
-                        value={form.section}
-                        onChange={e => setForm(f => ({ ...f, section: e.target.value }))}
-                        className="w-full rounded-xl border border-divider-soft bg-canvas px-4 py-3 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
-                      >
-                        <option value="">All Sections</option>
-                        {availableSections.map(sec => (
-                          <option key={sec} value={sec}>{sec === 'All' ? 'All Sections' : `Section ${sec}`}</option>
                         ))}
                       </select>
                     </div>

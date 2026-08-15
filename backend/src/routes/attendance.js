@@ -525,11 +525,24 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
     }
 
     // Step d: GPS Geofence Check (100 meters radius from faculty GPS anchor)
+    const studentLat = Number(latitude)
+    const studentLng = Number(longitude)
+    const facultyLat = Number(session.centerLat)
+    const facultyLng = Number(session.centerLng)
+
+    // Validate coordinates are valid numbers
+    if (!isFinite(studentLat) || !isFinite(studentLng) || !isFinite(facultyLat) || !isFinite(facultyLng)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid GPS coordinates. Please ensure location services are working correctly.',
+      })
+    }
+
     const distance = distanceMeters(
-      Number(latitude),
-      Number(longitude),
-      session.centerLat,
-      session.centerLng
+      studentLat,
+      studentLng,
+      facultyLat,
+      facultyLng
     )
 
     const MAX_GEOFENCE_METERS = 100

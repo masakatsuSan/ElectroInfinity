@@ -11,13 +11,21 @@ function getStudentGps() {
       return
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({
-        latitude: pos.coords.latitude,
-        longitude: pos.coords.longitude,
-        accuracy: Math.round(pos.coords.accuracy),
-      }),
+      (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords
+        // Validate coordinates are within valid range
+        if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
+          reject(new Error('Invalid GPS coordinates received. Please try again.'))
+          return
+        }
+        resolve({
+          latitude: latitude,
+          longitude: longitude,
+          accuracy: Math.round(accuracy),
+        })
+      },
       (err) => reject(new Error(err.message || 'GPS access denied. Please allow location permissions to verify you are inside the classroom.')),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
     )
   })
 }
@@ -27,6 +35,7 @@ export default function StudentAttendance() {
   const navigate = useNavigate()
   const scannerRef = useRef(null)
   const scannerInstance = useRef(null)
+  const scanCooldownRef = useRef(0)
 
   const [activeSession, setActiveSession] = useState(null)
   const [stats, setStats] = useState(null)
@@ -35,6 +44,7 @@ export default function StudentAttendance() {
   const [msg, setMsg] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [scanRetryCount, setScanRetryCount] = useState(0)
 
   const normalize = (value) => String(value ?? '').trim().toLowerCase()
 
@@ -100,9 +110,17 @@ export default function StudentAttendance() {
 
     scanner.render(
       async (decodedText) => {
+        // Prevent rapid repeated scans (debounce)
+        const now = Date.now()
+        if (now - scanCooldownRef.current < 2000) {
+          return
+        }
+
         setError('')
         setMsg('')
         setScanSuccess(null)
+        setScanRetryCount(0)
+        
         try {
           let payload
           try {
@@ -136,10 +154,23 @@ export default function StudentAttendance() {
 
           scanner.clear().catch(() => {})
           setScanning(false)
+          scanCooldownRef.current = now
           loadData()
         } catch (err) {
+          scanCooldownRef.current = now
           const errText = err.response?.data?.error || err.message || 'Attendance scan failed'
           setError(errText)
+          
+          // For geofence/GPS errors, keep scanner but disable temporarily
+          if (errText.includes('far') || errText.includes('GPS') || errText.includes('geofence')) {
+            setScanRetryCount(prev => prev + 1)
+            if (scanRetryCount < 2) {
+              // Allow 1-2 retries, then require manual intervention
+              return
+            }
+            // After 2 failed attempts, ask user to check location
+            scanner.pause()
+          }
         }
       },
       () => {
@@ -271,6 +302,17 @@ export default function StudentAttendance() {
               <span>⚠</span> Scan Failed
             </div>
             <p className="font-sans text-[14px] mt-1">{error}</p>
+            {error.includes('far') && (
+              <div className="mt-3 pt-3 border-t border-red-500/20 space-y-2">
+                <p className="font-sans text-[13px] font-semibold">Try these:</p>
+                <ul className="font-sans text-[12px] space-y-1 ml-4">
+                  <li>✓ Move closer to the faculty device</li>
+                  <li>✓ Ensure location permissions are enabled</li>
+                  <li>✓ Verify your device GPS is accurate</li>
+                  <li>✓ Ask faculty to re-calibrate their GPS location</li>
+                </ul>
+              </div>
+            )}
           </div>
         )}
 
