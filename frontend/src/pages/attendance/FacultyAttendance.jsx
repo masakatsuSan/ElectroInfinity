@@ -316,11 +316,12 @@ export default function FacultyAttendance() {
       const res = await deleteAttendanceRecord(recordId)
       setMsg(res.data.message || `Record deleted for ${studentName}`)
 
-      // Refresh the roster
+      // Refresh the roster and the aggregate session totals immediately
       if (selectedRosterSession) {
         const rosterRes = await getSessionRoster(selectedRosterSession._id)
         setRosterData(rosterRes.data.data)
       }
+      await loadMyClassesList()
 
       // Clear message after 3 seconds
       setTimeout(() => setMsg(''), 3000)
