@@ -85,7 +85,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="fixed top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none transition-all duration-200">
+      <nav className="fixed left-0 right-0 z-50 flex justify-center px-4 transition-all duration-200 pointer-events-none top-4">
         <div className="w-full max-w-[1280px] rounded-full px-6 py-2.5 flex items-center justify-between pointer-events-auto bg-canvas/95 backdrop-blur-md border border-hairline shadow-card">
           
           {/* Left: Brand Logo */}
@@ -99,7 +99,7 @@ export default function Navbar() {
           </Link>
 
           {/* Center: Navigation links */}
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="items-center hidden gap-1 lg:flex">
             {NAV_LINKS.map(l => (
               <NavLink key={l.to} to={l.to} className={({ isActive }) => navLinkClass(isActive)}>
                 {l.label}
@@ -108,7 +108,7 @@ export default function Navbar() {
           </div>
 
           {/* Right: Search & Profile Button Dropdown */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="items-center hidden gap-3 md:flex">
             <button
               onClick={() => setSearchOpen(true)}
               className="text-body-muted hover:text-ink transition-colors p-1.5 rounded-full hover:bg-soft-stone"
@@ -134,13 +134,13 @@ export default function Navbar() {
                   {/* User Initial Avatar */}
                   <div className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center font-display font-bold text-[12px] flex-shrink-0">
                     {user.photo ? (
-                      <img src={user.photo} alt={user.name} className="w-full h-full object-cover rounded-full" />
+                      <img src={user.photo} alt={user.name} className="object-cover w-full h-full rounded-full" />
                     ) : (
                       user.name?.charAt(0)?.toUpperCase() || 'U'
                     )}
                   </div>
                   
-                  <div className="text-left leading-tight hidden sm:block">
+                  <div className="hidden leading-tight text-left sm:block">
                     <p className="font-sans text-[13px] font-semibold text-ink truncate max-w-[120px]">
                       {user.name?.split(' ')[0]}
                     </p>
@@ -156,9 +156,9 @@ export default function Navbar() {
 
                 {/* Dropdown Menu */}
                 {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-72 bg-canvas text-ink border border-hairline rounded-2xl shadow-modal p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute right-0 z-50 p-2 mt-2 duration-150 border w-72 bg-canvas text-ink border-hairline rounded-2xl shadow-modal animate-in fade-in zoom-in-95">
                     {/* Header info */}
-                    <div className="p-3 bg-soft-stone rounded-xl mb-2">
+                    <div className="p-3 mb-2 bg-soft-stone rounded-xl">
                       <div className="flex items-center justify-between gap-2 mb-1">
                         <p className="font-display font-bold text-[15px] text-ink truncate">{user.name}</p>
                         {roleInfo && (
@@ -279,7 +279,7 @@ export default function Navbar() {
                         </>
                       )}
 
-                      <div className="h-px bg-hairline my-1"></div>
+                      <div className="h-px my-1 bg-hairline"></div>
 
                       <button
                         onClick={handleLogout}
@@ -299,11 +299,11 @@ export default function Navbar() {
           </div>
 
           {/* Mobile hamburger */}
-          <div className="lg:hidden flex items-center gap-2">
+          <div className="flex items-center gap-2 lg:hidden">
             <button
               onClick={() => setSearchOpen(true)}
               aria-label="Search"
-              className="text-ink p-2 hover:bg-soft-stone rounded-full"
+              className="p-2 rounded-full text-ink hover:bg-soft-stone"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -312,7 +312,7 @@ export default function Navbar() {
             <button
               aria-label="Toggle menu"
               onClick={() => setMenuOpen(o => !o)}
-              className="text-ink p-2 hover:bg-soft-stone rounded-full"
+              className="p-2 rounded-full text-ink hover:bg-soft-stone"
             >
               <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {menuOpen ? (
@@ -332,7 +332,7 @@ export default function Navbar() {
       }`}>
         <div className="pt-[100px] flex-1 overflow-y-auto pb-8">
           {user && (
-            <div className="p-4 bg-soft-stone rounded-2xl mb-6 border border-hairline">
+            <div className="p-4 mb-6 border bg-soft-stone rounded-2xl border-hairline">
               <div className="flex items-center justify-between mb-1">
                 <p className="font-display font-bold text-[18px] text-ink">{user.name}</p>
                 {roleInfo && (
@@ -345,7 +345,7 @@ export default function Navbar() {
             </div>
           )}
 
-          <nav className="flex flex-col space-y-3 py-2">
+          <nav className="flex flex-col py-2 space-y-3">
             {NAV_LINKS.map((l) => (
               <NavLink
                 key={l.to}
@@ -370,16 +370,16 @@ export default function Navbar() {
                     </Link>
                   )}
                   {(user.role === 'cr' || user.role === 'admin') && (
-                    <Link to="/admin" onClick={closeMenu} className="button-secondary w-full justify-center">
+                    <Link to="/admin" onClick={closeMenu} className="justify-center w-full button-secondary">
                       {user.role === 'admin' ? 'Admin Dashboard' : 'CR Panel'}
                     </Link>
                   )}
                   {(user.role === 'student' || user.role === 'cr') && (
                     <>
-                      <Link to="/attendance/student" onClick={closeMenu} className="button-primary w-full justify-center">
+                      <Link to="/attendance/student" onClick={closeMenu} className="justify-center w-full button-primary">
                         📷 Scan Class QR
                       </Link>
-                      <Link to="/students" onClick={closeMenu} className="button-secondary w-full justify-center">
+                      <Link to="/students" onClick={closeMenu} className="justify-center w-full button-secondary">
                         My Dashboard & Attendance
                       </Link>
                     </>
@@ -389,7 +389,7 @@ export default function Navbar() {
                   </button>
                 </div>
               ) : (
-                <Link to="/login" onClick={closeMenu} className="button-primary w-full justify-center">
+                <Link to="/login" onClick={closeMenu} className="justify-center w-full button-primary">
                   Sign in
                 </Link>
               )}

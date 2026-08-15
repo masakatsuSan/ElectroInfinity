@@ -67,23 +67,26 @@ export default function AdminLayout() {
         </div>
 
         <nav className="p-4 flex md:flex-col gap-1 overflow-x-auto md:overflow-x-visible scrollbar-none">
-          {availableLinks.map(l => (
-            <NavLink
-              key={l.to}
-              to={l.to}
-              end={l.end}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2.5 rounded-full text-[14px] font-sans font-medium whitespace-nowrap transition-all flex-shrink-0 ${
-                  isActive
-                    ? 'bg-primary text-white font-semibold shadow-sm'
-                    : 'text-body-muted hover:text-ink hover:bg-soft-stone'
-                }`
-              }
-            >
-              <span className="opacity-70 text-[12px]">{l.icon}</span>
-              {l.label}
-            </NavLink>
-          ))}
+          {availableLinks.map(l => {
+            const Icon = l.icon
+            return (
+              <NavLink
+                key={l.to}
+                to={l.to}
+                end={l.end}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-2.5 rounded-full text-[14px] font-sans font-medium whitespace-nowrap transition-all flex-shrink-0 ${
+                    isActive
+                      ? 'bg-primary text-white font-semibold shadow-sm'
+                      : 'text-body-muted hover:text-ink hover:bg-soft-stone'
+                  }`
+                }
+              >
+                <Icon size={16} strokeWidth={1.8} className="opacity-70" />
+                {l.label}
+              </NavLink>
+            )
+          })}
         </nav>
 
         <div className="hidden md:block p-6 mt-auto border-t border-hairline space-y-2">
