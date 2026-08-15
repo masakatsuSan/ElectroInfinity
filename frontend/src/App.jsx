@@ -255,7 +255,7 @@ export default function App() {
       <Routes>
         <Route path="/admin/*" element={null} />
         <Route path="/forum"   element={null} />
-        <Route path="/attendance/faculty" element={null} />
+        <Route path="/attendance/*" element={null} />
         <Route path="*"        element={<Footer />} />
       </Routes>
 

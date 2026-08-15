@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Html5QrcodeScanner } from 'html5-qrcode'
 import { useAuth } from '../../context/AuthContext'
@@ -49,7 +49,7 @@ export default function StudentAttendance() {
     return !sessionSection || sessionSection === userSection
   }
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [sessRes, statsRes] = await Promise.all([
         getActiveBatchSession(),
@@ -64,7 +64,7 @@ export default function StudentAttendance() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
   const refreshStudentGps = async () => {
     try {
@@ -88,7 +88,7 @@ export default function StudentAttendance() {
       return
     }
     loadData()
-  }, [user, navigate])
+  }, [user, navigate, loadData])
 
   useEffect(() => {
     if (!scanning) {

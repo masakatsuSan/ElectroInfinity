@@ -846,9 +846,6 @@ export default function FacultyAttendance() {
                   {selectedRosterSession.batch} {selectedRosterSession.section && `· Sec ${selectedRosterSession.section}`} ·{' '}
                   {new Date(selectedRosterSession.startTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                 </p>
-                <p className="font-sans text-[12px] text-ink-muted-80 mt-2 italic">
-                  💡 Click the ✕ button to delete a record. Deleted records won't be counted as absences.
-                </p>
               </div>
               <button
                 onClick={() => { setSelectedRosterSession(null); setRosterData(null) }}
