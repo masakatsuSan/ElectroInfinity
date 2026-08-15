@@ -348,6 +348,31 @@ router.put('/sessions/:id/gps', protect, guard('faculty'), async (req, res) => {
   }
 })
 
+// @route   DELETE /api/attendance/sessions/:id
+// @desc    Delete a session and all its attendance records
+router.delete('/sessions/:id', protect, guard('faculty', 'admin', 'super_admin'), async (req, res) => {
+  try {
+    const session = await Session.findById(req.params.id)
+    if (!session) {
+      return res.status(404).json({ success: false, error: 'Session not found' })
+    }
+
+    if (req.user.role === 'faculty' && session.faculty.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, error: 'Not authorized to delete this session' })
+    }
+
+    await AttendanceRecord.deleteMany({ session: session._id })
+    await Session.findByIdAndDelete(session._id)
+
+    res.json({
+      success: true,
+      message: `Deleted session ${session.subject} and all associated attendance records.`,
+    })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
 // @route   POST /api/attendance/sessions/:id/end
 // @desc    End active attendance session
 router.post('/sessions/:id/end', protect, guard('faculty', 'admin', 'super_admin'), async (req, res) => {

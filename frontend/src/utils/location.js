@@ -4,7 +4,8 @@ export const LOCATION_SETTINGS = {
   maximumAge: 0,
 }
 
-const DEFAULT_MAX_ACCURACY_METERS = 45
+// Classroom-safe GPS accuracy threshold (indoor environment)
+const DEFAULT_MAX_ACCURACY_METERS = 120
 
 function isValidCoordinate(latitude, longitude) {
   return Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180
@@ -61,8 +62,10 @@ export async function getBestLocation({
   }
 
   if (bestReading) {
-    throw new Error(`GPS accuracy is too poor (${bestReading.accuracy}m). Please retry outdoors or near a window.`)
+    throw new Error(
+      `GPS accuracy is too poor (${bestReading.accuracy}m). Try moving closer to a window or recalibrating. Ideal: ≤120m accuracy.`,
+    )
   }
 
-  throw new Error('Unable to get a stable GPS reading. Please retry outdoors or near a window.')
+  throw new Error('Unable to get a stable GPS reading. Please try again.')
 }

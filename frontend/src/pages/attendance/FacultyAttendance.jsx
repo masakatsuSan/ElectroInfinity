@@ -14,6 +14,7 @@ import {
   getSubjects,
   deleteAttendanceRecord,
   refreshSessionGps,
+  deleteSession,
 } from '../../api/attendance'
 import { getSocketUrl } from '../../utils/socket'
 import { getBestLocation } from '../../utils/location'
@@ -23,7 +24,11 @@ const FALLBACK_SECTIONS = ['A', 'B', 'All']
 const FALLBACK_SUBJECTS = ['ECT', 'EM-II', 'DE', 'NA', 'Maths', 'ECT Lab', 'EM Lab']
 
 function getBrowserLocation() {
-  return getBestLocation({ maxAccuracyMeters: 45, timeoutMs: 12000, attempts: 3 }).then((loc) => ({
+  return getBestLocation({
+    maxAccuracyMeters: 120,
+    timeoutMs: 15000,
+    attempts: 4,
+  }).then((loc) => ({
     centerLat: loc.latitude,
     centerLng: loc.longitude,
     accuracy: loc.accuracy,
@@ -332,6 +337,24 @@ export default function FacultyAttendance() {
     }
   }
 
+  const handleDeleteSession = async (sessionId, sessionName) => {
+    if (!window.confirm(`Delete the entire ${sessionName} session and all its attendance records? This will remove the lecture from your class history and stop it from counting in totals.`)) {
+      return
+    }
+
+    setError('')
+    try {
+      const res = await deleteSession(sessionId)
+      setMsg(res.data.message || `Deleted ${sessionName} session and all attendance records.`)
+      setSelectedRosterSession(null)
+      setRosterData(null)
+      await loadMyClassesList()
+      setTimeout(() => setMsg(''), 3000)
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Failed to delete session')
+    }
+  }
+
   const qrPayload = qrData
     ? JSON.stringify({
         sessionId: qrData.sessionId,
@@ -348,7 +371,7 @@ export default function FacultyAttendance() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-canvas text-ink pt-[48px]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-2 rounded-full border-primary border-t-transparent animate-spin"></div>
           <p className="font-sans text-[15px] text-ink-muted-80">Loading faculty attendance console…</p>
         </div>
       </div>
@@ -358,8 +381,8 @@ export default function FacultyAttendance() {
   return (
     <div className="min-h-screen bg-canvas text-ink pt-[48px] pb-16">
       {/* ── Header ── */}
-      <header className="border-b border-divider-soft bg-surface-pearl px-6 py-5 shadow-sm">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <header className="px-6 py-5 border-b shadow-sm border-divider-soft bg-surface-pearl">
+        <div className="flex flex-col justify-between max-w-6xl gap-4 mx-auto sm:flex-row sm:items-center">
           <div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
@@ -385,9 +408,9 @@ export default function FacultyAttendance() {
       </header>
 
       {/* ── Main content tabs ── */}
-      <main className="max-w-6xl mx-auto p-6 space-y-6">
+      <main className="max-w-6xl p-6 mx-auto space-y-6">
         {/* Navigation pill tabs */}
-        <div className="flex gap-2 border-b border-divider-soft pb-2 overflow-x-auto">
+        <div className="flex gap-2 pb-2 overflow-x-auto border-b border-divider-soft">
           {[
             ['take', ' Take Attendance', session ? 'Active Now' : null],
             ['records', ' My Classes & Rosters', `${myClasses.length} Sessions`],
@@ -437,7 +460,7 @@ export default function FacultyAttendance() {
         {tab === 'take' && (
           <div>
             {!session ? (
-              <section className="border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm p-6 md:p-8 max-w-2xl mx-auto">
+              <section className="max-w-2xl p-6 mx-auto border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl md:p-8">
                 <div className="mb-6">
                   <h2 className="font-display text-[22px] font-bold text-ink">Start Class Session</h2>
                   <p className="font-sans text-[14px] text-ink-muted-80 mt-1">
@@ -498,7 +521,7 @@ export default function FacultyAttendance() {
                   </div>
 
                   {/* Device GPS Anchor Info */}
-                  <div className="rounded-xl border border-divider-soft bg-canvas p-4 space-y-2">
+                  <div className="p-4 space-y-2 border rounded-xl border-divider-soft bg-canvas">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className={`w-3 h-3 rounded-full ${gpsLocation ? 'bg-green-500' : 'bg-amber-500 animate-ping'}`}></span>
@@ -540,11 +563,11 @@ export default function FacultyAttendance() {
               /* Active Session Live Console */
               <div className="grid gap-6 lg:grid-cols-12">
                 {/* QR Section */}
-                <section className="lg:col-span-5 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm p-6 flex flex-col items-center text-center">
-                  <div className="w-full flex items-center justify-between pb-4 border-b border-divider-soft mb-6">
+                <section className="flex flex-col items-center p-6 text-center border shadow-sm lg:col-span-5 border-divider-soft bg-surface-pearl rounded-2xl">
+                  <div className="flex items-center justify-between w-full pb-4 mb-6 border-b border-divider-soft">
                     <div className="text-left">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-bold bg-green-500/10 text-green-600 border border-green-500/20 uppercase tracking-wider">
-                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Live Session
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Live Session
                       </span>
                       <h2 className="font-display text-[22px] font-bold text-ink mt-1.5">{session.subject}</h2>
                       <p className="font-sans text-[13px] text-ink-muted-80">
@@ -576,7 +599,7 @@ export default function FacultyAttendance() {
 
                   {/* GPS Debug Info */}
                   {session && (
-                    <div className="w-full mb-4 rounded-xl bg-canvas border border-divider-soft p-4 space-y-2">
+                    <div className="w-full p-4 mb-4 space-y-2 border rounded-xl bg-canvas border-divider-soft">
                       <div className="text-[11px] space-y-1">
                         <p className="font-mono text-ink-muted-80">
                           📍 Current GPS: {session.centerLat.toFixed(6)}° N, {session.centerLng.toFixed(6)}° E (±{session.centerAccuracy ?? 0}m)
@@ -596,7 +619,7 @@ export default function FacultyAttendance() {
                   )}
 
                   {/* QR Code Container with 15s Timer Ring */}
-                  <div className="relative p-6 bg-white rounded-3xl shadow-xl border border-black/5 dark:border-white/10">
+                  <div className="relative p-6 bg-white border shadow-xl rounded-3xl border-black/5 dark:border-white/10">
                     {qrPayload ? (
                       <QRCodeSVG
                         value={qrPayload}
@@ -621,7 +644,7 @@ export default function FacultyAttendance() {
                     Project this code on screen. Code automatically refreshes every 15s to prevent screenshot sharing.
                   </p>
 
-                  <div className="mt-6 flex flex-wrap gap-2 w-full justify-center">
+                  <div className="flex flex-wrap justify-center w-full gap-2 mt-6">
                     <button
                       onClick={handleTriggerCheckpoint}
                       className="button-secondary text-[13px] !py-2 !px-4"
@@ -632,8 +655,8 @@ export default function FacultyAttendance() {
                 </section>
 
                 {/* Live Feed Section */}
-                <section className="lg:col-span-7 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm p-6 flex flex-col">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-divider-soft mb-4 gap-2">
+                <section className="flex flex-col p-6 border shadow-sm lg:col-span-7 border-divider-soft bg-surface-pearl rounded-2xl">
+                  <div className="flex flex-col justify-between gap-2 pb-4 mb-4 border-b sm:flex-row sm:items-center border-divider-soft">
                     <div>
                       <h3 className="font-display text-[20px] font-bold text-ink">Live Attendance Roster</h3>
                       <p className="font-sans text-[13px] text-ink-muted-80">
@@ -666,7 +689,7 @@ export default function FacultyAttendance() {
                               : 'border-divider-soft/50 bg-canvas/40 opacity-70'
                           }`}
                         >
-                          <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex items-center min-w-0 gap-3">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-[12px] ${
                               status === 'present'
                                 ? 'bg-green-500 text-white'
@@ -679,14 +702,14 @@ export default function FacultyAttendance() {
                             <div className="min-w-0">
                               <p className="font-sans text-[14px] font-semibold text-ink truncate">{student.name}</p>
                               <p className="font-sans text-[12px] text-ink-muted-80 flex items-center gap-2">
-                                <span className="font-mono text-primary font-medium">{student.rollNumber}</span>
+                                <span className="font-mono font-medium text-primary">{student.rollNumber}</span>
                                 {student.section && <span>· Sec {student.section}</span>}
                                 {distanceInMeters != null && <span>· {distanceInMeters}m away</span>}
                               </p>
                             </div>
                           </div>
 
-                          <div className="text-right flex-shrink-0">
+                          <div className="flex-shrink-0 text-right">
                             <span className={`text-[12px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
                               status === 'present'
                                 ? 'text-green-600 bg-green-500/10'
@@ -716,8 +739,8 @@ export default function FacultyAttendance() {
 
         {/* ── TAB 2: My Classes & Records ── */}
         {tab === 'records' && (
-          <section className="border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm p-6 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-divider-soft">
+          <section className="p-6 space-y-6 border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
+            <div className="flex flex-col justify-between gap-3 pb-4 border-b sm:flex-row sm:items-center border-divider-soft">
               <div>
                 <h2 className="font-display text-[22px] font-bold text-ink">My Class Records</h2>
                 <p className="font-sans text-[14px] text-ink-muted-80">
@@ -735,7 +758,7 @@ export default function FacultyAttendance() {
 
             {classesLoading ? (
               <div className="py-12 text-center text-ink-muted-80">
-                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                <div className="w-6 h-6 mx-auto mb-2 border-2 rounded-full border-primary border-t-transparent animate-spin"></div>
                 Loading session records…
               </div>
             ) : myClasses.length === 0 ? (
@@ -748,7 +771,7 @@ export default function FacultyAttendance() {
                 {myClasses.map((s) => (
                   <div
                     key={s._id}
-                    className="border border-divider-soft bg-canvas rounded-xl p-5 hover:border-primary/50 transition-all shadow-sm flex flex-col justify-between"
+                    className="flex flex-col justify-between p-5 transition-all border shadow-sm border-divider-soft bg-canvas rounded-xl hover:border-primary/50"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
@@ -771,12 +794,12 @@ export default function FacultyAttendance() {
                       </p>
 
                       {/* Progress */}
-                      <div className="mt-4 pt-3 border-t border-divider-soft">
+                      <div className="pt-3 mt-4 border-t border-divider-soft">
                         <div className="flex justify-between text-[13px] font-sans mb-1">
                           <span className="text-ink-muted-80">Attendance</span>
                           <span className="font-bold text-ink">{s.presentCount} / {s.totalStudents} ({s.attendancePercentage}%)</span>
                         </div>
-                        <div className="h-2 w-full bg-divider-soft rounded-full overflow-hidden">
+                        <div className="w-full h-2 overflow-hidden rounded-full bg-divider-soft">
                           <div
                             className={`h-full rounded-full ${s.attendancePercentage >= 75 ? 'bg-green-500' : 'bg-amber-500'}`}
                             style={{ width: `${Math.min(100, s.attendancePercentage)}%` }}
@@ -785,12 +808,21 @@ export default function FacultyAttendance() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => handleViewRoster(s)}
-                      className="button-secondary w-full text-[13px] !py-2 mt-4 font-semibold"
-                    >
-                      View Student Roster →
-                    </button>
+                    <div className="flex gap-2 mt-4">
+                      <button
+                        onClick={() => handleViewRoster(s)}
+                        className="button-secondary flex-1 text-[13px] !py-2 font-semibold"
+                      >
+                        View Student Roster →
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSession(s._id, `${s.subject} (${s.batch})`)}
+                        className="border border-red-500/30 text-red-500 hover:bg-red-500/10 rounded-xl px-3 py-2 text-[12px] font-semibold transition-colors"
+                        title="Delete this session record"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -801,10 +833,10 @@ export default function FacultyAttendance() {
 
       {/* ── Modal: Full Session Roster ── */}
       {selectedRosterSession && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-canvas text-ink border border-divider-soft rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
-            <div className="p-6 border-b border-divider-soft flex items-center justify-between">
+            <div className="flex items-center justify-between p-6 border-b border-divider-soft">
               <div className="flex-1">
                 <span className="font-sans text-[12px] font-bold uppercase tracking-wider text-primary">Class Roster</span>
                 <h3 className="font-display text-[22px] font-bold">{selectedRosterSession.subject}</h3>
@@ -818,14 +850,14 @@ export default function FacultyAttendance() {
               </div>
               <button
                 onClick={() => { setSelectedRosterSession(null); setRosterData(null) }}
-                className="w-8 h-8 rounded-full bg-surface-pearl border border-divider-soft flex items-center justify-center hover:bg-divider-soft transition-colors flex-shrink-0"
+                className="flex items-center justify-center flex-shrink-0 w-8 h-8 transition-colors border rounded-full bg-surface-pearl border-divider-soft hover:bg-divider-soft"
               >
                 ✕
               </button>
             </div>
 
             {/* Content */}
-            <div className="p-6 overflow-y-auto flex-1">
+            <div className="flex-1 p-6 overflow-y-auto">
               {error && (
                 <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-600 text-[13px] rounded-lg">
                   ⚠️ {error}
@@ -839,7 +871,7 @@ export default function FacultyAttendance() {
 
               {rosterLoading ? (
                 <div className="py-12 text-center text-ink-muted-80">
-                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                  <div className="w-6 h-6 mx-auto mb-2 border-2 rounded-full border-primary border-t-transparent animate-spin"></div>
                   Loading student roster…
                 </div>
               ) : rosterData?.feed ? (
@@ -866,7 +898,7 @@ export default function FacultyAttendance() {
                         </p>
                       </div>
 
-                      <div className="text-right flex items-center gap-3">
+                      <div className="flex items-center gap-3 text-right">
                         <div>
                           <span className={`text-[12px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
                             status === 'present'
@@ -889,7 +921,7 @@ export default function FacultyAttendance() {
                             onClick={() => handleDeleteRecord(initial._id, student.name)}
                             disabled={deletingRecordId === initial._id}
                             title="Delete this attendance record"
-                            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-500/10 text-red-500 font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:text-red-600"
+                            className="flex items-center justify-center w-8 h-8 font-bold text-red-500 transition-all rounded-full hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed hover:text-red-600"
                           >
                             {deletingRecordId === initial._id ? '⏳' : '✕'}
                           </button>

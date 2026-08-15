@@ -6,7 +6,11 @@ import { getActiveBatchSession, scanQr, getMyStats } from '../../api/attendance'
 import { getBestLocation } from '../../utils/location'
 
 function getStudentGps() {
-  return getBestLocation({ maxAccuracyMeters: 45, timeoutMs: 12000, attempts: 3 })
+  return getBestLocation({
+    maxAccuracyMeters: 120,
+    timeoutMs: 15000,
+    attempts: 4,
+  })
 }
 
 export default function StudentAttendance() {
