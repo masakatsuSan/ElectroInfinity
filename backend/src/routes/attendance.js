@@ -599,8 +599,34 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
       facultyLng
     )
 
+    // Check if coordinates are swapped (lat/lng reversed)
+    const swappedDistance = distanceMeters(
+      studentLng,
+      studentLat,
+      facultyLng,
+      facultyLat
+    )
+
     const MAX_GEOFENCE_METERS = 100
     if (distance > MAX_GEOFENCE_METERS) {
+      // Build detailed debug info for troubleshooting
+      const troubleshooting = []
+      
+      // Check if swap fixes the issue
+      if (swappedDistance <= MAX_GEOFENCE_METERS) {
+        troubleshooting.push(`⚠️ COORDINATE SWAP DETECTED: Swapped coordinates give ${swappedDistance}m (valid). This is a system configuration issue.`)
+      }
+      
+      // Check if faculty and student are too different
+      if (Math.abs(studentLat - facultyLat) > 1 || Math.abs(studentLng - facultyLng) > 1) {
+        troubleshooting.push(`❌ Coordinates differ by >1°: Faculty at (${facultyLat.toFixed(4)}, ${facultyLng.toFixed(4)}), Student at (${studentLat.toFixed(4)}, ${studentLng.toFixed(4)})`)
+      }
+      
+      troubleshooting.push(`✓ Faculty: ${facultyLat.toFixed(6)}° N, ${facultyLng.toFixed(6)}° E`)
+      troubleshooting.push(`✓ Student: ${studentLat.toFixed(6)}° N, ${studentLng.toFixed(6)}° E`)
+      troubleshooting.push(`📏 Distance: ${distance}m (limit: ${MAX_GEOFENCE_METERS}m)`)
+      troubleshooting.push(`💡 Try: Enable High Accuracy location, disable battery saver, ask faculty to re-calibrate GPS`)
+
       return res.status(400).json({
         success: false,
         distanceInMeters: distance,
@@ -611,6 +637,8 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
           facultyLat: facultyLat.toFixed(6),
           facultyLng: facultyLng.toFixed(6),
           calculatedDistance: distance,
+          swappedDistance: swappedDistance,
+          troubleshooting: troubleshooting.join('\n'),
         },
       })
     }

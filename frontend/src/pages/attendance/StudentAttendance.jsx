@@ -43,6 +43,7 @@ export default function StudentAttendance() {
   const [scanSuccess, setScanSuccess] = useState(null)
   const [msg, setMsg] = useState('')
   const [error, setError] = useState('')
+  const [errorDebug, setErrorDebug] = useState(null)
   const [loading, setLoading] = useState(true)
   const [scanRetryCount, setScanRetryCount] = useState(0)
   const [gpsDebug, setGpsDebug] = useState(null)
@@ -176,7 +177,9 @@ export default function StudentAttendance() {
         } catch (err) {
           scanCooldownRef.current = now
           const errText = err.response?.data?.error || err.message || 'Attendance scan failed'
+          const debugData = err.response?.data?.debug
           setError(errText)
+          setErrorDebug(debugData)
           
           // For geofence/GPS errors, keep scanner but disable temporarily
           if (errText.includes('far') || errText.includes('GPS') || errText.includes('geofence')) {
@@ -319,6 +322,35 @@ export default function StudentAttendance() {
               <span>⚠</span> Scan Failed
             </div>
             <p className="font-sans text-[14px] mt-1">{error}</p>
+
+            {/* GPS Debug Info */}
+            {errorDebug && (
+              <div className="mt-4 pt-4 border-t border-red-500/20 space-y-2">
+                <p className="font-sans text-[13px] font-semibold">📍 GPS Debug Info:</p>
+                <div className="bg-red-500/5 rounded-lg p-3 font-mono text-[11px] space-y-1 text-red-900 dark:text-red-200">
+                  {errorDebug.studentLat && (
+                    <>
+                      <div>📱 Your GPS: {errorDebug.studentLat}°N, {errorDebug.studentLng}°E</div>
+                      <div>👨‍🏫 Faculty GPS: {errorDebug.facultyLat}°N, {errorDebug.facultyLng}°E</div>
+                      <div>📏 Distance: {errorDebug.calculatedDistance}m (limit: 100m)</div>
+                      {errorDebug.swappedDistance && (
+                        <div className="mt-1 pt-1 border-t border-red-500/20">
+                          🔄 If coords swapped: {errorDebug.swappedDistance}m {errorDebug.swappedDistance <= 100 ? '✓ WOULD WORK' : ''}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+                {errorDebug.troubleshooting && (
+                  <div className="mt-2 space-y-1 text-[12px]">
+                    {errorDebug.troubleshooting.split('\n').map((line, i) => (
+                      <div key={i}>{line}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {error.includes('far') && (
               <div className="mt-3 pt-3 border-t border-red-500/20 space-y-2">
                 <p className="font-sans text-[13px] font-semibold">Try these:</p>
