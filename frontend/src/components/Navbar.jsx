@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GlobalSearch from './GlobalSearch';
-import { LayoutGrid, School, Contact, MessagesSquare , QrCode, BarChart3, CalendarClock, MessagesSquare, ScanQrCode} from 'lucide-react'
+import { LayoutGrid, School, Contact, MessagesSquare, QrCode, BarChart3, CalendarClock, ScanQrCode } from 'lucide-react'
 
 const NAV_LINKS = [
   { to: '/about',      label: 'About'      },
