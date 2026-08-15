@@ -18,6 +18,9 @@ export const getBatchStudents = (batch) => api.get(`/students/batch/${batch}`)
 // Admin: delete a student
 export const deleteStudent = (id)    => api.delete(`/students/${id}`)
 
+// Admin: promote or demote a student to CR
+export const updateStudentRole = (id, role) => api.patch(`/students/${id}/role`, { role })
+
 // Student: upload own profile photo
 export const uploadPhoto  = (formData) =>
   api.patch('/students/me/photo', formData, {

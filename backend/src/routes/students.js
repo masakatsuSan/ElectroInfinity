@@ -107,11 +107,11 @@ router.post('/bulk-import', protect, guard('super_admin', 'admin'), async (req, 
 })
 
 // ── GET /api/students ─────────────────────────────────────────────────────
-// Admin — list all students, optional ?batch=2024-2028&semester=3
+// Admin — list all students and CRs, optional ?batch=2024-2028&semester=3
 router.get('/', protect, guard('super_admin', 'admin'), async (req, res) => {
   try {
     const { batch, semester } = req.query
-    const filter = { role: 'student' }
+    const filter = { role: { $in: ['student', 'cr'] } }
     if (batch)    filter.batch    = batch
     if (semester) filter.semester = Number(semester)
 
@@ -126,6 +126,38 @@ router.get('/', protect, guard('super_admin', 'admin'), async (req, res) => {
     }))
 
     res.json({ success: true, data: normalized })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// @route   PATCH /api/students/:id/role
+// @desc    Promote or demote a student to/from CR role
+router.patch('/:id/role', protect, guard('super_admin', 'admin'), async (req, res) => {
+  try {
+    const { role } = req.body
+    if (!role || !['student', 'cr'].includes(role)) {
+      return res.status(400).json({ success: false, error: 'Role must be either student or cr' })
+    }
+
+    const user = await User.findById(req.params.id)
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'Student not found' })
+    }
+
+    user.role = role
+    await user.save()
+
+    res.json({
+      success: true,
+      data: {
+        _id: user._id,
+        name: user.name,
+        role: user.role,
+        batch: user.batch,
+      },
+      message: user.role === 'cr' ? 'Student promoted to CR successfully' : 'CR privileges removed successfully',
+    })
   } catch (err) {
     res.status(500).json({ success: false, error: err.message })
   }

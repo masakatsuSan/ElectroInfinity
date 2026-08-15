@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getStudents, addStudent, bulkImport, deleteStudent } from '../../api/students'
+import { getStudents, addStudent, bulkImport, deleteStudent, updateStudentRole } from '../../api/students'
 const SUBJECTS = ['ECT','EM-II','DE','NA','Maths','ECT Lab','EM Lab']
 const BATCHES  = ['2023-2027','2024-2028','2025-2029','2026-2030']
 const BLANK    = { name:'', rollNumber:'', email:'', batch:'2024-2028', semester:'3', regNumber:'' }
@@ -208,6 +208,11 @@ function DirectoryTab({ qc }) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['students'] }),
   })
 
+  const roleMut = useMutation({
+    mutationFn: ({ id, role }) => updateStudentRole(id, role),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['students'] }),
+  })
+
   const students = data?.data || []
 
   return (
@@ -231,7 +236,12 @@ function DirectoryTab({ qc }) {
           {students.map(s => (
             <div key={s._id} className="flex items-center gap-4 px-6 py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
               <div className="flex-1 min-w-0">
-                <p className="text-[15px] font-medium text-ink">{s.name || '(No name)'}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-[15px] font-medium text-ink">{s.name || '(No name)'}</p>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${s.role === 'cr' ? 'bg-coral/15 text-coral border border-coral/20' : 'bg-slate-100 text-slate-700 border border-slate-200'}`}>
+                    {s.role === 'cr' ? 'CR' : 'Student'}
+                  </span>
+                </div>
                 <p className="font-sans text-[13px] font-medium text-ink-muted-80 mt-1 flex items-center gap-2 flex-wrap">
                   <span className="text-primary font-semibold tracking-wider">{s.rollNumber}</span>
                   {s.email && <span className="opacity-50">·</span>}
@@ -243,8 +253,29 @@ function DirectoryTab({ qc }) {
                   </span>
                 </p>
               </div>
-              <button onClick={() => { if (window.confirm(`Remove ${s.name}?`)) delMut.mutate(s._id) }}
-                className="font-sans text-[13px] font-medium text-red-500/70 hover:text-red-500 transition-colors bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-md flex-shrink-0">Remove</button>
+
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => {
+                    const nextRole = s.role === 'cr' ? 'student' : 'cr'
+                    const nextLabel = nextRole === 'cr' ? 'promote to CR' : 'remove CR'
+                    if (window.confirm(`Are you sure you want to ${nextLabel} for ${s.name}?`)) {
+                      roleMut.mutate({ id: s._id, role: nextRole })
+                    }
+                  }}
+                  disabled={roleMut.isPending}
+                  className={`font-sans text-[12px] font-medium px-3 py-1.5 rounded-md transition-colors ${
+                    s.role === 'cr'
+                      ? 'text-slate-700 bg-slate-100 hover:bg-slate-200'
+                      : 'text-amber-700 bg-amber-100 hover:bg-amber-200'
+                  }`}
+                >
+                  {s.role === 'cr' ? 'Remove CR' : 'Make CR'}
+                </button>
+
+                <button onClick={() => { if (window.confirm(`Remove ${s.name}?`)) delMut.mutate(s._id) }}
+                  className="font-sans text-[13px] font-medium text-red-500/70 hover:text-red-500 transition-colors bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-md flex-shrink-0">Remove</button>
+              </div>
             </div>
           ))}
         </div>
