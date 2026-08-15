@@ -1,26 +1,32 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { changePassword } from '../api/auth';
 import { getNotices } from '../api/notices';
 import { uploadPhoto, getBatchStudents } from '../api/students';
 import { getDeadlines, submitDeadline } from '../api/deadlines';
-import NoticeCard from '../components/NoticeCard';
-
 import { getRoutine } from '../api/routines';
 import { getEvents } from '../api/events';
+import { getStudentHistory } from '../api/attendance';
 
 export default function Students() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const fileRef = useRef(null);
-  const [activeTab, setActiveTab] = useState('deadlines');
+  const [activeTab, setActiveTab] = useState('attendance');
   const [photoError,  setPhotoError]  = useState('');
   const [pwForm,      setPwForm]      = useState({ current:'', next:'', confirm:'' });
   const [pwMsg,       setPwMsg]       = useState('');
   const [pwErr,       setPwErr]       = useState('');
   const [pwLoading,   setPwLoading]   = useState(false);
 
+  // Attendance History Query
+  const { data: attendanceData, isLoading: attendanceLoading } = useQuery({
+    queryKey: ['studentAttendanceHistory', user?._id],
+    queryFn: () => getStudentHistory().then(r => r.data.data),
+    enabled: activeTab === 'attendance',
+  });
 
   // Deadlines Query
   const { data: deadlinesData, isLoading: deadlinesLoading } = useQuery({
@@ -49,8 +55,6 @@ export default function Students() {
     queryFn: () => getBatchStudents(user?.batch).then(r => r.data),
     enabled: activeTab === 'deadlines' && user?.role === 'cr' && !!user?.batch,
   });
-
-
 
   const submitDeadlineMut = useMutation({
     mutationFn: (id) => submitDeadline(id),
@@ -88,7 +92,7 @@ export default function Students() {
   const roster = batchData?.data || [];
   const totalStudents = roster.length;
 
-  const TABS = ['deadlines', 'routine', 'calendar', 'notices', 'password'];
+  const TABS = ['attendance', 'deadlines', 'routine', 'calendar', 'notices', 'password'];
 
   // Helper to format countdown
   const getCountdown = (dateStr) => {
@@ -101,6 +105,10 @@ export default function Students() {
     if (days > 0) return `${days}d ${hours}h left`;
     return `${hours}h left`;
   };
+
+  const overall = attendanceData?.overall || { totalLectures: 0, attendedLectures: 0, percentage: 100, lowAttendance: false };
+  const perSubject = attendanceData?.perSubject || [];
+  const history = attendanceData?.history || [];
 
   return (
     <div className="container pt-32 pb-20 min-h-screen">
@@ -135,6 +143,11 @@ export default function Students() {
             {user?.section && <span>Sec {user.section}</span>}
           </p>
           {photoError && <p className="text-red-500 text-[14px] mt-2 font-[450]">{photoError}</p>}
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-4">
+            <Link to="/attendance/student" className="button-primary text-[14px] !py-2 !px-4">
+              📷 Scan Class QR →
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -145,7 +158,8 @@ export default function Students() {
             className={`font-sans text-[14px] font-bold uppercase tracking-[0.04em] px-6 py-3 flex-none rounded-[999px] transition-all whitespace-nowrap ${
               activeTab === t ? 'bg-ink text-canvas shadow-sm' : 'text-[#696969] bg-transparent hover:text-ink hover:bg-canvas-parchment'
             }`}>
-            {t === 'deadlines' ? 'Deadlines'
+            {t === 'attendance' ? '📊 Attendance'
+              : t === 'deadlines' ? 'Deadlines'
               : t === 'routine' ? 'Routine'
               : t === 'calendar' ? 'Calendar'
               : t === 'password' ? 'Password'
@@ -153,6 +167,157 @@ export default function Students() {
           </button>
         ))}
       </div>
+
+      {/* ── Tab: Attendance History ── */}
+      {activeTab === 'attendance' && (
+        <div className="animate-in fade-in duration-300 space-y-8">
+          {attendanceLoading ? (
+            <div className="animate-pulse space-y-4">
+              <div className="h-40 bg-black/5 rounded-2xl"></div>
+              <div className="h-64 bg-black/5 rounded-2xl"></div>
+            </div>
+          ) : (
+            <>
+              {/* Overall & Subject Breakdown Cards */}
+              <div className="grid gap-6 md:grid-cols-12">
+                {/* Overall Score Card */}
+                <div className={`md:col-span-4 border border-divider-soft bg-surface-pearl rounded-2xl p-6 shadow-sm flex flex-col justify-between ${
+                  overall.lowAttendance ? 'border-amber-500/40 bg-amber-500/5' : ''
+                }`}>
+                  <div>
+                    <span className="font-sans text-[12px] font-bold uppercase tracking-wider text-ink-muted-80">
+                      Overall Attendance
+                    </span>
+                    <div className="flex items-baseline gap-2 mt-2">
+                      <span className="font-display text-[48px] font-bold text-ink leading-none">{overall.percentage}%</span>
+                      <span className={`text-[12px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                        overall.percentage >= 75 ? 'bg-green-500/10 text-green-600' : 'bg-amber-500/15 text-amber-600'
+                      }`}>
+                        {overall.percentage >= 75 ? 'Good Standing' : 'Below 75%'}
+                      </span>
+                    </div>
+                    <p className="font-sans text-[14px] text-ink-muted-80 mt-2">
+                      Attended <strong>{overall.attendedLectures}</strong> out of <strong>{overall.totalLectures}</strong> conducted lectures.
+                    </p>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-divider-soft">
+                    <div className="h-2.5 w-full bg-divider-soft rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          overall.percentage >= 75 ? 'bg-green-500' : 'bg-amber-500'
+                        }`}
+                        style={{ width: `${Math.min(100, overall.percentage)}%` }}
+                      ></div>
+                    </div>
+                    <p className="font-sans text-[11px] text-ink-muted-48 mt-2">
+                      Minimum 75% attendance required for semester exams.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Per-Subject Breakdown Grid */}
+                <div className="md:col-span-8 border border-divider-soft bg-surface-pearl rounded-2xl p-6 shadow-sm">
+                  <h3 className="font-display text-[18px] font-bold text-ink mb-4">Subject-Wise Breakdown</h3>
+                  {perSubject.length === 0 ? (
+                    <p className="font-sans text-[14px] text-ink-muted-80 py-8 text-center">No subject lecture records yet.</p>
+                  ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {perSubject.map((sub) => (
+                        <div
+                          key={sub.subject}
+                          className="border border-divider-soft bg-canvas rounded-xl p-4 shadow-sm"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-sans text-[13px] font-bold text-ink truncate">{sub.subject}</span>
+                            <span className={`text-[12px] font-bold ${
+                              sub.percentage >= 75 ? 'text-green-600' : 'text-amber-600'
+                            }`}>
+                              {sub.percentage}%
+                            </span>
+                          </div>
+                          <div className="h-2 w-full bg-divider-soft rounded-full overflow-hidden mb-2">
+                            <div
+                              className={`h-full rounded-full ${sub.percentage >= 75 ? 'bg-green-500' : 'bg-amber-500'}`}
+                              style={{ width: `${Math.min(100, sub.percentage)}%` }}
+                            ></div>
+                          </div>
+                          <div className="flex justify-between text-[11px] font-sans text-ink-muted-80">
+                            <span>{sub.attended} / {sub.total} attended</span>
+                            {sub.flagged > 0 && <span className="text-amber-500">{sub.flagged} flagged</span>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Past Lectures History Table */}
+              <div className="border border-divider-soft bg-surface-pearl rounded-2xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="font-display text-[20px] font-bold text-ink">Past Lectures History</h3>
+                    <p className="font-sans text-[13px] text-ink-muted-80">Chronological log of verified classroom attendance</p>
+                  </div>
+                </div>
+
+                {history.length === 0 ? (
+                  <div className="py-12 text-center text-ink-muted-80 border border-divider-soft rounded-xl bg-canvas">
+                    <p className="font-sans text-[15px]">No attendance records found for your batch.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left font-sans text-[14px]">
+                      <thead>
+                        <tr className="border-b border-divider-soft text-[12px] font-bold uppercase tracking-wider text-ink-muted-80">
+                          <th className="pb-3 px-3">Date & Time</th>
+                          <th className="pb-3 px-3">Subject</th>
+                          <th className="pb-3 px-3">Faculty</th>
+                          <th className="pb-3 px-3">Section</th>
+                          <th className="pb-3 px-3">Status</th>
+                          <th className="pb-3 px-3 text-right">Distance</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-divider-soft/50">
+                        {history.map((h) => (
+                          <tr key={h._id} className="hover:bg-canvas/50 transition-colors">
+                            <td className="py-3.5 px-3">
+                              <p className="font-medium text-ink">
+                                {new Date(h.date).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </p>
+                              <p className="text-[12px] text-ink-muted-80">
+                                {new Date(h.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </td>
+                            <td className="py-3.5 px-3 font-semibold text-ink">{h.subject}</td>
+                            <td className="py-3.5 px-3 text-ink-muted-80">{h.facultyName}</td>
+                            <td className="py-3.5 px-3 text-ink-muted-80">{h.section || 'All'}</td>
+                            <td className="py-3.5 px-3">
+                              <span className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                                h.status === 'present'
+                                  ? 'bg-green-500/10 text-green-600 border border-green-500/20'
+                                  : h.status === 'flagged'
+                                  ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
+                                  : 'bg-red-500/10 text-red-500 border border-red-500/20'
+                              }`}>
+                                {h.status === 'present' ? '✓ Present' : h.status === 'flagged' ? '⚠ Flagged' : '✗ Absent'}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-3 text-right font-mono text-[12px] text-ink-muted-80">
+                              {h.distanceInMeters != null ? `${h.distanceInMeters}m` : '—'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* ── Deadlines Feed (Premium Glassy Tracking UI) ── */}
       {activeTab === 'deadlines' && (
@@ -172,7 +337,6 @@ export default function Students() {
                 const submitCount = d.submittedBy?.length || 0;
                 const isComplete = totalStudents > 0 && submitCount >= totalStudents;
                 
-                // For CRs: Identify who hasn't submitted
                 let missingStudents = [];
                 if (user?.role === 'cr' && totalStudents > 0) {
                   missingStudents = roster.filter(s => !d.submittedBy?.includes(s._id));
@@ -180,7 +344,6 @@ export default function Students() {
 
                 return (
                   <div key={d._id} className="p-6 md:p-8 border border-white/20 dark:border-white/10 rounded-[24px] bg-gradient-to-br from-blue-50/50 to-white/50 dark:from-blue-900/10 dark:to-black/20 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.2)] flex flex-col hover:shadow-lg transition-shadow relative group">
-                    
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
@@ -215,7 +378,6 @@ export default function Students() {
                         </div>
                       </div>
 
-                      {/* Right Panel: Student View vs CR View */}
                       <div className="md:w-[300px] flex-shrink-0 bg-white/40 dark:bg-black/20 rounded-2xl p-5 border border-white/20 dark:border-white/5 shadow-inner">
                         {user?.role === 'student' ? (
                           <div className="flex flex-col items-center justify-center h-full text-center">
@@ -239,7 +401,6 @@ export default function Students() {
                               <span className="font-sans text-[13px] font-bold text-ink uppercase tracking-wider">Progress</span>
                               <span className="font-sans text-[18px] font-medium text-ink">{submitCount} / {totalStudents}</span>
                             </div>
-                            {/* Progress Bar */}
                             <div className="h-2 w-full bg-black/5 dark:bg-white/10 rounded-full overflow-hidden mb-4">
                               <div 
                                 className="h-full bg-blue-500 rounded-full transition-all duration-500" 
@@ -405,8 +566,6 @@ export default function Students() {
           </div>
         </div>
       )}
-
-
     </div>
   );
 }

@@ -1,7 +1,9 @@
 require('dotenv').config()
 const express = require('express')
+const http    = require('http')
 const cors    = require('cors')
 const connectDB = require('./src/config/db')
+const { initSocket } = require('./src/config/socket')
 
 connectDB()
 
@@ -30,6 +32,9 @@ app.use('/api/placements', require('./src/routes/placements'))
 app.use('/api/labs',       require('./src/routes/labs'))
 app.use('/api/achievements',require('./src/routes/achievements'))
 app.use('/api/gallery',    require('./src/routes/gallery'))
+// Attendance & Subjects
+app.use('/api/attendance', require('./src/routes/attendance'))
+app.use('/api/subjects',   require('./src/routes/subjects'))
 
 app.get('/api/health', (req, res) =>
   res.json({ success: true, message: 'Electro Infinity API is running ⚡' })
@@ -41,8 +46,12 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, error: err.message || 'Something went wrong' })
 })
 
+const server = http.createServer(app)
+const io = initSocket(server)
+app.set('io', io)
+
 const PORT = process.env.PORT || 5000
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Server at http://localhost:${PORT}`)
   console.log(`📡 Health: http://localhost:${PORT}/api/health`)
 })

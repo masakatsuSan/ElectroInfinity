@@ -7,9 +7,9 @@ export default function ForgotPassword() {
 
   const [step,       setStep]       = useState(1)
   const [rollNumber, setRollNumber] = useState('')
-  const [maskedEmail,setMaskedEmail]= useState('') // e.g. ra***@gmail.com
+  const [maskedEmail,setMaskedEmail]= useState('')
   const [otp,        setOtp]        = useState('')
-  const [resetToken, setResetToken] = useState('') // returned after OTP verified
+  const [resetToken, setResetToken] = useState('')
   const [password,   setPassword]   = useState('')
   const [confirm,    setConfirm]    = useState('')
   const [loading,    setLoading]    = useState(false)
@@ -40,11 +40,12 @@ export default function ForgotPassword() {
       const res = await forgotPassword({ rollNumber: rollNumber.trim().toUpperCase() })
       setMaskedEmail(res.data.maskedEmail)
       setOtp('')
-      setError('✓ New OTP sent')
+      setError('✓ New OTP sent to email')
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to resend OTP')
     } finally {
-      setResending(false) }
+      setResending(false)
+    }
   }
 
   // ── Step 2: verify OTP ────────────────────────────────────────────────
@@ -73,11 +74,9 @@ export default function ForgotPassword() {
 
     try {
       await resetPassword({ resetToken, newPassword: password })
-      // Redirect to login with success message in state
       navigate('/login', { state: { message: 'Password reset successful! You can now sign in.' } })
     } catch (err) {
       setError(err.response?.data?.error || 'Reset failed')
-      // If reset token expired, go back to step 1
       if (err.response?.data?.error?.includes('expired')) {
         setTimeout(() => { setStep(1); setOtp(''); setResetToken('') }, 2000)
       }
@@ -89,47 +88,53 @@ export default function ForgotPassword() {
   const stepLabel = ['Forgot Password', 'Verify Email', 'Create Password']
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-canvas text-ink pt-[44px]">
-      <div className="w-full max-w-[400px]">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-canvas text-ink py-28">
+      <div className="w-full max-w-md bg-canvas border border-hairline rounded-2xl p-8 sm:p-10 shadow-card">
 
         {/* Step indicator */}
         <div className="flex items-center gap-3 mb-8 justify-center">
           {[1, 2, 3].map((s, i) => (
             <div key={s} className="flex items-center gap-3">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center font-sans text-[12px] font-semibold transition-colors ${
-                step > s ? 'bg-green-500 text-white' : step === s ? 'bg-primary text-white' : 'border border-divider-soft text-ink-muted-48'
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-mono text-[12px] font-bold transition-colors ${
+                step > s ? 'bg-deep-green text-white' : step === s ? 'bg-primary text-white' : 'border border-hairline text-slate'
               }`}>
                 {step > s ? '✓' : s}
               </div>
-              {i < 2 && <div className={`h-px w-6 transition-colors ${step > s ? 'bg-green-500' : 'bg-divider-soft'}`} />}
+              {i < 2 && <div className={`h-px w-8 transition-colors ${step > s ? 'bg-deep-green' : 'bg-hairline'}`} />}
             </div>
           ))}
         </div>
 
-        <h1 className="font-display font-semibold text-[32px] leading-tight tracking-normal mb-8 text-center text-ink">
-          {stepLabel[step - 1]}
-        </h1>
+        <div className="text-center mb-8">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-1">
+            Account Recovery
+          </span>
+          <h1 className="font-display font-bold text-[28px] tracking-tight text-ink">
+            {stepLabel[step - 1]}
+          </h1>
+        </div>
 
         {/* ── STEP 1 ── */}
         {step === 1 && (
           <form onSubmit={handleSendOtp} className="flex flex-col gap-5">
-            <p className="font-sans text-[17px] font-normal text-ink-muted-80 mb-2 text-center px-4">
-              Enter your roll number. We'll send a one-time password to your registered Gmail.
+            <p className="font-sans text-[14px] text-body-muted text-center">
+              Enter your roll number. We'll send a 6-digit one-time password to your registered email.
             </p>
             <div>
-              <label className="sr-only">Roll Number</label>
+              <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1.5 block">
+                Roll Number
+              </label>
               <input
                 required autoFocus
                 value={rollNumber}
                 onChange={e => setRollNumber(e.target.value.toUpperCase())}
-                className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-3 text-[17px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all uppercase"
-                placeholder="Roll Number (e.g. EE24001)"
+                className="input uppercase font-mono"
+                placeholder="e.g. EE24001"
               />
             </div>
-            {error && <p className="font-sans text-[14px] font-medium text-red-500 text-center">{error}</p>}
-            <button type="submit" disabled={loading}
-              className="button-primary w-full mt-2">
-              {loading ? 'Sending OTP...' : 'Send OTP'}
+            {error && <p className="text-[13px] font-medium text-error bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-center">{error}</p>}
+            <button type="submit" disabled={loading} className="button-primary w-full py-3.5 mt-2">
+              {loading ? 'Sending OTP…' : 'Send Verification OTP →'}
             </button>
           </form>
         )}
@@ -137,19 +142,21 @@ export default function ForgotPassword() {
         {/* ── STEP 2 ── */}
         {step === 2 && (
           <form onSubmit={handleVerifyOtp} className="flex flex-col gap-5">
-            <div className="bg-surface-pearl border border-divider-soft rounded-lg p-5 text-center">
-              <p className="font-sans text-[14px] text-ink-muted-80">OTP sent to</p>
-              <p className="font-sans text-[17px] font-semibold text-ink mt-1">{maskedEmail}</p>
-              <p className="font-sans text-[12px] text-ink-muted-48 mt-3">Check Spam if not in inbox · Expires in 10 min</p>
+            <div className="bg-soft-stone border border-hairline rounded-xl p-4 text-center">
+              <p className="font-sans text-[13px] text-body-muted">OTP sent to</p>
+              <p className="font-mono text-[15px] font-semibold text-ink mt-0.5">{maskedEmail}</p>
+              <p className="font-sans text-[11px] text-slate mt-2">Check Spam if not in inbox · Valid for 10 min</p>
             </div>
 
             <div>
-              <label className="sr-only">6-Digit OTP</label>
+              <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1.5 block">
+                Enter 6-Digit OTP
+              </label>
               <input
                 required autoFocus
                 value={otp}
                 onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-3 text-[24px] font-sans font-medium text-ink text-center tracking-[0.2em] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                className="input text-center text-[22px] font-mono tracking-[0.3em]"
                 placeholder="000000"
                 maxLength={6}
                 inputMode="numeric"
@@ -157,24 +164,23 @@ export default function ForgotPassword() {
             </div>
 
             {error && (
-              <p className={`font-sans text-[14px] font-medium text-center ${error.startsWith('✓') ? 'text-green-500' : 'text-red-500'}`}>
+              <p className={`text-[13px] font-medium text-center rounded-xl px-4 py-3 border ${
+                error.startsWith('✓') ? 'text-deep-green bg-pale-green border-green-200' : 'text-error bg-red-50 border-red-200'
+              }`}>
                 {error}
               </p>
             )}
 
-            <button type="submit" disabled={loading || otp.length !== 6}
-              className="button-primary w-full mt-2">
-              {loading ? 'Verifying...' : 'Verify OTP'}
+            <button type="submit" disabled={loading || otp.length !== 6} className="button-primary w-full py-3.5 mt-2">
+              {loading ? 'Verifying…' : 'Verify Code →'}
             </button>
 
-            <div className="flex justify-between items-center mt-2 px-2">
-              <button type="button" onClick={() => { setStep(1); setError('') }}
-                className="text-link font-sans text-[14px]">
-                Wrong roll number?
+            <div className="flex justify-between items-center text-[13px] font-sans pt-2">
+              <button type="button" onClick={() => { setStep(1); setError('') }} className="text-body-muted hover:text-ink">
+                ← Wrong roll number?
               </button>
-              <button type="button" onClick={handleResend} disabled={resending}
-                className="text-link font-sans text-[14px]">
-                {resending ? 'Sending...' : 'Resend OTP'}
+              <button type="button" onClick={handleResend} disabled={resending} className="text-action-blue font-semibold hover:underline">
+                {resending ? 'Sending…' : 'Resend OTP'}
               </button>
             </div>
           </form>
@@ -182,40 +188,43 @@ export default function ForgotPassword() {
 
         {/* ── STEP 3 ── */}
         {step === 3 && (
-          <form onSubmit={handleReset} className="flex flex-col gap-5">
-            <p className="font-sans text-[17px] font-normal text-ink-muted-80 mb-2 text-center">
-              OTP verified. Set your new password below.
+          <form onSubmit={handleReset} className="flex flex-col gap-4">
+            <p className="font-sans text-[14px] text-body-muted text-center mb-2">
+              OTP verified. Enter your new password below.
             </p>
             <div>
-              <label className="sr-only">New Password</label>
+              <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1.5 block">
+                New Password
+              </label>
               <input
                 required autoFocus type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-3 text-[17px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                placeholder="New Password (min. 6 chars)"
+                className="input"
+                placeholder="Min. 6 characters"
               />
             </div>
             <div>
-              <label className="sr-only">Confirm Password</label>
+              <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1.5 block">
+                Confirm New Password
+              </label>
               <input
                 required type="password"
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
-                className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-3 text-[17px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                placeholder="Confirm Password"
+                className="input"
+                placeholder="Confirm new password"
               />
             </div>
-            {error && <p className="font-sans text-[14px] font-medium text-red-500 text-center">{error}</p>}
-            <button type="submit" disabled={loading}
-              className="button-primary w-full mt-2">
-              {loading ? 'Resetting...' : 'Reset Password'}
+            {error && <p className="text-[13px] font-medium text-error bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-center">{error}</p>}
+            <button type="submit" disabled={loading} className="button-primary w-full py-3.5 mt-2">
+              {loading ? 'Updating…' : 'Update Password & Sign In →'}
             </button>
           </form>
         )}
 
-        <div className="mt-8 flex justify-center text-[14px]">
-          <Link to="/login" className="text-link">
+        <div className="mt-8 pt-4 border-t border-hairline text-center text-[13px] font-sans">
+          <Link to="/login" className="text-action-blue hover:underline font-semibold">
             Back to Sign in
           </Link>
         </div>

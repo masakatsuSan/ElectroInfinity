@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { getEvents } from '../api/events'
+import SEO from '../components/SEO'
 
 export default function Events() {
   const { data, isLoading } = useQuery({
@@ -7,121 +8,143 @@ export default function Events() {
     queryFn: () => getEvents().then(r => r.data),
   })
 
-  const all       = data?.data || []
-  const upcoming  = all.filter(e => new Date(e.date) > new Date())
-  const past      = all.filter(e => new Date(e.date) <= new Date())
+  const all      = data?.data || []
+  const upcoming = all.filter(e => new Date(e.date) > new Date())
+  const past     = all.filter(e => new Date(e.date) <= new Date())
 
   const typeLabel = {
     workshop: 'Workshop', seminar: 'Seminar',
-    fest: 'Technical Fest', activity: 'Activity', other: 'Event',
+    fest: 'Technical Fest', activity: 'Activity', other: 'Department Event',
   }
 
   return (
-    <div className="container pt-32 pb-20 min-h-screen bg-canvas text-ink">
-      <h2 className="font-sans text-[14px] font-semibold tracking-widest uppercase text-ink-muted-48 mb-2">
-        What's Happening
-      </h2>
-      <h1 className="font-display font-semibold text-[clamp(40px,8vw,64px)] leading-tight tracking-normal mb-12 text-ink">
-        Events
-      </h1>
+    <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
+      <SEO title="Events & Workshops | Electro Infinity" description="Upcoming and past events from the Electro Infinity community." />
 
-      {isLoading ? (
-        <Skeleton />
-      ) : (
-        <>
-          {/* Upcoming */}
-          <h2 className="font-sans text-[14px] font-semibold tracking-widest uppercase text-ink-muted-48 mb-4">
-            ↗ Upcoming
-          </h2>
-          <div className="flex flex-col border-t border-divider-soft mb-16">
-            {upcoming.length > 0
-              ? upcoming.map(e => <EventRow key={e._id} event={e} typeLabel={typeLabel} upcoming />)
-              : <p className="font-sans text-[17px] text-ink-muted-80 py-8 border-b border-divider-soft">No upcoming events right now.</p>}
-          </div>
+      <div className="max-w-[1280px] mx-auto px-6 md:px-12">
+        {/* Header */}
+        <div className="max-w-3xl mb-12">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
+            Schedule & Workshops
+          </span>
+          <h1 className="font-display text-[40px] md:text-[56px] font-normal tracking-tight text-ink mb-4">
+            Department Events
+          </h1>
+          <p className="font-sans text-[17px] text-body-muted leading-relaxed">
+            Practical hardware workshops, simulation bootcamps, technical fests, and expert guest lectures at AGEMC.
+          </p>
+        </div>
 
-          {/* Past */}
-          {past.length > 0 && (
-            <div>
-              <h2 className="font-sans text-[14px] font-semibold tracking-widest uppercase text-ink-muted-48 mb-4">
-                Archive
-              </h2>
-              <div className="flex flex-col border-t border-divider-soft">
-                {past.map(e => <EventRow key={e._id} event={e} typeLabel={typeLabel} />)}
-              </div>
+        {isLoading ? (
+          <SkeletonGrid />
+        ) : (
+          <>
+            {/* Upcoming */}
+            <div className="mb-16">
+              <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-deep-green block mb-6">
+                Upcoming Sessions
+              </span>
+              {upcoming.length > 0 ? (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {upcoming.map(e => (
+                    <EventCard key={e._id} event={e} typeLabel={typeLabel} isUpcoming />
+                  ))}
+                </div>
+              ) : (
+                <div className="border border-hairline bg-soft-stone rounded-2xl p-12 text-center">
+                  <p className="font-sans text-[15px] text-body-muted">No upcoming events scheduled right now. Check back soon!</p>
+                </div>
+              )}
             </div>
-          )}
 
-          {all.length === 0 && (
-            <p className="font-sans text-[17px] text-ink-muted-80 py-16 text-center border-y border-divider-soft">
-              No events added yet. Admin can add events from the admin panel.
-            </p>
-          )}
-        </>
-      )}
+            {/* Archive */}
+            {past.length > 0 && (
+              <div>
+                <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-slate block mb-6">
+                  Past Archives
+                </span>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {past.map(e => (
+                    <EventCard key={e._id} event={e} typeLabel={typeLabel} isUpcoming={false} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   )
 }
 
-function EventRow({ event: e, typeLabel, upcoming }) {
-  const d = new Date(e.date)
+function EventCard({ event: e, typeLabel, isUpcoming }) {
+  const d     = new Date(e.date)
   const day   = d.toLocaleDateString('en-IN', { day: '2-digit' })
   const month = d.toLocaleDateString('en-IN', { month: 'short' })
   const year  = d.getFullYear()
 
   return (
-    <div className={`grid grid-cols-[80px_1fr] sm:grid-cols-[120px_1fr] gap-6 py-8 border-b border-divider-soft group ${!upcoming ? 'opacity-60 grayscale' : ''}`}>
-      {/* Date block */}
-      <div className="flex flex-col items-start pt-1">
-        <div className="font-display font-medium text-[40px] text-primary leading-none mb-1">{day}</div>
-        <div className="font-sans text-[12px] font-semibold text-ink-muted-48 uppercase tracking-widest">{month} {year}</div>
-      </div>
-
-      {/* Info */}
-      <div className="flex flex-col">
-        <div className="flex flex-wrap items-center gap-3 mb-2">
-          <h3 className="font-display font-semibold text-[24px] tracking-tight text-ink leading-snug">
-            {e.title}
-          </h3>
-          <span className="font-sans text-[12px] font-medium uppercase tracking-widest text-primary border border-primary/20 bg-primary/5 px-2.5 py-1 rounded">
+    <div
+      className={`border border-hairline rounded-2xl p-6 md:p-8 flex flex-col justify-between shadow-card transition-all ${
+        isUpcoming ? 'bg-canvas hover:bg-soft-stone/30' : 'bg-soft-stone/50 opacity-80'
+      }`}
+    >
+      <div>
+        {/* Date + badge */}
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="flex items-baseline gap-2">
+            <span className="font-display text-[38px] font-bold text-ink leading-none">{day}</span>
+            <span className="font-mono text-[13px] text-slate uppercase tracking-wider font-semibold">
+              {month} {year}
+            </span>
+          </div>
+          <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-md bg-pale-green text-deep-green border border-green-200">
             {typeLabel[e.type] || 'Event'}
           </span>
         </div>
+
+        {/* Title */}
+        <h3 className="font-display text-[20px] font-bold text-ink mb-2 leading-snug">
+          {e.title}
+        </h3>
+
+        {/* Venue */}
         {e.venue && (
-          <p className="font-sans text-[12px] font-semibold text-ink-muted-48 uppercase tracking-widest mb-3">{e.venue}</p>
+          <p className="font-mono text-[12px] text-slate mb-3">
+            📍 {e.venue}
+          </p>
         )}
+
+        {/* Description */}
         {e.description && (
-          <p className="font-sans text-[17px] font-normal text-ink-muted-80 leading-relaxed max-w-[700px] mb-4">{e.description}</p>
+          <p className="font-sans text-[14px] text-body-muted leading-relaxed mb-6">
+            {e.description}
+          </p>
         )}
-        {upcoming && e.registrationLink && (
+      </div>
+
+      {/* Register link */}
+      {isUpcoming && e.registrationLink && (
+        <div className="pt-4 border-t border-hairline">
           <a
             href={e.registrationLink}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 font-sans text-[14px] font-medium text-link hover:text-primary transition-colors"
+            className="button-primary !py-2 !px-4 !text-[13px]"
           >
-            Register →
+            Register for Workshop →
           </a>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
 
-function Skeleton() {
+function SkeletonGrid() {
   return (
-    <div className="flex flex-col border-t border-divider-soft">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="flex gap-8 py-8 border-b border-divider-soft animate-pulse">
-          <div className="w-24 space-y-2">
-            <div className="h-10 bg-surface-pearl rounded w-12" />
-            <div className="h-4 bg-surface-pearl rounded w-16" />
-          </div>
-          <div className="flex-1 space-y-3 pt-2">
-            <div className="h-6 bg-surface-pearl rounded w-64" />
-            <div className="h-4 bg-surface-pearl rounded w-40" />
-            <div className="h-4 bg-surface-pearl rounded max-w-[700px]" />
-          </div>
-        </div>
+    <div className="grid md:grid-cols-2 gap-6">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="border border-hairline bg-soft-stone/40 rounded-2xl h-[200px] animate-pulse" />
       ))}
     </div>
   )

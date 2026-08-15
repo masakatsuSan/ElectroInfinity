@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { getFaculty } from '../api/faculty'
+import SEO from '../components/SEO'
 
 export default function Faculty() {
   const { data, isLoading } = useQuery({
@@ -10,22 +11,38 @@ export default function Faculty() {
   const faculty = data?.data || []
 
   return (
-    <div className="container pt-32 pb-20 bg-canvas text-ink min-h-screen">
-      <h2 className="font-sans text-[14px] font-semibold tracking-widest uppercase text-ink-muted-48 mb-2">
-        Our People
-      </h2>
-      <h1 className="font-display font-semibold text-[clamp(40px,8vw,64px)] leading-tight tracking-normal mb-12 text-ink">
-        Faculty
-      </h1>
+    <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
+      <SEO
+        title="Faculty Directory | Electro Infinity"
+        description="Distinguished faculty members and researchers of Electrical Engineering at AGEMC."
+      />
 
-      <div className="flex flex-col border-t border-divider-soft">
-        {faculty.length > 0
-          ? faculty.map(f => <FacultyRow key={f._id} faculty={f} />)
-          : (
-            <div className="py-16 text-center border-b border-divider-soft">
-              <p className="font-sans text-[17px] text-ink-muted-80">No faculty profiles added yet.</p>
+      <div className="max-w-[1280px] mx-auto px-6 md:px-12">
+        {/* Header */}
+        <div className="max-w-3xl mb-16">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
+            Academic Leadership
+          </span>
+          <h1 className="font-display text-[40px] md:text-[56px] font-normal tracking-tight text-ink mb-4">
+            Faculty & Researchers
+          </h1>
+          <p className="font-sans text-[17px] text-body-muted leading-relaxed">
+            Professors guiding undergraduate coursework, state-of-the-art power labs, and embedded systems engineering.
+          </p>
+        </div>
+
+        {/* Directory (Rule-separated research layout) */}
+        <div className="border border-hairline bg-canvas rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
+          {isLoading ? (
+            <div className="p-12 text-center text-slate">Loading faculty directory…</div>
+          ) : faculty.length > 0 ? (
+            faculty.map(f => <FacultyRow key={f._id} faculty={f} />)
+          ) : (
+            <div className="p-16 text-center text-body-muted">
+              <p className="font-sans text-[16px]">No faculty profiles listed currently.</p>
             </div>
           )}
+        </div>
       </div>
     </div>
   )
@@ -40,36 +57,44 @@ function FacultyRow({ faculty: f }) {
     .toUpperCase()
 
   return (
-    <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_auto] gap-6 py-8 border-b border-divider-soft items-start group">
-      {/* Avatar */}
-      <div className="w-16 h-16 rounded-full bg-surface-pearl flex items-center justify-center flex-shrink-0 overflow-hidden border border-divider-soft">
-        {f.photo ? (
-          <img src={f.photo} alt={f.name} className="w-full h-full object-cover" />
-        ) : (
-          <span className="font-display font-medium text-[20px] text-ink">{initials}</span>
-        )}
+    <div className="p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-soft-stone/30 transition-colors">
+      <div className="flex items-center gap-5 min-w-0">
+        {/* Avatar */}
+        <div className="w-16 h-16 rounded-22px bg-soft-stone flex items-center justify-center flex-shrink-0 overflow-hidden border border-hairline shadow-sm">
+          {f.photo ? (
+            <img src={f.photo} alt={f.name} className="w-full h-full object-cover" />
+          ) : (
+            <span className="font-display font-bold text-[20px] text-ink">{initials}</span>
+          )}
+        </div>
+
+        {/* Info */}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-display font-bold text-[20px] text-ink">{f.name}</h3>
+            {f.isHOD && (
+              <span className="font-mono text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-deep-green text-white">
+                HOD
+              </span>
+            )}
+          </div>
+          <p className="font-mono text-[12px] uppercase tracking-wider text-slate font-medium mb-1">
+            {f.designation}
+          </p>
+          <p className="font-sans text-[14px] text-body-muted leading-relaxed">
+            {f.specialization && <span className="font-medium text-ink">{f.specialization} · </span>}
+            {f.qualification}
+          </p>
+        </div>
       </div>
 
-      {/* Info */}
-      <div className="flex flex-col justify-center min-h-[64px]">
-        <h3 className="font-display font-semibold text-[21px] text-ink tracking-tight mb-1">{f.name}</h3>
-        <p className="font-sans text-[14px] font-semibold uppercase tracking-widest text-primary mb-2">
-          {f.designation}
-          {f.isHOD && <span className="ml-2 text-green-500">· HOD</span>}
-        </p>
-        <p className="font-sans text-[14px] text-ink-muted-80 leading-relaxed max-w-[600px]">
-          {f.specialization && <>{f.specialization} <span className="mx-1 opacity-50">·</span> </>}
-          {f.qualification}
-        </p>
-      </div>
-
-      {/* Email */}
+      {/* Email button */}
       {f.email && (
         <a
           href={`mailto:${f.email}`}
-          className="font-sans text-[14px] font-medium text-link hover:text-primary transition-colors sm:self-center col-span-2 sm:col-span-1 mt-2 sm:mt-0"
+          className="button-pill-outline text-[13px] self-start sm:self-center flex-shrink-0"
         >
-          {f.email}
+          ✉ {f.email}
         </a>
       )}
     </div>

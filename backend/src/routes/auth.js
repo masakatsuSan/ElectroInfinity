@@ -288,6 +288,10 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, error: 'Wrong credentials' })
     }
 
+    if (user.isActive === false) {
+      return res.status(403).json({ success: false, error: 'Account is deactivated. Contact admin.' })
+    }
+
     const token = signToken(user._id)
     user.password = undefined
     res.json({ success: true, token, user })

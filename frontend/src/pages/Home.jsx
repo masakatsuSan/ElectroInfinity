@@ -3,243 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { getNotices } from '../api/notices'
-import NoticeCard from '../components/NoticeCard'
-
-// ── Typewriter hook ──────────────────────────────────────────────────────────
-function useTypewriter(phrases) {
-  const [text, setText] = useState('')
-  const [phaseIdx, setPhaseIdx] = useState(0)
-  const [deleting, setDeleting] = useState(false)
-
-  useEffect(() => {
-    const phrase = phrases[phaseIdx]
-    const timeout = deleting
-      ? setTimeout(() => {
-          setText(t => t.slice(0, -1))
-          if (text.length === 1) {
-            setDeleting(false)
-            setPhaseIdx(i => (i + 1) % phrases.length)
-          }
-        }, 36)
-      : setTimeout(() => {
-          setText(phrase.slice(0, text.length + 1))
-          if (text.length === phrase.length - 1) {
-            setTimeout(() => setDeleting(true), 1400)
-          }
-        }, 62)
-    return () => clearTimeout(timeout)
-  }, [text, deleting, phaseIdx, phrases])
-
-  return text
-}
-
-// ── Stats count-up ───────────────────────────────────────────────────────────
-function StatNum({ target, suffix = '' }) {
-  const [val, setVal] = useState(0)
-  const ref = useRef(null)
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => {
-      if (!e.isIntersecting) return
-      obs.disconnect()
-      const start = performance.now()
-      const tick = (now) => {
-        const p = Math.min(1, (now - start) / 1100)
-        const eased = 1 - Math.pow(1 - p, 3)
-        setVal(Math.round(target * eased))
-        if (p < 1) requestAnimationFrame(tick)
-      }
-      requestAnimationFrame(tick)
-    }, { threshold: 0.5 })
-    if (ref.current) obs.observe(ref.current)
-    return () => obs.disconnect()
-  }, [target])
-
-  return <span ref={ref}>{val}{suffix}</span>
-}
-
 import SEO from '../components/SEO'
-
-// ── Main component ───────────────────────────────────────────────────────────
-export default function Home() {
-  const typeText = useTypewriter([
-    'Built by students.',
-    'For students.',
-    'Powered by curiosity.',
-  ])
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['notices', { limit: 4 }],
-    queryFn: () => getNotices({ limit: 4 }).then(r => r.data),
-  })
-
-  const notices = data?.data || []
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.2 }
-    }
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
-  }
-
-  return (
-    <div>
-      <SEO 
-        title="Home" 
-        description="Electro Infinity — Electrical Engineering Club, Alipurduar Government Engineering and Management College" 
-        path="/" 
-      />
-      {/* ── HERO ── */}
-      <section className="min-h-screen flex flex-col justify-center pt-32 pb-0 relative overflow-hidden bg-gradient-to-b from-[#1a1a2e] to-dark-gray text-light-gray">
-        {/* Abstract Gradient Background & Orbital Lines */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
-          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-gradient-to-br from-primary/10 to-transparent blur-3xl opacity-50"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-gradient-to-tl from-gray-500/10 to-transparent blur-3xl opacity-50"></div>
-          
-          {/* Orbital Lines */}
-          <svg className="absolute w-[800px] h-[800px] md:w-[1200px] md:h-[1200px] opacity-10" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="0.2">
-            <circle cx="50" cy="50" r="30" strokeDasharray="2 2" />
-            <circle cx="50" cy="50" r="45" strokeDasharray="1 3" />
-            <circle cx="50" cy="50" r="60" strokeDasharray="4 2" />
-          </svg>
-        </div>
-
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="container relative z-10 text-center flex flex-col items-center w-full px-4"
-        >
-          <motion.h1 variants={itemVariants} className="text-display mb-6">
-            Electro Infinity.
-          </motion.h1>
-
-          <motion.h2 variants={itemVariants} className="text-h2 text-medium-gray mb-6 max-w-2xl">
-            The Official Electrical Engineering Club of AGEMC.
-          </motion.h2>
-
-          {/* Typewriter */}
-          <motion.p variants={itemVariants} className="text-body text-medium-gray mb-12 min-h-[28px]">
-            {typeText}
-            <span className="inline-block w-[2px] h-[19px] bg-accent-blue ml-[2px] align-middle animate-pulse" />
-          </motion.p>
-
-          <motion.div variants={itemVariants} className="flex flex-wrap justify-center gap-4 mb-20">
-            <Link to="/login" className="button-primary">
-              Login & Register
-            </Link>
-            <Link to="/about" className="button-secondary-pill">
-              Learn more
-            </Link>
-          </motion.div>
-
-          <motion.div variants={itemVariants} className="w-full max-w-[1000px] mt-4 rounded-[40px] overflow-hidden card relative !p-0">
-             <div className="aspect-[16/9] w-full bg-gradient-to-tr from-[#1a1a2e] to-[#12121e] flex flex-col items-center justify-center p-8">
-                <span className="text-h2 mb-3">Welcome to the Future of Electrical Engineering</span>
-                <span className="text-body text-medium-gray">Experience hands-on projects, workshops, and peer collaboration.</span>
-             </div>
-             
-             {/* Satellite CTA */}
-             <div className="satellite-cta">
-               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-             </div>
-          </motion.div>
-        </motion.div>
-      </section>
-
-      {/* ── NEXT EVENT countdown ── */}
-      <section className="bg-gradient-to-b from-dark-gray to-[#1a1a2e] py-32 text-light-gray">
-        <div className="container text-center flex flex-col items-center">
-          <h2 className="text-h1 mb-4">
-            Next Event
-          </h2>
-          <p className="text-body text-medium-gray mb-12">
-            Workshop on Smart Grid Technologies
-          </p>
-          <div className="mb-12">
-            <Countdown targetDate="2026-07-15T10:00:00" />
-          </div>
-          <Link to="/contact" className="button-secondary">
-            Reserve a seat
-          </Link>
-        </div>
-      </section>
-
-      {/* ── VISION & MISSION ── */}
-      <section className="bg-gradient-to-b from-[#1a1a2e] to-[#12121e] py-32 text-center">
-        <div className="container flex flex-col items-center">
-          <h2 className="text-h1 mb-16">
-            Vision & Mission
-          </h2>
-          <div className="grid md:grid-cols-2 gap-16 max-w-[1000px] text-left">
-            <div className="card">
-              <h3 className="font-bold uppercase tracking-[0.04em] mb-6 text-light-blue">Vision</h3>
-              <p className="text-body text-medium-gray">
-                To be AGEMC's home base for students who'd rather build a circuit than just
-                study one — bridging classroom theory and hands-on power, control and
-                automation work.
-              </p>
-            </div>
-            <div className="card">
-              <h3 className="font-bold uppercase tracking-[0.04em] mb-6 text-light-blue">Mission</h3>
-              <ul className="space-y-5">
-                {[
-                  'Run hands-on workshops beyond the syllabus.',
-                  'Get members real lab time and project ownership.',
-                  'Build a peer network into internships and placements.',
-                ].map((item, i) => (
-                  <li key={i} className="flex gap-4 text-body text-medium-gray">
-                    <span className="font-bold text-light-gray">{i + 1}.</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── LATEST NOTICES ── */}
-      <section className="bg-gradient-to-b from-[#12121e] to-dark-gray py-32">
-        <div className="container text-center flex flex-col items-center">
-          <h2 className="text-h1 mb-6">
-            Announcements
-          </h2>
-          <Link to="/resources" className="text-link flex items-center justify-center gap-1 font-sans text-[16px] font-medium mb-16">
-            View all notices 
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </Link>
-
-          <div className="w-full max-w-[1000px] grid gap-8 md:grid-cols-2 text-left">
-            {isLoading ? (
-              Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="card animate-pulse h-[140px]"></div>
-              ))
-            ) : notices.length > 0 ? (
-              notices.map(n => (
-                <div key={n._id} className="card flex flex-col justify-between hover:-translate-y-1 transition-transform duration-300">
-                   <h3 className="text-[18px] font-medium tracking-tight line-clamp-2 mb-4">{n.title}</h3>
-                   <div className="flex justify-between items-center mt-4 pt-4 border-t border-border-color">
-                     <span className="text-caption text-medium-gray">{new Date(n.createdAt).toLocaleDateString()}</span>
-                     <Link to={`/resources`} className="link">View</Link>
-                   </div>
-                </div>
-              ))
-            ) : (
-              <p className="col-span-full text-body text-medium-gray text-center">No notices yet.</p>
-            )}
-          </div>
-        </div>
-      </section>
-    </div>
-  )
-}
 
 // ── Countdown component ──────────────────────────────────────────────────────
 function Countdown({ targetDate }) {
@@ -260,13 +24,13 @@ function Countdown({ targetDate }) {
   }, [targetDate])
 
   return (
-    <div className="flex justify-center gap-4 md:gap-8">
+    <div className="flex justify-center gap-6 md:gap-12">
       {[['d', 'Days'], ['h', 'Hours'], ['m', 'Mins'], ['s', 'Secs']].map(([k, label]) => (
         <div key={k} className="text-center">
-          <div className="font-display font-medium text-[clamp(28px,6vw,48px)] leading-none text-light-purple tabular-nums">
+          <div className="font-display font-medium text-[36px] md:text-[56px] leading-none text-ink tabular-nums tracking-tight">
             {String(parts[k]).padStart(2, '0')}
           </div>
-          <div className="text-caption text-medium-gray mt-1">
+          <div className="font-mono text-[11px] uppercase tracking-wider text-slate mt-2">
             {label}
           </div>
         </div>
@@ -275,4 +39,224 @@ function Countdown({ targetDate }) {
   )
 }
 
-// ── Removed InfinityCanvas and CircuitDivider ──────────────────────────────
+export default function Home() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['notices', { limit: 4 }],
+    queryFn: () => getNotices({ limit: 4 }).then(r => r.data),
+  })
+
+  const notices = data?.data || []
+
+  return (
+    <div className="bg-canvas text-ink">
+      <SEO 
+        title="Home" 
+        description="Electro Infinity — Electrical Engineering Club, Alipurduar Government Engineering and Management College" 
+        path="/" 
+      />
+
+      {/* ── HERO SECTION (Stark white editorial canvas) ── */}
+      <section className="pt-36 md:pt-48 pb-20 md:pb-28 border-b border-hairline">
+        <div className="max-w-[1280px] mx-auto px-6 md:px-12">
+          
+          <div className="max-w-4xl">
+            {/* Coral Taxonomy Tag */}
+            <div className="inline-flex items-center gap-2 mb-6">
+              <span className="w-2 h-2 rounded-full bg-coral"></span>
+              <span className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate">
+                Electrical Engineering Club · AGEMC
+              </span>
+            </div>
+
+            {/* Monumental display headline */}
+            <h1 className="font-display text-[44px] sm:text-[64px] lg:text-[84px] font-normal leading-[1.02] tracking-[-0.03em] text-ink mb-8">
+              Where engineering curiosity turns into real power.
+            </h1>
+
+            <p className="font-sans text-[18px] sm:text-[20px] text-body-muted leading-[1.4] max-w-2xl mb-10">
+              The official hub for circuit design, power systems, hands-on automation labs, and peer-to-peer engineering research at AGEMC.
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-wrap items-center gap-4">
+              <Link to="/attendance/student" className="button-primary">
+                📷 Scan Attendance QR
+              </Link>
+              <Link to="/attendance/faculty" className="button-secondary">
+                ⚡ Faculty Console
+              </Link>
+              <Link to="/courses" className="button-pill-outline">
+                Explore Courses →
+              </Link>
+            </div>
+          </div>
+
+          {/* Hero Media Composition: Dark Agent Console Card & Stone Info Card */}
+          <div className="grid md:grid-cols-12 gap-6 mt-16 md:mt-24">
+            
+            {/* Agent console module */}
+            <div className="md:col-span-8 bg-primary text-white rounded-2xl p-8 md:p-10 shadow-card flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-6">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse"></span>
+                    <span className="font-mono text-[12px] uppercase tracking-wider text-slate">Live Department Platform</span>
+                  </div>
+                  <span className="font-mono text-[12px] text-muted">v2.4.0-stable</span>
+                </div>
+
+                <h3 className="font-display text-[26px] md:text-[34px] font-normal tracking-tight text-black mb-3">
+                  Dynamic Geofenced Attendance & Academic Management
+                </h3>
+                <p className="font-sans text-black text-[15px] text-muted leading-relaxed max-w-xl">
+                  Real-time classroom presence verification anchored to faculty devices with 15-second rotating security tokens and batch-isolated coursework.
+                </p>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-4 items-center justify-between text-[13px] font-mono text-slate">
+                <span>✓ 100m GPS Verification</span>
+                <span>✓ Anti-Proxy QR Rotation</span>
+                <span>✓ Batch Scoping</span>
+              </div>
+            </div>
+
+            {/* Soft Stone Capability Card */}
+            <div className="md:col-span-4 bg-soft-stone rounded-2xl p-8 flex flex-col justify-between border border-hairline">
+              <div>
+                <span className="font-mono text-[11px] uppercase tracking-wider text-slate font-bold block mb-3">
+                  Academic Focus
+                </span>
+                <h4 className="font-display text-[22px] font-bold text-ink mb-3">
+                  Theory to Lab Prototype
+                </h4>
+                <p className="font-sans text-[14px] text-body-muted leading-relaxed">
+                  Power Electronics, Digital Signal Processing, Renewable Energy Systems, and Microcontrollers.
+                </p>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-hairline">
+                <Link to="/laboratory" className="font-sans text-[14px] font-medium text-action-blue hover:underline">
+                  View Laboratory Facilities →
+                </Link>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* ── DARK ENTERPRISE FEATURE BAND (#003c33 Deep Green) ── */}
+      <section className="bg-deep-green text-white py-24 md:py-32">
+        <div className="max-w-[1280px] mx-auto px-6 md:px-12">
+          <div className="max-w-3xl mb-16">
+            <span className="font-mono text-[12px] uppercase tracking-wider text-coral-soft font-semibold block mb-3">
+              Core Pillars
+            </span>
+            <h2 className="font-display text-[36px] md:text-[48px] font-normal leading-tight tracking-tight text-white">
+              Built for engineering rigor, practical mastery, and research collaboration.
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="border border-white/10 rounded-2xl p-8 bg-black/20 backdrop-blur-sm">
+              <span className="font-mono text-[13px] text-coral-soft font-bold block mb-4">01. WORKSHOPS</span>
+              <h3 className="font-display text-[22px] font-bold text-white mb-2">Hands-on Hardware</h3>
+              <p className="font-sans text-[15px] text-white/80 leading-relaxed">
+                Practical sessions on PCB design, embedded systems, transformer testing, and power grid simulation.
+              </p>
+            </div>
+
+            <div className="border border-white/10 rounded-2xl p-8 bg-black/20 backdrop-blur-sm">
+              <span className="font-mono text-[13px] text-coral-soft font-bold block mb-4">02. ATTENDANCE</span>
+              <h3 className="font-display text-[22px] font-bold text-white mb-2">Precision Attendance</h3>
+              <p className="font-sans text-[15px] text-white/80 leading-relaxed">
+                Seamless GPS verification anchoring faculty and students with zero paperwork and instant analytics.
+              </p>
+            </div>
+
+            <div className="border border-white/10 rounded-2xl p-8 bg-black/20 backdrop-blur-sm">
+              <span className="font-mono text-[13px] text-coral-soft font-bold block mb-4">03. CAREER</span>
+              <h3 className="font-display text-[22px] font-bold text-white mb-2">Placement & Alumni</h3>
+              <p className="font-sans text-[15px] text-white/80 leading-relaxed">
+                Direct mentorship from alumni in core electrical, semiconductor, and automation industries.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── NEXT EVENT COUNTDOWN (Warm Stone Surface) ── */}
+      <section className="py-20 md:py-28 bg-soft-stone border-b border-hairline">
+        <div className="max-w-[1280px] mx-auto px-6 md:px-12 text-center">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-slate font-semibold block mb-2">
+            Upcoming Department Workshop
+          </span>
+          <h2 className="font-display text-[32px] md:text-[44px] font-bold tracking-tight text-ink mb-4">
+            Workshop on Smart Grid & Microcontrollers
+          </h2>
+          <p className="font-sans text-[16px] text-body-muted max-w-lg mx-auto mb-10">
+            Live simulation on MATLAB/Simulink and hardware interfacing with ESP32 and industrial sensors.
+          </p>
+
+          <div className="mb-10">
+            <Countdown targetDate="2026-09-20T10:00:00" />
+          </div>
+
+          <Link to="/events" className="button-primary">
+            View Schedule & Register →
+          </Link>
+        </div>
+      </section>
+
+      {/* ── LATEST NOTICES (Research-table style) ── */}
+      <section className="py-20 md:py-28 bg-canvas">
+        <div className="max-w-[1280px] mx-auto px-6 md:px-12">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12 pb-4 border-b border-hairline">
+            <div>
+              <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
+                Official Bulletins
+              </span>
+              <h2 className="font-display text-[32px] md:text-[40px] font-bold tracking-tight text-ink">
+                Department Notices
+              </h2>
+            </div>
+            <Link to="/resources" className="button-pill-outline text-[14px]">
+              View All Bulletins →
+            </Link>
+          </div>
+
+          <div className="border border-hairline rounded-2xl overflow-hidden shadow-card">
+            {isLoading ? (
+              <div className="p-12 text-center text-slate">Loading announcements…</div>
+            ) : notices.length > 0 ? (
+              <div className="divide-y divide-hairline">
+                {notices.map(n => (
+                  <div key={n._id} className="p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-soft-stone/40 transition-colors">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-md bg-pale-green text-deep-green border border-green-200 flex-shrink-0">
+                        {n.category || 'Academic'}
+                      </span>
+                      <h3 className="font-sans text-[16px] font-semibold text-ink truncate">{n.title}</h3>
+                    </div>
+
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                      <span className="font-mono text-[12px] text-slate">
+                        {new Date(n.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                      <Link to="/resources" className="text-[13px] font-medium text-action-blue hover:underline">
+                        Read →
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-12 text-center text-slate">No recent notices published.</div>
+            )}
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}

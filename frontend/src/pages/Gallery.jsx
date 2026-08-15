@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getGallery } from '../api/gallery'
+import SEO from '../components/SEO'
 
 const CATEGORIES = ['All', 'Workshops', 'Events', 'Lab', 'Campus']
 
@@ -12,75 +13,92 @@ export default function Gallery() {
     queryFn: () => getGallery().then(r => r.data),
   })
 
-  const GALLERY = (data?.data || []).map(p => ({ url: p.imageUrl, label: p.title, category: p.category ? p.category.charAt(0).toUpperCase() + p.category.slice(1) : 'Campus' }))
-  
+  const GALLERY = (data?.data || []).map(p => ({
+    url: p.imageUrl,
+    label: p.title,
+    category: p.category
+      ? p.category.charAt(0).toUpperCase() + p.category.slice(1)
+      : 'Campus',
+  }))
+
   const filtered = GALLERY.filter(g => active === 'All' || g.category === active)
 
   return (
-    <div className="container pt-32 pb-20 min-h-screen bg-canvas text-ink">
-      <h2 className="font-sans text-[14px] font-semibold tracking-widest uppercase text-ink-muted-48 mb-2">
-        Visual Archive
-      </h2>
-      <h1 className="font-display font-semibold text-[clamp(40px,8vw,64px)] leading-tight tracking-normal mb-8 text-ink">
-        Gallery
-      </h1>
+    <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
+      <SEO title="Gallery | Electro Infinity" description="Visual archive of Electro Infinity workshops, events, lab sessions, and campus life." />
 
-      {/* Category filters */}
-      <div className="flex gap-2 mb-10 flex-wrap">
-        {CATEGORIES.map((c) => (
-          <button key={c} onClick={() => setActive(c)}
-            className={`font-sans text-[12px] font-semibold uppercase tracking-widest px-5 py-2.5 rounded-full border transition-colors ${
-              active === c
-                ? 'border-primary text-primary bg-primary/5'
-                : 'border-divider-soft text-ink-muted-80 bg-surface-pearl hover:text-ink hover:border-ink-muted-48'
-            }`}
-          >
-            {c}
-          </button>
-        ))}
-      </div>
+      <div className="max-w-[1280px] mx-auto px-6 md:px-12">
+        {/* Header */}
+        <div className="max-w-3xl mb-12">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
+            Visual Archive
+          </span>
+          <h1 className="font-display text-[40px] md:text-[56px] font-normal tracking-tight text-ink mb-4">
+            Department Gallery
+          </h1>
+          <p className="font-sans text-[17px] text-body-muted leading-relaxed">
+            Moments from hands-on laboratory sessions, technical symposiums, robotic competitions, and student projects.
+          </p>
+        </div>
 
-      {/* Grid */}
-      {filtered.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {filtered.map((img, i) => (
-            <a key={i} href={img.url} target="_blank" rel="noreferrer"
-              className="aspect-video relative overflow-hidden group bg-surface-pearl rounded-lg">
-              <img src={img.url} alt={img.label}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/40 transition-colors flex items-end">
-                <p className="font-sans text-[12px] font-semibold uppercase tracking-widest text-canvas/0 group-hover:text-canvas p-4 transition-colors">
-                  {img.label}
-                </p>
-              </div>
-            </a>
+        {/* Category filter pills */}
+        <div className="flex gap-2 overflow-x-auto pb-4 mb-10 scrollbar-none border-b border-hairline">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c}
+              onClick={() => setActive(c)}
+              className={`font-sans text-[14px] font-semibold px-5 py-2 rounded-full transition-all whitespace-nowrap ${
+                active === c
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'bg-soft-stone text-body-muted hover:text-ink'
+              }`}
+            >
+              {c}
+            </button>
           ))}
         </div>
-      ) : (
-        // Placeholder grid when no images uploaded yet
-        <div className="animate-in fade-in duration-300">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <div key={i} className="aspect-video bg-surface-pearl rounded-lg border border-divider-soft flex items-center justify-center">
-                <div className="text-center flex flex-col items-center opacity-50">
-                  <svg className="w-6 h-6 text-ink-muted-48 mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <rect x="3" y="3" width="18" height="18" rx="4"/>
-                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                    <path d="M21 15l-5-5L5 21"/>
-                  </svg>
-                  <p className="font-sans text-[10px] font-semibold uppercase tracking-widest text-ink-muted-48">Add photo</p>
-                </div>
-              </div>
+
+        {/* Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="aspect-video rounded-22px border border-hairline bg-soft-stone/40 animate-pulse" />
             ))}
           </div>
-          <div className="bg-surface-pearl border border-divider-soft p-8 rounded-lg mt-8 text-center">
-            <p className="font-sans text-[17px] font-semibold text-ink mb-2">No photos yet</p>
-            <p className="font-sans text-[14px] text-ink-muted-80 leading-relaxed max-w-lg mx-auto">
-              Photos will be updated soon.
+        ) : filtered.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map((img, i) => (
+              <a
+                key={i}
+                href={img.url}
+                target="_blank"
+                rel="noreferrer"
+                className="aspect-video relative overflow-hidden group rounded-22px border border-hairline shadow-card block"
+              >
+                <img
+                  src={img.url}
+                  alt={img.label}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4">
+                  <p className="font-sans text-[13px] font-semibold text-white">
+                    {img.label}
+                  </p>
+                </div>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div className="border border-hairline bg-soft-stone rounded-2xl p-16 text-center">
+            <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-slate block mb-2">
+              No Photos
+            </span>
+            <p className="font-sans text-[15px] text-body-muted">
+              No photos currently uploaded in this category.
             </p>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

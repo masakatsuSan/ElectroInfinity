@@ -19,9 +19,21 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type:    String,
-      enum:    ['student', 'cr', 'admin'],
+      enum:    ['student', 'cr', 'admin', 'faculty'],
       default: 'student',
     },
+
+    // Faculty-only: batches/courses/subjects they may run attendance for
+    assignedBatches:      { type: [String], default: [] },
+    assignedCourses:      { type: [String], default: [] },
+    teachingAssignments:  [
+      {
+        batch:   { type: String, default: '' },
+        section: { type: String, default: '' },
+        subject: { type: String, default: '' },
+      }
+    ],
+    isActive:             { type: Boolean, default: true },
 
     photo: { type: String, default: '' },
     

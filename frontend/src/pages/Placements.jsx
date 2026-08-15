@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { getPlacements } from '../api/placements'
+import SEO from '../components/SEO'
 
 export default function Placements() {
   const { data: allData, isLoading } = useQuery({
@@ -14,80 +15,121 @@ export default function Placements() {
   const ALUMNI = placements.filter(p => p.type === 'alumni').map(p => ({ initials: p.alumniInitials, name: p.alumniName, role: p.alumniRole, desc: p.alumniDesc, batch: p.alumniBatch }))
 
   return (
-    <div className="container pt-28 pb-20 min-h-screen">
-      <span className="eyebrow">Career & Industry</span>
-      <h1 className="font-display font-black text-[clamp(36px,8vw,64px)] leading-none tracking-tight mb-4">
-        Placements
-      </h1>
-      <p className="text-[14.5px] opacity-65 max-w-[520px] leading-relaxed mb-10">
-        From AGEMC lab benches to the energy grids, substations and control rooms of India's power sector.
-      </p>
+    <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
+      <SEO
+        title="Placements & Career | Electro Infinity"
+        description="Career opportunities, core recruiter networks, internships and alumni profiles of AGEMC EE."
+      />
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-px bg-white/7 border border-white/7 mb-16">
-        {STATS.map(s => (
-          <div key={s.l} className="bg-bg py-7 px-4 text-center">
-            <div className="font-display font-black text-[clamp(24px,5vw,40px)] text-vs leading-none">{s.n}</div>
-            <div className="font-mono text-[9px] uppercase tracking-[0.14em] opacity-40 mt-2">{s.l}</div>
-          </div>
-        ))}
-      </div>
+      <div className="max-w-[1280px] mx-auto px-6 md:px-12">
+        {/* Header */}
+        <div className="max-w-3xl mb-14">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
+            Career & Industry
+          </span>
+          <h1 className="font-display text-[40px] md:text-[56px] font-normal tracking-tight text-ink mb-4">
+            Placements & Careers
+          </h1>
+          <p className="font-sans text-[17px] text-body-muted leading-relaxed">
+            From AGEMC laboratory workbenches to core power grids, automation EPCs, semiconductors, and technology leaders.
+          </p>
+        </div>
 
-      {/* Recruiters */}
-      <span className="eyebrow block mb-2">Recruiters</span>
-      <h2 className="font-display font-bold text-[22px] tracking-tight mb-5">Companies that hire from us</h2>
-      <div className="flex flex-col mb-14">
-        {RECRUITERS.map(r => (
-          <div key={r.name} className="flex items-center gap-4 py-4 border-b border-white/7 first:border-t first:border-white/7">
-            <div className="w-11 h-11 border border-white/10 flex items-center justify-center font-display font-bold text-vs text-[13px] flex-shrink-0">
-              {r.name.slice(0,2).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[14.5px] font-medium">{r.name}</p>
-              <p className="text-[12.5px] opacity-55 mt-0.5">{r.role}</p>
-            </div>
-            <span className="font-mono text-[10.5px] text-green flex-shrink-0">{r.placed} placed</span>
+        {/* Stats Grid */}
+        {STATS.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-16">
+            {STATS.map(s => (
+              <div key={s.l} className="border border-hairline bg-soft-stone rounded-2xl p-8 text-center shadow-card">
+                <div className="font-display font-bold text-[44px] text-ink leading-none mb-2">{s.n}</div>
+                <div className="font-mono text-[11px] uppercase tracking-wider text-slate font-semibold">{s.l}</div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        )}
 
-      {/* Internships */}
-      <span className="eyebrow block mb-2">Internships</span>
-      <h2 className="font-display font-bold text-[22px] tracking-tight mb-5">Current Opportunities</h2>
-      <div className="flex flex-col mb-14">
-        {INTERNSHIPS.map(i => (
-          <div key={i.title} className="flex items-start gap-4 py-5 border-b border-white/7 first:border-t first:border-white/7">
-            <div className="w-11 h-11 border border-white/10 flex items-center justify-center flex-shrink-0 text-vs">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[14.5px] font-medium">{i.title}</p>
-              <p className="text-[12.5px] opacity-55 mt-0.5">{i.company}</p>
-              <p className="font-mono text-[10.5px] text-green mt-1">{i.stipend} · Apply by {i.deadline}</p>
-            </div>
-            <a href="#" className="text-[12.5px] font-semibold text-vs border-b border-vs pb-px hover:text-white hover:border-white transition-colors flex-shrink-0 self-center">
-              Apply →
-            </a>
-          </div>
-        ))}
-      </div>
+        {/* Recruiters */}
+        <div className="mb-16">
+          <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-deep-green block mb-2">
+            Top Recruiters
+          </span>
+          <h2 className="font-display text-[26px] font-bold text-ink mb-6">Partner Companies</h2>
 
-      {/* Alumni */}
-      <span className="eyebrow block mb-2">Alumni</span>
-      <h2 className="font-display font-bold text-[22px] tracking-tight mb-5">Success Stories</h2>
-      <div className="flex flex-col">
-        {ALUMNI.map(a => (
-          <div key={a.name} className="grid grid-cols-[auto_1fr] gap-4 py-5 border-b border-white/7 first:border-t first:border-white/7">
-            <div className="w-12 h-12 rounded-full bg-violet/12 flex items-center justify-center font-display font-black text-vs text-[16px] flex-shrink-0">
-              {a.initials}
-            </div>
-            <div>
-              <p className="font-display font-bold text-[16px] tracking-tight">{a.name}</p>
-              <p className="text-[13px] opacity-65 mt-0.5 leading-relaxed">{a.role}<br />{a.desc}</p>
-              <p className="font-mono text-[9.5px] text-vs mt-1.5 uppercase tracking-wider">{a.batch}</p>
+          <div className="border border-hairline bg-canvas rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
+            {RECRUITERS.length > 0 ? (
+              RECRUITERS.map(r => (
+                <div key={r.name} className="p-5 md:p-6 flex items-center justify-between gap-4 hover:bg-soft-stone/30 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-soft-stone border border-hairline flex items-center justify-center font-display font-bold text-ink text-[14px]">
+                      {r.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="font-sans text-[16px] font-semibold text-ink">{r.name}</h3>
+                      <p className="font-sans text-[13px] text-body-muted">{r.role}</p>
+                    </div>
+                  </div>
+                  <span className="font-mono text-[12px] font-bold uppercase px-3 py-1 rounded-md bg-pale-green text-deep-green border border-green-200">
+                    {r.placed} Placed
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="p-8 text-center text-body-muted font-sans text-[14px]">Recruiter statistics update periodically.</div>
+            )}
+          </div>
+        </div>
+
+        {/* Internships */}
+        {INTERNSHIPS.length > 0 && (
+          <div className="mb-16">
+            <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-coral block mb-2">
+              Opportunities
+            </span>
+            <h2 className="font-display text-[26px] font-bold text-ink mb-6">Current Internships</h2>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {INTERNSHIPS.map(i => (
+                <div key={i.title} className="border border-hairline bg-canvas rounded-2xl p-6 shadow-card flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-display text-[18px] font-bold text-ink mb-1">{i.title}</h3>
+                    <p className="font-sans text-[14px] text-body-muted mb-4">{i.company}</p>
+                    <p className="font-mono text-[12px] text-deep-green font-semibold">{i.stipend} · Deadline: {i.deadline}</p>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-hairline">
+                    <a href="#" className="button-pill-outline text-[13px]">
+                      Apply Now →
+                    </a>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
+        )}
+
+        {/* Alumni */}
+        {ALUMNI.length > 0 && (
+          <div>
+            <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-slate block mb-2">
+              Alumni Network
+            </span>
+            <h2 className="font-display text-[26px] font-bold text-ink mb-6">Alumni Spotlights</h2>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {ALUMNI.map(a => (
+                <div key={a.name} className="border border-hairline bg-canvas rounded-2xl p-6 shadow-card flex gap-4">
+                  <div className="w-12 h-12 rounded-full bg-soft-stone border border-hairline flex items-center justify-center font-display font-bold text-ink text-[14px] flex-shrink-0">
+                    {a.initials}
+                  </div>
+                  <div>
+                    <h3 className="font-display text-[17px] font-bold text-ink">{a.name}</h3>
+                    <p className="font-sans text-[13px] text-body-muted mt-0.5">{a.role}</p>
+                    <p className="font-sans text-[14px] text-ink mt-2 leading-relaxed">{a.desc}</p>
+                    <span className="font-mono text-[11px] text-coral font-bold uppercase tracking-wider block mt-3">Batch {a.batch}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

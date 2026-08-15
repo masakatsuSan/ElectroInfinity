@@ -40,6 +40,11 @@ import AdminEvents    from './pages/admin/AdminEvents'
 import AdminStudents  from './pages/admin/AdminStudents'
 import AdminDeadlines from './pages/admin/AdminDeadlines'
 import AdminRoutines  from './pages/admin/AdminRoutines'
+import AdminAttendance from './pages/admin/AdminAttendance'
+
+// Attendance pages
+import FacultyAttendance from './pages/attendance/FacultyAttendance'
+import StudentAttendance from './pages/attendance/StudentAttendance'
 
 const NotFound = () => (
   <div className="flex flex-col items-center justify-center min-h-screen pt-32 pb-20 text-center page-wrap">
@@ -159,6 +164,7 @@ export default function App() {
       <Routes>
         <Route path="/admin/*" element={null} />
         <Route path="/forum"   element={null} />
+        <Route path="/attendance/faculty" element={null} />
         <Route path="*"        element={<Navbar />} />
       </Routes>
 
@@ -198,6 +204,22 @@ export default function App() {
               </AnimatedRoute>
             }/>
 
+            {/* ── Attendance ── */}
+            <Route path="/attendance/faculty" element={
+              <AnimatedRoute>
+                <ProtectedRoute role="faculty">
+                  <FacultyAttendance />
+                </ProtectedRoute>
+              </AnimatedRoute>
+            }/>
+            <Route path="/attendance/student" element={
+              <AnimatedRoute>
+                <ProtectedRoute role="student, cr">
+                  <StudentAttendance />
+                </ProtectedRoute>
+              </AnimatedRoute>
+            }/>
+
             {/* ── Admin ── */}
             <Route path="/admin/*" element={
               <AnimatedRoute>
@@ -211,6 +233,7 @@ export default function App() {
                       <Route path="students"   element={<AdminStudents />} />
                       <Route path="deadlines"  element={<AdminDeadlines />} />
                       <Route path="routines"   element={<AdminRoutines />} />
+                      <Route path="attendance" element={<AdminAttendance />} />
                     </Route>
                   </Routes>
                 </ProtectedRoute>
@@ -225,6 +248,7 @@ export default function App() {
       <Routes>
         <Route path="/admin/*" element={null} />
         <Route path="/forum"   element={null} />
+        <Route path="/attendance/faculty" element={null} />
         <Route path="*"        element={<Footer />} />
       </Routes>
 

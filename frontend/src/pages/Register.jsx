@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../api/auth'
+import { motion } from 'framer-motion'
 
 const BATCHES = ['2024-2028', '2023-2027', '2022-2026', '2021-2025']
 
@@ -21,10 +22,10 @@ export default function Register() {
     setError('')
 
     if (form.password !== form.confirmPassword) {
-      return setError('PASSWORDS DO NOT MATCH')
+      return setError('Passwords do not match')
     }
     if (form.password.length < 6) {
-      return setError('PASSWORD MUST BE AT LEAST 6 CHARACTERS')
+      return setError('Password must be at least 6 characters')
     }
 
     setLoading(true)
@@ -39,7 +40,7 @@ export default function Register() {
       })
       setSuccess(true)
     } catch (err) {
-      setError(err.response?.data?.error || 'REGISTRATION FAILED. TRY AGAIN.')
+      setError(err.response?.data?.error || 'Registration failed. Try again.')
     } finally {
       setLoading(false)
     }
@@ -48,98 +49,178 @@ export default function Register() {
   // Show success screen after registration
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6 bg-canvas text-ink">
-        <div className="w-full max-w-sm text-center">
-          <div className="font-display font-bold text-[48px] text-ink mb-6">✓</div>
-          <h1 className="font-display font-bold text-[36px] tracking-[1.2px] mb-4 uppercase">
-            REGISTERED!
-          </h1>
-          <p className="font-display text-[14px] uppercase tracking-[0.96px] font-bold opacity-80 leading-[1.8] mb-8 text-ink-muted-80">
-            Your account is waiting for admin approval. You'll be able to log in
-            once the HOD verifies your account. This usually takes 1–2 days.
+      <div className="min-h-screen bg-canvas text-ink flex items-center justify-center px-6 py-28">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-md text-center bg-canvas border border-hairline rounded-2xl p-10 shadow-card"
+        >
+          <div className="w-14 h-14 rounded-full bg-pale-green border border-green-200 flex items-center justify-center mx-auto mb-6">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#003c33" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 6 9 17l-5-5"/>
+            </svg>
+          </div>
+          <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-deep-green block mb-2">
+            Registration Submitted
+          </span>
+          <h1 className="font-display text-[28px] font-bold text-ink mb-3">Account Pending Approval</h1>
+          <p className="font-sans text-[14px] text-body-muted leading-relaxed mb-8">
+            Your registration is awaiting department verification. You will receive access once approved by the HOD.
           </p>
-          <Link to="/login" className="button-ghost-on-dark inline-block">
-            BACK TO LOGIN
+          <Link to="/login" className="button-primary w-full py-3">
+            Back to Sign In →
           </Link>
-        </div>
+        </motion.div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-24 bg-canvas text-ink">
-      <div className="w-full max-w-md">
-        <span className="font-display text-[10px] uppercase tracking-[0.96px] font-bold text-ink-muted-80 block mb-2">STUDENT REGISTRATION</span>
-        <h1 className="font-display font-bold text-[36px] leading-[1.1] tracking-[1.2px] mb-4 uppercase">
-          CREATE ACCOUNT
-        </h1>
-        <p className="font-display text-[12px] uppercase tracking-[0.96px] font-bold text-ink-muted-80 mb-10 leading-[1.6]">
-          After registering, the HOD must approve your account before you can log in.
-        </p>
+    <div className="min-h-screen bg-canvas text-ink flex items-center justify-center px-6 py-28">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-md bg-canvas border border-hairline rounded-2xl p-8 sm:p-10 shadow-card"
+      >
+        {/* Header */}
+        <div className="mb-8">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
+            New Student Onboarding
+          </span>
+          <h1 className="font-display text-[32px] font-bold tracking-tight text-ink mb-1">Create Account</h1>
+          <p className="font-sans text-[14px] text-body-muted">
+            Register to access batch lecture materials, attendance scanning, and forum discussions.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-          {/* Personal info */}
+          {/* Full Name */}
           <div>
-            <label className="font-display text-[10px] uppercase tracking-[0.96px] font-bold text-ink-muted-80 mb-2 block">FULL NAME *</label>
-            <input required value={form.name} onChange={set('name')}
-              className="w-full bg-surface-pearl border border-divider-soft text-ink px-4 py-3 text-[14px] focus:outline-none focus:border-on-primary transition-colors" placeholder="YOUR FULL NAME" />
+            <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1 block">
+              Full Name *
+            </label>
+            <input
+              required
+              value={form.name}
+              onChange={set('name')}
+              className="input"
+              placeholder="e.g. Priyo Sen"
+            />
           </div>
 
+          {/* Email */}
           <div>
-            <label className="font-display text-[10px] uppercase tracking-[0.96px] font-bold text-ink-muted-80 mb-2 block">COLLEGE EMAIL *</label>
-            <input required type="email" value={form.email} onChange={set('email')}
-              className="w-full bg-surface-pearl border border-divider-soft text-ink px-4 py-3 text-[14px] focus:outline-none focus:border-on-primary transition-colors" placeholder="YOU@AGEMC.EDU" />
+            <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1 block">
+              Institutional / Personal Email *
+            </label>
+            <input
+              required
+              type="email"
+              value={form.email}
+              onChange={set('email')}
+              className="input"
+              placeholder="you@agemc.edu"
+            />
           </div>
 
-          {/* Academic info */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Roll + Reg Number */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="font-display text-[10px] uppercase tracking-[0.96px] font-bold text-ink-muted-80 mb-2 block">ROLL NUMBER</label>
-              <input value={form.rollNumber} onChange={set('rollNumber')}
-                className="w-full bg-surface-pearl border border-divider-soft text-ink px-4 py-3 text-[14px] focus:outline-none focus:border-on-primary transition-colors uppercase" placeholder="EE24001" />
+              <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1 block">
+                Roll No.
+              </label>
+              <input
+                value={form.rollNumber}
+                onChange={set('rollNumber')}
+                className="input uppercase font-mono"
+                placeholder="EE24001"
+              />
             </div>
             <div>
-              <label className="font-display text-[10px] uppercase tracking-[0.96px] font-bold text-ink-muted-80 mb-2 block">REGISTRATION NO.</label>
-              <input value={form.regNumber} onChange={set('regNumber')}
-                className="w-full bg-surface-pearl border border-divider-soft text-ink px-4 py-3 text-[14px] focus:outline-none focus:border-on-primary transition-colors uppercase" placeholder="REG24001" />
+              <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1 block">
+                Reg No.
+              </label>
+              <input
+                value={form.regNumber}
+                onChange={set('regNumber')}
+                className="input uppercase font-mono"
+                placeholder="REG24001"
+              />
             </div>
           </div>
 
+          {/* Batch */}
           <div>
-            <label className="font-display text-[10px] uppercase tracking-[0.96px] font-bold text-ink-muted-80 mb-2 block">BATCH *</label>
-            <select value={form.batch} onChange={set('batch')}
-              className="w-full bg-surface-pearl border border-divider-soft text-ink px-4 py-3 text-[14px] focus:outline-none focus:border-on-primary transition-colors">
+            <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1 block">
+              Graduation Batch *
+            </label>
+            <select
+              value={form.batch}
+              onChange={set('batch')}
+              className="input"
+            >
               {BATCHES.map(b => <option key={b} value={b}>{b}</option>)}
             </select>
           </div>
 
           {/* Password */}
           <div>
-            <label className="font-display text-[10px] uppercase tracking-[0.96px] font-bold text-ink-muted-80 mb-2 block">PASSWORD *</label>
-            <input required type="password" value={form.password} onChange={set('password')}
-              className="w-full bg-surface-pearl border border-divider-soft text-ink px-4 py-3 text-[14px] focus:outline-none focus:border-on-primary transition-colors" placeholder="MIN. 6 CHARACTERS" />
+            <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1 block">
+              Password *
+            </label>
+            <input
+              required
+              type="password"
+              value={form.password}
+              onChange={set('password')}
+              className="input"
+              placeholder="Min. 6 characters"
+            />
           </div>
 
+          {/* Confirm Password */}
           <div>
-            <label className="font-display text-[10px] uppercase tracking-[0.96px] font-bold text-ink-muted-80 mb-2 block">CONFIRM PASSWORD *</label>
-            <input required type="password" value={form.confirmPassword} onChange={set('confirmPassword')}
-              className="w-full bg-surface-pearl border border-divider-soft text-ink px-4 py-3 text-[14px] focus:outline-none focus:border-on-primary transition-colors" placeholder="SAME PASSWORD AGAIN" />
+            <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1 block">
+              Confirm Password *
+            </label>
+            <input
+              required
+              type="password"
+              value={form.confirmPassword}
+              onChange={set('confirmPassword')}
+              className="input"
+              placeholder="Confirm password"
+            />
           </div>
 
-          {error && <p className="font-display text-[12px] uppercase tracking-[0.96px] font-bold text-red-500">{error}</p>}
+          {/* Error */}
+          {error && (
+            <p className="text-[13px] text-error font-medium bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-center">
+              {error}
+            </p>
+          )}
 
-          <button type="submit" disabled={loading}
-            className="button-ghost-on-dark mt-2 w-full text-center">
-            {loading ? 'REGISTERING...' : 'REGISTER'}
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="button-primary w-full py-3.5 mt-2"
+          >
+            {loading ? 'Submitting Registration…' : 'Register Account →'}
           </button>
         </form>
 
-        <p className="font-display text-[12px] uppercase tracking-[0.96px] font-bold text-ink-muted-80 mt-8 text-center">
-          ALREADY HAVE AN ACCOUNT?{' '}
-          <Link to="/login" className="text-ink hover:text-ink-muted-80 transition-colors underline">LOG IN</Link>
+        {/* Footer link */}
+        <p className="text-[13px] font-sans text-body-muted text-center mt-6 pt-4 border-t border-hairline">
+          Already registered?{' '}
+          <Link to="/login" className="text-action-blue font-semibold hover:underline ml-1">
+            Sign in
+          </Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   )
 }

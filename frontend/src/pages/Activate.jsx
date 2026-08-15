@@ -1,26 +1,19 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { checkRoll, activateAccount } from '../api/auth'
-import { useAuth } from '../context/AuthContext'
-
-// Two steps:
-// Step 1 — enter roll number → API checks if it exists and is unactivated
-// Step 2 — set password → account activated → auto login
 
 export default function Activate() {
-  const { login } = useAuth()
   const navigate  = useNavigate()
 
-  const [step,     setStep]     = useState(1)      // 1 = enter roll, 2 = set password
+  const [step,     setStep]     = useState(1)
   const [rollNo,   setRollNo]   = useState('')
-  const [name,     setName]     = useState('')      // returned by check-roll
+  const [name,     setName]     = useState('')
   const [batch,    setBatch]    = useState('')
   const [password, setPassword] = useState('')
   const [confirm,  setConfirm]  = useState('')
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')
 
-  // Step 1 — check roll number
   const handleCheckRoll = async (e) => {
     e.preventDefault()
     if (!rollNo.trim()) return setError('Enter your roll number')
@@ -29,7 +22,6 @@ export default function Activate() {
 
     try {
       const res = await checkRoll(rollNo.trim())
-      // API returns { name, batch } — show it so student confirms it's them
       setName(res.data.name)
       setBatch(res.data.batch)
       setStep(2)
@@ -40,7 +32,6 @@ export default function Activate() {
     }
   }
 
-  // Step 2 — set password and activate
   const handleActivate = async (e) => {
     e.preventDefault()
     setError('')
@@ -51,13 +42,9 @@ export default function Activate() {
     setLoading(true)
     try {
       const res = await activateAccount({ rollNumber: rollNo.trim(), password })
-
-      // Auto-login after activation — save token + user
       const { token, user } = res.data
       localStorage.setItem('ei_token', token)
       localStorage.setItem('ei_user', JSON.stringify(user))
-
-      // Navigate to student dashboard
       navigate('/students')
     } catch (err) {
       setError(err.response?.data?.error || 'Activation failed')
@@ -67,108 +54,124 @@ export default function Activate() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-canvas text-ink pt-[44px]">
-      <div className="w-full max-w-[400px]">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-canvas text-ink py-28">
+      <div className="w-full max-w-md bg-canvas border border-hairline rounded-2xl p-8 sm:p-10 shadow-card">
 
         {/* Step indicator */}
         <div className="flex items-center gap-3 mb-8 justify-center">
-          <div className={`w-7 h-7 rounded-full flex items-center justify-center font-sans text-[12px] font-semibold transition-colors ${
-            step >= 1 ? 'bg-primary text-white' : 'border border-divider-soft text-ink-muted-48'
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-mono text-[12px] font-bold transition-colors ${
+            step >= 1 ? 'bg-primary text-white' : 'border border-hairline text-slate'
           }`}>1</div>
-          <div className={`h-px w-8 transition-colors ${step >= 2 ? 'bg-primary' : 'bg-divider-soft'}`} />
-          <div className={`w-7 h-7 rounded-full flex items-center justify-center font-sans text-[12px] font-semibold transition-colors ${
-            step >= 2 ? 'bg-primary text-white' : 'border border-divider-soft text-ink-muted-48'
+          <div className={`h-px w-10 transition-colors ${step >= 2 ? 'bg-primary' : 'bg-hairline'}`} />
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-mono text-[12px] font-bold transition-colors ${
+            step >= 2 ? 'bg-primary text-white' : 'border border-hairline text-slate'
           }`}>2</div>
         </div>
 
         {step === 1 ? (
           <>
-            <h1 className="font-display font-semibold text-[32px] leading-tight tracking-normal mb-2 text-center text-ink">
-              Activate Account
-            </h1>
-            <p className="font-sans text-[17px] font-normal text-ink-muted-80 mb-8 text-center px-4">
-              Enter your roll number. Your HOD has already added you — you just need to set a password.
-            </p>
+            <div className="text-center mb-8">
+              <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
+                New Student Activation
+              </span>
+              <h1 className="font-display font-bold text-[30px] tracking-tight text-ink mb-2">
+                Activate Account
+              </h1>
+              <p className="font-sans text-[14px] text-body-muted">
+                Enter your university roll number to verify your pre-registered account.
+              </p>
+            </div>
 
             <form onSubmit={handleCheckRoll} className="flex flex-col gap-5">
               <div>
-                <label className="sr-only">Roll Number</label>
+                <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1.5 block">
+                  Roll Number
+                </label>
                 <input
                   required
                   value={rollNo}
                   onChange={e => setRollNo(e.target.value.toUpperCase())}
-                  className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-3 text-[17px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all uppercase"
-                  placeholder="Roll Number (e.g. EE24001)"
+                  className="input uppercase font-mono"
+                  placeholder="e.g. EE24001"
                   autoFocus
                 />
               </div>
 
-              {error && <p className="font-sans text-[14px] font-medium text-red-500 text-center">{error}</p>}
+              {error && <p className="text-[13px] font-medium text-error bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-center">{error}</p>}
 
-              <button type="submit" disabled={loading}
-                className="button-primary w-full mt-2">
-                {loading ? 'Checking...' : 'Check Roll Number'}
+              <button type="submit" disabled={loading} className="button-primary w-full py-3.5 mt-2">
+                {loading ? 'Verifying Roll Number…' : 'Continue →'}
               </button>
             </form>
           </>
         ) : (
           <>
-            <h1 className="font-display font-semibold text-[32px] leading-tight tracking-normal mb-2 text-center text-ink">
-              Set Your Password
-            </h1>
-
-            {/* Confirm identity */}
-            <div className="bg-surface-pearl border border-divider-soft rounded-lg p-5 mb-8 mt-6 text-center">
-              <p className="font-sans text-[17px] font-semibold text-ink">{name}</p>
-              <p className="font-sans text-[14px] text-ink-muted-80 mt-1 uppercase tracking-widest">
-                {rollNo} <span className="opacity-50">·</span> {batch}
-              </p>
-              <p className="font-sans text-[12px] text-ink-muted-48 mt-3">Is this you? If not, go back and re-enter your roll number.</p>
+            <div className="text-center mb-6">
+              <span className="font-mono text-[12px] uppercase tracking-wider text-deep-green font-semibold block mb-1">
+                Identity Confirmed
+              </span>
+              <h1 className="font-display font-bold text-[28px] tracking-tight text-ink">
+                Set Your Password
+              </h1>
             </div>
 
-            <form onSubmit={handleActivate} className="flex flex-col gap-5">
+            {/* Confirm identity card */}
+            <div className="bg-soft-stone border border-hairline rounded-xl p-4 mb-6 text-center">
+              <p className="font-sans text-[16px] font-bold text-ink">{name}</p>
+              <p className="font-mono text-[12px] text-slate mt-0.5 uppercase tracking-wider">
+                {rollNo} · Batch {batch}
+              </p>
+            </div>
+
+            <form onSubmit={handleActivate} className="flex flex-col gap-4">
               <div>
-                <label className="sr-only">New Password</label>
+                <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1.5 block">
+                  Create Password (min. 6 chars)
+                </label>
                 <input
                   required
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-3 text-[17px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                  placeholder="New Password (min. 6 chars)"
+                  className="input"
+                  placeholder="••••••••"
                   autoFocus
                 />
               </div>
 
               <div>
-                <label className="sr-only">Confirm Password</label>
+                <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1.5 block">
+                  Confirm Password
+                </label>
                 <input
                   required
                   type="password"
                   value={confirm}
                   onChange={e => setConfirm(e.target.value)}
-                  className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-3 text-[17px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                  placeholder="Confirm Password"
+                  className="input"
+                  placeholder="••••••••"
                 />
               </div>
 
-              {error && <p className="font-sans text-[14px] font-medium text-red-500 text-center">{error}</p>}
+              {error && <p className="text-[13px] font-medium text-error bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-center">{error}</p>}
 
-              <button type="submit" disabled={loading}
-                className="button-primary w-full mt-2">
-                {loading ? 'Activating...' : 'Activate Account'}
+              <button type="submit" disabled={loading} className="button-primary w-full py-3.5 mt-2">
+                {loading ? 'Activating…' : 'Activate & Enter Dashboard →'}
               </button>
 
-              <button type="button" onClick={() => { setStep(1); setError('') }}
-                className="text-link text-center mt-2 font-sans text-[14px]">
-                Back (wrong roll number?)
+              <button
+                type="button"
+                onClick={() => { setStep(1); setError('') }}
+                className="font-sans text-[13px] text-body-muted hover:text-ink text-center mt-1"
+              >
+                ← Back (change roll number)
               </button>
             </form>
           </>
         )}
 
-        <div className="mt-8 flex justify-center text-[14px]">
-          <Link to="/login" className="text-link">
+        <div className="mt-8 pt-4 border-t border-hairline text-center text-[13px] font-sans">
+          <Link to="/login" className="text-action-blue hover:underline font-semibold">
             Already activated? Sign in
           </Link>
         </div>

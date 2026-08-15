@@ -4,13 +4,15 @@ import { getResources, getDownloadUrl } from '../api/resources'
 import { getNotices } from '../api/notices'
 import NoticeCard from '../components/NoticeCard'
 import { useAuth } from '../context/AuthContext'
+import SEO from '../components/SEO'
+
 const TABS = [
-  { id: 'notices',     label: 'Notices',         type: null },
-  { id: 'notes',       label: 'Study Materials',  type: 'notes' },
-  { id: 'pyq',         label: 'PYQs',             type: 'pyq' },
-  { id: 'assignment',  label: 'Assignments',      type: 'assignment' },
-  { id: 'lab_manual',  label: 'Lab Manuals',      type: 'lab_manual' },
-  { id: 'syllabus',    label: 'Syllabus',         type: 'syllabus' },
+  { id: 'notices',    label: 'Notices',         type: null },
+  { id: 'notes',      label: 'Study Materials',  type: 'notes' },
+  { id: 'pyq',        label: 'PYQs',             type: 'pyq' },
+  { id: 'assignment', label: 'Assignments',      type: 'assignment' },
+  { id: 'lab_manual', label: 'Lab Manuals',      type: 'lab_manual' },
+  { id: 'syllabus',   label: 'Syllabus',         type: 'syllabus' },
 ]
 
 export default function Resources() {
@@ -32,111 +34,136 @@ export default function Resources() {
   const isLoading = activeTab.id === 'notices' ? nLoading : rLoading
 
   return (
-    <div className="container pt-32 pb-20 min-h-screen bg-canvas text-ink">
-      <h2 className="font-sans text-[14px] font-semibold tracking-widest uppercase text-ink-muted-48 mb-2">
-        For Students
-      </h2>
-      <h1 className="font-display font-semibold text-[clamp(40px,8vw,64px)] leading-tight tracking-normal mb-8 text-ink">
-        Resources
-      </h1>
+    <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
+      <SEO
+        title="Resources & Bulletins | Electro Infinity"
+        description="Study materials, PYQs, assignments and notices for Electro Infinity members."
+        path="/resources"
+      />
 
-      {/* Tabs — horizontal scroll on mobile */}
-      <div className="flex gap-2 sm:gap-6 border-b border-divider-soft overflow-x-auto scrollbar-none mb-8">
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab)}
-            className={`font-sans text-[14px] font-semibold uppercase tracking-widest pb-3 flex-none whitespace-nowrap border-b-2 transition-colors ${
-              activeTab.id === tab.id
-                ? 'text-primary border-primary'
-                : 'text-ink-muted-48 border-transparent hover:text-ink-muted-80'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <div className="max-w-[1280px] mx-auto px-6 md:px-12">
+        {/* Header */}
+        <div className="max-w-3xl mb-12">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
+            Academic Vault
+          </span>
+          <h1 className="font-display text-[40px] md:text-[56px] font-normal tracking-tight text-ink mb-4">
+            Resources & Bulletins
+          </h1>
+          <p className="font-sans text-[17px] text-body-muted leading-relaxed">
+            Curated repository of previous year questions, class notes, laboratory manuals, and official departmental notices.
+          </p>
+        </div>
 
-      {/* Content */}
-      <div className="animate-in fade-in duration-300">
-        {isLoading ? (
-          <Skeleton />
-        ) : activeTab.id === 'notices' ? (
-          <div className="grid gap-6 md:grid-cols-2">
-            {noticesData?.data?.length > 0
-              ? noticesData.data.map(n => <NoticeCard key={n._id} notice={n} />)
-              : <Empty label="notices" user={user} />}
-          </div>
-        ) : (
-          <div className="flex flex-col border-t border-divider-soft">
-            {resData?.data?.length > 0
-              ? resData.data.map(r => <ResourceRow key={r._id} resource={r} />)
-              : <Empty label={activeTab.label.toLowerCase()} user={user} />}
-          </div>
-        )}
+        {/* Tab selector pills */}
+        <div className="flex gap-2 overflow-x-auto pb-4 mb-10 scrollbar-none border-b border-hairline">
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab)}
+              className={`font-sans text-[14px] font-semibold px-5 py-2 rounded-full transition-all whitespace-nowrap ${
+                activeTab.id === tab.id
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'bg-soft-stone text-body-muted hover:text-ink'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div key={activeTab.id} className="animate-in fade-in duration-200">
+          {isLoading ? (
+            <SkeletonGrid />
+          ) : activeTab.id === 'notices' ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {noticesData?.data?.length > 0
+                ? noticesData.data.map(n => <NoticeCard key={n._id} notice={n} />)
+                : <Empty label="notices" user={user} />}
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {resData?.data?.length > 0
+                ? resData.data.map(r => <ResourceCard key={r._id} resource={r} />)
+                : <Empty label={activeTab.label.toLowerCase()} user={user} />}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
 }
 
-function ResourceRow({ resource: r }) {
+/* ── Resource Card ──────────────────────────────────────────────── */
+function ResourceCard({ resource: r }) {
   const date = new Date(r.createdAt).toLocaleDateString('en-IN', {
     day: '2-digit', month: 'short', year: 'numeric',
   })
 
   return (
-    <div className="flex items-start sm:items-center gap-6 py-6 border-b border-divider-soft group">
-      {/* Semester badge */}
-      {r.semester && (
-        <span className="font-sans text-[12px] font-semibold text-primary w-14 flex-shrink-0 pt-0.5 sm:pt-0 uppercase tracking-widest">
-          Sem {r.semester}
-        </span>
-      )}
+    <div className="border border-hairline bg-canvas rounded-2xl p-6 shadow-card hover:bg-soft-stone/30 transition-colors flex flex-col justify-between group">
+      <div>
+        {/* Type and Sem badges */}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-pale-blue text-action-blue border border-blue-200">
+            {r.type?.replace('_', ' ') || 'Resource'}
+          </span>
+          {r.semester && (
+            <span className="font-mono text-[11px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-soft-stone text-ink">
+              Sem {r.semester}
+            </span>
+          )}
+        </div>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <p className="font-sans text-[17px] font-semibold text-ink leading-snug">{r.title}</p>
+        {/* Title */}
+        <h3 className="font-sans text-[16px] font-semibold text-ink leading-snug group-hover:text-action-blue transition-colors">
+          {r.title}
+        </h3>
         {r.subject && (
-          <p className="font-sans text-[12px] font-medium text-ink-muted-48 mt-1 uppercase tracking-widest">{r.subject}</p>
+          <p className="font-sans text-[13px] text-body-muted mt-1.5">{r.subject}</p>
         )}
-        <p className="font-sans text-[12px] font-medium text-ink-muted-80 mt-1">{date} · {r.downloadCount} downloads</p>
       </div>
 
-      {/* Download */}
-      <a
-        href={getDownloadUrl(r._id)}
-        target="_blank"
-        rel="noreferrer"
-        className="font-sans text-[12px] font-semibold uppercase tracking-widest text-link flex-shrink-0 hover:text-primary transition-colors"
-      >
-        Download ↓
-      </a>
+      {/* Footer */}
+      <div className="flex items-center justify-between pt-4 mt-4 border-t border-hairline text-[12px]">
+        <span className="font-mono text-slate">
+          {date} · {r.downloadCount || 0} dl
+        </span>
+        <a
+          href={getDownloadUrl(r._id)}
+          target="_blank"
+          rel="noreferrer"
+          className="button-primary !py-1 !px-3 !text-[12px] !bg-primary text-white"
+        >
+          Download ↓
+        </a>
+      </div>
     </div>
   )
 }
 
-function Skeleton() {
+/* ── Skeleton ───────────────────────────────────────────────────── */
+function SkeletonGrid() {
   return (
-    <div className="flex flex-col border-t border-divider-soft">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-6 py-6 border-b border-divider-soft animate-pulse">
-          <div className="w-14 h-4 bg-surface-pearl rounded" />
-          <div className="flex-1 space-y-2">
-            <div className="h-5 bg-surface-pearl rounded w-64" />
-            <div className="h-4 bg-surface-pearl rounded w-32" />
-          </div>
-          <div className="w-20 h-4 bg-surface-pearl rounded" />
-        </div>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="border border-hairline bg-soft-stone/40 rounded-2xl h-[160px] animate-pulse" />
       ))}
     </div>
   )
 }
 
+/* ── Empty state ────────────────────────────────────────────────── */
 function Empty({ label, user }) {
   return (
-    <div className="py-16 text-center border-b border-divider-soft">
-      <p className="font-sans text-[17px] text-ink-muted-80">
-        No {label} uploaded yet.{user ? ' Ask your CR (Class Representative) to add some.' : ''}
+    <div className="col-span-full border border-hairline bg-soft-stone rounded-2xl py-16 text-center">
+      <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-slate block mb-2">
+        No Files Available
+      </span>
+      <p className="font-sans text-[16px] text-body-muted">
+        No {label} uploaded yet.
+        {user ? ' Ask your CR or Faculty to upload.' : ' Sign in to view batch-specific content.'}
       </p>
     </div>
   )

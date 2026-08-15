@@ -46,7 +46,19 @@ const seedUsers = async () => {
       rollNumber: 'ADMIN123',
       email: 'admin@gmail.com',
       password: password,
-      role: 'admin'
+      role: 'admin',
+      isVerified: true,
+    });
+
+    // Create Faculty
+    const faculty = await User.create({
+      name: 'Test Faculty',
+      email: 'faculty@gmail.com',
+      password: password,
+      role: 'faculty',
+      assignedBatches: ['2027', '2024-2028'],
+      assignedCourses: ['ECT', 'EM-II'],
+      isVerified: true,
     });
 
     console.log('--- TEST USERS CREATED SUCCESSFULY ---');
@@ -57,9 +69,12 @@ const seedUsers = async () => {
     console.log(`   Roll Number: ${cr.rollNumber}`);
     console.log(`   Password: ${password}`);
     console.log('3. Admin');
-    console.log(`   Roll Number: ${admin.rollNumber}`);
+    console.log(`   Email: ${admin.email}`);
     console.log(`   Password: ${password}`);
-    console.log('3. Student 2');
+    console.log('4. Faculty');
+    console.log(`   Email: ${faculty.email}`);
+    console.log(`   Password: ${password}`);
+    console.log('5. Student 2');
     console.log(`   Roll Number: ${student2.rollNumber}`);
     console.log(`   Password: ${password}`);
     

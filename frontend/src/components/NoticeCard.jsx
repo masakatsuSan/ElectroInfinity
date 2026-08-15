@@ -1,49 +1,40 @@
-// Reusable notice row — used on Home page and Resources page
 export default function NoticeCard({ notice }) {
-  // Colour-coded category tag
-  const catColor = {
-    exam:      'text-vs',
-    lab:       'text-green',
-    event:     'text-yellow-400',
-    academic:  'text-dim',
-    placement: 'text-orange-400',
-    general:   'text-dim',
-  }
-
   const date = new Date(notice.createdAt).toLocaleDateString('en-IN', {
     day: '2-digit', month: 'short', year: 'numeric',
   })
 
   return (
-    <div className="flex items-start gap-4 py-4 border-b border-white/7 group hover:cursor-default">
-
-      {/* Category */}
-      <span className={`font-mono text-[9px] uppercase tracking-widest pt-1 w-14 flex-shrink-0 ${catColor[notice.category] || 'text-dim'}`}>
-        {notice.category}
-      </span>
-
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <p className="text-[14.5px] font-medium leading-snug group-hover:text-vs transition-colors">
+    <div className="border border-hairline bg-canvas rounded-2xl p-5 shadow-card hover:bg-soft-stone/30 transition-colors flex flex-col justify-between group">
+      <div>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-pale-green text-deep-green border border-green-200">
+            {notice.category || 'General'}
+          </span>
           {notice.isPinned && (
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-vs mr-2 mb-0.5" />
+            <span className="font-mono text-[10px] font-bold uppercase bg-ink text-white px-2 py-0.5 rounded-full">
+              Pinned
+            </span>
           )}
+        </div>
+
+        <h3 className="font-sans text-[15px] font-semibold text-ink leading-snug group-hover:text-action-blue transition-colors">
           {notice.title}
-        </p>
-        <p className="font-mono text-[10px] uppercase tracking-wider text-dim mt-1">{date}</p>
+        </h3>
       </div>
 
-      {/* Download link */}
-      {notice.attachmentUrl && (
-        <a
-          href={notice.attachmentUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="font-mono text-[10px] uppercase tracking-wider text-vs border-b border-vs pb-px flex-shrink-0 hover:text-white hover:border-white transition-colors"
-        >
-          PDF ↓
-        </a>
-      )}
+      <div className="flex items-center justify-between pt-4 mt-3 border-t border-hairline text-[12px]">
+        <span className="font-mono text-slate">{date}</span>
+        {notice.attachmentUrl && (
+          <a
+            href={notice.attachmentUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-action-blue hover:underline"
+          >
+            Attachment PDF ↓
+          </a>
+        )}
+      </div>
     </div>
   )
 }
