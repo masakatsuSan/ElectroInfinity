@@ -36,13 +36,31 @@ export default function StudentAttendance() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
+  const normalize = (value) => String(value ?? '').trim().toLowerCase()
+
+  const isSessionForStudent = (session, currentUser) => {
+    if (!session) return false
+    if (normalize(session.batch) !== normalize(currentUser?.batch)) return false
+
+    const sessionSection = normalize(session.section)
+    const userSection = normalize(currentUser?.section)
+
+    if (!userSection) {
+      return !sessionSection
+    }
+
+    return !sessionSection || sessionSection === userSection
+  }
+
   const loadData = async () => {
     try {
       const [sessRes, statsRes] = await Promise.all([
         getActiveBatchSession(),
         getMyStats(),
       ])
-      setActiveSession(sessRes.data?.data || null)
+
+      const session = sessRes.data?.data
+      setActiveSession(isSessionForStudent(session, user) ? session : null)
       setStats(statsRes.data?.data || null)
     } catch {
       // ignore

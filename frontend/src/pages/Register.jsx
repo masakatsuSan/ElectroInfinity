@@ -2,14 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../api/auth'
 import { motion } from 'framer-motion'
-
-const BATCHES = ['2024-2028', '2023-2027', '2022-2026', '2021-2025']
+import { BATCHES, DEFAULT_BATCH } from '../data/batches'
 
 export default function Register() {
   const navigate = useNavigate()
   const [form, setForm] = useState({
     name: '', email: '', password: '', confirmPassword: '',
-    rollNumber: '', regNumber: '', batch: '2024-2028',
+    rollNumber: '', regNumber: '', batch: DEFAULT_BATCH,
   })
   const [error,   setError]   = useState('')
   const [success, setSuccess] = useState(false)

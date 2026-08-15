@@ -441,26 +441,28 @@ router.get('/sessions/:id/roster', protect, async (req, res) => {
 // @desc    Get active session for student's batch and section
 router.get('/sessions/active/batch', protect, guard('student', 'cr'), async (req, res) => {
   try {
-    const query = {
-      batch: req.user.batch,
-      status: 'active',
-    }
+    const userBatch = (req.user.batch || '').trim().toLowerCase()
+    const userSection = (req.user.section || '').trim().toLowerCase()
 
-    const sessions = await Session.find(query)
+    const sessions = await Session.find({ batch: req.user.batch, status: 'active' })
       .populate('faculty', 'name email')
       .populate('room', 'name')
       .sort({ startTime: -1 })
 
-    // If student has section, find session matching student's section or all-section session
-    let matchingSession = null
-    if (req.user.section && req.user.section.trim()) {
-      matchingSession = sessions.find(s => !s.section || s.section.toLowerCase() === req.user.section.toLowerCase())
-    }
-    if (!matchingSession && sessions.length > 0) {
-      matchingSession = sessions[0]
-    }
+    const matchingSession = sessions.find((session) => {
+      const sessionBatch = (session.batch || '').trim().toLowerCase()
+      if (sessionBatch !== userBatch) return false
 
-    res.json({ success: true, data: matchingSession || null })
+      const sessionSection = (session.section || '').trim().toLowerCase()
+
+      if (!userSection) {
+        return !sessionSection
+      }
+
+      return !sessionSection || sessionSection === userSection
+    }) || null
+
+    res.json({ success: true, data: matchingSession })
   } catch (err) {
     res.status(500).json({ success: false, error: err.message })
   }

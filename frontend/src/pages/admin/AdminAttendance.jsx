@@ -13,7 +13,7 @@ import {
   getBatchStats,
 } from '../../api/attendance'
 
-const BATCHES = ['2024-2028', '2023-2027', '2022-2026', '2021-2025']
+const BATCHES = ['2023-2027', '2024-2028', '2025-2029', '2026-2030']
 const SECTIONS = ['A', 'B', 'All']
 const PRESET_SUBJECTS = ['ECT', 'EM-II', 'DE', 'NA', 'Maths', 'ECT Lab', 'EM Lab', 'PS-I', 'CS', 'MPMC', 'PE', 'ACE', 'RES']
 

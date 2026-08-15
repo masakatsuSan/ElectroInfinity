@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getStudents, addStudent, bulkImport, deleteStudent } from '../../api/students'
 const SUBJECTS = ['ECT','EM-II','DE','NA','Maths','ECT Lab','EM Lab']
-const BATCHES  = ['2024-2028','2023-2027','2022-2026','2021-2025']
+const BATCHES  = ['2023-2027','2024-2028','2025-2029','2026-2030']
 const BLANK    = { name:'', rollNumber:'', email:'', batch:'2024-2028', semester:'3', regNumber:'' }
 
 export default function AdminStudents() {
@@ -213,7 +213,7 @@ function DirectoryTab({ qc }) {
   return (
     <div>
       <div className="flex gap-2 mb-6 flex-wrap">
-        {['', ...['2024-2028','2023-2027','2022-2026','2021-2025']].map(b => (
+        {['', ...['2023-2027','2024-2028','2025-2029','2026-2030']].map(b => (
           <button key={b} onClick={() => setBatch(b)}
             className={`font-sans text-[13px] font-medium uppercase tracking-widest px-4 py-2 rounded-lg border transition-colors ${
               batch===b ? 'border-primary text-primary bg-primary/10' : 'border-divider-soft text-ink-muted-80 hover:text-ink hover:bg-surface-pearl'

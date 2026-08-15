@@ -15,7 +15,7 @@ import {
 } from '../../api/attendance'
 import { getSocketUrl } from '../../utils/socket'
 
-const FALLBACK_BATCHES = ['2024-2028', '2023-2027', '2022-2026', '2021-2025']
+const FALLBACK_BATCHES = ['2023-2027', '2024-2028', '2025-2029', '2026-2030']
 const FALLBACK_SECTIONS = ['A', 'B', 'All']
 const FALLBACK_SUBJECTS = ['ECT', 'EM-II', 'DE', 'NA', 'Maths', 'ECT Lab', 'EM Lab']
 
