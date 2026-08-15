@@ -35,18 +35,24 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    const apiKey = process.env.BREVO_API_KEY?.trim();
+    console.log('📧 Contact: Sending email via Brevo API (key prefix:', apiKey?.substring(0, 20), ')');
+    
     const response = await axios.post('https://api.brevo.com/v3/smtp/email', payload, {
       headers: {
-        'api-key': process.env.BREVO_API_KEY,
+        'api-key': apiKey,
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
       }
     });
 
-    console.log('Contact email sent. ID:', response.data?.messageId)
+    console.log('✅ Contact email sent. ID:', response.data?.messageId)
     res.json({ success: true, message: 'Message sent successfully' })
   } catch (error) {
-    console.error('Brevo API Error (Contact):', error.response?.data || error.message)
+    console.error('❌ Brevo API Error (Contact):');
+    console.error('   Status:', error.response?.status);
+    console.error('   Message:', error.response?.data?.message);
+    console.error('   Code:', error.response?.data?.code);
+    console.error('   Error Details:', error.response?.data);
     res.status(500).json({ success: false, error: 'Failed to send message. Please try again later.' })
   }
 })

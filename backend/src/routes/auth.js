@@ -20,9 +20,14 @@ function generateOTP() {
 
 // ── Helper: send email via Brevo API // Standardized Email Sender using Axios and Brevo API
 async function sendEmail({ to, subject, html }) {
-  if (!process.env.BREVO_API_KEY) {
+  const apiKey = process.env.BREVO_API_KEY?.trim();
+  
+  if (!apiKey) {
+    console.error('❌ BREVO_API_KEY is missing or empty');
     throw new Error("BREVO_API_KEY is not defined in environment variables");
   }
+
+  console.log('🔍 Debug: Using Brevo API Key (first 20 chars):', apiKey.substring(0, 20));
   
   const payload = {
     sender: { 
@@ -35,16 +40,20 @@ async function sendEmail({ to, subject, html }) {
   }
 
   try {
+    console.log('📧 Sending email to:', to);
     const response = await axios.post('https://api.brevo.com/v3/smtp/email', payload, {
       headers: {
-        'api-key': process.env.BREVO_API_KEY,
+        'api-key': apiKey,
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
       }
     });
-    console.log('Email sent successfully via Brevo API. ID: ' + response.data?.messageId)
+    console.log('✅ Email sent successfully via Brevo API. ID: ' + response.data?.messageId)
   } catch (error) {
-    console.error('Error sending email via Brevo API:', error.response?.data || error.message)
+    console.error('❌ Error sending email via Brevo API:');
+    console.error('   Status:', error.response?.status);
+    console.error('   Message:', error.response?.data?.message || error.message);
+    console.error('   Error Code:', error.response?.data?.code);
+    console.error('   Full Response:', error.response?.data);
     throw new Error(error.response?.data?.message || error.message)
   }
 }
