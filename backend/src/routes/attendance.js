@@ -433,6 +433,40 @@ router.get('/sessions/:id/roster', protect, async (req, res) => {
   }
 })
 
+// @route   DELETE /api/attendance/records/:recordId
+// @desc    Faculty deletes an attendance record (removes from calculations, not counted as absence)
+router.delete('/records/:recordId', protect, guard('faculty'), async (req, res) => {
+  try {
+    const record = await AttendanceRecord.findById(req.params.recordId)
+    if (!record) {
+      return res.status(404).json({ success: false, error: 'Record not found' })
+    }
+
+    const session = await Session.findById(record.session)
+    if (!session) {
+      return res.status(404).json({ success: false, error: 'Session not found' })
+    }
+
+    // Verify the faculty member owns this session
+    if (session.faculty.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, error: 'Unauthorized: Not your session' })
+    }
+
+    // Delete the record
+    const student = await User.findById(record.student).select('name')
+    await AttendanceRecord.findByIdAndDelete(req.params.recordId)
+
+    res.json({
+      success: true,
+      message: `Deleted ${student?.name || 'Student'}'s record from this session`,
+      deletedRecordId: record._id,
+      studentId: record.student,
+    })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
 // ── Student: Attendance Scanning & Records ─────────────────────────────────
 
 // @route   GET /api/attendance/sessions/active/batch
@@ -530,11 +564,31 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
     const facultyLat = Number(session.centerLat)
     const facultyLng = Number(session.centerLng)
 
-    // Validate coordinates are valid numbers
+    // Validate coordinates are valid numbers and in expected ranges
     if (!isFinite(studentLat) || !isFinite(studentLng) || !isFinite(facultyLat) || !isFinite(facultyLng)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid GPS coordinates. Please ensure location services are working correctly.',
+        error: 'Invalid GPS coordinates detected. Please ensure location services are working correctly.',
+        debug: {
+          studentLat,
+          studentLng,
+          facultyLat,
+          facultyLng,
+        },
+      })
+    }
+
+    // Sanity check for valid lat/lng ranges
+    if (Math.abs(studentLat) > 90 || Math.abs(studentLng) > 180 || Math.abs(facultyLat) > 90 || Math.abs(facultyLng) > 180) {
+      return res.status(400).json({
+        success: false,
+        error: 'GPS coordinates out of valid range. Contact administrator.',
+        debug: {
+          studentLat,
+          studentLng,
+          facultyLat,
+          facultyLng,
+        },
       })
     }
 
@@ -551,6 +605,13 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
         success: false,
         distanceInMeters: distance,
         error: `You're too far from the classroom (${distance}m away). Must be within 100m of faculty device.`,
+        debug: {
+          studentLat: studentLat.toFixed(6),
+          studentLng: studentLng.toFixed(6),
+          facultyLat: facultyLat.toFixed(6),
+          facultyLng: facultyLng.toFixed(6),
+          calculatedDistance: distance,
+        },
       })
     }
 

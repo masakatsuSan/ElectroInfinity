@@ -32,6 +32,9 @@ export const getSessionFeed = (id) => api.get(`/attendance/sessions/${id}/feed`)
 export const getMyClasses = () => api.get('/attendance/faculty/my-classes')
 export const getSessionRoster = (id) => api.get(`/attendance/sessions/${id}/roster`)
 
+// ── Attendance Record Management ──
+export const deleteAttendanceRecord = (recordId) => api.delete(`/attendance/records/${recordId}`)
+
 // ── Scanning & Attendance History (Student) ──
 export const scanQr = (data) => api.post('/attendance/scan', data)
 export const getMyStats = () => api.get('/attendance/stats/me')

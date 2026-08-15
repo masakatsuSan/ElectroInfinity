@@ -45,6 +45,7 @@ export default function StudentAttendance() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [scanRetryCount, setScanRetryCount] = useState(0)
+  const [gpsDebug, setGpsDebug] = useState(null)
 
   const normalize = (value) => String(value ?? '').trim().toLowerCase()
 
@@ -76,6 +77,22 @@ export default function StudentAttendance() {
       // ignore
     } finally {
       setLoading(false)
+    }
+  }
+
+  const refreshStudentGps = async () => {
+    try {
+      setError('')
+      const gps = await getStudentGps()
+      setGpsDebug({
+        latitude: gps.latitude,
+        longitude: gps.longitude,
+        accuracy: gps.accuracy,
+        timestamp: new Date().toLocaleTimeString(),
+      })
+      setMsg(`GPS refreshed: ${gps.latitude.toFixed(6)}°, ${gps.longitude.toFixed(6)}° (±${gps.accuracy}m)`)
+    } catch (err) {
+      setError(err.message || 'Failed to refresh GPS location')
     }
   }
 
@@ -342,6 +359,49 @@ export default function StudentAttendance() {
             <p className="font-sans text-[12px] text-ink-muted-80 text-center leading-relaxed">
               Point your camera at the revolving QR code displayed on the classroom screen. Live GPS coordinates will be verified automatically.
             </p>
+          </div>
+        )}
+
+        {/* GPS Refresh & Debug Info */}
+        {activeSession && (
+          <div className="border border-divider-soft bg-surface-pearl rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-sans text-[13px] font-semibold text-ink">Your Live Location</span>
+              <button
+                onClick={refreshStudentGps}
+                className="text-[12px] font-medium text-primary hover:underline"
+              >
+                🔄 Refresh GPS
+              </button>
+            </div>
+            
+            {gpsDebug && (
+              <div className="bg-canvas rounded-lg p-3 space-y-1">
+                <p className="font-mono text-[11px] text-ink-muted-80">
+                  Lat: {gpsDebug.latitude.toFixed(6)}°
+                </p>
+                <p className="font-mono text-[11px] text-ink-muted-80">
+                  Lng: {gpsDebug.longitude.toFixed(6)}°
+                </p>
+                <p className="font-mono text-[11px] text-ink-muted-80">
+                  Accuracy: ±{gpsDebug.accuracy}m
+                </p>
+                <p className="font-mono text-[11px] text-ink-muted-80 opacity-60">
+                  Updated: {gpsDebug.timestamp}
+                </p>
+              </div>
+            )}
+            
+            {activeSession && (
+              <div className="bg-canvas rounded-lg p-3 space-y-1 text-[11px]">
+                <p className="font-mono text-ink-muted-80">
+                  Faculty Lat: {(activeSession.centerLat ?? 'N/A').toFixed ? (activeSession.centerLat).toFixed(6) : 'N/A'}°
+                </p>
+                <p className="font-mono text-ink-muted-80">
+                  Faculty Lng: {(activeSession.centerLng ?? 'N/A').toFixed ? (activeSession.centerLng).toFixed(6) : 'N/A'}°
+                </p>
+              </div>
+            )}
           </div>
         )}
 

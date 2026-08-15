@@ -12,6 +12,7 @@ import {
   getMyClasses,
   getSessionRoster,
   getSubjects,
+  deleteAttendanceRecord,
 } from '../../api/attendance'
 import { getSocketUrl } from '../../utils/socket'
 
@@ -66,6 +67,7 @@ export default function FacultyAttendance() {
   const [gpsLocation, setGpsLocation] = useState(null)
   const [gpsLoading, setGpsLoading] = useState(false)
   const [startLoading, setStartLoading] = useState(false)
+  const [sessionGpsDebug, setSessionGpsDebug] = useState(null)
 
   // My Classes state
   const [myClasses, setMyClasses] = useState([])
@@ -73,6 +75,7 @@ export default function FacultyAttendance() {
   const [selectedRosterSession, setSelectedRosterSession] = useState(null)
   const [rosterData, setRosterData] = useState(null)
   const [rosterLoading, setRosterLoading] = useState(false)
+  const [deletingRecordId, setDeletingRecordId] = useState(null)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -199,9 +202,31 @@ export default function FacultyAttendance() {
     try {
       const loc = await getBrowserLocation()
       setGpsLocation(loc)
-      setMsg(`GPS location locked: ${loc.centerLat.toFixed(4)}° N, ${loc.centerLng.toFixed(4)}° E (±${loc.accuracy}m)`)
+      setMsg(`GPS location locked: ${loc.centerLat.toFixed(6)}° N, ${loc.centerLng.toFixed(6)}° E (±${loc.accuracy}m)`)
     } catch (err) {
       setError(err.message || 'Failed to capture GPS')
+    } finally {
+      setGpsLoading(false)
+    }
+  }
+
+  const handleRecalibrateSessionGps = async () => {
+    if (!session) return
+    setGpsLoading(true)
+    setError('')
+    try {
+      const loc = await getBrowserLocation()
+      setSessionGpsDebug({
+        centerLat: loc.centerLat,
+        centerLng: loc.centerLng,
+        accuracy: loc.accuracy,
+        oldLat: session.centerLat,
+        oldLng: session.centerLng,
+        timestamp: new Date().toLocaleTimeString(),
+      })
+      setMsg(`GPS recalibrated: ${loc.centerLat.toFixed(6)}° N, ${loc.centerLng.toFixed(6)}° E (±${loc.accuracy}m). Students can now re-scan if needed.`)
+    } catch (err) {
+      setError(err.message || 'Failed to recalibrate GPS')
     } finally {
       setGpsLoading(false)
     }
@@ -279,6 +304,32 @@ export default function FacultyAttendance() {
       // handle
     } finally {
       setRosterLoading(false)
+    }
+  }
+
+  const handleDeleteRecord = async (recordId, studentName) => {
+    if (!window.confirm(`Delete attendance record for ${studentName}? This will remove them from calculations and they won't be marked absent for this day.`)) {
+      return
+    }
+
+    setDeletingRecordId(recordId)
+    setError('')
+    try {
+      const res = await deleteAttendanceRecord(recordId)
+      setMsg(res.data.message || `Record deleted for ${studentName}`)
+
+      // Refresh the roster
+      if (selectedRosterSession) {
+        const rosterRes = await getSessionRoster(selectedRosterSession._id)
+        setRosterData(rosterRes.data.data)
+      }
+
+      // Clear message after 3 seconds
+      setTimeout(() => setMsg(''), 3000)
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Failed to delete record')
+    } finally {
+      setDeletingRecordId(null)
     }
   }
 
@@ -508,11 +559,40 @@ export default function FacultyAttendance() {
                     >
                       End Session
                     </button>
+                    
+                    <button
+                      onClick={handleRecalibrateSessionGps}
+                      disabled={gpsLoading}
+                      className="button-secondary text-[13px] !py-2 !px-3"
+                    >
+                      {gpsLoading ? '🔄 Calibrating…' : '🔄 Recalibrate GPS'}
+                    </button>
                   </div>
 
                   {checkpointAlert > 0 && (
                     <div className="w-full mb-4 rounded-xl bg-amber-500/15 border border-amber-500/30 px-4 py-3 text-amber-700 dark:text-amber-300 text-center font-bold text-[14px] animate-pulse">
                       ⚡ Checkpoint {checkpointAlert} — Surprise QR Active!
+                    </div>
+                  )}
+
+                  {/* GPS Debug Info */}
+                  {session && (
+                    <div className="w-full mb-4 rounded-xl bg-canvas border border-divider-soft p-4 space-y-2">
+                      <div className="text-[11px] space-y-1">
+                        <p className="font-mono text-ink-muted-80">
+                          📍 Current GPS: {session.centerLat.toFixed(6)}° N, {session.centerLng.toFixed(6)}° E
+                        </p>
+                        {sessionGpsDebug && (
+                          <>
+                            <p className="font-mono text-green-600 dark:text-green-400">
+                              ✓ New GPS: {sessionGpsDebug.centerLat.toFixed(6)}° N, {sessionGpsDebug.centerLng.toFixed(6)}° E (±{sessionGpsDebug.accuracy}m)
+                            </p>
+                            <p className="font-mono text-ink-muted-48 text-[10px]">
+                              Updated: {sessionGpsDebug.timestamp}
+                            </p>
+                          </>
+                        )}
+                      </div>
                     </div>
                   )}
 
@@ -726,17 +806,20 @@ export default function FacultyAttendance() {
           <div className="bg-canvas text-ink border border-divider-soft rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="p-6 border-b border-divider-soft flex items-center justify-between">
-              <div>
+              <div className="flex-1">
                 <span className="font-sans text-[12px] font-bold uppercase tracking-wider text-primary">Class Roster</span>
                 <h3 className="font-display text-[22px] font-bold">{selectedRosterSession.subject}</h3>
                 <p className="font-sans text-[13px] text-ink-muted-80">
                   {selectedRosterSession.batch} {selectedRosterSession.section && `· Sec ${selectedRosterSession.section}`} ·{' '}
                   {new Date(selectedRosterSession.startTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                 </p>
+                <p className="font-sans text-[12px] text-ink-muted-80 mt-2 italic">
+                  💡 Click the ✕ button to delete a record. Deleted records won't be counted as absences.
+                </p>
               </div>
               <button
                 onClick={() => { setSelectedRosterSession(null); setRosterData(null) }}
-                className="w-8 h-8 rounded-full bg-surface-pearl border border-divider-soft flex items-center justify-center hover:bg-divider-soft transition-colors"
+                className="w-8 h-8 rounded-full bg-surface-pearl border border-divider-soft flex items-center justify-center hover:bg-divider-soft transition-colors flex-shrink-0"
               >
                 ✕
               </button>
@@ -744,6 +827,17 @@ export default function FacultyAttendance() {
 
             {/* Content */}
             <div className="p-6 overflow-y-auto flex-1">
+              {error && (
+                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-600 text-[13px] rounded-lg">
+                  ⚠️ {error}
+                </div>
+              )}
+              {msg && (
+                <div className="mb-4 p-3 bg-green-500/10 border border-green-500/30 text-green-600 text-[13px] rounded-lg">
+                  ✓ {msg}
+                </div>
+              )}
+
               {rosterLoading ? (
                 <div className="py-12 text-center text-ink-muted-80">
                   <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -752,8 +846,8 @@ export default function FacultyAttendance() {
               ) : rosterData?.feed ? (
                 <div className="space-y-2">
                   <div className="flex justify-between items-center px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-ink-muted-80 border-b border-divider-soft">
-                    <span>Student</span>
-                    <span>Status / Distance</span>
+                    <span>Student ({rosterData.feed.filter(r => r.initial).length} records)</span>
+                    <span>Status / Actions</span>
                   </div>
                   {rosterData.feed.map(({ student, status, distanceInMeters, initial }) => (
                     <div
@@ -766,27 +860,40 @@ export default function FacultyAttendance() {
                           : 'border-divider-soft/50 opacity-60'
                       }`}
                     >
-                      <div>
+                      <div className="flex-1">
                         <p className="font-semibold text-ink">{student.name}</p>
                         <p className="font-sans text-[12px] text-ink-muted-80 font-mono">
                           {student.rollNumber} {student.section && `· Sec ${student.section}`}
                         </p>
                       </div>
 
-                      <div className="text-right">
-                        <span className={`text-[12px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
-                          status === 'present'
-                            ? 'text-green-600 bg-green-500/10'
-                            : status === 'flagged'
-                            ? 'text-amber-600 bg-amber-500/15'
-                            : 'text-red-500 bg-red-500/10'
-                        }`}>
-                          {status}
-                        </span>
-                        {distanceInMeters != null && (
-                          <p className="text-[11px] text-ink-muted-48 font-mono mt-0.5">
-                            {distanceInMeters}m away
-                          </p>
+                      <div className="text-right flex items-center gap-3">
+                        <div>
+                          <span className={`text-[12px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                            status === 'present'
+                              ? 'text-green-600 bg-green-500/10'
+                              : status === 'flagged'
+                              ? 'text-amber-600 bg-amber-500/15'
+                              : 'text-red-500 bg-red-500/10'
+                          }`}>
+                            {status}
+                          </span>
+                          {distanceInMeters != null && (
+                            <p className="text-[11px] text-ink-muted-48 font-mono mt-0.5">
+                              {distanceInMeters}m away
+                            </p>
+                          )}
+                        </div>
+
+                        {initial && (
+                          <button
+                            onClick={() => handleDeleteRecord(initial._id, student.name)}
+                            disabled={deletingRecordId === initial._id}
+                            title="Delete this attendance record"
+                            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-500/10 text-red-500 font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:text-red-600"
+                          >
+                            {deletingRecordId === initial._id ? '⏳' : '✕'}
+                          </button>
                         )}
                       </div>
                     </div>
