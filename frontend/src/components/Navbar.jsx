@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GlobalSearch from './GlobalSearch';
+import { LayoutGrid, School, Contact, MessagesSquare , QrCode, BarChart3, CalendarClock, MessagesSquare, ScanQrCode} from 'lucide-react'
 
 const NAV_LINKS = [
   { to: '/about',      label: 'About'      },
@@ -187,7 +188,7 @@ export default function Navbar() {
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-deep-green font-semibold hover:bg-pale-green transition-colors"
                           >
-                            <span>⚡</span> Take Attendance (Live QR)
+                            <ScanQrCode size={17} strokeWidth={1.75} /> Take Attendance (Live QR)
                           </Link>
                           <Link
                             to="/attendance/faculty"
@@ -207,28 +208,28 @@ export default function Navbar() {
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink font-semibold hover:bg-soft-stone transition-colors"
                           >
-                            <span>📷</span> Scan Attendance QR
+                            <QrCode size={17} strokeWidth={1.75} /> Scan Attendance QR
                           </Link>
                           <Link
                             to="/students"
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink hover:bg-soft-stone transition-colors"
                           >
-                             My Attendance & Stats
+                            <BarChart3 size={17} strokeWidth={1.75} /> My Attendance & Stats
                           </Link>
                           <Link
                             to="/students"
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink hover:bg-soft-stone transition-colors"
                           >
-                            Deadlines & Routine
+                             <CalendarClock size={17} strokeWidth={1.75} />Deadlines & Routine
                           </Link>
                           <Link
                             to="/forum"
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink hover:bg-soft-stone transition-colors"
                           >
-                             Discussion Forum
+                            <MessagesSquare size={17} strokeWidth={1.75} />Discussion Forum
                           </Link>
                         </>
                       )}
@@ -240,7 +241,7 @@ export default function Navbar() {
                           onClick={() => setProfileOpen(false)}
                           className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-coral font-semibold hover:bg-coral/10 transition-colors"
                         >
-                          <span>⊞</span> CR Control Panel
+                          <LayoutGrid size={17} strokeWidth={1.75} /> CR Control Panel
                         </Link>
                       )}
 
@@ -252,28 +253,28 @@ export default function Navbar() {
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink font-semibold hover:bg-soft-stone transition-colors"
                           >
-                            <span>⊞</span> Admin Console
+                            <LayoutGrid size={17} strokeWidth={1.75} /> Admin Console
                           </Link>
                           <Link
                             to="/admin/attendance"
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink hover:bg-soft-stone transition-colors"
                           >
-                            <span>👨‍🏫</span> Faculty & Attendance
+                            <School size={17} strokeWidth={1.75} /> Faculty & Attendance
                           </Link>
                           <Link
                             to="/admin/students"
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink hover:bg-soft-stone transition-colors"
                           >
-                            <span>👥</span> Student Directory
+                            <Contact size={17} strokeWidth={1.75} /> Student Directory
                           </Link>
                           <Link
                             to="/forum"
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink hover:bg-soft-stone transition-colors"
                           >
-                             Discussion Forum
+                            <MessagesSquare size={17} strokeWidth={1.75} /> Discussion Forum
                           </Link>
                         </>
                       )}
