@@ -295,7 +295,7 @@ export default function StudentAttendance() {
               </button>
             </div>
 
-            <div id="qr-reader" ref={scannerRef} className="rounded-xl overflow-hidden shadow-inner bg-black" />
+            <div id="qr-reader" ref={scannerRef} className="qr-scanner-shell rounded-xl overflow-hidden shadow-inner bg-black" />
 
             <p className="font-sans text-[12px] text-ink-muted-80 text-center leading-relaxed">
               Point your camera at the revolving QR code displayed on the classroom screen. Live GPS coordinates will be verified automatically.
