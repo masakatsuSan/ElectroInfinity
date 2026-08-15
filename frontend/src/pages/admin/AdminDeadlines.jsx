@@ -41,7 +41,7 @@ export default function AdminDeadlines() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex items-center justify-between mb-8">
         <h1 className="font-display font-semibold text-[28px] tracking-tight text-ink">Deadlines Manager</h1>
         <button onClick={() => setShowModal(true)} className="button-primary">
           + Post Deadline
@@ -86,18 +86,18 @@ export default function AdminDeadlines() {
 
                 {/* CR Progress View */}
                 <div className="md:w-[250px] flex-shrink-0 bg-canvas rounded-2xl p-5 border border-divider-soft shadow-inner">
-                  <div className="flex justify-between items-end mb-2">
+                  <div className="flex items-end justify-between mb-2">
                     <span className="font-sans text-[13px] font-bold text-ink uppercase tracking-wider">Progress</span>
                     <span className="font-sans text-[16px] font-medium text-ink">{submitCount} / {totalStudents}</span>
                   </div>
-                  <div className="h-2 w-full bg-surface-pearl rounded-full overflow-hidden mb-4">
-                    <div className="h-full bg-green-500 transition-all duration-500" style={{ width: `${totalStudents > 0 ? (submitCount/totalStudents)*100 : 0}%` }}></div>
+                  <div className="w-full h-2 mb-4 overflow-hidden rounded-full bg-surface-pearl">
+                    <div className="h-full transition-all duration-500 bg-green-500" style={{ width: `${totalStudents > 0 ? (submitCount/totalStudents)*100 : 0}%` }}></div>
                   </div>
                   
                   {isComplete ? (
                     <p className="text-green-500 text-[13px] font-bold">Ready to deliver ✅</p>
                   ) : (
-                    <div className="max-h-[100px] overflow-y-auto pr-1 scrollbar-thin">
+                    <div className="max-h-[100px] overflow-y-auto pr-1 scrollbar-none">
                       <span className="font-sans text-[11px] font-bold text-ink-muted-48 uppercase tracking-wider block mb-1">Missing ({missingStudents.length})</span>
                       <ul className="space-y-1">
                         {missingStudents.map(student => (
@@ -118,7 +118,7 @@ export default function AdminDeadlines() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-canvas border border-divider-soft w-full max-w-lg rounded-[24px] overflow-hidden">
-            <div className="p-6 border-b border-divider-soft flex justify-between items-center">
+            <div className="flex items-center justify-between p-6 border-b border-divider-soft">
               <h3 className="font-display text-[22px] font-semibold text-ink">Post New Deadline</h3>
               <button onClick={() => setShowModal(false)} className="text-ink-muted-80 hover:text-ink">✕</button>
             </div>
@@ -158,8 +158,8 @@ export default function AdminDeadlines() {
               </div>
             </div>
             
-            <div className="p-6 border-t border-divider-soft flex justify-end gap-3 bg-surface-pearl">
-              <button onClick={() => setShowModal(false)} className="text-ink-muted-80 px-4 py-2">Cancel</button>
+            <div className="flex justify-end gap-3 p-6 border-t border-divider-soft bg-surface-pearl">
+              <button onClick={() => setShowModal(false)} className="px-4 py-2 text-ink-muted-80">Cancel</button>
               <button onClick={() => createMut.mutate({ ...form, batch: user.batch, section: user.section })} disabled={createMut.isPending || !form.title || !form.subject || !form.deadline} className="button-primary">
                 {createMut.isPending ? 'Posting...' : 'Post Deadline'}
               </button>

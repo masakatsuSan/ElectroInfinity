@@ -381,8 +381,8 @@ export default function FacultyAttendance() {
   return (
     <div className="min-h-screen bg-canvas text-ink pt-[48px] pb-16">
       {/* ── Header ── */}
-      <header className="px-3 py-3 sm:px-6 sm:py-5 border-b shadow-sm border-divider-soft bg-surface-pearl">
-        <div className="flex flex-col justify-between max-w-6xl gap-2 sm:gap-4 mx-auto sm:flex-row sm:items-center">
+      <header className="px-3 py-3 border-b shadow-sm sm:px-6 sm:py-5 border-divider-soft bg-surface-pearl">
+        <div className="flex flex-col justify-between max-w-6xl gap-2 mx-auto sm:gap-4 sm:flex-row sm:items-center">
           <div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
@@ -460,7 +460,7 @@ export default function FacultyAttendance() {
         {tab === 'take' && (
           <div>
             {!session ? (
-              <section className="max-w-2xl p-3 sm:p-6 mx-auto border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl md:p-8">
+              <section className="max-w-2xl p-3 mx-auto border shadow-sm sm:p-6 border-divider-soft bg-surface-pearl rounded-2xl md:p-8">
                 <div className="mb-4 sm:mb-6">
                   <h2 className="font-display text-[18px] sm:text-[22px] font-bold text-ink">Start Class Session</h2>
                   <p className="font-sans text-[12px] sm:text-[14px] text-ink-muted-80 mt-1">
@@ -563,8 +563,8 @@ export default function FacultyAttendance() {
               /* Active Session Live Console */
               <div className="grid gap-4 sm:gap-6 lg:grid-cols-12">
                 {/* QR Section */}
-                <section className="flex flex-col items-center p-3 sm:p-6 text-center border shadow-sm lg:col-span-5 border-divider-soft bg-surface-pearl rounded-2xl">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full pb-2 sm:pb-4 mb-3 sm:mb-6 border-b border-divider-soft gap-2">
+                <section className="flex flex-col items-center p-3 text-center border shadow-sm sm:p-6 lg:col-span-5 border-divider-soft bg-surface-pearl rounded-2xl">
+                  <div className="flex flex-col items-start justify-between w-full gap-2 pb-2 mb-3 border-b sm:flex-row sm:items-center sm:pb-4 sm:mb-6 border-divider-soft">
                     <div className="text-left">
                       <span className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[12px] font-bold bg-green-500/10 text-green-600 border border-green-500/20 uppercase tracking-wider">
                         <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Live Session
@@ -575,7 +575,7 @@ export default function FacultyAttendance() {
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap gap-1 sm:gap-2 w-full sm:w-auto">
+                    <div className="flex flex-wrap w-full gap-1 sm:gap-2 sm:w-auto">
                       <button
                         onClick={handleEndSession}
                         className="button-secondary text-[11px] sm:text-[13px] text-red-500 border-red-500/30 hover:bg-red-500/10 !py-1.5 sm:!py-2 !px-2 sm:!px-3 flex-1 sm:flex-none"
@@ -601,14 +601,14 @@ export default function FacultyAttendance() {
 
                   {/* GPS Debug Info */}
                   {session && (
-                    <div className="w-full p-2 sm:p-4 mb-3 sm:mb-4 space-y-2 border rounded-xl bg-canvas border-divider-soft">
+                    <div className="w-full p-2 mb-3 space-y-2 border sm:p-4 sm:mb-4 rounded-xl bg-canvas border-divider-soft">
                       <div className="text-[10px] sm:text-[11px] space-y-1">
-                        <p className="font-mono text-ink-muted-80 truncate">
+                        <p className="font-mono truncate text-ink-muted-80">
                           📍 Current GPS: {session.centerLat.toFixed(6)}° N, {session.centerLng.toFixed(6)}° E (±{session.centerAccuracy ?? 0}m)
                         </p>
                         {sessionGpsDebug && (
                           <>
-                            <p className="font-mono text-green-600 dark:text-green-400 truncate">
+                            <p className="font-mono text-green-600 truncate dark:text-green-400">
                               ✓ New GPS: {sessionGpsDebug.centerLat.toFixed(6)}° N, {sessionGpsDebug.centerLng.toFixed(6)}° E (±{sessionGpsDebug.accuracy}m)
                             </p>
                             <p className="font-mono text-ink-muted-48 text-[9px] sm:text-[10px]">
@@ -621,7 +621,7 @@ export default function FacultyAttendance() {
                   )}
 
                   {/* QR Code Container with 15s Timer Ring */}
-                  <div className="relative p-3 sm:p-6 bg-white border shadow-xl rounded-3xl border-black/5 dark:border-white/10">
+                  <div className="relative p-3 bg-white border shadow-xl sm:p-6 rounded-3xl border-black/5 dark:border-white/10">
                     {qrPayload ? (
                       <QRCodeSVG
                         value={qrPayload}
@@ -657,8 +657,8 @@ export default function FacultyAttendance() {
                 </section>
 
                 {/* Live Feed Section */}
-                <section className="flex flex-col p-3 sm:p-6 border shadow-sm lg:col-span-7 border-divider-soft bg-surface-pearl rounded-2xl">
-                  <div className="flex flex-col justify-between gap-2 pb-2 sm:pb-4 mb-3 sm:mb-4 border-b sm:flex-row sm:items-center border-divider-soft">
+                <section className="flex flex-col p-3 border shadow-sm sm:p-6 lg:col-span-7 border-divider-soft bg-surface-pearl rounded-2xl">
+                  <div className="flex flex-col justify-between gap-2 pb-2 mb-3 border-b sm:pb-4 sm:mb-4 sm:flex-row sm:items-center border-divider-soft">
                     <div>
                       <h3 className="font-display text-[16px] sm:text-[20px] font-bold text-ink">Live Attendance Roster</h3>
                       <p className="font-sans text-[11px] sm:text-[13px] text-ink-muted-80">
@@ -674,9 +674,9 @@ export default function FacultyAttendance() {
                   </div>
 
                   {/* Attendance List */}
-                  <div className="flex-1 overflow-y-auto max-h-[300px] sm:max-h-[480px] space-y-1 sm:space-y-2 pr-1 scrollbar-thin">
+                  <div className="flex-1 overflow-y-auto max-h-[300px] sm:max-h-[480px] space-y-1 sm:space-y-2 pr-1 scrollbar-none">
                     {feed.length === 0 ? (
-                      <div className="py-8 sm:py-16 text-center text-ink-muted-80">
+                      <div className="py-8 text-center sm:py-16 text-ink-muted-80">
                         <p className="font-sans text-[13px] sm:text-[15px]">Waiting for students to scan QR…</p>
                       </div>
                     ) : (
@@ -741,8 +741,8 @@ export default function FacultyAttendance() {
 
         {/* ── TAB 2: My Classes & Records ── */}
         {tab === 'records' && (
-          <section className="p-3 sm:p-6 space-y-4 sm:space-y-6 border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
-            <div className="flex flex-col justify-between gap-2 sm:gap-3 pb-3 sm:pb-4 border-b sm:flex-row sm:items-center border-divider-soft">
+          <section className="p-3 space-y-4 border shadow-sm sm:p-6 sm:space-y-6 border-divider-soft bg-surface-pearl rounded-2xl">
+            <div className="flex flex-col justify-between gap-2 pb-3 border-b sm:gap-3 sm:pb-4 sm:flex-row sm:items-center border-divider-soft">
               <div>
                 <h2 className="font-display text-[18px] sm:text-[22px] font-bold text-ink">My Class Records</h2>
                 <p className="font-sans text-[12px] sm:text-[14px] text-ink-muted-80">
