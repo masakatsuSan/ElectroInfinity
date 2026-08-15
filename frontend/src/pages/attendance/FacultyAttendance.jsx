@@ -13,37 +13,21 @@ import {
   getSessionRoster,
   getSubjects,
   deleteAttendanceRecord,
+  refreshSessionGps,
 } from '../../api/attendance'
 import { getSocketUrl } from '../../utils/socket'
+import { getBestLocation } from '../../utils/location'
 
 const FALLBACK_BATCHES = ['2023-2027', '2024-2028', '2025-2029', '2026-2030']
 const FALLBACK_SECTIONS = ['A', 'B', 'All']
 const FALLBACK_SUBJECTS = ['ECT', 'EM-II', 'DE', 'NA', 'Maths', 'ECT Lab', 'EM Lab']
 
 function getBrowserLocation() {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('Geolocation is not supported by your browser'))
-      return
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude, accuracy } = pos.coords
-        // Validate coordinates are within valid range
-        if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
-          reject(new Error('Invalid GPS coordinates received. Please ensure your device GPS is working.'))
-          return
-        }
-        resolve({
-          centerLat: latitude,
-          centerLng: longitude,
-          accuracy: Math.round(accuracy),
-        })
-      },
-      (err) => reject(new Error(err.message || 'Could not get device GPS location. Please allow location permissions.')),
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
-    )
-  })
+  return getBestLocation({ maxAccuracyMeters: 45, timeoutMs: 12000, attempts: 3 }).then((loc) => ({
+    centerLat: loc.latitude,
+    centerLng: loc.longitude,
+    accuracy: loc.accuracy,
+  }))
 }
 
 export default function FacultyAttendance() {
@@ -216,6 +200,19 @@ export default function FacultyAttendance() {
     setError('')
     try {
       const loc = await getBrowserLocation()
+      const res = await refreshSessionGps(session._id, {
+        centerLat: loc.centerLat,
+        centerLng: loc.centerLng,
+        centerAccuracy: loc.accuracy,
+      })
+
+      setSession(prev => prev ? {
+        ...prev,
+        centerLat: loc.centerLat,
+        centerLng: loc.centerLng,
+        centerAccuracy: loc.accuracy,
+      } : prev)
+
       setSessionGpsDebug({
         centerLat: loc.centerLat,
         centerLng: loc.centerLng,
@@ -224,9 +221,9 @@ export default function FacultyAttendance() {
         oldLng: session.centerLng,
         timestamp: new Date().toLocaleTimeString(),
       })
-      setMsg(`GPS recalibrated: ${loc.centerLat.toFixed(6)}° N, ${loc.centerLng.toFixed(6)}° E (±${loc.accuracy}m). Students can now re-scan if needed.`)
+      setMsg(res.data?.message || `GPS recalibrated: ${loc.centerLat.toFixed(6)}° N, ${loc.centerLng.toFixed(6)}° E (±${loc.accuracy}m). Students can now re-scan if needed.`)
     } catch (err) {
-      setError(err.message || 'Failed to recalibrate GPS')
+      setError(err.response?.data?.error || err.message || 'Failed to recalibrate GPS')
     } finally {
       setGpsLoading(false)
     }
@@ -251,6 +248,7 @@ export default function FacultyAttendance() {
         subject: form.subject,
         centerLat: loc.centerLat,
         centerLng: loc.centerLng,
+        centerAccuracy: loc.accuracy,
         durationMinutes: Number(form.durationMinutes) || 60,
       }
 
@@ -580,7 +578,7 @@ export default function FacultyAttendance() {
                     <div className="w-full mb-4 rounded-xl bg-canvas border border-divider-soft p-4 space-y-2">
                       <div className="text-[11px] space-y-1">
                         <p className="font-mono text-ink-muted-80">
-                          📍 Current GPS: {session.centerLat.toFixed(6)}° N, {session.centerLng.toFixed(6)}° E
+                          📍 Current GPS: {session.centerLat.toFixed(6)}° N, {session.centerLng.toFixed(6)}° E (±{session.centerAccuracy ?? 0}m)
                         </p>
                         {sessionGpsDebug && (
                           <>
@@ -862,7 +860,7 @@ export default function FacultyAttendance() {
                     >
                       <div className="flex-1">
                         <p className="font-semibold text-ink">{student.name}</p>
-                        <p className="font-sans text-[12px] text-ink-muted-80 font-mono">
+                        <p className="font-mono text-[12px] text-ink-muted-80">
                           {student.rollNumber} {student.section && `· Sec ${student.section}`}
                         </p>
                       </div>

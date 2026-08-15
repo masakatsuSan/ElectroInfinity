@@ -3,31 +3,10 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Html5QrcodeScanner } from 'html5-qrcode'
 import { useAuth } from '../../context/AuthContext'
 import { getActiveBatchSession, scanQr, getMyStats } from '../../api/attendance'
+import { getBestLocation } from '../../utils/location'
 
 function getStudentGps() {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('Geolocation is not supported by your browser.'))
-      return
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude, accuracy } = pos.coords
-        // Validate coordinates are within valid range
-        if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
-          reject(new Error('Invalid GPS coordinates received. Please try again.'))
-          return
-        }
-        resolve({
-          latitude: latitude,
-          longitude: longitude,
-          accuracy: Math.round(accuracy),
-        })
-      },
-      (err) => reject(new Error(err.message || 'GPS access denied. Please allow location permissions to verify you are inside the classroom.')),
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
-    )
-  })
+  return getBestLocation({ maxAccuracyMeters: 45, timeoutMs: 12000, attempts: 3 })
 }
 
 export default function StudentAttendance() {
@@ -154,6 +133,12 @@ export default function StudentAttendance() {
 
           // Step: Get live high-accuracy GPS coordinates
           const gps = await getStudentGps()
+          setGpsDebug({
+            latitude: gps.latitude,
+            longitude: gps.longitude,
+            accuracy: gps.accuracy,
+            timestamp: new Date().toLocaleTimeString(),
+          })
 
           const res = await scanQr({
             sessionId,
@@ -161,6 +146,7 @@ export default function StudentAttendance() {
             checkpointNumber,
             latitude: gps.latitude,
             longitude: gps.longitude,
+            accuracy: gps.accuracy,
           })
 
           const successMsg = res.data.message || 'Attendance marked successfully!'
@@ -331,7 +317,9 @@ export default function StudentAttendance() {
                   {errorDebug.studentLat && (
                     <>
                       <div>📱 Your GPS: {errorDebug.studentLat}°N, {errorDebug.studentLng}°E</div>
+                      <div>� Your GPS accuracy: {errorDebug.studentAccuracy ?? 'N/A'}m</div>
                       <div>👨‍🏫 Faculty GPS: {errorDebug.facultyLat}°N, {errorDebug.facultyLng}°E</div>
+                      <div>📡 Faculty GPS accuracy: {errorDebug.facultyAccuracy ?? 'N/A'}m</div>
                       <div>📏 Distance: {errorDebug.calculatedDistance}m (limit: 100m)</div>
                       {errorDebug.swappedDistance && (
                         <div className="mt-1 pt-1 border-t border-red-500/20">
@@ -431,6 +419,9 @@ export default function StudentAttendance() {
                 </p>
                 <p className="font-mono text-ink-muted-80">
                   Faculty Lng: {(activeSession.centerLng ?? 'N/A').toFixed ? (activeSession.centerLng).toFixed(6) : 'N/A'}°
+                </p>
+                <p className="font-mono text-ink-muted-80">
+                  Faculty GPS accuracy: ±{activeSession.centerAccuracy ?? 'N/A'}m
                 </p>
               </div>
             )}

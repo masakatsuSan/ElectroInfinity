@@ -18,6 +18,7 @@ const sessionSchema = new mongoose.Schema(
     faculty:          { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     centerLat:        { type: Number, required: true }, // Faculty GPS Latitude anchor
     centerLng:        { type: Number, required: true }, // Faculty GPS Longitude anchor
+    centerAccuracy:   { type: Number, default: 0 }, // Best GPS accuracy reading for the anchor point
     room:             { type: mongoose.Schema.Types.ObjectId, ref: 'Room' }, // Optional legacy room ref
     startTime:        { type: Date, default: Date.now },
     endTime:          { type: Date },

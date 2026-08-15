@@ -215,12 +215,13 @@ router.delete('/rooms/:id', protect, guard('admin', 'super_admin'), async (req, 
 // @desc    Faculty starts attendance session with device GPS anchor
 router.post('/sessions/start', protect, guard('faculty'), async (req, res) => {
   try {
-    const { batch, section, subject, course, centerLat, centerLng, latitude, longitude, durationMinutes, roomId } = req.body
+    const { batch, section, subject, course, centerLat, centerLng, centerAccuracy, latitude, longitude, durationMinutes, roomId } = req.body
     const targetSubject = (subject || course || '').trim()
     const targetBatch = (batch || '').trim()
     const targetSection = (section || '').trim()
     const lat = centerLat != null ? Number(centerLat) : latitude != null ? Number(latitude) : null
     const lng = centerLng != null ? Number(centerLng) : longitude != null ? Number(longitude) : null
+    const facultyAccuracy = centerAccuracy != null ? Number(centerAccuracy) : null
 
     if (!targetBatch || !targetSubject) {
       return res.status(400).json({ success: false, error: 'Batch and subject are required' })
@@ -264,6 +265,7 @@ router.post('/sessions/start', protect, guard('faculty'), async (req, res) => {
       faculty: req.user._id,
       centerLat: lat,
       centerLng: lng,
+      centerAccuracy: Number.isFinite(facultyAccuracy) ? Math.round(facultyAccuracy) : 0,
       room: roomId || null,
       durationMinutes: durationMinutes ? Number(durationMinutes) : 60,
       status: 'active',
@@ -298,6 +300,49 @@ router.get('/sessions/active', protect, guard('faculty'), async (req, res) => {
       .populate('faculty', 'name email')
       .populate('room', 'name')
     res.json({ success: true, data: session })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// @route   PUT /api/attendance/sessions/:id/gps
+// @desc    Refresh the active faculty GPS anchor for the current session
+router.put('/sessions/:id/gps', protect, guard('faculty'), async (req, res) => {
+  try {
+    const { centerLat, centerLng, centerAccuracy } = req.body
+    const lat = centerLat != null ? Number(centerLat) : null
+    const lng = centerLng != null ? Number(centerLng) : null
+    const accuracy = centerAccuracy != null ? Number(centerAccuracy) : 0
+
+    if (lat == null || lng == null || !isFinite(lat) || !isFinite(lng)) {
+      return res.status(400).json({
+        success: false,
+        error: 'A valid faculty GPS location is required to refresh the classroom anchor.',
+      })
+    }
+
+    const session = await Session.findById(req.params.id)
+    if (!session) {
+      return res.status(404).json({ success: false, error: 'Active session not found' })
+    }
+    if (session.faculty.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, error: 'Not authorized to update this session GPS' })
+    }
+
+    session.centerLat = lat
+    session.centerLng = lng
+    session.centerAccuracy = Number.isFinite(accuracy) ? Math.round(accuracy) : 0
+    await session.save()
+
+    res.json({
+      success: true,
+      message: `Faculty GPS refreshed: ${lat.toFixed(6)}°, ${lng.toFixed(6)}° (±${Math.round(session.centerAccuracy)}m)`,
+      data: {
+        centerLat: session.centerLat,
+        centerLng: session.centerLng,
+        centerAccuracy: session.centerAccuracy,
+      },
+    })
   } catch (err) {
     res.status(500).json({ success: false, error: err.message })
   }
@@ -504,8 +549,9 @@ router.get('/sessions/active/batch', protect, guard('student', 'cr'), async (req
 // @desc    Student scans rotating QR code
 router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
   try {
-    const { sessionId, token, latitude, longitude, checkpointNumber } = req.body
+    const { sessionId, token, latitude, longitude, accuracy, checkpointNumber } = req.body
     const cpNum = checkpointNumber != null ? Number(checkpointNumber) : 0
+    const studentAccuracy = accuracy != null ? Number(accuracy) : null
 
     if (!sessionId || !token) {
       return res.status(400).json({ success: false, error: 'Session ID and QR token are required' })
@@ -563,6 +609,7 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
     const studentLng = Number(longitude)
     const facultyLat = Number(session.centerLat)
     const facultyLng = Number(session.centerLng)
+    const facultyAccuracy = Number.isFinite(Number(session.centerAccuracy)) ? Number(session.centerAccuracy) : null
 
     // Validate coordinates are valid numbers and in expected ranges
     if (!isFinite(studentLat) || !isFinite(studentLng) || !isFinite(facultyLat) || !isFinite(facultyLng)) {
@@ -572,8 +619,10 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
         debug: {
           studentLat,
           studentLng,
+          studentAccuracy: Number.isFinite(studentAccuracy) ? Math.round(studentAccuracy) : null,
           facultyLat,
           facultyLng,
+          facultyAccuracy: facultyAccuracy != null ? Math.round(facultyAccuracy) : null,
         },
       })
     }
@@ -586,8 +635,10 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
         debug: {
           studentLat,
           studentLng,
+          studentAccuracy: Number.isFinite(studentAccuracy) ? Math.round(studentAccuracy) : null,
           facultyLat,
           facultyLng,
+          facultyAccuracy: facultyAccuracy != null ? Math.round(facultyAccuracy) : null,
         },
       })
     }
@@ -623,9 +674,11 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
       }
       
       troubleshooting.push(`✓ Faculty: ${facultyLat.toFixed(6)}° N, ${facultyLng.toFixed(6)}° E`)
+      troubleshooting.push(`📡 Faculty GPS accuracy: ${facultyAccuracy != null ? `${Math.round(facultyAccuracy)}m` : 'N/A'}`)
       troubleshooting.push(`✓ Student: ${studentLat.toFixed(6)}° N, ${studentLng.toFixed(6)}° E`)
+      troubleshooting.push(`📡 Your GPS accuracy: ${Number.isFinite(studentAccuracy) ? `${Math.round(studentAccuracy)}m` : 'N/A'}`)
       troubleshooting.push(`📏 Distance: ${distance}m (limit: ${MAX_GEOFENCE_METERS}m)`)
-      troubleshooting.push(`💡 Try: Enable High Accuracy location, disable battery saver, ask faculty to re-calibrate GPS`)
+      troubleshooting.push(`💡 Try: Move outdoors or near a window, enable High Accuracy location, disable battery saver, ask faculty to re-calibrate GPS`)
 
       return res.status(400).json({
         success: false,
@@ -634,8 +687,10 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
         debug: {
           studentLat: studentLat.toFixed(6),
           studentLng: studentLng.toFixed(6),
+          studentAccuracy: Number.isFinite(studentAccuracy) ? Math.round(studentAccuracy) : null,
           facultyLat: facultyLat.toFixed(6),
           facultyLng: facultyLng.toFixed(6),
+          facultyAccuracy: facultyAccuracy != null ? Math.round(facultyAccuracy) : null,
           calculatedDistance: distance,
           swappedDistance: swappedDistance,
           troubleshooting: troubleshooting.join('\n'),

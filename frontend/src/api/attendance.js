@@ -29,6 +29,7 @@ export const startSession = (data) => api.post('/attendance/sessions/start', dat
 export const endSession = (id) => api.post(`/attendance/sessions/${id}/end`)
 export const triggerCheckpoint = (id) => api.post(`/attendance/sessions/${id}/trigger-checkpoint`)
 export const getSessionFeed = (id) => api.get(`/attendance/sessions/${id}/feed`)
+export const refreshSessionGps = (id, data) => api.put(`/attendance/sessions/${id}/gps`, data)
 export const getMyClasses = () => api.get('/attendance/faculty/my-classes')
 export const getSessionRoster = (id) => api.get(`/attendance/sessions/${id}/roster`)
 
