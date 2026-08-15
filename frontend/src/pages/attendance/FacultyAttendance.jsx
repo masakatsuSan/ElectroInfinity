@@ -381,15 +381,15 @@ export default function FacultyAttendance() {
   return (
     <div className="min-h-screen bg-canvas text-ink pt-[48px] pb-16">
       {/* ── Header ── */}
-      <header className="px-6 py-5 border-b shadow-sm border-divider-soft bg-surface-pearl">
-        <div className="flex flex-col justify-between max-w-6xl gap-4 mx-auto sm:flex-row sm:items-center">
+      <header className="px-3 py-3 sm:px-6 sm:py-5 border-b shadow-sm border-divider-soft bg-surface-pearl">
+        <div className="flex flex-col justify-between max-w-6xl gap-2 sm:gap-4 mx-auto sm:flex-row sm:items-center">
           <div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
-              <p className="font-sans text-[12px] uppercase tracking-wider font-semibold text-primary">Faculty Attendance Portal</p>
+              <p className="font-sans text-[10px] sm:text-[12px] uppercase tracking-wider font-semibold text-primary">Faculty Attendance Portal</p>
             </div>
-            <h1 className="font-display text-[26px] font-bold tracking-tight text-ink mt-0.5">{user?.name}</h1>
-            <p className="font-sans text-[13px] text-ink-muted-80">
+            <h1 className="font-display text-[20px] sm:text-[26px] font-bold tracking-tight text-ink mt-0.5">{user?.name}</h1>
+            <p className="font-sans text-[11px] sm:text-[13px] text-ink-muted-80 line-clamp-2">
               {hasAssignments ? (
                 <span>Assigned: {assignments.map(a => `${a.subject} (${a.batch}${a.section ? `-${a.section}` : ''})`).join(' · ')}</span>
               ) : (
@@ -398,9 +398,9 @@ export default function FacultyAttendance() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Link to="/" className="button-secondary text-[14px] !py-2 !px-4">← Site</Link>
-            <button onClick={() => { logout(); navigate('/login') }} className="button-secondary text-[14px] !py-2 !px-4 hover:text-red-500">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link to="/" className="button-secondary text-[11px] sm:text-[14px] !py-1.5 sm:!py-2 !px-2 sm:!px-4">← Site</Link>
+            <button onClick={() => { logout(); navigate('/login') }} className="button-secondary text-[11px] sm:text-[14px] !py-1.5 sm:!py-2 !px-2 sm:!px-4 hover:text-red-500">
               Log out
             </button>
           </div>
@@ -418,7 +418,7 @@ export default function FacultyAttendance() {
             <button
               key={id}
               onClick={() => setTab(id)}
-              className={`font-sans text-[14px] font-semibold px-5 py-2.5 rounded-xl transition-all flex items-center gap-2 ${
+              className={`font-sans text-[12px] sm:text-[14px] font-semibold px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap ${
                 tab === id
                   ? 'bg-ink text-canvas shadow-sm'
                   : 'text-ink-muted-80 hover:text-ink hover:bg-surface-pearl'
@@ -426,7 +426,7 @@ export default function FacultyAttendance() {
             >
               <span>{label}</span>
               {badge && (
-                <span className={`text-[11px] px-2 py-0.5 rounded-full ${
+                <span className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full ${
                   id === 'take' && session
                     ? 'bg-green-500 text-white animate-pulse'
                     : tab === id ? 'bg-white/20 text-white' : 'bg-surface-pearl text-ink-muted-80 border border-divider-soft'
@@ -440,19 +440,19 @@ export default function FacultyAttendance() {
 
         {/* Global status messages */}
         {msg && (
-          <div className="rounded-xl bg-green-500/10 border border-green-500/20 px-4 py-3 text-green-700 dark:text-green-400 text-[14px] flex items-center justify-between">
+          <div className="rounded-xl bg-green-500/10 border border-green-500/20 px-3 sm:px-4 py-2 sm:py-3 text-green-700 dark:text-green-400 text-[12px] sm:text-[14px] flex items-center justify-between">
             <p className="flex items-center gap-2">
               <span>✓</span> {msg}
             </p>
-            <button onClick={() => setMsg('')} className="text-[12px] opacity-70 hover:opacity-100">✕</button>
+            <button onClick={() => setMsg('')} className="text-[11px] opacity-70 hover:opacity-100">✕</button>
           </div>
         )}
         {error && (
-          <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-red-600 dark:text-red-400 text-[14px] flex items-center justify-between">
+          <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-3 sm:px-4 py-2 sm:py-3 text-red-600 dark:text-red-400 text-[12px] sm:text-[14px] flex items-center justify-between">
             <p className="flex items-center gap-2">
               <span>⚠</span> {error}
             </p>
-            <button onClick={() => setError('')} className="text-[12px] opacity-70 hover:opacity-100">✕</button>
+            <button onClick={() => setError('')} className="text-[11px] opacity-70 hover:opacity-100">✕</button>
           </div>
         )}
 
@@ -460,15 +460,15 @@ export default function FacultyAttendance() {
         {tab === 'take' && (
           <div>
             {!session ? (
-              <section className="max-w-2xl p-6 mx-auto border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl md:p-8">
-                <div className="mb-6">
-                  <h2 className="font-display text-[22px] font-bold text-ink">Start Class Session</h2>
-                  <p className="font-sans text-[14px] text-ink-muted-80 mt-1">
+              <section className="max-w-2xl p-3 sm:p-6 mx-auto border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl md:p-8">
+                <div className="mb-4 sm:mb-6">
+                  <h2 className="font-display text-[18px] sm:text-[22px] font-bold text-ink">Start Class Session</h2>
+                  <p className="font-sans text-[12px] sm:text-[14px] text-ink-muted-80 mt-1">
                     Select the class details and capture your live device GPS location. The geofence anchors to your device with a 100-meter radius.
                   </p>
                 </div>
 
-                <form onSubmit={handleStartSession} className="space-y-5">
+                <form onSubmit={handleStartSession} className="space-y-4 sm:space-y-5">
                   <div className="grid gap-5 sm:grid-cols-2">
                     {/* Batch */}
                     <div>
@@ -553,7 +553,7 @@ export default function FacultyAttendance() {
                   <button
                     type="submit"
                     disabled={startLoading}
-                    className="button-primary w-full py-4 text-[16px] font-bold shadow-md"
+                    className="button-primary w-full py-3 sm:py-4 text-[13px] sm:text-[16px] font-bold shadow-md"
                   >
                     {startLoading ? 'Creating Live QR Session…' : 'Generate QR & Start Session 🚀'}
                   </button>
@@ -561,55 +561,57 @@ export default function FacultyAttendance() {
               </section>
             ) : (
               /* Active Session Live Console */
-              <div className="grid gap-6 lg:grid-cols-12">
+              <div className="grid gap-4 sm:gap-6 lg:grid-cols-12">
                 {/* QR Section */}
-                <section className="flex flex-col items-center p-6 text-center border shadow-sm lg:col-span-5 border-divider-soft bg-surface-pearl rounded-2xl">
-                  <div className="flex items-center justify-between w-full pb-4 mb-6 border-b border-divider-soft">
+                <section className="flex flex-col items-center p-3 sm:p-6 text-center border shadow-sm lg:col-span-5 border-divider-soft bg-surface-pearl rounded-2xl">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full pb-2 sm:pb-4 mb-3 sm:mb-6 border-b border-divider-soft gap-2">
                     <div className="text-left">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-bold bg-green-500/10 text-green-600 border border-green-500/20 uppercase tracking-wider">
+                      <span className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[12px] font-bold bg-green-500/10 text-green-600 border border-green-500/20 uppercase tracking-wider">
                         <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Live Session
                       </span>
-                      <h2 className="font-display text-[22px] font-bold text-ink mt-1.5">{session.subject}</h2>
-                      <p className="font-sans text-[13px] text-ink-muted-80">
+                      <h2 className="font-display text-[18px] sm:text-[22px] font-bold text-ink mt-1">{session.subject}</h2>
+                      <p className="font-sans text-[11px] sm:text-[13px] text-ink-muted-80">
                         {session.batch} {session.section ? `· Sec ${session.section}` : '· All Sections'}
                       </p>
                     </div>
 
-                    <button
-                      onClick={handleEndSession}
-                      className="button-secondary text-[13px] text-red-500 border-red-500/30 hover:bg-red-500/10 !py-2 !px-3"
-                    >
-                      End Session
-                    </button>
-                    
-                    <button
-                      onClick={handleRecalibrateSessionGps}
-                      disabled={gpsLoading}
-                      className="button-secondary text-[13px] !py-2 !px-3"
-                    >
-                      {gpsLoading ? '🔄 Calibrating…' : '🔄 Recalibrate GPS'}
-                    </button>
+                    <div className="flex flex-wrap gap-1 sm:gap-2 w-full sm:w-auto">
+                      <button
+                        onClick={handleEndSession}
+                        className="button-secondary text-[11px] sm:text-[13px] text-red-500 border-red-500/30 hover:bg-red-500/10 !py-1.5 sm:!py-2 !px-2 sm:!px-3 flex-1 sm:flex-none"
+                      >
+                        End Session
+                      </button>
+                      
+                      <button
+                        onClick={handleRecalibrateSessionGps}
+                        disabled={gpsLoading}
+                        className="button-secondary text-[11px] sm:text-[13px] !py-1.5 sm:!py-2 !px-2 sm:!px-3 flex-1 sm:flex-none"
+                      >
+                        {gpsLoading ? '🔄 Calibrating…' : '🔄 Recalibrate GPS'}
+                      </button>
+                    </div>
                   </div>
 
                   {checkpointAlert > 0 && (
-                    <div className="w-full mb-4 rounded-xl bg-amber-500/15 border border-amber-500/30 px-4 py-3 text-amber-700 dark:text-amber-300 text-center font-bold text-[14px] animate-pulse">
+                    <div className="w-full mb-4 rounded-xl bg-amber-500/15 border border-amber-500/30 px-3 sm:px-4 py-2 sm:py-3 text-amber-700 dark:text-amber-300 text-center font-bold text-[12px] sm:text-[14px] animate-pulse">
                       ⚡ Checkpoint {checkpointAlert} — Surprise QR Active!
                     </div>
                   )}
 
                   {/* GPS Debug Info */}
                   {session && (
-                    <div className="w-full p-4 mb-4 space-y-2 border rounded-xl bg-canvas border-divider-soft">
-                      <div className="text-[11px] space-y-1">
-                        <p className="font-mono text-ink-muted-80">
+                    <div className="w-full p-2 sm:p-4 mb-3 sm:mb-4 space-y-2 border rounded-xl bg-canvas border-divider-soft">
+                      <div className="text-[10px] sm:text-[11px] space-y-1">
+                        <p className="font-mono text-ink-muted-80 truncate">
                           📍 Current GPS: {session.centerLat.toFixed(6)}° N, {session.centerLng.toFixed(6)}° E (±{session.centerAccuracy ?? 0}m)
                         </p>
                         {sessionGpsDebug && (
                           <>
-                            <p className="font-mono text-green-600 dark:text-green-400">
+                            <p className="font-mono text-green-600 dark:text-green-400 truncate">
                               ✓ New GPS: {sessionGpsDebug.centerLat.toFixed(6)}° N, {sessionGpsDebug.centerLng.toFixed(6)}° E (±{sessionGpsDebug.accuracy}m)
                             </p>
-                            <p className="font-mono text-ink-muted-48 text-[10px]">
+                            <p className="font-mono text-ink-muted-48 text-[9px] sm:text-[10px]">
                               Updated: {sessionGpsDebug.timestamp}
                             </p>
                           </>
@@ -619,35 +621,35 @@ export default function FacultyAttendance() {
                   )}
 
                   {/* QR Code Container with 15s Timer Ring */}
-                  <div className="relative p-6 bg-white border shadow-xl rounded-3xl border-black/5 dark:border-white/10">
+                  <div className="relative p-3 sm:p-6 bg-white border shadow-xl rounded-3xl border-black/5 dark:border-white/10">
                     {qrPayload ? (
                       <QRCodeSVG
                         value={qrPayload}
-                        size={260}
+                        size={Math.min(window.innerWidth - 100, 260)}
                         level="M"
                         includeMargin
                         className="rounded-xl"
                       />
                     ) : (
-                      <div className="w-[260px] h-[260px] flex items-center justify-center text-ink-muted-48">
+                      <div className="w-[180px] sm:w-[260px] h-[180px] sm:h-[260px] flex items-center justify-center text-ink-muted-48">
                         Generating QR…
                       </div>
                     )}
 
                     {/* Rotating Indicator */}
-                    <div className="absolute top-2 right-2 bg-black/80 text-white text-[11px] font-mono px-2.5 py-1 rounded-full backdrop-blur-md">
+                    <div className="absolute top-2 right-2 bg-black/80 text-white text-[10px] sm:text-[11px] font-mono px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full backdrop-blur-md">
                       Rotates in {qrTimer}s
                     </div>
                   </div>
 
-                  <p className="font-sans text-[13px] text-ink-muted-80 mt-5 max-w-xs">
+                  <p className="font-sans text-[11px] sm:text-[13px] text-ink-muted-80 mt-4 sm:mt-5 max-w-xs text-center">
                     Project this code on screen. Code automatically refreshes every 15s to prevent screenshot sharing.
                   </p>
 
-                  <div className="flex flex-wrap justify-center w-full gap-2 mt-6">
+                  <div className="flex flex-wrap justify-center w-full gap-2 mt-4 sm:mt-6">
                     <button
                       onClick={handleTriggerCheckpoint}
-                      className="button-secondary text-[13px] !py-2 !px-4"
+                      className="button-secondary text-[11px] sm:text-[13px] !py-2 !px-3 sm:!px-4"
                     >
                       ⚡ Trigger Surprise Re-Scan Checkpoint
                     </button>
@@ -655,33 +657,33 @@ export default function FacultyAttendance() {
                 </section>
 
                 {/* Live Feed Section */}
-                <section className="flex flex-col p-6 border shadow-sm lg:col-span-7 border-divider-soft bg-surface-pearl rounded-2xl">
-                  <div className="flex flex-col justify-between gap-2 pb-4 mb-4 border-b sm:flex-row sm:items-center border-divider-soft">
+                <section className="flex flex-col p-3 sm:p-6 border shadow-sm lg:col-span-7 border-divider-soft bg-surface-pearl rounded-2xl">
+                  <div className="flex flex-col justify-between gap-2 pb-2 sm:pb-4 mb-3 sm:mb-4 border-b sm:flex-row sm:items-center border-divider-soft">
                     <div>
-                      <h3 className="font-display text-[20px] font-bold text-ink">Live Attendance Roster</h3>
-                      <p className="font-sans text-[13px] text-ink-muted-80">
+                      <h3 className="font-display text-[16px] sm:text-[20px] font-bold text-ink">Live Attendance Roster</h3>
+                      <p className="font-sans text-[11px] sm:text-[13px] text-ink-muted-80">
                         Real-time Socket.io updates as students scan
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                       <div className="text-right">
-                        <span className="font-display text-[24px] font-bold text-primary">{presentCount}</span>
-                        <span className="font-sans text-[14px] text-ink-muted-80"> / {totalCount || '—'} Present</span>
+                        <span className="font-display text-[20px] sm:text-[24px] font-bold text-primary">{presentCount}</span>
+                        <span className="font-sans text-[11px] sm:text-[14px] text-ink-muted-80"> / {totalCount || '—'} Present</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Attendance List */}
-                  <div className="flex-1 overflow-y-auto max-h-[480px] space-y-2 pr-1 scrollbar-thin">
+                  <div className="flex-1 overflow-y-auto max-h-[300px] sm:max-h-[480px] space-y-1 sm:space-y-2 pr-1 scrollbar-thin">
                     {feed.length === 0 ? (
-                      <div className="py-16 text-center text-ink-muted-80">
-                        <p className="font-sans text-[15px]">Waiting for students to scan QR…</p>
+                      <div className="py-8 sm:py-16 text-center text-ink-muted-80">
+                        <p className="font-sans text-[13px] sm:text-[15px]">Waiting for students to scan QR…</p>
                       </div>
                     ) : (
                       feed.map(({ student, status, initial, distanceInMeters, missedCheckpoints }) => (
                         <div
                           key={student._id}
-                          className={`flex items-center justify-between rounded-xl px-4 py-3 border transition-all ${
+                          className={`flex items-center justify-between rounded-xl px-2 sm:px-4 py-2 sm:py-3 border transition-all text-[12px] sm:text-[14px] ${
                             status === 'present'
                               ? 'border-green-500/30 bg-green-500/5'
                               : status === 'flagged'
@@ -689,8 +691,8 @@ export default function FacultyAttendance() {
                               : 'border-divider-soft/50 bg-canvas/40 opacity-70'
                           }`}
                         >
-                          <div className="flex items-center min-w-0 gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-[12px] ${
+                          <div className="flex items-center min-w-0 gap-2 sm:gap-3">
+                            <div className={`w-6 sm:w-8 h-6 sm:h-8 rounded-full flex items-center justify-center font-bold text-[10px] sm:text-[12px] ${
                               status === 'present'
                                 ? 'bg-green-500 text-white'
                                 : status === 'flagged'
@@ -700,17 +702,17 @@ export default function FacultyAttendance() {
                               {status === 'present' ? '✓' : status === 'flagged' ? '!' : '—'}
                             </div>
                             <div className="min-w-0">
-                              <p className="font-sans text-[14px] font-semibold text-ink truncate">{student.name}</p>
-                              <p className="font-sans text-[12px] text-ink-muted-80 flex items-center gap-2">
+                              <p className="font-sans font-semibold text-ink truncate text-[12px] sm:text-[14px]">{student.name}</p>
+                              <p className="font-sans text-[10px] sm:text-[12px] text-ink-muted-80 truncate">
                                 <span className="font-mono font-medium text-primary">{student.rollNumber}</span>
-                                {student.section && <span>· Sec {student.section}</span>}
-                                {distanceInMeters != null && <span>· {distanceInMeters}m away</span>}
+                                {student.section && <span> · S{student.section}</span>}
+                                {distanceInMeters != null && <span> · {distanceInMeters}m</span>}
                               </p>
                             </div>
                           </div>
 
                           <div className="flex-shrink-0 text-right">
-                            <span className={`text-[12px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                            <span className={`text-[10px] sm:text-[12px] font-bold uppercase tracking-wider px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full ${
                               status === 'present'
                                 ? 'text-green-600 bg-green-500/10'
                                 : status === 'flagged'
@@ -718,12 +720,12 @@ export default function FacultyAttendance() {
                                 : 'text-ink-muted-48 bg-black/5 dark:bg-white/5'
                             }`}>
                               {status === 'flagged' && missedCheckpoints?.length
-                                ? `Missed CP ${missedCheckpoints.join(',')}`
+                                ? `CP ${missedCheckpoints.join(',')}`
                                 : status}
                             </span>
                             {initial?.timestamp && (
-                              <p className="text-[11px] text-ink-muted-48 font-mono mt-0.5">
-                                {new Date(initial.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                              <p className="text-[9px] sm:text-[11px] text-ink-muted-48 font-mono mt-0.5">
+                                {new Date(initial.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </p>
                             )}
                           </div>
@@ -739,18 +741,18 @@ export default function FacultyAttendance() {
 
         {/* ── TAB 2: My Classes & Records ── */}
         {tab === 'records' && (
-          <section className="p-6 space-y-6 border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
-            <div className="flex flex-col justify-between gap-3 pb-4 border-b sm:flex-row sm:items-center border-divider-soft">
+          <section className="p-3 sm:p-6 space-y-4 sm:space-y-6 border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
+            <div className="flex flex-col justify-between gap-2 sm:gap-3 pb-3 sm:pb-4 border-b sm:flex-row sm:items-center border-divider-soft">
               <div>
-                <h2 className="font-display text-[22px] font-bold text-ink">My Class Records</h2>
-                <p className="font-sans text-[14px] text-ink-muted-80">
+                <h2 className="font-display text-[18px] sm:text-[22px] font-bold text-ink">My Class Records</h2>
+                <p className="font-sans text-[12px] sm:text-[14px] text-ink-muted-80">
                   Comprehensive history of past sessions with student attendance ratios and full roster inspection.
                 </p>
               </div>
               <button
                 onClick={loadMyClassesList}
                 disabled={classesLoading}
-                className="button-secondary text-[13px] !py-2 !px-4"
+                className="button-secondary text-[11px] sm:text-[13px] !py-2 !px-3 sm:!px-4 self-start sm:self-auto"
               >
                 {classesLoading ? 'Refreshing…' : '↻ Refresh Records'}
               </button>

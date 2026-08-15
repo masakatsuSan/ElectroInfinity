@@ -30,6 +30,8 @@ export default function StudentAttendance() {
   const [loading, setLoading] = useState(true)
   const [scanRetryCount, setScanRetryCount] = useState(0)
   const [gpsDebug, setGpsDebug] = useState(null)
+  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
 
   const normalize = (value) => String(value ?? '').trim().toLowerCase()
 
@@ -155,15 +157,24 @@ export default function StudentAttendance() {
 
           const successMsg = res.data.message || 'Attendance marked successfully!'
           setMsg(successMsg)
+          setSuccessMessage(successMsg)
           setScanSuccess({
             distance: res.data.distanceInMeters,
             checkpoint: checkpointNumber,
           })
 
-          scanner.clear().catch(() => {})
-          setScanning(false)
+          // Show success overlay with animation
+          setShowSuccessOverlay(true)
+          
+          // Auto-dismiss and reset after 2.5 seconds
+          setTimeout(() => {
+            setShowSuccessOverlay(false)
+            scanner.clear().catch(() => {})
+            setScanning(false)
+            loadData()
+          }, 2500)
+          
           scanCooldownRef.current = now
-          loadData()
         } catch (err) {
           scanCooldownRef.current = now
           const errText = err.response?.data?.error || err.message || 'Attendance scan failed'
@@ -204,8 +215,94 @@ export default function StudentAttendance() {
     )
   }
 
+  // Inject animations on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !window.gpsAnimationsInjected) {
+      const style = document.createElement('style')
+      style.textContent = `
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scale-up {
+          from {
+            opacity: 0;
+            transform: scale(0.8);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        @keyframes checkmark-draw {
+          0% {
+            stroke-dasharray: 50;
+            stroke-dashoffset: 50;
+          }
+          100% {
+            stroke-dasharray: 50;
+            stroke-dashoffset: 0;
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out;
+        }
+        .animate-scale-up {
+          animation: scale-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .animate-checkmark {
+          animation: checkmark-draw 0.6s ease-out 0.2s forwards;
+          stroke-dasharray: 50;
+          stroke-dashoffset: 50;
+        }
+      `
+      document.head.appendChild(style)
+      window.gpsAnimationsInjected = true
+    }
+  }, [])
+
   return (
     <div className="min-h-screen bg-canvas text-ink pt-[48px] pb-16">
+      {/* Success Overlay with Checkmark Animation */}
+      {showSuccessOverlay && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-white dark:bg-ink rounded-3xl shadow-2xl p-8 text-center space-y-4 animate-scale-up max-w-sm mx-4">
+            {/* Animated Checkmark Circle */}
+            <div className="flex justify-center mb-4">
+              <div className="w-24 h-24 rounded-full bg-green-500/15 flex items-center justify-center">
+                <svg
+                  className="w-12 h-12 text-green-500 animate-checkmark"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Success Text */}
+            <div>
+              <h2 className="font-display text-[32px] font-bold text-green-600 dark:text-green-400">Present ✓</h2>
+              <p className="font-sans text-[15px] text-ink-muted-80 mt-2">{successMessage}</p>
+              {scanSuccess?.distance != null && (
+                <p className="font-sans text-[13px] text-ink-muted-80 mt-3 pt-3 border-t border-divider-soft">
+                  📍 Verified at {scanSuccess.distance}m
+                </p>
+              )}
+            </div>
+
+            {/* Bounce Indicator */}
+            <div className="flex justify-center gap-1.5 pt-4">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-bounce" style={{ animationDelay: '0s' }}></div>
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-lg mx-auto px-6 py-8 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -360,11 +457,11 @@ export default function StudentAttendance() {
         {/* Scanner Controller */}
         {!scanning ? (
           <button
-            onClick={() => { setScanning(true); setError(''); setMsg(''); setScanSuccess(null) }}
-            disabled={!activeSession}
-            className="button-primary w-full py-4 text-[16px] font-bold shadow-lg disabled:opacity-50"
+            onClick={() => { setScanning(true); setError(''); setMsg(''); setScanSuccess(null); setShowSuccessOverlay(false) }}
+            disabled={!activeSession || showSuccessOverlay}
+            className="button-primary w-full py-4 text-[16px] font-bold shadow-lg disabled:opacity-50 transition-all duration-300"
           >
-            {activeSession ? '📷 Open Camera & Scan QR Code' : 'Waiting for Class Session to Start'}
+            {showSuccessOverlay ? '✓ Attendance Confirmed' : activeSession ? '📷 Open Camera & Scan QR Code' : 'Waiting for Class Session to Start'}
           </button>
         ) : (
           <div className="space-y-4 border border-divider-soft bg-surface-pearl rounded-2xl p-5 shadow-sm">
