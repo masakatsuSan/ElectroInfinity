@@ -194,7 +194,7 @@ export default function Navbar() {
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink hover:bg-soft-stone transition-colors"
                           >
-                            <span>📋</span> My Classes & Rosters
+                             My Classes & Rosters
                           </Link>
                         </>
                       )}
@@ -214,21 +214,21 @@ export default function Navbar() {
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink hover:bg-soft-stone transition-colors"
                           >
-                            <span>📊</span> My Attendance & Stats
+                             My Attendance & Stats
                           </Link>
                           <Link
                             to="/students"
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink hover:bg-soft-stone transition-colors"
                           >
-                            <span>📝</span> Deadlines & Routine
+                            Deadlines & Routine
                           </Link>
                           <Link
                             to="/forum"
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink hover:bg-soft-stone transition-colors"
                           >
-                            <span>💬</span> Discussion Forum
+                             Discussion Forum
                           </Link>
                         </>
                       )}
@@ -273,7 +273,7 @@ export default function Navbar() {
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink hover:bg-soft-stone transition-colors"
                           >
-                            <span>💬</span> Discussion Forum
+                             Discussion Forum
                           </Link>
                         </>
                       )}

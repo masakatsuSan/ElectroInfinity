@@ -336,8 +336,8 @@ export default function FacultyAttendance() {
         {/* Navigation pill tabs */}
         <div className="flex gap-2 border-b border-divider-soft pb-2 overflow-x-auto">
           {[
-            ['take', '⚡ Take Attendance', session ? 'Active Now' : null],
-            ['records', '📋 My Classes & Rosters', `${myClasses.length} Sessions`],
+            ['take', ' Take Attendance', session ? 'Active Now' : null],
+            ['records', ' My Classes & Rosters', `${myClasses.length} Sessions`],
           ].map(([id, label, badge]) => (
             <button
               key={id}

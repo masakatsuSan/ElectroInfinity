@@ -80,10 +80,10 @@ export default function Home() {
             {/* CTAs */}
             <div className="flex flex-wrap items-center gap-4">
               <Link to="/attendance/student" className="button-primary">
-                📷 Scan Attendance QR
+                 Scan Attendance QR
               </Link>
               <Link to="/attendance/faculty" className="button-secondary">
-                ⚡ Faculty Console
+                Faculty Console
               </Link>
               <Link to="/courses" className="button-pill-outline">
                 Explore Courses →
@@ -113,7 +113,7 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-4 items-center justify-between text-[13px] font-mono text-slate">
+              <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-4 text-white items-center justify-between text-[13px] font-mono text-slate">
                 <span>✓ 100m GPS Verification</span>
                 <span>✓ Anti-Proxy QR Rotation</span>
                 <span>✓ Batch Scoping</span>

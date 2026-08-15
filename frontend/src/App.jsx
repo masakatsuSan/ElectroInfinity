@@ -126,6 +126,7 @@ const AnimatedRoute = ({ children }) => (
 
 export default function App() {
   const location = useLocation()
+  const lenisRef = useRef(null)
 
   // Initialize Lenis smooth scroll
   useEffect(() => {
@@ -141,6 +142,8 @@ export default function App() {
       infinite: false,
     })
 
+    lenisRef.current = lenis
+
     function raf(time) {
       lenis.raf(time)
       requestAnimationFrame(raf)
@@ -155,7 +158,11 @@ export default function App() {
 
   // Scroll to top on route change
   useEffect(() => {
-    window.scrollTo(0, 0)
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(0, { duration: 1.2 })
+    } else {
+      window.scrollTo(0, 0)
+    }
   }, [location.pathname])
 
   return (
