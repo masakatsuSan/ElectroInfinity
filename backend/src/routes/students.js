@@ -119,7 +119,13 @@ router.get('/', protect, guard('super_admin', 'admin'), async (req, res) => {
       .select('-password')
       .sort({ batch: -1, name: 1 })
 
-    res.json({ success: true, data: students })
+    const normalized = students.map(student => ({
+      ...student.toObject(),
+      isVerified: Boolean(student.isVerified ?? student.isActivated),
+      isActivated: Boolean(student.isVerified ?? student.isActivated),
+    }))
+
+    res.json({ success: true, data: normalized })
   } catch (err) {
     res.status(500).json({ success: false, error: err.message })
   }

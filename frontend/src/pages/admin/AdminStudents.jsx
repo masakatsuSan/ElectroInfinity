@@ -238,8 +238,8 @@ function DirectoryTab({ qc }) {
                   {s.email && <span>{s.email}</span>}
                   <span className="opacity-50">·</span>
                   <span>{s.batch}</span>
-                  <span className={`ml-2 px-2 py-0.5 rounded-sm text-[11px] font-semibold uppercase tracking-widest ${s.isActivated ? 'text-green-500 bg-green-500/10' : 'text-yellow-500 bg-yellow-500/10'}`}>
-                    {s.isActivated ? 'Activated' : 'Not activated'}
+                  <span className={`ml-2 px-2 py-0.5 rounded-sm text-[11px] font-semibold uppercase tracking-widest ${(s.isActivated ?? s.isVerified) ? 'text-green-500 bg-green-500/10' : 'text-yellow-500 bg-yellow-500/10'}`}>
+                    {(s.isActivated ?? s.isVerified) ? 'Activated' : 'Not activated'}
                   </span>
                 </p>
               </div>

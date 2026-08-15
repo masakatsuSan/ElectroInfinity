@@ -24,11 +24,11 @@ export default function AdminAttendance() {
 
   const tabs = isAdmin
     ? [
-        ['faculty', '👨‍🏫 Faculty Accounts'],
-        ['subjects', '📚 Subjects & Courses'],
-        ['stats', '📊 Batch Attendance Stats'],
+        ['faculty', ' Faculty Accounts'],
+        ['subjects', ' Subjects & Courses'],
+        ['stats', 'Batch Attendance Stats'],
       ]
-    : [['stats', '📊 Batch Attendance Stats']]
+    : [['stats', ' Batch Attendance Stats']]
 
   return (
     <div>

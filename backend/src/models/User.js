@@ -54,6 +54,9 @@ const userSchema = new mongoose.Schema(
     // true  = student activated, can log in
     isVerified: { type: Boolean, default: false },
 
+    // Legacy alias kept for compatibility with older student-management UI/screens
+    isActivated: { type: Boolean, default: false },
+
     // OTP for forgot-password flow
     // Stored as plain string — expires in 10 minutes, deleted after use
     otp:       { type: String,  default: '' },

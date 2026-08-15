@@ -1,15 +1,37 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
+// const LINKS = [
+//   { to: '/admin',           label: 'Overview',   icon: '⊞', end: true },
+//   { to: '/admin/attendance', label: 'Attendance & Faculty', icon: '◉' },
+//   { to: '/admin/students',  label: 'Students',   icon: '▪' },
+//   { to: '/admin/notices',   label: 'Notices',    icon: '◆' },
+//   { to: '/admin/resources', label: 'Resources',  icon: '◇' },
+//   { to: '/admin/events',    label: 'Events',     icon: '○' },
+//   { to: '/admin/deadlines', label: 'Deadlines',  icon: '◷' },
+//   { to: '/admin/routines',  label: 'Routine',    icon: '⊞' },
+// ]
+
+import {
+  LayoutDashboard,
+  ClipboardCheck,
+  Users,
+  Bell,
+  FolderOpen,
+  CalendarDays,
+  Clock,
+  CalendarClock,
+} from 'lucide-react'
+
 const LINKS = [
-  { to: '/admin',           label: 'Overview',   icon: '⊞', end: true },
-  { to: '/admin/attendance', label: 'Attendance & Faculty', icon: '◉' },
-  { to: '/admin/students',  label: 'Students',   icon: '▪' },
-  { to: '/admin/notices',   label: 'Notices',    icon: '◆' },
-  { to: '/admin/resources', label: 'Resources',  icon: '◇' },
-  { to: '/admin/events',    label: 'Events',     icon: '○' },
-  { to: '/admin/deadlines', label: 'Deadlines',  icon: '◷' },
-  { to: '/admin/routines',  label: 'Routine',    icon: '⊞' },
+  { to: '/admin',             label: 'Overview',             icon: LayoutDashboard, end: true },
+  { to: '/admin/attendance',  label: 'Attendance & Faculty', icon: ClipboardCheck },
+  { to: '/admin/students',    label: 'Students',             icon: Users },
+  { to: '/admin/notices',     label: 'Notices',              icon: Bell },
+  { to: '/admin/resources',   label: 'Resources',            icon: FolderOpen },
+  { to: '/admin/events',      label: 'Events',               icon: CalendarDays },
+  { to: '/admin/deadlines',   label: 'Deadlines',            icon: Clock },
+  { to: '/admin/routines',    label: 'Routine',              icon: CalendarClock },
 ]
 
 export default function AdminLayout() {

@@ -97,8 +97,9 @@ router.post('/activate', async (req, res) => {
     if (!user)            return res.status(404).json({ success: false, error: 'Roll number not found' })
     if (user.isVerified)  return res.status(400).json({ success: false, error: 'Already activated. Go to Login.' })
 
-    user.password   = password
-    user.isVerified = true
+    user.password    = password
+    user.isVerified  = true
+    user.isActivated = true
     await user.save()
 
     const token = signToken(user._id)
