@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, Suspense, lazy } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { QRCodeSVG } from 'qrcode.react'
@@ -14,10 +14,17 @@ import {
   getSubjects,
   deleteAttendanceRecord,
   refreshSessionGps,
+  markPresentManual,
   deleteSession,
 } from '../../api/attendance'
 import { getSocketUrl } from '../../utils/socket'
 import { getBestLocation } from '../../utils/location'
+import { computeClassroomPositions } from '../../utils/classroomMap'
+import PermissionBanner from '../../components/PermissionBanner'
+import ErrorBoundary from '../../components/ErrorBoundary'
+
+const Classroom3D = lazy(() => import('../../components/attendance/Classroom3D'))
+const ClassroomPresence = lazy(() => import('../../components/attendance/ClassroomPresence'))
 
 const FALLBACK_BATCHES = ['2023-2027', '2024-2028', '2025-2029', '2026-2030']
 const FALLBACK_SECTIONS = ['A', 'B', 'All']
@@ -25,7 +32,9 @@ const FALLBACK_SUBJECTS = ['ECT', 'EM-II', 'DE', 'NA', 'Maths', 'ECT Lab', 'EM L
 
 function getBrowserLocation() {
   return getBestLocation({
-    maxAccuracyMeters: 120,
+    // 200m instead of 120m: indoor GPS routinely reports 100–200m, and a lock
+    // with a warning is far better than leaving students unable to verify.
+    maxAccuracyMeters: 200,
     timeoutMs: 15000,
     attempts: 4,
   }).then((loc) => ({
@@ -35,12 +44,17 @@ function getBrowserLocation() {
   }))
 }
 
+function fmtCoord(value, digits = 6) {
+  const n = Number(value)
+  return Number.isFinite(n) ? n.toFixed(digits) : '—'
+}
+
 export default function FacultyAttendance() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const socketRef = useRef(null)
 
-  const [tab, setTab] = useState('take') // 'take' | 'records'
+  const [tab, setTab] = useState('take') // 'take' | 'records' | 'presence'
   const [session, setSession] = useState(null)
   const [feed, setFeed] = useState([])
   const [qrData, setQrData] = useState(null)
@@ -65,6 +79,7 @@ export default function FacultyAttendance() {
   const [rosterData, setRosterData] = useState(null)
   const [rosterLoading, setRosterLoading] = useState(false)
   const [deletingRecordId, setDeletingRecordId] = useState(null)
+  const [manualMarkingId, setManualMarkingId] = useState(null)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -106,6 +121,21 @@ export default function FacultyAttendance() {
       // feed query fallback
     }
   }, [])
+// Indoor GPS override: faculty visibly confirms a student is physically present
+  const handleManualPresent = async (studentId, studentName) => {
+    if (!session) return
+    setManualMarkingId(studentId)
+    setError('')
+    try {
+      await markPresentManual(session._id, studentId)
+      setMsg(`${studentName} marked present ✓`)
+      if (session._id) loadFeed(session._id)
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Could not mark present')
+    } finally {
+      setManualMarkingId(null)
+    }
+  }
 
   const loadMyClassesList = useCallback(async () => {
     setClassesLoading(true)
@@ -191,7 +221,10 @@ export default function FacultyAttendance() {
     try {
       const loc = await getBrowserLocation()
       setGpsLocation(loc)
-      setMsg(`GPS location locked: ${loc.centerLat.toFixed(6)}° N, ${loc.centerLng.toFixed(6)}° E (±${loc.accuracy}m)`)
+      const note = loc.accuracy > 120
+        ? ` — approximate (±${Math.round(loc.accuracy)}m). Indoor GPS is imprecise; calibrate near a window with high-accuracy location on for the most reliable results.`
+        : ''
+      setMsg(`GPS location locked: ${fmtCoord(loc.centerLat)}° N, ${fmtCoord(loc.centerLng)}° E (±${loc.accuracy}m)${note}`)
     } catch (err) {
       setError(err.message || 'Failed to capture GPS')
     } finally {
@@ -226,7 +259,10 @@ export default function FacultyAttendance() {
         oldLng: session.centerLng,
         timestamp: new Date().toLocaleTimeString(),
       })
-      setMsg(res.data?.message || `GPS recalibrated: ${loc.centerLat.toFixed(6)}° N, ${loc.centerLng.toFixed(6)}° E (±${loc.accuracy}m). Students can now re-scan if needed.`)
+      const note = loc.accuracy > 120
+        ? ` — note: anchor is approximate (±${Math.round(loc.accuracy)}m). A nearby student's GPS noise is now tolerated.`
+        : ''
+      setMsg((res.data?.message || `GPS recalibrated: ${fmtCoord(loc.centerLat)}° N, ${fmtCoord(loc.centerLng)}° E (±${loc.accuracy}m). Students can now re-scan if needed.`) + note)
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Failed to recalibrate GPS')
     } finally {
@@ -366,6 +402,9 @@ export default function FacultyAttendance() {
   const presentCount = feed.filter(f => f.initial && f.status === 'present').length
   const flaggedCount = feed.filter(f => f.status === 'flagged').length
   const totalCount = feed.length
+  const [classroomAutoRotate, setClassroomAutoRotate] = useState(false)
+  const [classroomLabels, setClassroomLabels] = useState(true)
+  const classroomPositions = useMemo(() => computeClassroomPositions(session, feed), [session, feed])
 
   if (loading) {
     return (
@@ -409,11 +448,15 @@ export default function FacultyAttendance() {
 
       {/* ── Main content tabs ── */}
       <main className="max-w-6xl p-6 mx-auto space-y-6">
+        {/* Location permission guidance (GPS powers the whole console) */}
+        <PermissionBanner permissions={['location']} />
+
         {/* Navigation pill tabs */}
         <div className="flex gap-2 pb-2 overflow-x-auto border-b border-divider-soft">
           {[
-            ['take', ' Take Attendance', session ? 'Active Now' : null],
-            ['records', ' My Classes & Rosters', `${myClasses.length} Sessions`],
+                                      ['take', ' Take Attendance', session ? 'Active Now' : null],
+              ['presence', ' Classroom Presence', session ? 'Live' : null],
+              ['records', ' My Classes & Rosters', `${myClasses.length} Sessions`],
           ].map(([id, label, badge]) => (
             <button
               key={id}
@@ -464,7 +507,7 @@ export default function FacultyAttendance() {
                 <div className="mb-4 sm:mb-6">
                   <h2 className="font-display text-[18px] sm:text-[22px] font-bold text-ink">Start Class Session</h2>
                   <p className="font-sans text-[12px] sm:text-[14px] text-ink-muted-80 mt-1">
-                    Select the class details and capture your live device GPS location. The geofence anchors to your device with a 100-meter radius.
+                    Select the class details and capture your live device GPS location. The geofence anchors to your device with a 50-meter radius.
                   </p>
                 </div>
 
@@ -541,7 +584,7 @@ export default function FacultyAttendance() {
 
                     {gpsLocation ? (
                       <p className="font-mono text-[12px] text-green-600 dark:text-green-400">
-                        {gpsLocation.centerLat.toFixed(5)}° N, {gpsLocation.centerLng.toFixed(5)}° E · Accuracy ±{gpsLocation.accuracy}m (100m geofence active)
+                        {gpsLocation.centerLat.toFixed(5)}° N, {gpsLocation.centerLng.toFixed(5)}° E · Accuracy ±{gpsLocation.accuracy}m (50m geofence active)
                       </p>
                     ) : (
                       <p className="font-sans text-[12px] text-ink-muted-80">
@@ -595,7 +638,7 @@ export default function FacultyAttendance() {
 
                   {checkpointAlert > 0 && (
                     <div className="w-full mb-4 rounded-xl bg-amber-500/15 border border-amber-500/30 px-3 sm:px-4 py-2 sm:py-3 text-amber-700 dark:text-amber-300 text-center font-bold text-[12px] sm:text-[14px] animate-pulse">
-                      ⚡ Checkpoint {checkpointAlert} — Surprise QR Active!
+                       Checkpoint {checkpointAlert} — Surprise QR Active!
                     </div>
                   )}
 
@@ -604,12 +647,12 @@ export default function FacultyAttendance() {
                     <div className="w-full p-2 mb-3 space-y-2 border sm:p-4 sm:mb-4 rounded-xl bg-canvas border-divider-soft">
                       <div className="text-[10px] sm:text-[11px] space-y-1">
                         <p className="font-mono truncate text-ink-muted-80">
-                          📍 Current GPS: {session.centerLat.toFixed(6)}° N, {session.centerLng.toFixed(6)}° E (±{session.centerAccuracy ?? 0}m)
+                          📍 Current GPS: {fmtCoord(session.centerLat)}° N, {fmtCoord(session.centerLng)}° E (±{session.centerAccuracy ?? 0}m)
                         </p>
                         {sessionGpsDebug && (
                           <>
                             <p className="font-mono text-green-600 truncate dark:text-green-400">
-                              ✓ New GPS: {sessionGpsDebug.centerLat.toFixed(6)}° N, {sessionGpsDebug.centerLng.toFixed(6)}° E (±{sessionGpsDebug.accuracy}m)
+                              ✓ New GPS: {fmtCoord(sessionGpsDebug.centerLat)}° N, {fmtCoord(sessionGpsDebug.centerLng)}° E (±{sessionGpsDebug.accuracy}m)
                             </p>
                             <p className="font-mono text-ink-muted-48 text-[9px] sm:text-[10px]">
                               Updated: {sessionGpsDebug.timestamp}
@@ -625,7 +668,7 @@ export default function FacultyAttendance() {
                     {qrPayload ? (
                       <QRCodeSVG
                         value={qrPayload}
-                        size={Math.min(window.innerWidth - 100, 260)}
+                        size={Math.min(typeof window !== 'undefined' ? window.innerWidth - 100 : 260, 260)}
                         level="M"
                         includeMargin
                         className="rounded-xl"
@@ -651,7 +694,7 @@ export default function FacultyAttendance() {
                       onClick={handleTriggerCheckpoint}
                       className="button-secondary text-[11px] sm:text-[13px] !py-2 !px-3 sm:!px-4"
                     >
-                      ⚡ Trigger Surprise Re-Scan Checkpoint
+                       Trigger Surprise Re-Scan Checkpoint
                     </button>
                   </div>
                 </section>
@@ -663,6 +706,9 @@ export default function FacultyAttendance() {
                       <h3 className="font-display text-[16px] sm:text-[20px] font-bold text-ink">Live Attendance Roster</h3>
                       <p className="font-sans text-[11px] sm:text-[13px] text-ink-muted-80">
                         Real-time Socket.io updates as students scan
+                      </p>
+                      <p className="font-sans text-[10px] sm:text-[11px] text-amber-600 dark:text-amber-400 mt-0.5">
+                        Indoor GPS unreliable? Tap <b>✓ Present</b> on a student who is physically in class.
                       </p>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3">
@@ -711,22 +757,35 @@ export default function FacultyAttendance() {
                             </div>
                           </div>
 
-                          <div className="flex-shrink-0 text-right">
-                            <span className={`text-[10px] sm:text-[12px] font-bold uppercase tracking-wider px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full ${
-                              status === 'present'
-                                ? 'text-green-600 bg-green-500/10'
-                                : status === 'flagged'
-                                ? 'text-amber-600 bg-amber-500/15'
-                                : 'text-ink-muted-48 bg-black/5 dark:bg-white/5'
-                            }`}>
-                              {status === 'flagged' && missedCheckpoints?.length
-                                ? `CP ${missedCheckpoints.join(',')}`
-                                : status}
-                            </span>
-                            {initial?.timestamp && (
-                              <p className="text-[9px] sm:text-[11px] text-ink-muted-48 font-mono mt-0.5">
-                                {new Date(initial.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </p>
+                          <div className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2">
+                            <div className="text-right">
+                              <span className={`text-[10px] sm:text-[12px] font-bold uppercase tracking-wider px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full ${
+                                status === 'present'
+                                  ? 'text-green-600 bg-green-500/10'
+                                  : status === 'flagged'
+                                  ? 'text-amber-600 bg-amber-500/15'
+                                  : 'text-ink-muted-48 bg-black/5 dark:bg-white/5'
+                              }`}>
+                                {status === 'flagged' && missedCheckpoints?.length
+                                  ? `CP ${missedCheckpoints.join(',')}`
+                                  : status}
+                              </span>
+                              {initial?.timestamp && (
+                                <p className="text-[9px] sm:text-[11px] text-ink-muted-48 font-mono mt-0.5">
+                                  {new Date(initial.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              )}
+                            </div>
+                            {status !== 'present' && (
+                              <button
+                                type="button"
+                                onClick={() => handleManualPresent(student._id, student.name)}
+                                disabled={manualMarkingId === student._id}
+                                className="text-[10px] sm:text-[11px] font-bold text-green-600 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 transition-colors disabled:opacity-50"
+                                title="Mark present (indoor GPS override)"
+                              >
+                                {manualMarkingId === student._id ? '…' : '✓ Present'}
+                              </button>
                             )}
                           </div>
                         </div>
@@ -734,9 +793,102 @@ export default function FacultyAttendance() {
                     )}
                   </div>
                 </section>
+
+                {/* Live Classroom 3D Map */}
+                <section className="flex flex-col p-3 border shadow-sm sm:p-6 lg:col-span-12 border-divider-soft bg-surface-pearl rounded-2xl">
+                  <div className="flex flex-col justify-between gap-2 pb-3 mb-3 border-b sm:py-3 sm:flex-row sm:items-center border-divider-soft">
+                    <div>
+                      <h3 className="font-display text-[16px] sm:text-[20px] font-bold text-ink">Live GPS Tracking Map</h3>
+                      <p className="font-sans text-[11px] sm:text-[13px] text-ink-muted-80">
+                        Live location markers at each student’s real GPS fix. Drag to orbit, scroll to zoom, tap a marker for details.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-[12px] text-ink-muted-80"><span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500"></span> Live</span>
+                      <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-[12px] text-ink-muted-80"><span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-500"></span> Flagged</span>
+                      <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-[12px] text-ink-muted-80"><span className="inline-block w-2.5 h-2.5 rounded-full bg-slate-400"></span> Stale</span>
+                      <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-[12px] text-ink-muted-80"><span className="inline-block w-2.5 h-2.5 rounded-full border border-slate-400"></span> No GPS</span>
+                      <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-[12px] text-ink-muted-80"><span className="inline-block w-2.5 h-2.5 rounded-full bg-sky-400"></span> You</span>
+                      <button
+                        onClick={() => setClassroomLabels((v) => !v)}
+                        className={`button-secondary text-[11px] sm:text-[12px] !py-1.5 !px-3 ${classroomLabels ? '!border-primary !text-primary' : ''}`}
+                      >
+                        {classroomLabels ? 'Hide Labels' : 'Show Labels'}
+                      </button>
+                      <button
+                        onClick={() => setClassroomAutoRotate((v) => !v)}
+                        className={`button-secondary text-[11px] sm:text-[12px] !py-1.5 !px-3 ${classroomAutoRotate ? '!border-primary !text-primary' : ''}`}
+                      >
+                        {classroomAutoRotate ? 'Pause Spin' : 'Auto-Spin'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="relative w-full h-[320px] sm:h-[420px] rounded-xl overflow-hidden">
+                    <Suspense
+                      fallback={
+                        <div className="flex items-center justify-center h-full text-white/60 font-sans text-[13px]">
+                          Loading 3D classroom…
+                        </div>
+                      }
+                    >
+                      <ErrorBoundary
+                        fallback={
+                          <div className="flex items-center justify-center h-full text-white/60 font-sans text-[13px]">
+                            3D classroom is unavailable on this device. Use the roster list instead.
+                          </div>
+                        }
+                      >
+                        <Classroom3D positions={classroomPositions} autoRotate={classroomAutoRotate} showLabels={classroomLabels} />
+                      </ErrorBoundary>
+                    </Suspense>
+                    {classroomPositions.filter((p) => p.status !== 'absent').length === 0 && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none text-white/85 bg-black/40">
+                        <p className="font-sans text-[14px] font-semibold">Waiting for students to scan...</p>
+                        <p className="font-sans text-[12px] mt-1">Live markers will appear here as students scan the QR.</p>
+                      </div>
+                    )}
+                  </div>
+                </section>
               </div>
             )}
           </div>
+        )}
+
+                {/* ── TAB: Classroom Presence (2D map + roster) ── */}
+        {tab === 'presence' && (
+          <section className="p-3 space-y-4 border shadow-sm sm:p-6 sm:space-y-6 border-divider-soft bg-surface-pearl rounded-2xl">
+            {!session ? (
+              <div className="py-12 text-center text-ink-muted-80">
+                <p className="font-sans text-[16px] font-medium">No active session.</p>
+                <p className="font-sans text-[13px] mt-1">
+                  Start a class in the <span className="font-semibold text-ink">Take Attendance</span> tab to view live classroom presence.
+                </p>
+              </div>
+            ) : (
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center h-[540px] text-ink-muted-80 font-sans text-[14px]">
+                    Loading classroom presence…
+                  </div>
+                }
+              >
+                <ErrorBoundary
+                  fallback={
+                    <div className="flex items-center justify-center h-[540px] text-ink-muted-80 font-sans text-[13px]">
+                      Classroom presence is unavailable on this device.
+                    </div>
+                  }
+                >
+                  <ClassroomPresence
+                    positions={classroomPositions}
+                    session={session}
+                    showLabels={classroomLabels}
+                  />
+                </ErrorBoundary>
+              </Suspense>
+            )}
+          </section>
         )}
 
         {/* ── TAB 2: My Classes & Records ── */}

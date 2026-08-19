@@ -92,7 +92,6 @@ export default function Navbar() {
           {/* Left: Brand Logo */}
           <Link to="/" className="flex items-center gap-2" onClick={closeMenu}>
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-deep-green"></span>
               <span className="font-display font-bold text-[18px] tracking-tight text-ink">
                 Electro Infinity
               </span>
@@ -181,9 +180,16 @@ export default function Navbar() {
                     {/* Navigation Actions based on Role */}
                     <div className="space-y-1 text-[13px] font-sans font-medium">
                       
-                      {/* Faculty actions */}
+                                            {/* Faculty actions */}
                       {userRole === 'faculty' && (
                         <>
+                          <Link
+                            to="/faculty/dashboard"
+                            onClick={() => setProfileOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink font-semibold hover:bg-soft-stone transition-colors"
+                          >
+                            <LayoutGrid size={17} strokeWidth={1.75} /> Faculty Dashboard
+                          </Link>
                           <Link
                             to="/attendance/faculty"
                             onClick={() => setProfileOpen(false)}
@@ -365,10 +371,15 @@ export default function Navbar() {
             <div className="pt-4 space-y-2">
               {user ? (
                 <div className="flex flex-col gap-2">
-                  {user.role === 'faculty' && (
-                    <Link to="/attendance/faculty" onClick={closeMenu} className="button-primary w-full justify-center !bg-deep-green">
-                      ⚡ Take Attendance
-                    </Link>
+                                {user.role === 'faculty' && (
+                    <>
+                      <Link to="/faculty/dashboard" onClick={closeMenu} className="button-secondary w-full justify-center">
+                        📢 Faculty Dashboard
+                      </Link>
+                      <Link to="/attendance/faculty" onClick={closeMenu} className="button-primary w-full justify-center !bg-deep-green">
+                        ⚡ Take Attendance
+                      </Link>
+                    </>
                   )}
                   {(user.role === 'cr' || user.role === 'admin') && (
                     <Link to="/admin" onClick={closeMenu} className="justify-center w-full button-secondary">

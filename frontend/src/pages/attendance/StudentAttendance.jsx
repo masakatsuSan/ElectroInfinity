@@ -1,15 +1,25 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Html5QrcodeScanner } from 'html5-qrcode'
+import { Html5Qrcode } from 'html5-qrcode'
 import { useAuth } from '../../context/AuthContext'
 import { getActiveBatchSession, scanQr, getMyStats } from '../../api/attendance'
-import { getBestLocation } from '../../utils/location'
+import { getBestLocation, getAnchoredLocation, getStationary } from '../../utils/location'
+import { requestCameraPermission } from '../../utils/permissions'
+import PermissionBanner from '../../components/PermissionBanner'
 
-function getStudentGps() {
-  return getBestLocation({
-    maxAccuracyMeters: 120,
-    timeoutMs: 15000,
-    attempts: 4,
+function fmtCoord(value, digits = 6) {
+  const n = Number(value)
+  return Number.isFinite(n) ? n.toFixed(digits) : '—'
+}
+
+function getStudentGps(session, timeoutMs = 6000, maxAccuracyMeters = 200) {
+  // Fast, geofence-aware poll: short budget, prefer a fix closest to the
+  // faculty anchor so flaky single-shot GPS doesn't cause false rejections.
+  return getAnchoredLocation({
+    maxAccuracyMeters,
+    timeoutMs,
+    targetLat: session?.centerLat ?? null,
+    targetLng: session?.centerLng ?? null,
   })
 }
 
@@ -32,6 +42,12 @@ export default function StudentAttendance() {
   const [gpsDebug, setGpsDebug] = useState(null)
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+          const [cameraDevices, setCameraDevices] = useState([])
+  const [currentCameraId, setCurrentCameraId] = useState(null)
+  const [scannerEpoch, setScannerEpoch] = useState(0)
+  // Tracks whether the live video feed is actually running (so the UI can show
+  // "Starting…" / "Camera Active" instead of looking frozen).
+  const [cameraActive, setCameraActive] = useState(false)
 
   const normalize = (value) => String(value ?? '').trim().toLowerCase()
 
@@ -76,7 +92,7 @@ export default function StudentAttendance() {
         accuracy: gps.accuracy,
         timestamp: new Date().toLocaleTimeString(),
       })
-      setMsg(`GPS refreshed: ${gps.latitude.toFixed(6)}°, ${gps.longitude.toFixed(6)}° (±${gps.accuracy}m)`)
+      setMsg(`GPS refreshed: ${fmtCoord(gps.latitude)}°, ${fmtCoord(gps.longitude)}° (±${gps.accuracy}m)`)
     } catch (err) {
       setError(err.message || 'Failed to refresh GPS location')
     }
@@ -138,125 +154,235 @@ export default function StudentAttendance() {
     loadData()
   }, [user, navigate, loadData])
 
+  // ── Scanner control helpers (all camera controls live OUTSIDE the video viewport) ──
+  const scanRetryCountRef = useRef(0)
+
+  const stopScanner = useCallback(async () => {
+    const inst = scannerInstance.current
+    scannerInstance.current = null
+    if (inst) {
+      try {
+        await inst.stop()
+      } catch {}
+      try {
+        inst.clear()
+      } catch {}
+    }
+    setScanning(false)
+  }, [])
+
+  const restartCamera = useCallback(() => {
+    setError('')
+    setMsg('')
+    setScannerEpoch((epoch) => epoch + 1)
+  }, [])
+
+  // Keep the latest scan handler reachable from the long-lived scanner instance
+  const runScanRef = useRef(async () => {})
+  runScanRef.current = async (decodedText) => {
+    // Prevent rapid repeated scans (debounce)
+    const now = Date.now()
+    if (now - scanCooldownRef.current < 2000) {
+      return
+    }
+
+    setError('')
+    setMsg('')
+    setScanSuccess(null)
+    scanRetryCountRef.current = 0
+    setScanRetryCount(0)
+
+    try {
+      let payload
+      try {
+        payload = JSON.parse(decodedText)
+      } catch {
+        throw new Error('Invalid QR code scanned. Please scan the official class QR code on screen.')
+      }
+
+      const { sessionId, token, checkpointNumber = 0 } = payload
+      if (!sessionId || !token) {
+        throw new Error('QR payload is missing session token. Please scan the latest code on the faculty screen.')
+      }
+
+      // Step: get the best GPS fix we can, then verify with the backend.
+      // If the first fix is rejected for poor indoor accuracy, try once more
+      // with a longer sampling window (GPS often firms up in a few seconds).
+      let retried = false
+
+      const recordDebug = (gps) => {
+        setGpsDebug({
+          latitude: gps.latitude,
+          longitude: gps.longitude,
+          accuracy: gps.accuracy,
+          timestamp: new Date().toLocaleTimeString(),
+        })
+      }
+
+      const complete = async (res, cp) => {
+        const successMsg = res.data.message || 'Attendance marked successfully!'
+        setMsg(successMsg)
+        setSuccessMessage(successMsg)
+        setScanSuccess({
+          distance: res.data.distanceInMeters,
+          checkpoint: cp,
+        })
+        // Show success overlay with animation
+        setShowSuccessOverlay(true)
+        // Auto-dismiss and reset after 2.5 seconds
+        setTimeout(() => {
+          setShowSuccessOverlay(false)
+          stopScanner()
+          loadData()
+        }, 2500)
+        scanCooldownRef.current = Date.now()
+      }
+
+      const doScan = async (timeoutMs, maxAccuracy) => {
+        setMsg('📍 Verifying location…')
+        const [gps, stationary] = await Promise.all([
+          getStudentGps(activeSession, timeoutMs, maxAccuracy),
+          getStationary(),
+        ])
+        recordDebug(gps)
+        setMsg(`📡 Location fix ±${gps.accuracy}m — verifying…`)
+        return scanQr({
+          sessionId,
+          token,
+          checkpointNumber,
+          latitude: gps.latitude,
+          longitude: gps.longitude,
+          accuracy: gps.accuracy,
+          stationary,
+        })
+      }
+
+      try {
+        const res = await doScan(4500, 200)
+        await complete(res, checkpointNumber)
+      } catch (scanErr) {
+        const scanText = scanErr.response?.data?.error || scanErr.message || ''
+        if (
+          !retried &&
+          /accuracy|confident|too poor|far|geofence|inside|stable|imprecise/i.test(scanText)
+        ) {
+          retried = true
+          const res2 = await doScan(6500, 250)
+          await complete(res2, checkpointNumber)
+        } else {
+          throw scanErr
+        }
+      }
+    } catch (err) {
+      scanCooldownRef.current = now
+      let errText = err.response?.data?.error || err.message || 'Attendance scan failed'
+      if (/far|GPS|geofence|accuracy|confident|signal/i.test(errText)) {
+        errText += ' If you are physically in class, ask faculty to tap “✓ Mark Present” on you.'
+      }
+      const debugData = err.response?.data?.debug
+      setError(errText)
+      setErrorDebug(debugData)
+
+      // For geofence/GPS errors, keep scanning but pause after 2 failed attempts
+      if (errText.includes('far') || errText.includes('GPS') || errText.includes('geofence')) {
+        scanRetryCountRef.current += 1
+        if (scanRetryCountRef.current < 2) {
+          // Allow 1-2 retries, then require manual intervention
+          return
+        }
+        scannerInstance.current?.pause?.()
+      }
+    }
+  }
+
   useEffect(() => {
     if (!scanning) {
       if (scannerInstance.current) {
-        scannerInstance.current.clear().catch(() => {})
+        scannerInstance.current.stop().catch(() => {})
+        try {
+          scannerInstance.current.clear()
+        } catch {}
         scannerInstance.current = null
       }
       return
     }
 
-    const scanner = new Html5QrcodeScanner(
-      'qr-reader',
-      {
-        fps: 10,
-        qrbox: { width: 260, height: 260 },
-        aspectRatio: 1.0,
-      },
-      false
-    )
-
+    let cancelled = false
+    const scanner = new Html5Qrcode('qr-reader')
     scannerInstance.current = scanner
 
-    scanner.render(
-      async (decodedText) => {
-        // Prevent rapid repeated scans (debounce)
-        const now = Date.now()
-        if (now - scanCooldownRef.current < 2000) {
+    const scanConfig = {
+      fps: 10,
+      qrbox: { width: 260, height: 260 },
+      aspectRatio: 1.0,
+    }
+
+    const begin = async () => {
+      try {
+        if (!currentCameraId) {
+          // No camera chosen yet → start the rear camera directly. Calling
+          // getUserMedia here (right after the button tap) is what makes the
+          // native camera permission prompt appear on Android & iOS.
+          await scanner.start(
+            { facingMode: 'environment' },
+            scanConfig,
+            (decodedText) => runScanRef.current(decodedText),
+            () => {}
+          )
+
+          // Permission is granted now → camera labels are visible, so the
+          // student can switch sources live.
+          try {
+            const devices = await Html5Qrcode.getCameras()
+            if (!cancelled) setCameraDevices(devices)
+          } catch {
+            // Non-fatal — the switcher simply stays hidden.
+          }
           return
         }
 
-        setError('')
-        setMsg('')
-        setScanSuccess(null)
-        setScanRetryCount(0)
-        
-        try {
-          let payload
-          try {
-            payload = JSON.parse(decodedText)
-          } catch {
-            throw new Error('Invalid QR code scanned. Please scan the official class QR code on screen.')
-          }
-
-          const { sessionId, token, checkpointNumber = 0 } = payload
-          if (!sessionId || !token) {
-            throw new Error('QR payload is missing session token. Please scan the latest code on the faculty screen.')
-          }
-
-          // Step: Get live high-accuracy GPS coordinates
-          const gps = await getStudentGps()
-          setGpsDebug({
-            latitude: gps.latitude,
-            longitude: gps.longitude,
-            accuracy: gps.accuracy,
-            timestamp: new Date().toLocaleTimeString(),
-          })
-
-          const res = await scanQr({
-            sessionId,
-            token,
-            checkpointNumber,
-            latitude: gps.latitude,
-            longitude: gps.longitude,
-            accuracy: gps.accuracy,
-          })
-
-          const successMsg = res.data.message || 'Attendance marked successfully!'
-          setMsg(successMsg)
-          setSuccessMessage(successMsg)
-          setScanSuccess({
-            distance: res.data.distanceInMeters,
-            checkpoint: checkpointNumber,
-          })
-
-          // Show success overlay with animation
-          setShowSuccessOverlay(true)
-          
-          // Auto-dismiss and reset after 2.5 seconds
-          setTimeout(() => {
-            setShowSuccessOverlay(false)
-            scanner.clear().catch(() => {})
-            setScanning(false)
-            loadData()
-          }, 2500)
-          
-          scanCooldownRef.current = now
-        } catch (err) {
-          scanCooldownRef.current = now
-          const errText = err.response?.data?.error || err.message || 'Attendance scan failed'
-          const debugData = err.response?.data?.debug
-          setError(errText)
-          setErrorDebug(debugData)
-          
-          // For geofence/GPS errors, keep scanner but disable temporarily
-          if (errText.includes('far') || errText.includes('GPS') || errText.includes('geofence')) {
-            setScanRetryCount(prev => prev + 1)
-            if (scanRetryCount < 2) {
-              // Allow 1-2 retries, then require manual intervention
-              return
-            }
-            // After 2 failed attempts, ask user to check location
-            scanner.pause()
-          }
+        await scanner.start(
+          currentCameraId,
+          scanConfig,
+          (decodedText) => runScanRef.current(decodedText),
+          () => {}
+        )
+      } catch (err) {
+        if (cancelled) return
+        const name = err?.name || ''
+        const raw = err?.message || ''
+        let message
+        if (name === 'NotAllowedError' || name === 'SecurityError' || /permission|denied/i.test(raw)) {
+          message =
+            'Camera permission was blocked. Tap the camera/lock icon in the address bar → Site settings → Allow camera, then press Restart.'
+        } else if (name === 'NotFoundError' || /no camera|not.?found/i.test(raw)) {
+          message = 'No camera was found on this device. Connect a camera and press Restart.'
+        } else if (name === 'NotReadableError' || /in use|busy/i.test(raw)) {
+          message = 'The camera is being used by another app. Close it and press Restart.'
+        } else {
+          message = raw || 'Failed to start camera. Please check camera permissions and retry.'
         }
-      },
-      () => {
-        // scan progress callback
+        setError(message)
       }
-    )
+    }
+
+    begin()
 
     return () => {
-      scanner.clear().catch(() => {})
+      cancelled = true
+      scanner.stop().then(() => {
+        try {
+          scanner.clear()
+        } catch {}
+      }).catch(() => {})
     }
-  }, [scanning])
+  }, [scanning, currentCameraId, scannerEpoch])
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-canvas text-ink pt-[48px]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-2 rounded-full border-primary border-t-transparent animate-spin"></div>
           <p className="font-sans text-[15px] text-ink-muted-80">Loading attendance scanner…</p>
         </div>
       </div>
@@ -267,11 +393,11 @@ export default function StudentAttendance() {
     <div className="min-h-screen bg-canvas text-ink pt-[48px] pb-16">
       {/* Success Overlay with Checkmark Animation */}
       {showSuccessOverlay && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-          <div className="bg-white dark:bg-ink rounded-3xl shadow-2xl p-8 text-center space-y-4 animate-scale-up max-w-sm mx-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="max-w-sm p-8 mx-4 space-y-4 text-center bg-white shadow-2xl dark:bg-ink rounded-3xl animate-scale-up">
             {/* Animated Checkmark Circle */}
             <div className="flex justify-center mb-4">
-              <div className="w-24 h-24 rounded-full bg-green-500/15 flex items-center justify-center">
+              <div className="flex items-center justify-center w-24 h-24 rounded-full bg-green-500/15">
                 <svg
                   className="w-12 h-12 text-green-500 animate-checkmark"
                   fill="none"
@@ -297,15 +423,15 @@ export default function StudentAttendance() {
 
             {/* Bounce Indicator */}
             <div className="flex justify-center gap-1.5 pt-4">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-bounce" style={{ animationDelay: '0s' }}></div>
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
             </div>
           </div>
         </div>
       )}
 
-      <div className="max-w-lg mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-lg px-6 py-8 mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -320,6 +446,9 @@ export default function StudentAttendance() {
             ← Student Portal
           </Link>
         </div>
+
+        {/* Camera / location permission guidance */}
+        <PermissionBanner permissions={['camera', 'location']} />
 
         {/* Stats card */}
         {stats && (
@@ -353,7 +482,7 @@ export default function StudentAttendance() {
 
         {/* Active session card */}
         {activeSession ? (
-          <div className="border border-green-500/30 bg-green-500/5 rounded-2xl shadow-sm p-6 space-y-3">
+          <div className="p-6 space-y-3 border shadow-sm border-green-500/30 bg-green-500/5 rounded-2xl">
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-green-500 text-white">
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> Live Lecture
@@ -374,8 +503,8 @@ export default function StudentAttendance() {
             </p>
           </div>
         ) : (
-          <div className="border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm p-6 text-center">
-            <div className="w-12 h-12 rounded-full bg-divider-soft flex items-center justify-center mx-auto mb-3 text-ink-muted-80">
+          <div className="p-6 text-center border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-divider-soft text-ink-muted-80">
               ◷
             </div>
             <h3 className="font-display text-[18px] font-semibold text-ink">No Active Lecture</h3>
@@ -393,7 +522,7 @@ export default function StudentAttendance() {
 
         {/* Notifications */}
         {msg && (
-          <div className="rounded-2xl bg-green-500/15 border border-green-500/30 p-5 text-green-800 dark:text-green-300">
+          <div className="p-5 text-green-800 border rounded-2xl bg-green-500/15 border-green-500/30 dark:text-green-300">
             <div className="flex items-center gap-2 font-bold text-[16px]">
               <span>✓</span> {msg}
             </div>
@@ -406,7 +535,7 @@ export default function StudentAttendance() {
         )}
 
         {error && (
-          <div className="rounded-2xl bg-red-500/15 border border-red-500/30 p-5 text-red-700 dark:text-red-400">
+          <div className="p-5 text-red-700 border rounded-2xl bg-red-500/15 border-red-500/30 dark:text-red-400">
             <div className="flex items-center gap-2 font-bold text-[15px]">
               <span>⚠</span> Scan Failed
             </div>
@@ -414,18 +543,22 @@ export default function StudentAttendance() {
 
             {/* GPS Debug Info */}
             {errorDebug && (
-              <div className="mt-4 pt-4 border-t border-red-500/20 space-y-2">
+              <div className="pt-4 mt-4 space-y-2 border-t border-red-500/20">
                 <p className="font-sans text-[13px] font-semibold">📍 GPS Debug Info:</p>
                 <div className="bg-red-500/5 rounded-lg p-3 font-mono text-[11px] space-y-1 text-red-900 dark:text-red-200">
                   {errorDebug.studentLat && (
                     <>
-                      <div>📱 Your GPS: {errorDebug.studentLat}°N, {errorDebug.studentLng}°E</div>
-                      <div>� Your GPS accuracy: {errorDebug.studentAccuracy ?? 'N/A'}m</div>
-                      <div>👨‍🏫 Faculty GPS: {errorDebug.facultyLat}°N, {errorDebug.facultyLng}°E</div>
-                      <div>📡 Faculty GPS accuracy: {errorDebug.facultyAccuracy ?? 'N/A'}m</div>
-                      <div>📏 Distance: {errorDebug.calculatedDistance}m (limit: 100m)</div>
+                      <div> Your GPS: {errorDebug.studentLat}°N, {errorDebug.studentLng}°E</div>
+                      <div> Your GPS accuracy: {errorDebug.studentAccuracy ?? 'N/A'}m</div>
+                      <div> Faculty GPS: {errorDebug.facultyLat}°N, {errorDebug.facultyLng}°E</div>
+                      <div> Faculty GPS accuracy: {errorDebug.facultyAccuracy ?? 'N/A'}m</div>
+                      <div> Distance: {errorDebug.calculatedDistance}m (limit: {errorDebug.effectiveRadius ?? 50}m)</div>
+                      <div>Confidence: {errorDebug.score ?? 'N/A'}/100 {errorDebug.score != null && errorDebug.score >= errorDebug.passThreshold ? '(PASS)' : '(LOW)'}</div>
+                      {errorDebug.deviceStationary != null && (
+                        <div>Device stationary: {errorDebug.deviceStationary ? 'Yes' : 'No'}</div>
+                      )}
                       {errorDebug.swappedDistance && (
-                        <div className="mt-1 pt-1 border-t border-red-500/20">
+                        <div className="pt-1 mt-1 border-t border-red-500/20">
                           🔄 If coords swapped: {errorDebug.swappedDistance}m {errorDebug.swappedDistance <= 100 ? '✓ WOULD WORK' : ''}
                         </div>
                       )}
@@ -443,7 +576,7 @@ export default function StudentAttendance() {
             )}
 
             {error.includes('far') && (
-              <div className="mt-3 pt-3 border-t border-red-500/20 space-y-2">
+              <div className="pt-3 mt-3 space-y-2 border-t border-red-500/20">
                 <p className="font-sans text-[13px] font-semibold">Try these:</p>
                 <ul className="font-sans text-[12px] space-y-1 ml-4">
                   <li>✓ Move closer to the faculty device</li>
@@ -458,36 +591,95 @@ export default function StudentAttendance() {
 
         {/* Scanner Controller */}
         {!scanning ? (
-          <button
-            onClick={() => { setScanning(true); setError(''); setMsg(''); setScanSuccess(null); setShowSuccessOverlay(false) }}
-            disabled={!activeSession || showSuccessOverlay}
-            className="button-primary w-full py-4 text-[16px] font-bold shadow-lg disabled:opacity-50 transition-all duration-300"
-          >
-            {showSuccessOverlay ? '✓ Attendance Confirmed' : activeSession ? '📷 Open Camera & Scan QR Code' : 'Waiting for Class Session to Start'}
-          </button>
-        ) : (
-          <div className="space-y-4 border border-divider-soft bg-surface-pearl rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <span className="font-sans text-[14px] font-semibold text-ink">📷 Camera Active</span>
+          <div className="space-y-3">
+            <button
+              onClick={() => { setScanning(true); setError(''); setMsg(''); setScanSuccess(null); setShowSuccessOverlay(false) }}
+              disabled={!activeSession || showSuccessOverlay}
+              className="button-primary w-full py-4 text-[16px] font-bold shadow-lg disabled:opacity-50 transition-all duration-300"
+            >
+              {showSuccessOverlay ? '✓ Attendance Confirmed' : activeSession ? ' Open Camera & Scan QR Code' : 'Waiting for Class Session to Start'}
+            </button>
+            {activeSession && (
               <button
-                onClick={() => setScanning(false)}
-                className="text-[13px] font-semibold text-red-500 hover:underline"
+                type="button"
+                onClick={async () => {
+                  try {
+                    await requestCameraPermission()
+                    setError('')
+                    setMsg(' Camera access granted — tap "Open Camera" to scan.')
+                  } catch (err) {
+                    setError(err?.message || 'Camera permission was not granted.')
+                  }
+                }}
+                className="w-full text-[12px] font-semibold text-primary border border-primary/30 hover:bg-primary/5 rounded-xl px-3 py-2 transition-colors"
               >
-                ✕ Cancel
+                 Request Camera Access
               </button>
+            )}
+            <p className="font-sans text-[12px] text-ink-muted-80 text-center">
+              You'll be asked to allow camera &amp; location when you open the scanner.
+            </p>
+          </div>
+        ) : (
+          <div className="p-5 space-y-4 border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
+            {/* Scanner header — Stop / Restart controls live OUTSIDE the camera viewport */}
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-2 font-sans text-[14px] font-semibold text-ink">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex w-full h-full bg-red-400 rounded-full opacity-75 animate-ping"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                </span>
+                Camera Active
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={restartCamera}
+                  className="text-[12px] font-semibold text-ink bg-divider-soft hover:bg-soft-stone rounded-lg px-3 py-2 transition-colors"
+                >
+                  ↻ Restart
+                </button>
+                <button
+                  onClick={stopScanner}
+                  className="text-[12px] font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg px-3 py-2 transition-colors"
+                >
+                  ■ Stop
+                </button>
+              </div>
             </div>
 
-            <div className="relative w-full bg-black rounded-xl overflow-hidden shadow-inner aspect-square">
+            {/* Camera viewport — the library renders ONLY the live video feed here */}
+            <div className="relative w-full overflow-hidden bg-black shadow-inner qr-video-viewport rounded-xl aspect-square">
               <div id="qr-reader" ref={scannerRef} style={{ width: '100%', height: '100%' }} />
             </div>
 
+            {/* Active camera selector — OUTSIDE the scanner */}
+            {cameraDevices.length > 0 && (
+              <div className="flex items-center gap-2 bg-canvas rounded-xl border border-divider-soft px-3 py-2.5">
+                <span className="font-sans text-[12px] font-semibold text-ink whitespace-nowrap">🎥 Camera</span>
+                <select
+                  value={currentCameraId || ''}
+                  onChange={(e) => setCurrentCameraId(e.target.value)}
+                  className="flex-1 input !py-2 !text-[13px] font-medium cursor-pointer"
+                >
+                  {cameraDevices.map((c, i) => (
+                    <option key={c.id} value={c.id}>
+                      {c.label || 'Camera ' + (i + 1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <p className="font-sans text-[12px] text-ink-muted-80 text-center leading-relaxed">
-              📱 Point your camera at the revolving QR code displayed on the classroom screen. Live GPS coordinates will be verified automatically.
+               Point your camera at the revolving QR code displayed on the classroom screen. Live GPS coordinates will be verified automatically.
+            </p>
+<p className="font-sans text-[11px] text-amber-600 dark:text-amber-400 text-center leading-relaxed">
+              If your accuracy stays high (±100m+), enable high-accuracy / Wi-Fi location, hold your phone still, then re-scan.
             </p>
 
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+            <div className="p-3 border rounded-lg bg-blue-500/10 border-blue-500/30">
               <p className="font-sans text-[12px] text-blue-700 dark:text-blue-300">
-                💡 <strong>Tip:</strong> Ensure adequate lighting and hold the camera steady for accurate scanning.
+                 <strong>Tip:</strong> Ensure adequate lighting and hold the camera steady for accurate scanning.
               </p>
             </div>
           </div>
@@ -495,24 +687,24 @@ export default function StudentAttendance() {
 
         {/* GPS Refresh & Debug Info */}
         {activeSession && (
-          <div className="border border-divider-soft bg-surface-pearl rounded-2xl p-4 space-y-3">
+          <div className="p-4 space-y-3 border border-divider-soft bg-surface-pearl rounded-2xl">
             <div className="flex items-center justify-between">
               <span className="font-sans text-[13px] font-semibold text-ink">Your Live Location</span>
               <button
                 onClick={refreshStudentGps}
                 className="text-[12px] font-medium text-primary hover:underline"
               >
-                🔄 Refresh GPS
+                 Refresh GPS
               </button>
             </div>
             
             {gpsDebug && (
-              <div className="bg-canvas rounded-lg p-3 space-y-1">
+              <div className="p-3 space-y-1 rounded-lg bg-canvas">
                 <p className="font-mono text-[11px] text-ink-muted-80">
-                  Lat: {gpsDebug.latitude.toFixed(6)}°
+                  Lat: {fmtCoord(gpsDebug.latitude)}°
                 </p>
                 <p className="font-mono text-[11px] text-ink-muted-80">
-                  Lng: {gpsDebug.longitude.toFixed(6)}°
+                  Lng: {fmtCoord(gpsDebug.longitude)}°
                 </p>
                 <p className="font-mono text-[11px] text-ink-muted-80">
                   Accuracy: ±{gpsDebug.accuracy}m
@@ -526,10 +718,10 @@ export default function StudentAttendance() {
             {activeSession && (
               <div className="bg-canvas rounded-lg p-3 space-y-1 text-[11px]">
                 <p className="font-mono text-ink-muted-80">
-                  Faculty Lat: {(activeSession.centerLat ?? 'N/A').toFixed ? (activeSession.centerLat).toFixed(6) : 'N/A'}°
+                  Faculty Lat: {fmtCoord(activeSession.centerLat)}°
                 </p>
                 <p className="font-mono text-ink-muted-80">
-                  Faculty Lng: {(activeSession.centerLng ?? 'N/A').toFixed ? (activeSession.centerLng).toFixed(6) : 'N/A'}°
+                  Faculty Lng: {fmtCoord(activeSession.centerLng)}°
                 </p>
                 <p className="font-mono text-ink-muted-80">
                   Faculty GPS accuracy: ±{activeSession.centerAccuracy ?? 'N/A'}m
@@ -540,19 +732,19 @@ export default function StudentAttendance() {
         )}
 
         {/* Info instructions */}
-        <div className="border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm p-5 space-y-3">
+        <div className="p-5 space-y-3 border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
           <h4 className="font-display text-[16px] font-bold text-ink">How Smart Attendance Works</h4>
           <ul className="font-sans text-[13px] text-ink-muted-80 space-y-2">
             <li className="flex items-start gap-2">
-              <span className="text-primary font-bold">1.</span>
-              <span><strong>100m GPS Geofence:</strong> Attendance is anchored to the faculty's live device location. Proxies from home or outside the classroom are blocked.</span>
+              <span className="font-bold text-primary">1.</span>
+              <span><strong>50m GPS Geofence:</strong> Attendance is anchored to the faculty's live device location and uses a confidence score (distance + GPS accuracy + device-stationary) so genuine classroom scans pass reliably.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-primary font-bold">2.</span>
+              <span className="font-bold text-primary">2.</span>
               <span><strong>15s Rotating QR:</strong> Screen QR dynamically regenerates every 15 seconds so screenshots cannot be shared in WhatsApp groups.</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-primary font-bold">3.</span>
+              <span className="font-bold text-primary">3.</span>
               <span><strong>Surprise Checkpoints:</strong> A random checkpoint QR may appear mid-class. Re-scan within 20 seconds to stay marked present.</span>
             </li>
           </ul>

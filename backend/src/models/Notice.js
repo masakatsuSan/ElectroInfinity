@@ -34,13 +34,19 @@ const noticeSchema = new mongoose.Schema(
 
     // Optional PDF attachment uploaded to Cloudinary
     attachmentUrl:  { type: String, default: '' },
-    attachmentName: { type: String, default: '' },
+        attachmentName: { type: String, default: '' },
 
     // Optional expiry date — expired notices auto-hide
     expiresAt: {
       type: Date,
       default: null,
     },
+
+    // Class context attached by faculty when posting a class notice
+    // (subject : date : time) — purely informational, shown alongside the notice
+    subject: { type: String, default: '' },
+    date:     { type: Date,   default: null },
+    time:     { type: String, default: '' },
 
     // Batch isolation (required for BATCH visibility)
     batchId: { type: String, default: '' },

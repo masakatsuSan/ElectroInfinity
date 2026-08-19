@@ -45,6 +45,7 @@ import AdminAttendance from './pages/admin/AdminAttendance'
 // Attendance pages
 import FacultyAttendance from './pages/attendance/FacultyAttendance'
 import StudentAttendance from './pages/attendance/StudentAttendance'
+import FacultyDashboard   from './pages/faculty/FacultyDashboard'
 
 const NotFound = () => (
   <div className="flex flex-col items-center justify-center min-h-screen pt-32 pb-20 text-center page-wrap">
@@ -208,6 +209,15 @@ export default function App() {
             <Route path="/students" element={
               <AnimatedRoute>
                 <ProtectedRoute><Students /></ProtectedRoute>
+              </AnimatedRoute>
+            }/>
+
+                        {/* ── Faculty ── */}
+            <Route path="/faculty/dashboard" element={
+              <AnimatedRoute>
+                <ProtectedRoute role="faculty">
+                  <FacultyDashboard />
+                </ProtectedRoute>
               </AnimatedRoute>
             }/>
 

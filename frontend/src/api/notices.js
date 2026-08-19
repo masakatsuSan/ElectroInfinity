@@ -8,7 +8,11 @@ export const getNotices = (params) =>
 export const getNotice = (id) =>
   api.get(`/notices/${id}`)
 
-// Create a notice (admin only)
+// Faculty-only — list notices authored by the logged-in faculty
+export const getFacultyNotices = () =>
+  api.get('/notices/faculty/mine')
+
+// Create a notice (admin / CR / faculty)
 export const createNotice = (data) =>
   api.post('/notices', data)
 

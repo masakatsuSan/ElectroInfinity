@@ -10,6 +10,8 @@ const attendanceRecordSchema = new mongoose.Schema(
     distanceInMeters: { type: Number, default: 0 },
     latitude:         { type: Number },
     longitude:        { type: Number },
+    accuracy:         { type: Number, default: null }, // student GPS accuracy in meters
+    manualOverride:   { type: Boolean, default: false }, // faculty tapped "Mark Present"
     flagged:          { type: Boolean, default: false },
   },
   { timestamps: true }

@@ -10,7 +10,7 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      if (user.role === 'faculty') navigate('/attendance/faculty')
+      if (user.role === 'faculty') navigate('/faculty/dashboard')
       else if (user.role === 'admin' || user.role === 'super_admin') navigate('/admin')
       else navigate('/students')
     }
@@ -38,7 +38,7 @@ export default function Login() {
       const user = await login(payload)
 
       if (user.role === 'faculty') {
-        navigate('/attendance/faculty')
+        navigate('/faculty/dashboard')
       } else if (user.role === 'admin' || user.role === 'super_admin') {
         navigate('/admin')
       } else {

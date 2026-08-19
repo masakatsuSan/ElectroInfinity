@@ -56,13 +56,12 @@ export default function Home() {
       />
 
       {/* ── HERO SECTION (Stark white editorial canvas) ── */}
-      <section className="pt-36 md:pt-48 pb-20 md:pb-28 border-b border-hairline">
+      <section className="pb-20 border-b pt-36 md:pt-48 md:pb-28 border-hairline">
         <div className="max-w-[1280px] mx-auto px-6 md:px-12">
           
           <div className="max-w-4xl">
             {/* Coral Taxonomy Tag */}
             <div className="inline-flex items-center gap-2 mb-6">
-              <span className="w-2 h-2 rounded-full bg-coral"></span>
               <span className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate">
                 Electrical Engineering Club · AGEMC
               </span>
@@ -92,12 +91,12 @@ export default function Home() {
           </div>
 
           {/* Hero Media Composition: Dark Agent Console Card & Stone Info Card */}
-          <div className="grid md:grid-cols-12 gap-6 mt-16 md:mt-24">
+          <div className="grid gap-6 mt-16 md:grid-cols-12 md:mt-24">
             
             {/* Agent console module */}
-            <div className="md:col-span-8 bg-primary text-white rounded-2xl p-8 md:p-10 shadow-card flex flex-col justify-between">
+            <div className="flex flex-col justify-between p-8 text-white md:col-span-8 bg-primary rounded-2xl md:p-10 shadow-card">
               <div>
-                <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-6">
+                <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse"></span>
                     <span className="font-mono text-[12px] uppercase tracking-wider text-slate">Live Department Platform</span>
@@ -114,14 +113,14 @@ export default function Home() {
               </div>
 
               <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-4 text-white items-center justify-between text-[13px] font-mono text-slate">
-                <span>✓ 100m GPS Verification</span>
+                <span>✓ 50m GPS Verification</span>
                 <span>✓ Anti-Proxy QR Rotation</span>
                 <span>✓ Batch Scoping</span>
               </div>
             </div>
 
             {/* Soft Stone Capability Card */}
-            <div className="md:col-span-4 bg-soft-stone rounded-2xl p-8 flex flex-col justify-between border border-hairline">
+            <div className="flex flex-col justify-between p-8 border md:col-span-4 bg-soft-stone rounded-2xl border-hairline">
               <div>
                 <span className="font-mono text-[11px] uppercase tracking-wider text-slate font-bold block mb-3">
                   Academic Focus
@@ -134,7 +133,7 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-hairline">
+              <div className="pt-4 mt-6 border-t border-hairline">
                 <Link to="/laboratory" className="font-sans text-[14px] font-medium text-action-blue hover:underline">
                   View Laboratory Facilities →
                 </Link>
@@ -147,7 +146,7 @@ export default function Home() {
       </section>
 
       {/* ── DARK ENTERPRISE FEATURE BAND (#003c33 Deep Green) ── */}
-      <section className="bg-deep-green text-white py-24 md:py-32">
+      <section className="py-24 text-white bg-deep-green md:py-32">
         <div className="max-w-[1280px] mx-auto px-6 md:px-12">
           <div className="max-w-3xl mb-16">
             <span className="font-mono text-[12px] uppercase tracking-wider text-coral-soft font-semibold block mb-3">
@@ -158,8 +157,8 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="border border-white/10 rounded-2xl p-8 bg-black/20 backdrop-blur-sm">
+          <div className="grid gap-8 md:grid-cols-3">
+            <div className="p-8 border border-white/10 rounded-2xl bg-black/20 backdrop-blur-sm">
               <span className="font-mono text-[13px] text-coral-soft font-bold block mb-4">01. WORKSHOPS</span>
               <h3 className="font-display text-[22px] font-bold text-white mb-2">Hands-on Hardware</h3>
               <p className="font-sans text-[15px] text-white/80 leading-relaxed">
@@ -167,7 +166,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="border border-white/10 rounded-2xl p-8 bg-black/20 backdrop-blur-sm">
+            <div className="p-8 border border-white/10 rounded-2xl bg-black/20 backdrop-blur-sm">
               <span className="font-mono text-[13px] text-coral-soft font-bold block mb-4">02. ATTENDANCE</span>
               <h3 className="font-display text-[22px] font-bold text-white mb-2">Precision Attendance</h3>
               <p className="font-sans text-[15px] text-white/80 leading-relaxed">
@@ -175,7 +174,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="border border-white/10 rounded-2xl p-8 bg-black/20 backdrop-blur-sm">
+            <div className="p-8 border border-white/10 rounded-2xl bg-black/20 backdrop-blur-sm">
               <span className="font-mono text-[13px] text-coral-soft font-bold block mb-4">03. CAREER</span>
               <h3 className="font-display text-[22px] font-bold text-white mb-2">Placement & Alumni</h3>
               <p className="font-sans text-[15px] text-white/80 leading-relaxed">
@@ -187,7 +186,7 @@ export default function Home() {
       </section>
 
       {/* ── NEXT EVENT COUNTDOWN (Warm Stone Surface) ── */}
-      <section className="py-20 md:py-28 bg-soft-stone border-b border-hairline">
+      <section className="py-20 border-b md:py-28 bg-soft-stone border-hairline">
         <div className="max-w-[1280px] mx-auto px-6 md:px-12 text-center">
           <span className="font-mono text-[12px] uppercase tracking-wider text-slate font-semibold block mb-2">
             Upcoming Department Workshop
@@ -212,7 +211,7 @@ export default function Home() {
       {/* ── LATEST NOTICES (Research-table style) ── */}
       <section className="py-20 md:py-28 bg-canvas">
         <div className="max-w-[1280px] mx-auto px-6 md:px-12">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12 pb-4 border-b border-hairline">
+          <div className="flex flex-col justify-between gap-4 pb-4 mb-12 border-b sm:flex-row sm:items-end border-hairline">
             <div>
               <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
                 Official Bulletins
@@ -226,21 +225,21 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="border border-hairline rounded-2xl overflow-hidden shadow-card">
+          <div className="overflow-hidden border border-hairline rounded-2xl shadow-card">
             {isLoading ? (
               <div className="p-12 text-center text-slate">Loading announcements…</div>
             ) : notices.length > 0 ? (
               <div className="divide-y divide-hairline">
                 {notices.map(n => (
-                  <div key={n._id} className="p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-soft-stone/40 transition-colors">
-                    <div className="flex items-center gap-4 min-w-0">
+                  <div key={n._id} className="flex flex-col justify-between gap-4 p-5 transition-colors md:p-6 sm:flex-row sm:items-center hover:bg-soft-stone/40">
+                    <div className="flex items-center min-w-0 gap-4">
                       <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-md bg-pale-green text-deep-green border border-green-200 flex-shrink-0">
                         {n.category || 'Academic'}
                       </span>
                       <h3 className="font-sans text-[16px] font-semibold text-ink truncate">{n.title}</h3>
                     </div>
 
-                    <div className="flex items-center gap-4 flex-shrink-0">
+                    <div className="flex items-center flex-shrink-0 gap-4">
                       <span className="font-mono text-[12px] text-slate">
                         {new Date(n.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>

@@ -5,7 +5,11 @@ function initSocket(server) {
   const { Server } = require('socket.io')
   const io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || 'http://localhost:5173',
+      // CLIENT_URL can pin the exact allowed origin (e.g. the deployed site).
+      // In development the Vite server proxies /socket.io, and the page origin
+      // may be http://localhost:5173, https://localhost:5173 or a phone's
+      // https://192.168.x.x:5173 — so without CLIENT_URL we reflect any origin.
+      origin: process.env.CLIENT_URL || true,
       credentials: true,
     },
   })

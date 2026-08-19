@@ -49,11 +49,17 @@ export default function Students() {
     enabled: activeTab === 'calendar',
   });
 
-  // Batch Roster Query (For CRs to track missing submissions)
+  // Batch roster for deadlines and visible batch mates
   const { data: batchData } = useQuery({
     queryKey: ['batchRoster', user?.batch],
     queryFn: () => getBatchStudents(user?.batch).then(r => r.data),
     enabled: activeTab === 'deadlines' && user?.role === 'cr' && !!user?.batch,
+  });
+
+  const { data: batchMatesData, isLoading: batchMatesLoading } = useQuery({
+    queryKey: ['batchMates', user?.batch],
+    queryFn: () => getBatchStudents(user?.batch).then(r => r.data),
+    enabled: !!user?.batch && user?.role !== 'faculty' && user?.role !== 'admin' && user?.role !== 'super_admin',
   });
 
   const submitDeadlineMut = useMutation({
@@ -90,6 +96,7 @@ export default function Students() {
 
   const deadlines = deadlinesData?.data || [];
   const roster = batchData?.data || [];
+  const batchMates = (batchMatesData?.data || []).filter(student => student._id !== user?._id);
   const totalStudents = roster.length;
 
   const TABS = ['attendance', 'deadlines', 'routine', 'calendar', 'notices', 'password'];
@@ -150,6 +157,47 @@ export default function Students() {
           </div>
         </div>
       </div>
+
+      {!batchMatesLoading && user?.batch && user?.role !== 'faculty' && user?.role !== 'admin' && user?.role !== 'super_admin' && (
+        <div className="mb-10 border rounded-[24px] border-divider-soft bg-surface-pearl p-6 shadow-sm">
+          <div className="flex items-center justify-between gap-3 mb-5">
+            <div>
+              <p className="font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-ink-muted-80">Your batch</p>
+              <h2 className="font-display text-[28px] font-semibold tracking-[-0.03em] text-ink">Batch Mates</h2>
+            </div>
+            <span className="font-sans text-[12px] font-semibold text-ink-muted-80">{batchMates.length + 1} people</span>
+          </div>
+
+          {batchMates.length === 0 ? (
+            <p className="font-sans text-[14px] text-ink-muted-80">No other students in your batch have joined yet.</p>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {batchMates.map((mate) => (
+                <div key={mate._id} className="flex items-center gap-3 rounded-2xl border border-divider-soft bg-canvas p-3">
+                  <div className="flex items-center justify-center w-12 h-12 overflow-hidden rounded-full bg-ink/5 text-ink-muted-80">
+                    {mate.photo ? (
+                      <img src={mate.photo} alt={mate.name} className="object-cover w-full h-full" />
+                    ) : (
+                      <span className="font-display text-[15px] font-bold">
+                        {(mate.name || 'S').split(' ').map(part => part[0]).slice(0,2).join('').toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate font-sans text-[14px] font-semibold text-ink">{mate.name}</p>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-muted-80">{mate.rollNumber || 'Roll —'}</p>
+                    {mate.role === 'cr' && (
+                      <span className="inline-flex mt-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-amber-600">
+                        CR
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Tabs (Pill style) ── */}
       <div className="flex gap-2 mb-10 overflow-x-auto scrollbar-none p-1 bg-surface-pearl border border-divider-soft rounded-[999px] w-max max-w-full">

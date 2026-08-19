@@ -629,12 +629,13 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
       return res.status(400).json({ success: false, error: 'No active checkpoint right now' })
     }
 
-    // Step d: GPS Geofence Check (100 meters radius from faculty GPS anchor)
+    // Step d: GPS geofence + confidence scoring (50m range, accuracy-aware)
     const studentLat = Number(latitude)
     const studentLng = Number(longitude)
     const facultyLat = Number(session.centerLat)
     const facultyLng = Number(session.centerLng)
     const facultyAccuracy = Number.isFinite(Number(session.centerAccuracy)) ? Number(session.centerAccuracy) : null
+    const deviceStationary = req.body.stationary === true
 
     // Validate coordinates are valid numbers and in expected ranges
     if (!isFinite(studentLat) || !isFinite(studentLng) || !isFinite(facultyLat) || !isFinite(facultyLng)) {
@@ -656,7 +657,7 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
     if (Math.abs(studentLat) > 90 || Math.abs(studentLng) > 180 || Math.abs(facultyLat) > 90 || Math.abs(facultyLng) > 180) {
       return res.status(400).json({
         success: false,
-        error: 'GPS coordinates out of valid range. Contact administrator.',
+        error: 'GPS coordinates are out of a valid range. Contact your administrator.',
         debug: {
           studentLat,
           studentLng,
@@ -668,47 +669,63 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
       })
     }
 
-    const distance = distanceMeters(
-      studentLat,
-      studentLng,
-      facultyLat,
-      facultyLng
-    )
+    const distance = distanceMeters(studentLat, studentLng, facultyLat, facultyLng)
 
-    // Check if coordinates are swapped (lat/lng reversed)
-    const swappedDistance = distanceMeters(
-      studentLng,
-      studentLat,
-      facultyLng,
-      facultyLat
+    // ---- Confidence scoring (max 100) instead of one hard gate ----
+    // Required faculty -> student range.
+    const BASE_RADIUS_METERS = 50
+    // Both endpoints carry GPS uncertainty. Two co-located devices indoors can
+    // each drift 100-150m and still be statistically "near each other", so use
+    // the combined uncertainty instead of raw distance. Capped at 150 so an
+    // inaccurate far-away device can't fake its way inside.
+    const combinedUncertainty = Math.hypot(
+      Number.isFinite(studentAccuracy) ? studentAccuracy : 0,
+      Number.isFinite(facultyAccuracy) ? facultyAccuracy : 0,
     )
+    const slack = Math.min(200, Math.round(1.5 * combinedUncertainty))
+    const effectiveRadius = BASE_RADIUS_METERS + slack
 
-    const MAX_GEOFENCE_METERS = 100
-    if (distance > MAX_GEOFENCE_METERS) {
-      // Build detailed debug info for troubleshooting
+    // 1) Geofence signal (max 40): inside the effective radius (with tolerance)
+    const geofenceScore = distance <= effectiveRadius ? 40 : 0
+
+    // 2) Accuracy signal (max 40): a low reported error is a more credible fix
+    let accuracyScore = 0
+    if (Number.isFinite(studentAccuracy)) {
+      if (studentAccuracy < 10) accuracyScore = 40
+      else if (studentAccuracy < 30) accuracyScore = 35
+      else if (studentAccuracy < 60) accuracyScore = 20
+      else if (studentAccuracy < 200) accuracyScore = 10
+      else accuracyScore = 0
+    }
+
+    // 3) Stationary signal (max 20): device is still while scanning
+    let stationaryScore = deviceStationary ? 20 : 0
+    // Co-location bonus: a student within 25m of the faculty device is
+    // physically in the room with the anchor, even when the phone can't report
+    // deviceMotion (e.g. iOS) or indoor GPS accuracy is noisy (~100m+). The
+    // geofence gate below still applies — this only tops up the confidence
+    // score for someone who is already genuinely inside the radius.
+    if (distance <= 25) stationaryScore = 20
+
+    const score = geofenceScore + accuracyScore + stationaryScore
+    const PASS_THRESHOLD = 60
+
+    // The geofence is the anchor: if the reported position is inside the
+    // (accuracy-inflated) classroom radius, the student is physically present.
+    // The rotating QR token already proves they scanned the LIVE faculty screen,
+    // and indoor GPS noise makes the accuracy/stationary sub-scores unreliable
+    // (e.g. iOS can't report device-motion, so a nearby student scores only 50).
+    if (geofenceScore < 40) {
       const troubleshooting = []
-      
-      // Check if swap fixes the issue
-      if (swappedDistance <= MAX_GEOFENCE_METERS) {
-        troubleshooting.push(`⚠️ COORDINATE SWAP DETECTED: Swapped coordinates give ${swappedDistance}m (valid). This is a system configuration issue.`)
-      }
-      
-      // Check if faculty and student are too different
-      if (Math.abs(studentLat - facultyLat) > 1 || Math.abs(studentLng - facultyLng) > 1) {
-        troubleshooting.push(`❌ Coordinates differ by >1°: Faculty at (${facultyLat.toFixed(4)}, ${facultyLng.toFixed(4)}), Student at (${studentLat.toFixed(4)}, ${studentLng.toFixed(4)})`)
-      }
-      
-      troubleshooting.push(`✓ Faculty: ${facultyLat.toFixed(6)}° N, ${facultyLng.toFixed(6)}° E`)
-      troubleshooting.push(`📡 Faculty GPS accuracy: ${facultyAccuracy != null ? `${Math.round(facultyAccuracy)}m` : 'N/A'}`)
-      troubleshooting.push(`✓ Student: ${studentLat.toFixed(6)}° N, ${studentLng.toFixed(6)}° E`)
-      troubleshooting.push(`📡 Your GPS accuracy: ${Number.isFinite(studentAccuracy) ? `${Math.round(studentAccuracy)}m` : 'N/A'}`)
-      troubleshooting.push(`📏 Distance: ${distance}m (limit: ${MAX_GEOFENCE_METERS}m)`)
-      troubleshooting.push(`💡 Try: Move outdoors or near a window, enable High Accuracy location, disable battery saver, ask faculty to re-calibrate GPS`)
+      troubleshooting.push(`Distance: ${distance}m (classroom radius: ${BASE_RADIUS_METERS}m, tolerance +${slack}m)`)
+      troubleshooting.push(`GPS accuracy: ${Number.isFinite(studentAccuracy) ? `${Math.round(studentAccuracy)}m` : 'N/A'} | Confidence ${score}/100`)
+      troubleshooting.push('Tip: move closer to the faculty device, enable High Accuracy, or refresh GPS and re-scan.')
 
       return res.status(400).json({
         success: false,
         distanceInMeters: distance,
-        error: `You're too far from the classroom (${distance}m away). Must be within 100m of faculty device.`,
+        confidence: score,
+        error: `You're too far from the classroom (${distance}m away). Must be within ${effectiveRadius}m of the faculty device.`,
         debug: {
           studentLat: studentLat.toFixed(6),
           studentLng: studentLng.toFixed(6),
@@ -717,12 +734,19 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
           facultyLng: facultyLng.toFixed(6),
           facultyAccuracy: facultyAccuracy != null ? Math.round(facultyAccuracy) : null,
           calculatedDistance: distance,
-          swappedDistance: swappedDistance,
+          effectiveRadius,
+          baseRadius: BASE_RADIUS_METERS,
+          slack,
+          deviceStationary,
+          geofenceScore,
+          accuracyScore,
+          stationaryScore,
+          score,
+          passThreshold: PASS_THRESHOLD,
           troubleshooting: troubleshooting.join('\n'),
         },
       })
     }
-
     // Step e: Prevent duplicate scan
     const existing = await AttendanceRecord.findOne({
       session: sessionId,
@@ -751,6 +775,7 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
       checkpointNumber: cpNum,
       latitude: Number(latitude),
       longitude: Number(longitude),
+      accuracy: Number.isFinite(studentAccuracy) ? studentAccuracy : null,
       distanceInMeters: distance,
       locationVerified: true,
       flagged: false,
@@ -779,6 +804,83 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
     if (err.code === 11000) {
       return res.status(400).json({ success: false, error: 'Attendance already marked for this checkpoint' })
     }
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// @route   POST /api/attendance/sessions/:id/manual-present
+// @desc    Faculty manually verifies a physically-present student (indoor GPS override)
+router.post('/sessions/:id/manual-present', protect, guard('faculty', 'admin', 'super_admin'), async (req, res) => {
+  try {
+    const session = await Session.findById(req.params.id)
+    if (!session) return res.status(404).json({ success: false, error: 'Session not found' })
+    if (session.status !== 'active' && !session.active) {
+      return res.status(400).json({ success: false, error: 'Session is not active' })
+    }
+    const isFacultyOwner =
+      req.user.role === 'admin' || req.user.role === 'super_admin' ||
+      session.faculty.toString() === req.user._id.toString()
+    if (!isFacultyOwner) return res.status(403).json({ success: false, error: 'Not your session' })
+
+    const studentId = req.body?.studentId
+    if (!studentId) return res.status(400).json({ success: false, error: 'studentId is required' })
+
+    const student = await User.findById(studentId).select('name rollNumber batch section role')
+    if (!student || !['student', 'cr'].includes(student.role)) {
+      return res.status(400).json({ success: false, error: 'Student not found' })
+    }
+    if (String(student.batch).trim().toLowerCase() !== String(session.batch).trim().toLowerCase()) {
+      return res.status(400).json({ success: false, error: 'Student is not in this class batch' })
+    }
+    if (session.section && String(session.section).trim()) {
+      if (
+        student.section && String(student.section).trim() &&
+        String(student.section).trim().toLowerCase() !== String(session.section).trim().toLowerCase()
+      ) {
+        return res.status(400).json({ success: false, error: 'Student is not in this section' })
+      }
+    }
+
+    // Create or refresh the initial (checkpoint 0) attendance record
+    const existing = await AttendanceRecord.findOne({
+      session: session._id,
+      student: studentId,
+      checkpointNumber: 0,
+    })
+    let record
+    if (existing) {
+      existing.flagged = false
+      existing.locationVerified = true
+      existing.manualOverride = true
+      existing.distanceInMeters = existing.distanceInMeters || 0
+      existing.timestamp = new Date()
+      record = await existing.save()
+    } else {
+      record = await AttendanceRecord.create({
+        session: session._id,
+        student: studentId,
+        checkpointNumber: 0,
+        locationVerified: true,
+        distanceInMeters: 0,
+        flagged: false,
+        manualOverride: true,
+        timestamp: new Date(),
+      })
+    }
+
+    const io = getIo(req)
+    io?.to(`session:${session._id.toString()}`).emit('attendance-update', {
+      sessionId: session._id.toString(),
+      record,
+      checkpointNumber: 0,
+    })
+
+    res.json({
+      success: true,
+      data: record,
+      message: `${student.name} marked present (manual verification by faculty).`,
+    })
+  } catch (err) {
     res.status(500).json({ success: false, error: err.message })
   }
 })

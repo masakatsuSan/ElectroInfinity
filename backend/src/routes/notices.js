@@ -27,7 +27,22 @@ router.get('/', optionalAuth, async (req, res) => {
       batchCondition = {
         $or: [
           { visibility: 'BATCH', batchId: req.user.batch },
-          { visibility: 'GLOBAL' }
+          { visibility: 'GLOBAL' },
+        ]
+      }
+    } else if (req.user && req.user.role === 'faculty') {
+      // Faculty only see GLOBAL notices, notices for batches they teach,
+      // or notices they themselves authored.
+      const taughtBatches = [
+        ...(req.user.assignedBatches || []),
+        ...(req.user.teachingAssignments || []).map(a => a.batch),
+      ].filter(Boolean)
+
+      batchCondition = {
+        $or: [
+          { visibility: 'GLOBAL' },
+          { visibility: 'BATCH', batchId: { $in: taughtBatches } },
+          { postedBy: req.user._id },
         ]
       }
     } else if (!req.user) {
@@ -56,6 +71,26 @@ router.get('/', optionalAuth, async (req, res) => {
     })
   } catch (err) {
     res.status(500).json({ success: false, error: err.message })
+    }
+})
+
+// ─── GET /api/notices/faculty/mine ─────────────────────────────────────────
+// Faculty-only — list notices authored by the logged-in faculty member
+// (i.e. the "Notices I've sent" list shown on the faculty dashboard).
+// Registered BEFORE /:id so the literal segment isn't swallowed by /:id.
+router.get('/faculty/mine', protect, guard('faculty'), async (req, res) => {
+  try {
+    const notices = await Notice.find({ postedBy: req.user._id })
+      .populate('postedBy', 'name role')
+      .sort({ isPinned: -1, createdAt: -1 })
+
+    res.json({
+      success: true,
+      count: notices.length,
+      data: notices,
+    })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
   }
 })
 
@@ -71,9 +106,54 @@ router.get('/:id', async (req, res) => {
 })
 
 // ─── POST /api/notices ─────────────────────────────────────────────────────
-// Only CR or admin can post notices
-router.post('/', protect, guard('cr', 'super_admin', 'admin'), async (req, res) => {
+// Authenticated users can post notices — each role is scoped differently:
+//  - faculty → BATCH only, restricted to batches they teach
+//  - cr      → BATCH only, restricted to their own batch
+//  - admin/super_admin → can choose GLOBAL or BATCH
+router.post('/', protect, guard('cr', 'super_admin', 'admin', 'faculty'), async (req, res) => {
   try {
+    if (req.user.role === 'faculty') {
+      // Faculty can ONLY post to a batch they actually teach.
+      // We ignore any visibility/batchId they send and re-derive it here so
+      // the notice is always isolated to the correct batch of students.
+      const taughtBatches = [
+        ...(req.user.assignedBatches || []),
+        ...(req.user.teachingAssignments || []).map(a => a.batch),
+      ].filter(Boolean)
+
+      const chosenBatch = (req.body.batchId || '').trim()
+      if (!chosenBatch || !taughtBatches.includes(chosenBatch)) {
+        return res.status(403).json({
+          success: false,
+          error: 'You can only post notices for batches you teach. Choose a valid class first.',
+        })
+      }
+
+      // Destructure only the fields faculty are allowed to provide.
+      // isPinned is deliberately excluded — only admin can pin.
+      const {
+        title, body, category, subject, date, time,
+        expiresAt, attachmentUrl, attachmentName,
+      } = req.body
+
+      const notice = await Notice.create({
+        title,
+        body,
+        category,
+        subject,
+        date: date ? new Date(date) : null,
+        time,
+        postedBy: req.user._id,
+        batchId: chosenBatch,
+        visibility: 'BATCH',
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
+        attachmentUrl,
+        attachmentName,
+      })
+      return res.status(201).json({ success: true, data: notice })
+    }
+
+    // CR / admin / super_admin path (existing behaviour)
     const visibility = req.user.role === 'admin' || req.user.role === 'super_admin' ? (req.body.visibility || 'BATCH') : 'BATCH'
     const batchId = req.user.role === 'cr' ? req.user.batch : (req.body.batchId || '')
 
@@ -106,8 +186,9 @@ router.patch('/:id/pin', protect, guard('super_admin', 'admin'), async (req, res
 })
 
 // ─── DELETE /api/notices/:id ───────────────────────────────────────────────
-// Admin can delete any; cr can only delete their own
-router.delete('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, res) => {
+// Admin can delete any; cr can only delete their own batch's; faculty can
+// only delete notices they themselves authored.
+router.delete('/:id', protect, guard('cr', 'super_admin', 'admin', 'faculty'), async (req, res) => {
   try {
     const notice = await Notice.findById(req.params.id)
     if (!notice) return res.status(404).json({ success: false, error: 'Not found' })
@@ -118,6 +199,14 @@ router.delete('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, 
       notice.batchId !== req.user.batch
     ) {
       return res.status(403).json({ success: false, error: 'Can only delete your own batch notices' })
+    }
+
+    // Faculty can only delete their own notices
+    if (
+      req.user.role === 'faculty' &&
+      String(notice.postedBy) !== String(req.user._id)
+    ) {
+      return res.status(403).json({ success: false, error: 'You can only delete notices you posted' })
     }
 
     await notice.deleteOne()

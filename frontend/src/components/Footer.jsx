@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="w-full max-w-[1280px] mx-auto px-6 md:px-12">
         
         {/* Top: Coral Label & Headline */}
-        <div className="mb-14 max-w-2xl">
+        <div className="max-w-2xl mb-14">
           <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-3">
             Engineering the Future
           </span>
@@ -20,7 +20,7 @@ export default function Footer() {
         </div>
 
         {/* 4-Column Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 pb-14 border-b border-white/10">
+        <div className="grid grid-cols-1 gap-10 border-b sm:grid-cols-2 lg:grid-cols-4 pb-14 border-white/10">
           
           {/* Column 1 */}
           <div>
@@ -65,7 +65,7 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="https://makautwb.ac.in/" target="_blank" rel="noopener noreferrer" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors flex items-center gap-1.5">
+                <a href="https://makaut1.ucanapply.com/smartexam/public/" target="_blank" rel="noopener noreferrer" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors flex items-center gap-1.5">
                   MAKAUT Portal ↗
                 </a>
               </li>
@@ -83,10 +83,6 @@ export default function Footer() {
             <span>All rights reserved.</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-deep-green"></span>
-            <span className="font-mono text-[12px] text-[#75758a]">Systems Online ⚡</span>
-          </div>
         </div>
 
       </div>

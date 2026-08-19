@@ -2,17 +2,26 @@ const express = require('express')
 const User    = require('../models/User')
 const { protect, guard } = require('../middleware/auth')
 const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
+const { canViewBatchStudents } = require('../utils/studentAccess')
 
 const router = express.Router()
 
 // @route   GET /api/students/batch/:batch
 // @desc    Get all students in a batch
-// @access  Private (CR, Admin)
-router.get('/batch/:batch', protect, guard('cr', 'super_admin', 'admin'), async (req, res) => {
+// @access  Private (students can view own batch, CR/Admin can view any batch)
+router.get('/batch/:batch', protect, async (req, res) => {
   try {
+    if (!canViewBatchStudents(req.user, req.params.batch)) {
+      return res.status(403).json({
+        success: false,
+        error: 'You can only view your own batch students',
+      })
+    }
+
     const students = await User.find({ batch: req.params.batch, role: { $in: ['student', 'cr'] } })
-      .select('name rollNumber email batch')
+      .select('name rollNumber email batch role photo')
       .sort({ rollNumber: 1 })
+
     res.json({ success: true, count: students.length, data: students })
   } catch (error) {
     res.status(500).json({ success: false, error: error.message })
