@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Check } from 'lucide-react'
 import api from '../api/axios'
 import SEO from '../components/SEO'
 
@@ -147,7 +148,7 @@ export default function Contact() {
 
               {status === 'success' && (
                 <p className="text-[13px] text-deep-green font-semibold bg-pale-green border border-green-200 rounded-xl px-4 py-3 text-center">
-                  ✓ Message sent successfully! We will get back to you soon.
+                  <Check size={14} /> Message sent successfully! We will get back to you soon.
                 </p>
               )}
               {status === 'error' && (

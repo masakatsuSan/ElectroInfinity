@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { UserCheck } from 'lucide-react'
 
 // ── Constants ──
 const RANGE_METERS = 25
@@ -85,7 +86,9 @@ export default function ClassroomPresence({ positions = [], session = null, show
           <g>
                         <circle cx={CENTER_X} cy={CENTER_Y} r="5" className="teacher-pulse" fill="none" stroke="#06C167" strokeWidth="2" />
             <circle cx={CENTER_X} cy={CENTER_Y} r="5" fill="#06C167" />
-            <text x={CENTER_X} y={CENTER_Y + 32} textAnchor="middle" fontSize="12" aria-hidden="true">👩‍🏫</text>
+            <g aria-hidden="true">
+              <UserCheck size={12} x={CENTER_X - 6} y={CENTER_Y - 20} color="#06C167" />
+            </g>
             {showLabels && (
               <foreignObject x={CENTER_X - 32} y={CENTER_Y + 40} width="64" height="24">
                 <div className="classroom-3d-label" aria-label={`Faculty ${facultyName}`}>{facultyName}</div>

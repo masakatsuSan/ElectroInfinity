@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import { isSecureContext, getPermissionState } from '../utils/permissions'
+import { Camera, MapPin, AlertTriangle } from 'lucide-react'
 
 const PERMISSION_INFO = {
   camera: {
-    icon: '📷',
+    icon: <Camera size={16} />,
     blocked: 'Camera access is blocked for this site.',
     setting: 'Allow camera',
   },
   location: {
-    icon: '📍',
+    icon: <MapPin size={16} />,
     blocked: 'Location access is blocked for this site.',
     setting: 'Allow location',
   },
@@ -41,7 +42,7 @@ export default function PermissionBanner({ permissions = ['camera', 'location'] 
   if (!isSecureContext()) {
     return (
       <div className="rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-3 text-red-700 dark:text-red-400 text-[13px] leading-relaxed">
-        <strong>⚠ Camera &amp; Location are blocked on this page.</strong>{' '}
+        <strong><AlertTriangle size={16} /> Camera &amp; Location are blocked on this page.</strong>{' '}
         Browsers only show camera/location permission popups on secure (https://) connections — plain{' '}
         <code className="font-mono">http://</code> links silently block them. Open the app at its{' '}
         <strong>https://</strong> URL (or the deployed site) and the prompts will appear.

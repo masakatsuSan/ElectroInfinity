@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Check } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { forgotPassword, verifyOtp, resetPassword } from '../api/auth'
 
@@ -15,12 +16,13 @@ export default function ForgotPassword() {
   const [loading,    setLoading]    = useState(false)
   const [error,      setError]      = useState('')
   const [resending,  setResending]  = useState(false)
+  const [resendSuccess, setResendSuccess] = useState(false)
 
   // ── Step 1: send OTP ──────────────────────────────────────────────────
   const handleSendOtp = async (e) => {
     e.preventDefault()
     if (!rollNumber.trim()) return setError('Enter your roll number')
-    setError(''); setLoading(true)
+    setResendSuccess(false); setError(''); setLoading(true)
 
     try {
       const res = await forgotPassword({ rollNumber: rollNumber.trim().toUpperCase() })
@@ -40,7 +42,7 @@ export default function ForgotPassword() {
       const res = await forgotPassword({ rollNumber: rollNumber.trim().toUpperCase() })
       setMaskedEmail(res.data.maskedEmail)
       setOtp('')
-      setError('✓ New OTP sent to email')
+      setResendSuccess(true); setError('New OTP sent to email')
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to resend OTP')
     } finally {
@@ -52,7 +54,7 @@ export default function ForgotPassword() {
   const handleVerifyOtp = async (e) => {
     e.preventDefault()
     if (otp.length !== 6) return setError('Enter the 6-digit OTP')
-    setError(''); setLoading(true)
+    setResendSuccess(false); setError(''); setLoading(true)
 
     try {
       const res = await verifyOtp({ rollNumber: rollNumber.trim().toUpperCase(), otp: otp.trim() })
@@ -98,7 +100,7 @@ export default function ForgotPassword() {
               <div className={`w-8 h-8 rounded-full flex items-center justify-center font-mono text-[12px] font-bold transition-colors ${
                 step > s ? 'bg-deep-green text-white' : step === s ? 'bg-primary text-white' : 'border border-hairline text-slate'
               }`}>
-                {step > s ? '✓' : s}
+                {step > s ? <Check size={14} /> : s}
               </div>
               {i < 2 && <div className={`h-px w-8 transition-colors ${step > s ? 'bg-deep-green' : 'bg-hairline'}`} />}
             </div>
@@ -165,9 +167,9 @@ export default function ForgotPassword() {
 
             {error && (
               <p className={`text-[13px] font-medium text-center rounded-xl px-4 py-3 border ${
-                error.startsWith('✓') ? 'text-deep-green bg-pale-green border-green-200' : 'text-error bg-red-50 border-red-200'
+                resendSuccess ? 'text-deep-green bg-pale-green border-green-200' : 'text-error bg-red-50 border-red-200'
               }`}>
-                {error}
+                {resendSuccess ? <><Check size={14} /> {error}</> : error}
               </p>
             )}
 
@@ -176,7 +178,7 @@ export default function ForgotPassword() {
             </button>
 
             <div className="flex justify-between items-center text-[13px] font-sans pt-2">
-              <button type="button" onClick={() => { setStep(1); setError('') }} className="text-body-muted hover:text-ink">
+               <button type="button" onClick={() => { setStep(1); setResendSuccess(false); setError('') }} className="text-body-muted hover:text-ink">
                 ← Wrong roll number?
               </button>
               <button type="button" onClick={handleResend} disabled={resending} className="text-action-blue font-semibold hover:underline">

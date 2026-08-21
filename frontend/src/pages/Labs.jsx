@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { Zap } from 'lucide-react'
 import { getLabs } from '../api/labs'
 import SEO from '../components/SEO'
 
@@ -39,7 +40,7 @@ export default function Laboratory() {
             LABS.map((lab, i) => (
               <div key={lab.name || i} className="p-6 md:p-8 flex flex-col sm:flex-row gap-6 hover:bg-soft-stone/30 transition-colors">
                 <div className="w-14 h-14 rounded-22px bg-soft-stone flex items-center justify-center text-[24px] border border-hairline flex-shrink-0 shadow-sm">
-                  {lab.icon || '⚡'}
+                  {lab.icon || <Zap size={24} />}
                 </div>
 
                 <div className="flex-1">

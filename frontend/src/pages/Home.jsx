@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Check } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
@@ -112,11 +113,11 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-4 text-white items-center justify-between text-[13px] font-mono text-slate">
-                <span>✓ 50m GPS Verification</span>
-                <span>✓ Anti-Proxy QR Rotation</span>
-                <span>✓ Batch Scoping</span>
-              </div>
+                <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-4 text-white items-center justify-between text-[13px] font-mono text-slate">
+                  <span><Check size={14} /> 50m GPS Verification</span>
+                  <span><Check size={14} /> Anti-Proxy QR Rotation</span>
+                  <span><Check size={14} /> Batch Scoping</span>
+                </div>
             </div>
 
             {/* Soft Stone Capability Card */}

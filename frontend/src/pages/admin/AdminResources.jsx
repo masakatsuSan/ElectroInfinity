@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getResources, uploadResource, deleteResource } from '../../api/resources'
+import { Check } from 'lucide-react'
 
 const TYPES = ['notes','pyq','assignment','lab_manual','syllabus','other']
 const SEMS  = [3,4,5,6,7,8]
@@ -103,7 +104,7 @@ export default function AdminResources() {
           </div>
           {file && (
             <p className="font-sans text-[13px] font-medium text-green-500 mt-3 truncate">
-              ✓ {file.name} ({(file.size / 1024).toFixed(0)} KB)
+              <Check size={14} /> {file.name} ({(file.size / 1024).toFixed(0)} KB)
             </p>
           )}
           {error && <p className="font-sans text-[14px] font-medium text-red-500 mt-3">{error}</p>}

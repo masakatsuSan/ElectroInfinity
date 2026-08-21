@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { ExternalLink } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -40,18 +41,18 @@ export default function Footer() {
               <li><Link to="/courses" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Course Syllabus</Link></li>
               <li><Link to="/resources" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Study Resources & Notes</Link></li>
               <li><Link to="/events" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Workshops & Events</Link></li>
-              <li><Link to="/gallery" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Department Gallery</Link></li>
+              <li><Link to="/calendar" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Academic Calendar</Link></li>
             </ul>
           </div>
 
           {/* Column 3 */}
           <div>
-            <h4 className="font-mono text-[12px] font-bold text-[#75758a] uppercase tracking-wider mb-5">Portals</h4>
+            <h4 className="font-mono text-[12px] font-bold text-[#75758a] uppercase tracking-wider mb-5">Community</h4>
             <ul className="flex flex-col gap-3.5">
-              <li><Link to="/attendance/student" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Student Attendance Scan</Link></li>
-              <li><Link to="/attendance/faculty" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Faculty Attendance Console</Link></li>
-              <li><Link to="/students" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Student Dashboard</Link></li>
               <li><Link to="/forum" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Discussion Forum</Link></li>
+              <li><Link to="/projects" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Student Projects</Link></li>
+              <li><Link to="/announcements" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Official Announcements</Link></li>
+              <li><Link to="/gallery" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Department Gallery</Link></li>
             </ul>
           </div>
 
@@ -61,12 +62,12 @@ export default function Footer() {
             <ul className="flex flex-col gap-3.5">
               <li>
                 <a href="https://agemc.ac.in/" target="_blank" rel="noopener noreferrer" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors flex items-center gap-1.5">
-                  AGEMC Official ↗
+                  AGEMC Official <ExternalLink size={14} />
                 </a>
               </li>
               <li>
                 <a href="https://makaut1.ucanapply.com/smartexam/public/" target="_blank" rel="noopener noreferrer" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors flex items-center gap-1.5">
-                  MAKAUT Portal ↗
+                  MAKAUT Portal <ExternalLink size={14} />
                 </a>
               </li>
               <li><Link to="/contact" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Contact Department</Link></li>

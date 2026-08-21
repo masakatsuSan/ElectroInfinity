@@ -26,6 +26,13 @@ app.use('/api/deadlines',  require('./src/routes/deadlines'))
 app.use('/api/routines',   require('./src/routes/routines'))
 app.use('/api/assignments',require('./src/routes/assignments'))
 app.use('/api/forum',      require('./src/routes/forum'))
+app.use('/api/rooms',      require('./src/routes/rooms'))
+// Phase 4 - Community & Academic
+app.use('/api/announcements', require('./src/routes/announcements'))
+app.use('/api/calendar',      require('./src/routes/calendar'))
+app.use('/api/projects',      require('./src/routes/projects'))
+// Phase 5 - Admin Stats
+app.use('/api/admin',      require('./src/routes/admin'))
 // Phase 4 - Dynamic Data
 app.use('/api/faculty',    require('./src/routes/faculty'))
 app.use('/api/placements', require('./src/routes/placements'))

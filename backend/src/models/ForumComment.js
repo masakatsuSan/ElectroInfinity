@@ -22,6 +22,11 @@ const forumCommentSchema = new mongoose.Schema({
   imageUrl: {
     type: String
   },
+  parent: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'ForumComment',
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now

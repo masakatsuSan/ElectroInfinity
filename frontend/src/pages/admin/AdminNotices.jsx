@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getNotices, createNotice, deleteNotice, togglePin } from '../../api/notices'
+import { Pin, PinOff } from 'lucide-react'
 
 const CATS = ['general','exam','lab','event','academic','placement']
 
@@ -119,7 +120,7 @@ export default function AdminNotices() {
                   title={n.isPinned ? 'Unpin' : 'Pin'}
                   className={`font-sans text-[18px] transition-colors px-2 py-1 ${n.isPinned ? 'text-primary' : 'text-ink-muted-48 hover:text-primary'}`}
                 >
-                  {n.isPinned ? '★' : '☆'}
+                  {n.isPinned ? <Pin size={16} /> : <PinOff size={16} />}
                 </button>
                 <button
                   onClick={() => { if (window.confirm('Delete this notice?')) deleteMut.mutate(n._id) }}

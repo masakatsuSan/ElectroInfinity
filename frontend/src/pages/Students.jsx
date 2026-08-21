@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { Camera, BarChart3, Check, AlertTriangle, XCircle, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
@@ -145,14 +146,12 @@ export default function Students() {
           <p className="font-sans text-[17px] font-medium text-ink-muted-80 flex flex-wrap items-center justify-center md:justify-start gap-x-3 gap-y-1">
             <span>Roll {user?.rollNumber || '—'}</span>
             <span className="opacity-50">·</span>
-            <span>Batch {user?.batch}</span>
-            {user?.section && <span className="opacity-50">·</span>}
-            {user?.section && <span>Sec {user.section}</span>}
+             <span>Batch {user?.batch}</span>
           </p>
           {photoError && <p className="text-red-500 text-[14px] mt-2 font-[450]">{photoError}</p>}
           <div className="flex flex-wrap items-center justify-center gap-3 mt-4 md:justify-start">
             <Link to="/attendance/student" className="button-primary text-[14px] !py-2 !px-4">
-              📷 Scan Class QR →
+              <Camera size={16} /> Scan Class QR →
             </Link>
           </div>
         </div>
@@ -173,7 +172,7 @@ export default function Students() {
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {batchMates.map((mate) => (
-                <div key={mate._id} className="flex items-center gap-3 rounded-2xl border border-divider-soft bg-canvas p-3">
+                <div key={mate._id} className="flex items-center gap-3 p-3 border rounded-2xl border-divider-soft bg-canvas">
                   <div className="flex items-center justify-center w-12 h-12 overflow-hidden rounded-full bg-ink/5 text-ink-muted-80">
                     {mate.photo ? (
                       <img src={mate.photo} alt={mate.name} className="object-cover w-full h-full" />
@@ -206,12 +205,12 @@ export default function Students() {
             className={`font-sans text-[14px] font-bold uppercase tracking-[0.04em] px-6 py-3 flex-none rounded-[999px] transition-all whitespace-nowrap ${
               activeTab === t ? 'bg-ink text-canvas shadow-sm' : 'text-[#696969] bg-transparent hover:text-ink hover:bg-canvas-parchment'
             }`}>
-            {t === 'attendance' ? '📊 Attendance'
-              : t === 'deadlines' ? 'Deadlines'
-              : t === 'routine' ? 'Routine'
-              : t === 'calendar' ? 'Calendar'
-              : t === 'password' ? 'Password'
-              : 'Notices'}
+            {t === 'attendance' ?  'Attendance'
+            : t === 'deadlines' ? 'Deadlines'
+            : t === 'routine' ? 'Routine'
+            : t === 'calendar' ? 'Calendar'
+            : t === 'password' ? 'Password'
+            : 'Notices'}
           </button>
         ))}
       </div>
@@ -322,8 +321,7 @@ export default function Students() {
                           <th className="px-3 pb-3">Date & Time</th>
                           <th className="px-3 pb-3">Subject</th>
                           <th className="px-3 pb-3">Faculty</th>
-                          <th className="px-3 pb-3">Section</th>
-                          <th className="px-3 pb-3">Status</th>
+                           <th className="px-3 pb-3">Status</th>
                           <th className="px-3 pb-3 text-right">Distance</th>
                         </tr>
                       </thead>
@@ -340,8 +338,7 @@ export default function Students() {
                             </td>
                             <td className="py-3.5 px-3 font-semibold text-ink">{h.subject}</td>
                             <td className="py-3.5 px-3 text-ink-muted-80">{h.facultyName}</td>
-                            <td className="py-3.5 px-3 text-ink-muted-80">{h.section || 'All'}</td>
-                            <td className="py-3.5 px-3">
+                             <td className="py-3.5 px-3">
                               <span className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
                                 h.status === 'present'
                                   ? 'bg-green-500/10 text-green-600 border border-green-500/20'
@@ -349,7 +346,7 @@ export default function Students() {
                                   ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
                                   : 'bg-red-500/10 text-red-500 border border-red-500/20'
                               }`}>
-                                {h.status === 'present' ? '✓ Present' : h.status === 'flagged' ? '⚠ Flagged' : '✗ Absent'}
+                                {h.status === 'present' ? <><Check size={14} /> Present</> : h.status === 'flagged' ? <><AlertTriangle size={14} /> Flagged</> : <><XCircle size={14} /> Absent</>}
                               </span>
                             </td>
                             <td className="py-3.5 px-3 text-right font-mono text-[12px] text-ink-muted-80">
@@ -437,7 +434,7 @@ export default function Students() {
                                   : 'bg-ink text-canvas hover:bg-ink/80 shadow-md'
                               }`}
                             >
-                              {hasSubmitted ? 'Submitted ✅' : 'Mark as Submitted'}
+                              {hasSubmitted ? <><CheckCircle2 size={14} /> Submitted</> : 'Mark as Submitted'}
                             </button>
                             <p className="font-sans text-[12px] text-ink-muted-48 mt-3">
                               {hasSubmitted ? 'You have completed this task.' : 'Click to mark your work as done.'}
@@ -458,7 +455,7 @@ export default function Students() {
                             
                             {isComplete ? (
                               <button className="w-full py-2.5 bg-green-500 text-white rounded-lg font-sans font-bold text-[13px] shadow-sm uppercase tracking-wide cursor-default">
-                                Ready to deliver to professor ✅
+                                Ready to deliver to professor <CheckCircle2 size={14} />
                               </button>
                             ) : (
                               <div className="flex-1 overflow-y-auto pr-1 max-h-[120px] scrollbar-none scrollbar-thumb-black/10">

@@ -2,18 +2,41 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GlobalSearch from './GlobalSearch';
-import { LayoutGrid, School, Contact, MessagesSquare, QrCode, BarChart3, CalendarClock, ScanQrCode } from 'lucide-react'
+import BackButton from './BackButton'
+import { LayoutGrid, School, Contact, MessagesSquare, QrCode, BarChart3, CalendarDays, CalendarClock, ScanQrCode, Search, ChevronDown, ChevronRight, Power, Menu, X, Megaphone, Zap, Camera, BookOpen, FlaskConical, Briefcase, Rocket, Image, UserCheck, FolderOpen } from 'lucide-react'
 
-const NAV_LINKS = [
-  { to: '/about',      label: 'About'      },
-  { to: '/faculty',    label: 'Faculty'    },
-  { to: '/laboratory', label: 'Labs'       },
-  { to: '/courses',    label: 'Courses'    },
-  { to: '/resources',  label: 'Resources'  },
-  { to: '/events',     label: 'Events'     },
-  { to: '/gallery',    label: 'Gallery'    },
-  { to: '/contact',    label: 'Contact'    },
-];
+const NAV_GROUPS = [
+  {
+    label: 'Academics',
+    items: [
+      { to: '/about', label: 'About', icon: School },
+      { to: '/faculty', label: 'Faculty', icon: UserCheck },
+      { to: '/laboratory', label: 'Labs', icon: FlaskConical },
+      { to: '/courses', label: 'Courses', icon: BookOpen },
+      { to: '/resources', label: 'Resources', icon: FolderOpen },
+    ]
+  },
+  {
+    label: 'Community',
+    items: [
+      { to: '/forum', label: 'Forum', icon: MessagesSquare },
+      { to: '/projects', label: 'Projects', icon: Rocket },
+      { to: '/announcements', label: 'Announcements', icon: Megaphone },
+      { to: '/calendar', label: 'Calendar', icon: CalendarClock },
+    ]
+  },
+  {
+    label: 'Events',
+    items: [
+      { to: '/events', label: 'Events', icon: CalendarDays },
+      { to: '/gallery', label: 'Gallery', icon: Image },
+    ]
+  },
+]
+
+const STANDALONE_LINKS = [
+  { to: '/contact', label: 'Contact' },
+]
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -21,7 +44,9 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(null);
   const profileRef = useRef(null);
+  const dropdownRefs = useRef({});
   const userRole = String(user?.role ?? '').trim().toLowerCase();
 
   useEffect(() => {
@@ -47,10 +72,13 @@ export default function Navbar() {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
         setProfileOpen(false);
       }
+      if (dropdownOpen && dropdownRefs.current[dropdownOpen] && !dropdownRefs.current[dropdownOpen].contains(e.target)) {
+        setDropdownOpen(null);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [dropdownOpen]);
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -61,7 +89,14 @@ export default function Navbar() {
   };
 
   const navLinkClass = (isActive) =>
-    `relative px-3.5 py-1.5 rounded-full text-[14px] font-sans font-medium transition-colors ${
+    `block px-3 py-2 rounded-lg text-[14px] font-sans font-medium transition-colors ${
+      isActive
+        ? 'text-ink bg-soft-stone font-semibold'
+        : 'text-body-muted hover:text-ink hover:bg-soft-stone/60'
+    }`;
+
+  const dropdownItemClass = (isActive) =>
+    `block px-3 py-2 rounded-lg text-[14px] font-sans font-medium transition-colors ${
       isActive
         ? 'text-ink bg-soft-stone font-semibold'
         : 'text-body-muted hover:text-ink hover:bg-soft-stone/60'
@@ -89,34 +124,73 @@ export default function Navbar() {
       <nav className="fixed left-0 right-0 z-50 flex justify-center px-4 transition-all duration-200 pointer-events-none top-4">
         <div className="w-full max-w-[1280px] rounded-full px-6 py-2.5 flex items-center justify-between pointer-events-auto bg-canvas/95 backdrop-blur-md border border-hairline shadow-card">
           
-          {/* Left: Brand Logo */}
-          <Link to="/" className="flex items-center gap-2" onClick={closeMenu}>
-            <div className="flex items-center gap-2">
-              <span className="font-display font-bold text-[18px] tracking-tight text-ink">
-                Electro Infinity
-              </span>
-            </div>
-          </Link>
+          {/* Left: Back + Brand Logo */}
+          <div className="flex items-center gap-1">
+            <BackButton />
+            <Link to="/" className="flex items-center gap-2" onClick={closeMenu}>
+              <div className="flex items-center gap-2">
+                <span className="font-display font-bold text-[18px] tracking-tight text-ink">
+                  Electro Infinity
+                </span>
+              </div>
+            </Link>
+          </div>
 
           {/* Center: Navigation links */}
           <div className="items-center hidden gap-1 lg:flex">
-            {NAV_LINKS.map(l => (
+            {STANDALONE_LINKS.map(l => (
               <NavLink key={l.to} to={l.to} className={({ isActive }) => navLinkClass(isActive)}>
                 {l.label}
               </NavLink>
+            ))}
+            
+            {NAV_GROUPS.map(group => (
+              <div
+                key={group.label}
+                ref={el => dropdownRefs.current[group.label] = el}
+                className="relative"
+              >
+                <button
+                  onClick={() => setDropdownOpen(dropdownOpen === group.label ? null : group.label)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[14px] font-sans font-medium transition-colors ${
+                    dropdownOpen === group.label
+                      ? 'text-ink bg-soft-stone font-semibold'
+                      : 'text-body-muted hover:text-ink hover:bg-soft-stone/60'
+                  }`}
+                >
+                  {group.label}
+                  <ChevronDown size={14} className={`transition-transform duration-200 ${dropdownOpen === group.label ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {dropdownOpen === group.label && (
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-canvas border border-hairline rounded-xl shadow-modal py-1 z-50">
+                    {group.items.map(item => (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        onClick={() => setDropdownOpen(null)}
+                        className={({ isActive }) => dropdownItemClass(isActive)}
+                      >
+                        <span className="flex items-center gap-2.5">
+                          {item.icon && <item.icon size={16} strokeWidth={1.75} className="text-body-muted" />}
+                          {item.label}
+                        </span>
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
 
           {/* Right: Search & Profile Button Dropdown */}
           <div className="items-center hidden gap-3 md:flex">
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="text-body-muted hover:text-ink transition-colors p-1.5 rounded-full hover:bg-soft-stone"
-              aria-label="Search (Ctrl+K)"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
+             <button
+               onClick={() => setSearchOpen(true)}
+               className="text-body-muted hover:text-ink transition-colors p-1.5 rounded-full hover:bg-soft-stone"
+               aria-label="Search (Ctrl+K)"
+             >
+               <Search size={18} />
             </button>
 
             {user ? (
@@ -146,12 +220,7 @@ export default function Navbar() {
                     </p>
                   </div>
 
-                  <svg
-                    width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                    className={`text-slate transition-transform duration-200 ${profileOpen ? 'rotate-180 text-ink' : ''}`}
-                  >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
+                  <ChevronDown size={12} className={`text-slate transition-transform duration-200 ${profileOpen ? 'rotate-180 text-ink' : ''}`} />
                 </button>
 
                 {/* Dropdown Menu */}
@@ -172,7 +241,7 @@ export default function Navbar() {
                       </p>
                       {user.batch && (
                         <p className="font-sans text-[11px] text-body-muted mt-0.5">
-                          Batch {user.batch} {user.section && `· Sec ${user.section}`}
+                          Batch {user.batch}
                         </p>
                       )}
                     </div>
@@ -292,7 +361,7 @@ export default function Navbar() {
                         onClick={handleLogout}
                         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-error hover:bg-red-50 transition-colors text-left font-medium"
                       >
-                        <span>⏻</span> Sign Out
+                        <Power size={16} /> Sign Out
                       </button>
                     </div>
                   </div>
@@ -321,13 +390,7 @@ export default function Navbar() {
               onClick={() => setMenuOpen(o => !o)}
               className="p-2 rounded-full text-ink hover:bg-soft-stone"
             >
-              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {menuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
+              {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
@@ -353,7 +416,7 @@ export default function Navbar() {
           )}
 
           <nav className="flex flex-col py-2 space-y-3">
-            {NAV_LINKS.map((l) => (
+            {STANDALONE_LINKS.map((l) => (
               <NavLink
                 key={l.to}
                 to={l.to}
@@ -368,16 +431,38 @@ export default function Navbar() {
               </NavLink>
             ))}
             
+            {NAV_GROUPS.map(group => (
+              <div key={group.label} className="border-b border-hairline pb-2.5">
+                <h3 className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate mb-2">{group.label}</h3>
+                <div className="flex flex-col gap-2">
+                  {group.items.map(item => (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      onClick={closeMenu}
+                      className={({ isActive }) =>
+                        `font-display text-[18px] font-semibold transition-colors ${
+                          isActive ? 'text-deep-green' : 'text-ink hover:text-deep-green'
+                        }`
+                      }
+                    >
+                      {item.label}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
+            ))}
+            
             <div className="pt-4 space-y-2">
               {user ? (
                 <div className="flex flex-col gap-2">
                                 {user.role === 'faculty' && (
                     <>
                       <Link to="/faculty/dashboard" onClick={closeMenu} className="button-secondary w-full justify-center">
-                        📢 Faculty Dashboard
+                        <Megaphone size={16} /> Faculty Dashboard
                       </Link>
                       <Link to="/attendance/faculty" onClick={closeMenu} className="button-primary w-full justify-center !bg-deep-green">
-                        ⚡ Take Attendance
+                        <Zap size={16} /> Take Attendance
                       </Link>
                     </>
                   )}
@@ -389,7 +474,7 @@ export default function Navbar() {
                   {(user.role === 'student' || user.role === 'cr') && (
                     <>
                       <Link to="/attendance/student" onClick={closeMenu} className="justify-center w-full button-primary">
-                        📷 Scan Class QR
+                        <Camera size={16} /> Scan Class QR
                       </Link>
                       <Link to="/students" onClick={closeMenu} className="justify-center w-full button-secondary">
                         My Dashboard & Attendance

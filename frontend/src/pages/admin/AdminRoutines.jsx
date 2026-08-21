@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
+import { X } from 'lucide-react';
 import { getRoutine, updateRoutine } from '../../api/routines';
 
 const DEFAULT_SCHEDULE = [
@@ -119,7 +120,7 @@ export default function AdminRoutines() {
                 ))}
                 {isEditing && (
                   <td className="py-3 px-4 text-center">
-                    <button onClick={() => removeRow(i)} className="text-red-500 hover:text-red-700 bg-red-500/10 px-2 py-1 rounded-md text-[12px] font-bold">✕</button>
+                    <button onClick={() => removeRow(i)} className="text-red-500 hover:text-red-700 bg-red-500/10 px-2 py-1 rounded-md text-[12px] font-bold">                    <X size={14} /></button>
                   </td>
                 )}
               </tr>

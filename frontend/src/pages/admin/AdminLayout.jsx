@@ -1,37 +1,46 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+﻿import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-
-// const LINKS = [
-//   { to: '/admin',           label: 'Overview',   icon: '⊞', end: true },
-//   { to: '/admin/attendance', label: 'Attendance & Faculty', icon: '◉' },
-//   { to: '/admin/students',  label: 'Students',   icon: '▪' },
-//   { to: '/admin/notices',   label: 'Notices',    icon: '◆' },
-//   { to: '/admin/resources', label: 'Resources',  icon: '◇' },
-//   { to: '/admin/events',    label: 'Events',     icon: '○' },
-//   { to: '/admin/deadlines', label: 'Deadlines',  icon: '◷' },
-//   { to: '/admin/routines',  label: 'Routine',    icon: '⊞' },
-// ]
+import BackButton from '../../components/BackButton'
 
 import {
   LayoutDashboard,
   ClipboardCheck,
   Users,
+  UserCheck,
   Bell,
   FolderOpen,
   CalendarDays,
   Clock,
   CalendarClock,
+  Building2,
+  BookOpen,
+  Image,
+  Mail,
+  Hash,
+  Code2,
+  CalendarRange,
+  Megaphone,
+  Power,
 } from 'lucide-react'
 
 const LINKS = [
   { to: '/admin',             label: 'Overview',             icon: LayoutDashboard, end: true },
   { to: '/admin/attendance',  label: 'Attendance & Faculty', icon: ClipboardCheck },
+  { to: '/admin/faculty',     label: 'Faculty Directory',    icon: UserCheck },
   { to: '/admin/students',    label: 'Students',             icon: Users },
+  { to: '/admin/labs',        label: 'Laboratories',         icon: Building2 },
+  { to: '/admin/courses',     label: 'Courses',              icon: BookOpen },
+  { to: '/admin/rooms',       label: 'Community Rooms',      icon: Hash },
   { to: '/admin/notices',     label: 'Notices',              icon: Bell },
+  { to: '/admin/announcements', label: 'Announcements',      icon: Megaphone },
   { to: '/admin/resources',   label: 'Resources',            icon: FolderOpen },
   { to: '/admin/events',      label: 'Events',               icon: CalendarDays },
+  { to: '/admin/calendar',    label: 'Academic Calendar',    icon: CalendarRange },
+  { to: '/admin/projects',    label: 'Projects',             icon: Code2 },
+  { to: '/admin/gallery',     label: 'Gallery',              icon: Image },
   { to: '/admin/deadlines',   label: 'Deadlines',            icon: Clock },
   { to: '/admin/routines',    label: 'Routine',              icon: CalendarClock },
+  { to: '/admin/contact',     label: 'Contacts',             icon: Mail },
 ]
 
 export default function AdminLayout() {
@@ -43,9 +52,12 @@ export default function AdminLayout() {
     navigate('/')
   }
 
+  // CRs can view everything except the Contact inbox (admin-only)
   const availableLinks = LINKS.filter(l => {
     if (user?.role === 'cr') {
-      return ['/admin', '/admin/notices', '/admin/resources', '/admin/events', '/admin/deadlines', '/admin/routines', '/admin/attendance'].includes(l.to);
+      return ['/admin', '/admin/faculty', '/admin/labs', '/admin/courses', '/admin/gallery',
+        '/admin/notices', '/admin/announcements', '/admin/resources', '/admin/events', '/admin/calendar',
+        '/admin/projects', '/admin/deadlines', '/admin/routines', '/admin/attendance', '/admin/rooms'].includes(l.to);
     }
     return true;
   });
@@ -56,11 +68,14 @@ export default function AdminLayout() {
       {/* ── Sidebar ── */}
       <aside className="w-full md:w-64 md:min-h-[calc(100vh-48px)] border-b md:border-b-0 md:border-r border-hairline flex-shrink-0 bg-canvas z-10 flex flex-col">
         <div className="p-6 border-b border-hairline">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-2 h-2 rounded-full bg-deep-green"></span>
-            <p className="font-mono text-[11px] uppercase tracking-wider font-semibold text-slate">
-              {user?.role === 'cr' ? 'CR Control' : 'Admin Console'}
-            </p>
+          <div className="flex items-center gap-2 mb-3">
+            <BackButton fallback="/" className="!-ml-2" />
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-deep-green"></span>
+              <p className="font-mono text-[11px] uppercase tracking-wider font-semibold text-slate">
+                {user?.role === 'cr' ? 'CR Control' : 'Admin Console'}
+              </p>
+            </div>
           </div>
           <p className="font-display font-bold text-[20px] tracking-tight text-ink truncate">{user?.name}</p>
           <p className="font-sans text-[13px] text-body-muted mt-0.5 capitalize">{user?.role?.replace('_', ' ')}</p>
@@ -100,7 +115,7 @@ export default function AdminLayout() {
             onClick={handleLogout}
             className="w-full flex items-center gap-2 px-4 py-2 text-[13px] font-sans text-body-muted hover:text-error hover:bg-red-50 rounded-full transition-colors text-left"
           >
-            ⏻ Log out
+            <Power size={14} /> Log out
           </button>
         </div>
       </aside>

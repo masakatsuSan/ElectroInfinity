@@ -45,10 +45,12 @@ export function AuthProvider({ children }) {
   // Helpers for checking roles in components
   const isAdmin   = user?.role === 'super_admin' || user?.role === 'admin'
   const isFaculty = user?.role === 'faculty'
-  const isStudent = !!user  // any logged-in user
+  const isStudent = !!user
+  const isModerator = user?.role === 'cr' || user?.role === 'faculty'
+  const canManageRooms = isModerator || isAdmin
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin, isFaculty, isStudent }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin, isFaculty, isStudent, isModerator, canManageRooms }}>
       {children}
     </AuthContext.Provider>
   )

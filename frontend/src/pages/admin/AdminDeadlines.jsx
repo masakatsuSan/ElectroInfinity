@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { getDeadlines, createDeadline, deleteDeadline } from '../../api/deadlines';
 import { getBatchStudents } from '../../api/students';
+import { CheckCircle2, X } from 'lucide-react';
 
 export default function AdminDeadlines() {
   const { user } = useAuth();
@@ -95,7 +96,7 @@ export default function AdminDeadlines() {
                   </div>
                   
                   {isComplete ? (
-                    <p className="text-green-500 text-[13px] font-bold">Ready to deliver ✅</p>
+                    <p className="text-green-500 text-[13px] font-bold">Ready to deliver                     <CheckCircle2 size={14} /></p>
                   ) : (
                     <div className="max-h-[100px] overflow-y-auto pr-1 scrollbar-none">
                       <span className="font-sans text-[11px] font-bold text-ink-muted-48 uppercase tracking-wider block mb-1">Missing ({missingStudents.length})</span>
@@ -120,7 +121,7 @@ export default function AdminDeadlines() {
           <div className="bg-canvas border border-divider-soft w-full max-w-lg rounded-[24px] overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-divider-soft">
               <h3 className="font-display text-[22px] font-semibold text-ink">Post New Deadline</h3>
-              <button onClick={() => setShowModal(false)} className="text-ink-muted-80 hover:text-ink">✕</button>
+              <button onClick={() => setShowModal(false)} className="text-ink-muted-80 hover:text-ink"><X size={16} /></button>
             </div>
             
             <div className="p-6 space-y-4">
@@ -160,7 +161,7 @@ export default function AdminDeadlines() {
             
             <div className="flex justify-end gap-3 p-6 border-t border-divider-soft bg-surface-pearl">
               <button onClick={() => setShowModal(false)} className="px-4 py-2 text-ink-muted-80">Cancel</button>
-              <button onClick={() => createMut.mutate({ ...form, batch: user.batch, section: user.section })} disabled={createMut.isPending || !form.title || !form.subject || !form.deadline} className="button-primary">
+              <button onClick={() => createMut.mutate({ ...form, batch: user.batch })} disabled={createMut.isPending || !form.title || !form.subject || !form.deadline} className="button-primary">
                 {createMut.isPending ? 'Posting...' : 'Post Deadline'}
               </button>
             </div>

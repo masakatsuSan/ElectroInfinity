@@ -6,6 +6,8 @@ import { getResources } from '../../api/resources'
 import { getEvents } from '../../api/events'
 import { getDeadlines } from '../../api/deadlines'
 import { getAdminFaculty } from '../../api/attendance'
+import { Hash, Code2, Megaphone, MessageCircle } from 'lucide-react'
+import api from '../../api/axios'
 
 export default function AdminDashboard() {
   const { data: nData } = useQuery({ queryKey: ['notices'],   queryFn: () => getNotices().then(r => r.data) })
@@ -14,6 +16,11 @@ export default function AdminDashboard() {
   const { data: eData } = useQuery({ queryKey: ['events'],    queryFn: () => getEvents().then(r => r.data) })
   const { data: dData } = useQuery({ queryKey: ['deadlines'], queryFn: () => getDeadlines().then(r => r.data) })
   const { data: fData } = useQuery({ queryKey: ['admin-faculty'], queryFn: () => getAdminFaculty().then(r => r.data) })
+  const { data: adminStats } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: () => api.get('/admin/stats').then(r => r.data),
+    staleTime: 2 * 60 * 1000,
+  })
 
   const stats = [
     { label: 'Faculty',    count: fData?.data?.length ?? '—',       to: '/admin/attendance', badge: 'Active System' },
@@ -22,6 +29,13 @@ export default function AdminDashboard() {
     { label: 'Deadlines',  count: dData?.data?.length ?? '—',       to: '/admin/deadlines',  badge: 'Tasks' },
     { label: 'Resources',  count: rData?.data?.length ?? '—',       to: '/admin/resources',  badge: 'Files' },
     { label: 'Events',     count: eData?.data?.length ?? '—',       to: '/admin/events',     badge: 'Schedule' },
+  ]
+
+  const communityStats = [
+    { label: 'Rooms',      count: adminStats?.data?.totalRooms ?? '—',       to: '/admin/rooms',        badge: 'Community',   icon: Hash },
+    { label: 'Posts',      count: adminStats?.data?.totalPosts ?? '—',       to: '/admin/rooms',        badge: 'Discussions', icon: MessageCircle },
+    { label: 'Projects',   count: adminStats?.data?.totalProjects ?? '—',    to: '/admin/projects',     badge: 'Showcase',    icon: Code2 },
+    { label: 'Announcements', count: adminStats?.data?.totalAnnouncements ?? '—', to: '/admin/announcements', badge: 'Official', icon: Megaphone },
   ]
 
   const recentNotices = nData?.data?.slice(0, 5) || []
@@ -67,6 +81,36 @@ export default function AdminDashboard() {
         ))}
       </div>
 
+      {/* Community Stats */}
+      <div>
+        <h2 className="font-display text-[22px] font-bold text-ink mb-4">Community Overview</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {communityStats.map(s => {
+            const Icon = s.icon
+            return (
+              <Link
+                key={s.label}
+                to={s.to}
+                className="border border-hairline bg-canvas hover:bg-soft-stone/50 rounded-2xl p-4 transition-all flex flex-col justify-between group"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon size={16} className="text-body-muted" />
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-slate font-medium">
+                    {s.badge}
+                  </span>
+                </div>
+                <div className="font-display font-bold text-[28px] leading-none text-ink group-hover:text-action-blue transition-colors">
+                  {s.count}
+                </div>
+                <div className="font-sans text-[13px] font-semibold text-body-muted mt-3 pt-2 border-t border-hairline">
+                  {s.label}
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Quick Action Band */}
       <div className="border border-hairline bg-soft-stone rounded-2xl p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -75,7 +119,7 @@ export default function AdminDashboard() {
           </span>
           <h2 className="font-display text-[22px] font-bold text-ink">Faculty & Live Attendance Console</h2>
           <p className="font-sans text-[14px] text-body-muted mt-0.5">
-            Configure faculty accounts, assign subjects per batch/section, and inspect live GPS classroom sessions.
+            Configure faculty accounts, assign subjects per batch, and inspect live GPS classroom sessions.
           </p>
         </div>
         <Link to="/admin/attendance" className="button-primary whitespace-nowrap !py-2.5 !px-5">

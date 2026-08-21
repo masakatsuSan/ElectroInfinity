@@ -1,11 +1,11 @@
-const mongoose = require('mongoose')
+﻿const mongoose = require('mongoose')
 const bcrypt   = require('bcryptjs')
 
 const userSchema = new mongoose.Schema(
   {
     name:       { type: String, required: true, trim: true },
 
-    // Gmail — collected from batch group, used for OTP reset
+    // Gmail â€” collected from batch group, used for OTP reset
     email:      { type: String, default: '', trim: true, lowercase: true, unique: true },
 
     rollNumber: { type: String, default: '', trim: true, uppercase: true },
@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type:    String,
-      enum:    ['student', 'cr', 'admin', 'faculty'],
+      enum:    ['student', 'cr', 'admin', 'super_admin', 'faculty'],
       default: 'student',
     },
 
@@ -58,7 +58,7 @@ const userSchema = new mongoose.Schema(
     isActivated: { type: Boolean, default: false },
 
     // OTP for forgot-password flow
-    // Stored as plain string — expires in 10 minutes, deleted after use
+    // Stored as plain string â€” expires in 10 minutes, deleted after use
     otp:       { type: String,  default: '' },
     otpExpiry: { type: Date,    default: null },
   },

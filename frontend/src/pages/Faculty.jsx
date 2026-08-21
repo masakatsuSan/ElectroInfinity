@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { Mail } from 'lucide-react'
 import { getFaculty } from '../api/faculty'
 import SEO from '../components/SEO'
 
@@ -94,7 +95,7 @@ function FacultyRow({ faculty: f }) {
           href={`mailto:${f.email}`}
           className="button-pill-outline text-[13px] self-start sm:self-center flex-shrink-0"
         >
-          ✉ {f.email}
+          <Mail size={14} /> {f.email}
         </a>
       )}
     </div>

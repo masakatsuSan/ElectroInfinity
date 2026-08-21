@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { Megaphone, GraduationCap, Zap } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../context/AuthContext'
@@ -133,7 +134,7 @@ function FacultyDashboardInner() {
               tab === 'notices' ? 'bg-primary text-white' : 'text-body-muted hover:text-ink hover:bg-soft-stone'
             }`}
           >
-            📢 Notices
+            <Megaphone size={16} /> Notices
           </button>
           <button
             onClick={() => { setTab('classes'); setError('') }}
@@ -141,7 +142,7 @@ function FacultyDashboardInner() {
               tab === 'classes' ? 'bg-primary text-white' : 'text-body-muted hover:text-ink hover:bg-soft-stone'
             }`}
           >
-            🎓 My Classes
+            <GraduationCap size={16} /> My Classes
           </button>
         </div>
 
@@ -234,7 +235,7 @@ function FacultyDashboardInner() {
             <div className="flex items-center justify-between flex-wrap gap-4">
               <h2 className="font-display font-semibold text-[22px] text-ink">My Classes</h2>
               <Link to="/attendance/faculty" className="button-primary whitespace-nowrap !py-2.5 !px-5">
-                ⚡ Open Attendance Console
+                <Zap size={16} /> Open Attendance Console
               </Link>
             </div>
 
@@ -248,7 +249,6 @@ function FacultyDashboardInner() {
                     <tr>
                       <th className="font-mono text-[11px] uppercase tracking-wider text-slate py-2">Batch</th>
                       <th className="font-mono text-[11px] uppercase tracking-wider text-slate py-2">Subject</th>
-                      <th className="font-mono text-[11px] uppercase tracking-wider text-slate py-2">Section</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-hairline">
@@ -256,7 +256,6 @@ function FacultyDashboardInner() {
                       <tr key={i}>
                         <td className="py-2.5 font-sans text-[14px] text-ink">{a.batch || '—'}</td>
                         <td className="py-2.5 font-sans text-[14px] text-ink">{a.subject || '—'}</td>
-                        <td className="py-2.5 font-sans text-[14px] text-ink">{a.section || 'All'}</td>
                       </tr>
                     ))}
                   </tbody>

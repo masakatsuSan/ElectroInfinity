@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getStudents, addStudent, bulkImport, deleteStudent, updateStudentRole } from '../../api/students'
+import { Check } from 'lucide-react'
 const SUBJECTS = ['ECT','EM-II','DE','NA','Maths','ECT Lab','EM Lab']
 const BATCHES  = ['2023-2027','2024-2028','2025-2029','2026-2030']
 const BLANK    = { name:'', rollNumber:'', email:'', batch:'2024-2028', semester:'3', regNumber:'' }
@@ -44,7 +45,7 @@ function AddTab({ qc }) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['students'] })
       setForm(BLANK)
-      setMsg(`✓ ${form.name} (${form.rollNumber}) added. They can now activate at /activate`)
+      setMsg(<span><Check size={14} /> {form.name} ({form.rollNumber}) added. They can now activate at /activate</span>)
       setError('')
     },
     onError: (err) => setError(err.response?.data?.error || 'Failed to add student'),
@@ -54,7 +55,7 @@ function AddTab({ qc }) {
     mutationFn: () => bulkImport({ students: csvRows }),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['students'] })
-      setMsg(`✓ ${res.data.message}`)
+      setMsg(<span><Check size={14} /> {res.data.message}</span>)
       setCsvRows([])
       setError('')
     },

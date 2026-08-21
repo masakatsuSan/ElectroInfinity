@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+﻿import { useEffect, useRef } from 'react'
+import { Zap } from 'lucide-react'
 import { Routes, Route, useLocation, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import Lenis from '@studio-freight/lenis'
@@ -19,7 +20,10 @@ import Labs         from './pages/Labs'
 import Contact      from './pages/Contact'
 import Placements   from './pages/Placements'
 import Achievements from './pages/Achievements'
+import Announcements  from './pages/Announcements'
+import Calendar     from './pages/Calendar'
 import Gallery      from './pages/Gallery'
+import Projects     from './pages/Projects'
 
 // Auth pages
 import Login    from './pages/Login'
@@ -30,6 +34,7 @@ import ForgotPassword  from './pages/ForgotPassword'
 import Students  from './pages/Students'
 import Forum     from './pages/Forum'
 import Directory from './pages/Directory'
+import Dashboard from './pages/Dashboard'
 
 // Admin pages
 import AdminLayout    from './pages/admin/AdminLayout'
@@ -41,6 +46,15 @@ import AdminStudents  from './pages/admin/AdminStudents'
 import AdminDeadlines from './pages/admin/AdminDeadlines'
 import AdminRoutines  from './pages/admin/AdminRoutines'
 import AdminAttendance from './pages/admin/AdminAttendance'
+import AdminFaculty from './pages/admin/AdminFaculty'
+import AdminLabs from './pages/admin/AdminLabs'
+import AdminCourses from './pages/admin/AdminCourses'
+import AdminGallery from './pages/admin/AdminGallery'
+import AdminContact from './pages/admin/AdminContact'
+import AdminRooms from './pages/admin/AdminRooms'
+import AdminProjects from './pages/admin/AdminProjects'
+import AdminCalendar from './pages/admin/AdminCalendar'
+import AdminAnnouncements from './pages/admin/AdminAnnouncements'
 
 // Attendance pages
 import FacultyAttendance from './pages/attendance/FacultyAttendance'
@@ -79,7 +93,7 @@ const NotFound = () => (
     </motion.div>
 
     <h1 className="font-display text-[56px] leading-none tracking-tight mb-6 text-ink">
-      404 — Ohm No! ⚡
+      404 — Ohm No! <Zap size={20} className="inline-block align-text-bottom" />
     </h1>
     
     <div className="text-body-muted text-[17px] max-w-md mx-auto space-y-4 mb-10">
@@ -179,40 +193,48 @@ export default function App() {
       <main className="flex flex-col flex-1">
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
-            {/* ── Public ── */}
+            {/* â”€â”€ Public â”€â”€ */}
             <Route path="/"             element={<AnimatedRoute><Home /></AnimatedRoute>} />
             <Route path="/about"        element={<AnimatedRoute><About /></AnimatedRoute>} />
             <Route path="/faculty"      element={<AnimatedRoute><Faculty /></AnimatedRoute>} />
             <Route path="/laboratory"   element={<AnimatedRoute><Labs /></AnimatedRoute>} />
             <Route path="/courses"      element={<AnimatedRoute><Courses /></AnimatedRoute>} />
-            <Route path="/courses/:courseId" element={<AnimatedRoute><SubjectDetails /></AnimatedRoute>} />
+            <Route path="/subject/:id" element={<AnimatedRoute><SubjectDetails /></AnimatedRoute>} />
             <Route path="/resources"    element={<AnimatedRoute><Resources /></AnimatedRoute>} />
             <Route path="/events"       element={<AnimatedRoute><Events /></AnimatedRoute>} />
             <Route path="/placements"   element={<AnimatedRoute><Placements /></AnimatedRoute>} />
+            <Route path="/calendar"     element={<AnimatedRoute><Calendar /></AnimatedRoute>} />
             <Route path="/gallery"      element={<AnimatedRoute><Gallery /></AnimatedRoute>} />
             <Route path="/achievements" element={<AnimatedRoute><Achievements /></AnimatedRoute>} />
+            <Route path="/announcements" element={<AnimatedRoute><Announcements /></AnimatedRoute>} />
+            <Route path="/projects"     element={<AnimatedRoute><Projects /></AnimatedRoute>} />
             <Route path="/contact"      element={<AnimatedRoute><Contact /></AnimatedRoute>} />
 
-            {/* ── Auth ── */}
+            {/* â”€â”€ Auth â”€â”€ */}
             <Route path="/login"            element={<AnimatedRoute><Login /></AnimatedRoute>} />
             <Route path="/activate"         element={<AnimatedRoute><Activate /></AnimatedRoute>} />
             <Route path="/forgot-password"  element={<AnimatedRoute><ForgotPassword /></AnimatedRoute>} />
 
-            {/* ── Forum ── */}
+            {/* â”€â”€ Forum â”€â”€ */}
             <Route path="/forum" element={
               <AnimatedRoute>
                 <ProtectedRoute><Forum /></ProtectedRoute>
               </AnimatedRoute>
             }/>
 
-            {/* ── Student ── */}
+            {/* â”€â”€ Student â”€â”€ */}
             <Route path="/students" element={
               <AnimatedRoute>
                 <ProtectedRoute><Students /></ProtectedRoute>
               </AnimatedRoute>
             }/>
+            <Route path="/dashboard" element={
+              <AnimatedRoute>
+                <ProtectedRoute><Dashboard /></ProtectedRoute>
+              </AnimatedRoute>
+            }/>
 
-                        {/* ── Faculty ── */}
+                        {/* â”€â”€ Faculty â”€â”€ */}
             <Route path="/faculty/dashboard" element={
               <AnimatedRoute>
                 <ProtectedRoute role="faculty">
@@ -221,7 +243,7 @@ export default function App() {
               </AnimatedRoute>
             }/>
 
-            {/* ── Attendance ── */}
+            {/* â”€â”€ Attendance â”€â”€ */}
             <Route path="/attendance/faculty" element={
               <AnimatedRoute>
                 <ProtectedRoute role="faculty">
@@ -237,20 +259,29 @@ export default function App() {
               </AnimatedRoute>
             }/>
 
-            {/* ── Admin ── */}
+            {/* â”€â”€ Admin â”€â”€ */}
             <Route path="/admin/*" element={
               <AnimatedRoute>
                 <ProtectedRoute role="cr, admin">
                   <Routes>
                     <Route element={<AdminLayout />}>
-                      <Route index             element={<AdminDashboard />} />
-                      <Route path="notices"    element={<AdminNotices />} />
-                      <Route path="resources"  element={<AdminResources />} />
-                      <Route path="events"     element={<AdminEvents />} />
-                      <Route path="students"   element={<AdminStudents />} />
-                      <Route path="deadlines"  element={<AdminDeadlines />} />
-                      <Route path="routines"   element={<AdminRoutines />} />
-                      <Route path="attendance" element={<AdminAttendance />} />
+                     <Route index             element={<AdminDashboard />} />
+                       <Route path="notices"    element={<AdminNotices />} />
+                       <Route path="announcements" element={<AdminAnnouncements />} />
+                       <Route path="resources"  element={<AdminResources />} />
+                       <Route path="events"     element={<AdminEvents />} />
+                       <Route path="calendar"   element={<AdminCalendar />} />
+                       <Route path="projects"   element={<AdminProjects />} />
+                       <Route path="rooms"      element={<AdminRooms />} />
+                       <Route path="students"   element={<AdminStudents />} />
+                       <Route path="deadlines"  element={<AdminDeadlines />} />
+                       <Route path="routines"   element={<AdminRoutines />} />
+                       <Route path="attendance" element={<AdminAttendance />} />
+                       <Route path="faculty"   element={<AdminFaculty />} />
+                       <Route path="labs"      element={<AdminLabs />} />
+                       <Route path="courses"   element={<AdminCourses />} />
+                       <Route path="gallery"   element={<AdminGallery />} />
+                       <Route path="contact"   element={<AdminContact />} />
                     </Route>
                   </Routes>
                 </ProtectedRoute>

@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Html5Qrcode } from 'html5-qrcode'
 import { useAuth } from '../../context/AuthContext'
+import BackButton from '../../components/BackButton'
+import { MapPin, Radio, Check, AlertTriangle, Video, RefreshCw, Power } from 'lucide-react'
+import { Html5Qrcode } from 'html5-qrcode'
 import { getActiveBatchSession, scanQr, getMyStats } from '../../api/attendance'
 import { getBestLocation, getAnchoredLocation, getStationary } from '../../utils/location'
 import { requestCameraPermission } from '../../utils/permissions'
@@ -53,16 +55,7 @@ export default function StudentAttendance() {
 
   const isSessionForStudent = (session, currentUser) => {
     if (!session) return false
-    if (normalize(session.batch) !== normalize(currentUser?.batch)) return false
-
-    const sessionSection = normalize(session.section)
-    const userSection = normalize(currentUser?.section)
-
-    if (!userSection) {
-      return !sessionSection
-    }
-
-    return !sessionSection || sessionSection === userSection
+    return normalize(session.batch) === normalize(currentUser?.batch)
   }
 
   const loadData = useCallback(async () => {
@@ -239,13 +232,13 @@ export default function StudentAttendance() {
       }
 
       const doScan = async (timeoutMs, maxAccuracy) => {
-        setMsg('📍 Verifying location…')
+        setMsg('Verifying location…')
         const [gps, stationary] = await Promise.all([
           getStudentGps(activeSession, timeoutMs, maxAccuracy),
           getStationary(),
         ])
         recordDebug(gps)
-        setMsg(`📡 Location fix ±${gps.accuracy}m — verifying…`)
+        setMsg(`Location fix ±${gps.accuracy}m — verifying…`)
         return scanQr({
           sessionId,
           token,
@@ -277,7 +270,7 @@ export default function StudentAttendance() {
       scanCooldownRef.current = now
       let errText = err.response?.data?.error || err.message || 'Attendance scan failed'
       if (/far|GPS|geofence|accuracy|confident|signal/i.test(errText)) {
-        errText += ' If you are physically in class, ask faculty to tap “✓ Mark Present” on you.'
+        errText += ' If you are physically in class, ask faculty to tap Mark Present on you.'
       }
       const debugData = err.response?.data?.debug
       setError(errText)
@@ -412,11 +405,11 @@ export default function StudentAttendance() {
 
             {/* Success Text */}
             <div>
-              <h2 className="font-display text-[32px] font-bold text-green-600 dark:text-green-400">Present ✓</h2>
+              <h2 className="font-display text-[32px] font-bold text-green-600 dark:text-green-400">Present <Check size={16} /></h2>
               <p className="font-sans text-[15px] text-ink-muted-80 mt-2">{successMessage}</p>
               {scanSuccess?.distance != null && (
                 <p className="font-sans text-[13px] text-ink-muted-80 mt-3 pt-3 border-t border-divider-soft">
-                  📍 Verified at {scanSuccess.distance}m
+                  <MapPin size={14} /> Verified at {scanSuccess.distance}m
                 </p>
               )}
             </div>
@@ -434,17 +427,26 @@ export default function StudentAttendance() {
       <div className="max-w-lg px-6 py-8 mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <span className="font-sans text-[12px] font-bold uppercase tracking-wider text-primary">Classroom QR</span>
-            <h1 className="font-display text-[26px] font-bold text-ink">Mark Attendance</h1>
-            <p className="font-sans text-[13px] text-ink-muted-80">
-              Batch: <span className="font-semibold text-ink">{user?.batch}</span>
-              {user?.section && <span> · Section {user.section}</span>}
-            </p>
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <div>
+              <span className="font-sans text-[12px] font-bold uppercase tracking-wider text-primary">Classroom QR</span>
+              <h1 className="font-display text-[26px] font-bold text-ink">Mark Attendance</h1>
+              <p className="font-sans text-[13px] text-ink-muted-80">
+                 Batch: <span className="font-semibold text-ink">{user?.batch}</span>
+              </p>
+            </div>
           </div>
-          <Link to="/students" className="button-secondary text-[14px]">
-            ← Student Portal
-          </Link>
+          <button
+            onClick={() => {
+              localStorage.removeItem('ei_token')
+              localStorage.removeItem('ei_user')
+              window.location.href = '/login'
+            }}
+            className="button-secondary text-[14px]"
+          >
+            <Power size={16} /> Sign Out
+          </button>
         </div>
 
         {/* Camera / location permission guidance */}
@@ -464,7 +466,7 @@ export default function StudentAttendance() {
                 <span className={`px-3 py-1 rounded-full text-[12px] font-bold uppercase tracking-wider ${
                   stats.percentage >= 75 ? 'bg-green-500/10 text-green-600' : 'bg-amber-500/15 text-amber-600'
                 }`}>
-                  {stats.percentage >= 75 ? 'Eligible ✓' : 'Below 75% ⚠'}
+                  {stats.percentage >= 75 ? <><Check size={14} /> Eligible</> : <><AlertTriangle size={14} /> Below 75%</>}
                 </span>
                 <p className="font-sans text-[12px] text-ink-muted-80 mt-1">
                   {stats.attended} of {stats.totalSessions} sessions
@@ -474,7 +476,7 @@ export default function StudentAttendance() {
 
             {stats.lowAttendance && (
               <p className="font-sans text-[12px] text-amber-600 dark:text-amber-400 mt-3 pt-3 border-t border-amber-500/20 font-medium">
-                ⚠ Attendance is below mandatory 75%. Please ensure you scan in upcoming lectures.
+                <AlertTriangle size={14} /> Attendance is below mandatory 75%. Please ensure you scan in upcoming lectures.
               </p>
             )}
           </div>
@@ -494,18 +496,17 @@ export default function StudentAttendance() {
               <h2 className="font-display text-[22px] font-bold text-ink">{activeSession.subject || activeSession.course}</h2>
               <p className="font-sans text-[14px] text-ink-muted-80 mt-0.5">
                 Faculty: <span className="font-semibold text-ink">{activeSession.faculty?.name || 'Professor'}</span>
-                {activeSession.section && <span> · Section {activeSession.section}</span>}
               </p>
             </div>
 
             <p className="font-sans text-[13px] text-green-700 dark:text-green-400 font-medium pt-1">
-              ✓ Geofence is active. Ensure you are in the classroom and scan the QR on screen.
+              <Check size={14} /> Geofence is active. Ensure you are in the classroom and scan the QR on screen.
             </p>
           </div>
         ) : (
           <div className="p-6 text-center border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
             <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-divider-soft text-ink-muted-80">
-              ◷
+              <RefreshCw size={24} />
             </div>
             <h3 className="font-display text-[18px] font-semibold text-ink">No Active Lecture</h3>
             <p className="font-sans text-[14px] text-ink-muted-80 mt-1 max-w-xs mx-auto">
@@ -515,7 +516,7 @@ export default function StudentAttendance() {
               onClick={loadData}
               className="button-secondary text-[13px] !py-2 !px-4 mt-4"
             >
-              ↻ Check Again
+              <><RefreshCw size={14} /> Check Again</>
             </button>
           </div>
         )}
@@ -524,7 +525,7 @@ export default function StudentAttendance() {
         {msg && (
           <div className="p-5 text-green-800 border rounded-2xl bg-green-500/15 border-green-500/30 dark:text-green-300">
             <div className="flex items-center gap-2 font-bold text-[16px]">
-              <span>✓</span> {msg}
+              <span><Check size={14} /></span> {msg}
             </div>
             {scanSuccess && scanSuccess.distance != null && (
               <p className="font-sans text-[13px] mt-1 opacity-90">
@@ -536,15 +537,15 @@ export default function StudentAttendance() {
 
         {error && (
           <div className="p-5 text-red-700 border rounded-2xl bg-red-500/15 border-red-500/30 dark:text-red-400">
-            <div className="flex items-center gap-2 font-bold text-[15px]">
-              <span>⚠</span> Scan Failed
-            </div>
+              <div className="flex items-center gap-2 font-bold text-[15px]">
+                <AlertTriangle size={14} /> Scan Failed
+              </div>
             <p className="font-sans text-[14px] mt-1">{error}</p>
 
             {/* GPS Debug Info */}
             {errorDebug && (
               <div className="pt-4 mt-4 space-y-2 border-t border-red-500/20">
-                <p className="font-sans text-[13px] font-semibold">📍 GPS Debug Info:</p>
+                <p className="font-sans text-[13px] font-semibold"><MapPin size={14} /> GPS Debug Info:</p>
                 <div className="bg-red-500/5 rounded-lg p-3 font-mono text-[11px] space-y-1 text-red-900 dark:text-red-200">
                   {errorDebug.studentLat && (
                     <>
@@ -559,7 +560,7 @@ export default function StudentAttendance() {
                       )}
                       {errorDebug.swappedDistance && (
                         <div className="pt-1 mt-1 border-t border-red-500/20">
-                          🔄 If coords swapped: {errorDebug.swappedDistance}m {errorDebug.swappedDistance <= 100 ? '✓ WOULD WORK' : ''}
+                           <RefreshCw size={14} /> If coords swapped: {errorDebug.swappedDistance}m {errorDebug.swappedDistance <= 100 ? <><Check size={14} /> WOULD WORK</> : ''}
                         </div>
                       )}
                     </>
@@ -579,10 +580,10 @@ export default function StudentAttendance() {
               <div className="pt-3 mt-3 space-y-2 border-t border-red-500/20">
                 <p className="font-sans text-[13px] font-semibold">Try these:</p>
                 <ul className="font-sans text-[12px] space-y-1 ml-4">
-                  <li>✓ Move closer to the faculty device</li>
-                  <li>✓ Ensure location permissions are enabled</li>
-                  <li>✓ Verify your device GPS is accurate</li>
-                  <li>✓ Ask faculty to re-calibrate their GPS location</li>
+                  <li><Check size={14} /> Move closer to the faculty device</li>
+                  <li><Check size={14} /> Ensure location permissions are enabled</li>
+                  <li><Check size={14} /> Verify your device GPS is accurate</li>
+                  <li><Check size={14} /> Ask faculty to re-calibrate their GPS location</li>
                 </ul>
               </div>
             )}
@@ -597,7 +598,7 @@ export default function StudentAttendance() {
               disabled={!activeSession || showSuccessOverlay}
               className="button-primary w-full py-4 text-[16px] font-bold shadow-lg disabled:opacity-50 transition-all duration-300"
             >
-              {showSuccessOverlay ? '✓ Attendance Confirmed' : activeSession ? ' Open Camera & Scan QR Code' : 'Waiting for Class Session to Start'}
+              {showSuccessOverlay ? <><Check size={14} /> Attendance Confirmed</> : activeSession ? ' Open Camera & Scan QR Code' : 'Waiting for Class Session to Start'}
             </button>
             {activeSession && (
               <button
@@ -636,7 +637,7 @@ export default function StudentAttendance() {
                   onClick={restartCamera}
                   className="text-[12px] font-semibold text-ink bg-divider-soft hover:bg-soft-stone rounded-lg px-3 py-2 transition-colors"
                 >
-                  ↻ Restart
+                  <><RefreshCw size={14} /> Restart</>
                 </button>
                 <button
                   onClick={stopScanner}
@@ -655,7 +656,7 @@ export default function StudentAttendance() {
             {/* Active camera selector — OUTSIDE the scanner */}
             {cameraDevices.length > 0 && (
               <div className="flex items-center gap-2 bg-canvas rounded-xl border border-divider-soft px-3 py-2.5">
-                <span className="font-sans text-[12px] font-semibold text-ink whitespace-nowrap">🎥 Camera</span>
+                <span className="font-sans text-[12px] font-semibold text-ink whitespace-nowrap"><Video size={14} /> Camera</span>
                 <select
                   value={currentCameraId || ''}
                   onChange={(e) => setCurrentCameraId(e.target.value)}

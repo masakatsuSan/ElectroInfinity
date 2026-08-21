@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../context/AuthContext'
+import { Trash2, X } from 'lucide-react'
 import {
   getAdminFaculty,
   createAdminFaculty,
@@ -241,7 +242,7 @@ function FacultyManagementTab() {
                     <div className="flex flex-wrap gap-1.5">
                       {fac.teachingAssignments.map((a, i) => (
                         <span key={i} className="font-sans text-[12px] bg-canvas border border-divider-soft px-2.5 py-1 rounded-lg text-ink">
-                          <strong>{a.subject}</strong> · {a.batch} {a.section && `(Sec ${a.section})`}
+                          <strong>{a.subject}</strong> · {a.batch}
                         </span>
                       ))}
                     </div>
@@ -275,7 +276,7 @@ function FacultyManagementTab() {
                   }}
                   className="px-2.5 py-1.5 text-red-500 hover:bg-red-500/10 rounded-xl text-[13px] transition-colors"
                 >
-                  🗑
+                  <Trash2 size={14} />
                 </button>
               </div>
             </div>
@@ -300,7 +301,7 @@ function FacultyManagementTab() {
                 onClick={() => setModalOpen(false)}
                 className="w-8 h-8 rounded-full bg-surface-pearl border border-divider-soft flex items-center justify-center hover:bg-divider-soft"
               >
-                ✕
+                          <X size={14} />
               </button>
             </div>
 
@@ -398,7 +399,7 @@ function FacultyManagementTab() {
                           onClick={() => removeAssignmentRow(idx)}
                           className="text-red-500 hover:text-red-700 px-2 py-1 text-[13px]"
                         >
-                          ✕
+                <X size={14} />
                         </button>
                       )}
                     </div>
@@ -436,7 +437,7 @@ function FacultyManagementTab() {
 function SubjectsManagementTab() {
   const qc = useQueryClient()
   const [selectedBatch, setSelectedBatch] = useState('2024-2028')
-  const [newSubject, setNewSubject] = useState({ name: '', code: '', batch: '2024-2028', section: '', semester: 3 })
+  const [newSubject, setNewSubject] = useState({ name: '', code: '', batch: '2024-2028', semester: 3 })
   const [msg, setMsg] = useState('')
   const [error, setError] = useState('')
 
@@ -449,7 +450,7 @@ function SubjectsManagementTab() {
     mutationFn: () => createSubject(newSubject),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['subjects-list'] })
-      setNewSubject({ name: '', code: '', batch: selectedBatch, section: '', semester: 3 })
+      setNewSubject({ name: '', code: '', batch: selectedBatch, semester: 3 })
       setMsg('Subject created successfully!')
       setError('')
     },
@@ -513,16 +514,6 @@ function SubjectsManagementTab() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1">Section (optional)</label>
-                <input
-                  placeholder="e.g. A or blank for all"
-                  value={newSubject.section}
-                  onChange={e => setNewSubject(s => ({ ...s, section: e.target.value.toUpperCase() }))}
-                  className="w-full bg-canvas border border-divider-soft rounded-xl px-4 py-2.5 text-[14px] text-ink uppercase focus:outline-none focus:border-primary"
-                />
-              </div>
-
-              <div>
                 <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1">Semester</label>
                 <select
                   value={newSubject.semester}
@@ -572,7 +563,7 @@ function SubjectsManagementTab() {
                     <span className="font-mono text-primary font-bold text-[13px]">{s.code}</span>
                     <p className="font-semibold text-[14px] text-ink">{s.name}</p>
                     <p className="text-[12px] text-ink-muted-80">
-                      Batch {s.batch} {s.section && `· Sec ${s.section}`} · Sem {s.semester}
+                      Batch {s.batch} · Sem {s.semester}
                     </p>
                   </div>
                   <button
@@ -581,7 +572,7 @@ function SubjectsManagementTab() {
                     }}
                     className="text-red-500 hover:text-red-700 text-[13px] p-2"
                   >
-                    🗑
+                  <Trash2 size={14} />
                   </button>
                 </div>
               ))}

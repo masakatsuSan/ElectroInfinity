@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, Suspense, lazy } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { Check, X, AlertTriangle, Rocket, RefreshCw, MapPin } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { io } from 'socket.io-client'
 import {
@@ -128,7 +129,7 @@ export default function FacultyAttendance() {
     setError('')
     try {
       await markPresentManual(session._id, studentId)
-      setMsg(`${studentName} marked present ✓`)
+      setMsg(`${studentName} marked present`)
       if (session._id) loadFeed(session._id)
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Could not mark present')
@@ -485,17 +486,17 @@ export default function FacultyAttendance() {
         {msg && (
           <div className="rounded-xl bg-green-500/10 border border-green-500/20 px-3 sm:px-4 py-2 sm:py-3 text-green-700 dark:text-green-400 text-[12px] sm:text-[14px] flex items-center justify-between">
             <p className="flex items-center gap-2">
-              <span>✓</span> {msg}
+              <span><Check size={14} /></span> {msg}
             </p>
-            <button onClick={() => setMsg('')} className="text-[11px] opacity-70 hover:opacity-100">✕</button>
+            <button onClick={() => setMsg('')} className="text-[11px] opacity-70 hover:opacity-100"><X size={14} /></button>
           </div>
         )}
         {error && (
           <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-3 sm:px-4 py-2 sm:py-3 text-red-600 dark:text-red-400 text-[12px] sm:text-[14px] flex items-center justify-between">
             <p className="flex items-center gap-2">
-              <span>⚠</span> {error}
+              <span><AlertTriangle size={14} /></span> {error}
             </p>
-            <button onClick={() => setError('')} className="text-[11px] opacity-70 hover:opacity-100">✕</button>
+            <button onClick={() => setError('')} className="text-[11px] opacity-70 hover:opacity-100"><X size={14} /></button>
           </div>
         )}
 
@@ -598,7 +599,7 @@ export default function FacultyAttendance() {
                     disabled={startLoading}
                     className="button-primary w-full py-3 sm:py-4 text-[13px] sm:text-[16px] font-bold shadow-md"
                   >
-                    {startLoading ? 'Creating Live QR Session…' : 'Generate QR & Start Session 🚀'}
+                    {startLoading ? 'Creating Live QR Session…' : 'Generate QR & Start Session'}
                   </button>
                 </form>
               </section>
@@ -631,7 +632,7 @@ export default function FacultyAttendance() {
                         disabled={gpsLoading}
                         className="button-secondary text-[11px] sm:text-[13px] !py-1.5 sm:!py-2 !px-2 sm:!px-3 flex-1 sm:flex-none"
                       >
-                        {gpsLoading ? '🔄 Calibrating…' : '🔄 Recalibrate GPS'}
+                        {gpsLoading ? 'Calibrating…' : 'Recalibrate GPS'}
                       </button>
                     </div>
                   </div>
@@ -647,12 +648,12 @@ export default function FacultyAttendance() {
                     <div className="w-full p-2 mb-3 space-y-2 border sm:p-4 sm:mb-4 rounded-xl bg-canvas border-divider-soft">
                       <div className="text-[10px] sm:text-[11px] space-y-1">
                         <p className="font-mono truncate text-ink-muted-80">
-                          📍 Current GPS: {fmtCoord(session.centerLat)}° N, {fmtCoord(session.centerLng)}° E (±{session.centerAccuracy ?? 0}m)
+                          Current GPS: {fmtCoord(session.centerLat)}° N, {fmtCoord(session.centerLng)}° E (±{session.centerAccuracy ?? 0}m)
                         </p>
                         {sessionGpsDebug && (
                           <>
                             <p className="font-mono text-green-600 truncate dark:text-green-400">
-                              ✓ New GPS: {fmtCoord(sessionGpsDebug.centerLat)}° N, {fmtCoord(sessionGpsDebug.centerLng)}° E (±{sessionGpsDebug.accuracy}m)
+                              New GPS: {fmtCoord(sessionGpsDebug.centerLat)}° N, {fmtCoord(sessionGpsDebug.centerLng)}° E (±{sessionGpsDebug.accuracy}m)
                             </p>
                             <p className="font-mono text-ink-muted-48 text-[9px] sm:text-[10px]">
                               Updated: {sessionGpsDebug.timestamp}
@@ -708,7 +709,7 @@ export default function FacultyAttendance() {
                         Real-time Socket.io updates as students scan
                       </p>
                       <p className="font-sans text-[10px] sm:text-[11px] text-amber-600 dark:text-amber-400 mt-0.5">
-                        Indoor GPS unreliable? Tap <b>✓ Present</b> on a student who is physically in class.
+                        Indoor GPS unreliable? Tap <b><Check size={14} /> Present</b> on a student who is physically in class.
                       </p>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3">
@@ -745,7 +746,7 @@ export default function FacultyAttendance() {
                                 ? 'bg-amber-500 text-white'
                                 : 'bg-divider-soft text-ink-muted-80'
                             }`}>
-                              {status === 'present' ? '✓' : status === 'flagged' ? '!' : '—'}
+                              {status === 'present' ? <><Check size={14} /> Present</> : status === 'flagged' ? <><AlertTriangle size={14} /> Flagged</> : '—'}
                             </div>
                             <div className="min-w-0">
                               <p className="font-sans font-semibold text-ink truncate text-[12px] sm:text-[14px]">{student.name}</p>
@@ -782,9 +783,9 @@ export default function FacultyAttendance() {
                                 onClick={() => handleManualPresent(student._id, student.name)}
                                 disabled={manualMarkingId === student._id}
                                 className="text-[10px] sm:text-[11px] font-bold text-green-600 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 transition-colors disabled:opacity-50"
-                                title="Mark present (indoor GPS override)"
+                                 title="Mark present (indoor GPS override)"
                               >
-                                {manualMarkingId === student._id ? '…' : '✓ Present'}
+                                {manualMarkingId === student._id ? '…' : <><Check size={14} />Present</>}
                               </button>
                             )}
                           </div>
@@ -794,7 +795,7 @@ export default function FacultyAttendance() {
                   </div>
                 </section>
 
-                {/* Live Classroom 3D Map */}
+                {/* Live Classroom 3D Map
                 <section className="flex flex-col p-3 border shadow-sm sm:p-6 lg:col-span-12 border-divider-soft bg-surface-pearl rounded-2xl">
                   <div className="flex flex-col justify-between gap-2 pb-3 mb-3 border-b sm:py-3 sm:flex-row sm:items-center border-divider-soft">
                     <div>
@@ -849,7 +850,7 @@ export default function FacultyAttendance() {
                       </div>
                     )}
                   </div>
-                </section>
+                </section> */}
               </div>
             )}
           </div>
@@ -1003,7 +1004,7 @@ export default function FacultyAttendance() {
                 onClick={() => { setSelectedRosterSession(null); setRosterData(null) }}
                 className="flex items-center justify-center flex-shrink-0 w-8 h-8 transition-colors border rounded-full bg-surface-pearl border-divider-soft hover:bg-divider-soft"
               >
-                ✕
+                <X size={14} />
               </button>
             </div>
 
@@ -1011,12 +1012,12 @@ export default function FacultyAttendance() {
             <div className="flex-1 p-6 overflow-y-auto">
               {error && (
                 <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-600 text-[13px] rounded-lg">
-                  ⚠️ {error}
+                  <AlertTriangle size={14} /> {error}
                 </div>
               )}
               {msg && (
                 <div className="mb-4 p-3 bg-green-500/10 border border-green-500/30 text-green-600 text-[13px] rounded-lg">
-                  ✓ {msg}
+                  <Check size={14} /> {msg}
                 </div>
               )}
 
@@ -1074,7 +1075,7 @@ export default function FacultyAttendance() {
                             title="Delete this attendance record"
                             className="flex items-center justify-center w-8 h-8 font-bold text-red-500 transition-all rounded-full hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed hover:text-red-600"
                           >
-                            {deletingRecordId === initial._id ? '⏳' : '✕'}
+                            {deletingRecordId === initial._id ? '…' : <X size={14} />}
                           </button>
                         )}
                       </div>

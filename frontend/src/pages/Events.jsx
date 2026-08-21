@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { MapPin } from 'lucide-react'
 import { getEvents } from '../api/events'
 import SEO from '../components/SEO'
 
@@ -111,7 +112,7 @@ function EventCard({ event: e, typeLabel, isUpcoming }) {
         {/* Venue */}
         {e.venue && (
           <p className="font-mono text-[12px] text-slate mb-3">
-            📍 {e.venue}
+            <MapPin size={14} /> {e.venue}
           </p>
         )}
 

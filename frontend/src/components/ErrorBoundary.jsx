@@ -1,4 +1,5 @@
 import React from 'react'
+import { Zap } from 'lucide-react'
 
 /**
  * Catches render/effect errors in any child subtree and shows a friendly
@@ -46,7 +47,7 @@ export default class ErrorBoundary extends React.Component {
           }}
         >
           <div style={{ maxWidth: 480 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>⚡</div>
+            <Zap size={48} />
             <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>Something went wrong</h1>
             <p style={{ fontSize: 14, color: '#64748b', marginBottom: 16 }}>
               This page hit an unexpected error. Reloading usually fixes it.
