@@ -6,6 +6,7 @@ const achievementSchema = new mongoose.Schema(
     description: { type: String, required: true, trim: true },
     date: { type: Date, required: true },
     image: { type: String, default: '' },
+    imagePublicId: { type: String, default: '' },
     category: { type: String, enum: ['academic', 'sports', 'cultural', 'other'], default: 'academic' },
     students: [{ type: String, trim: true }] // Names or roll numbers of students involved
   },

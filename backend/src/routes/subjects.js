@@ -6,6 +6,16 @@ const { protect, guard, optionalAuth } = require('../middleware/auth')
 const router = express.Router()
 
 const DEFAULT_SUBJECTS = [
+  { name: 'Mathematics-I', code: 'BS-M 101', batch: '', section: '', semester: 1, credits: 4 },
+  { name: 'Physics-I', code: 'BS-P 101', batch: '', section: '', semester: 1, credits: 4 },
+  { name: 'Programming in C', code: 'ES-CS 101', batch: '', section: '', semester: 1, credits: 3 },
+  { name: 'Engineering Drawing', code: 'ES-ME 101', batch: '', section: '', semester: 1, credits: 3 },
+  { name: 'Basic Electrical Engineering', code: 'PC-EE 101', batch: '', section: '', semester: 1, credits: 3 },
+  { name: 'Mathematics-II', code: 'BS-M 102', batch: '', section: '', semester: 2, credits: 4 },
+  { name: 'Physics-II', code: 'BS-P 102', batch: '', section: '', semester: 2, credits: 4 },
+  { name: 'Object Oriented Programming', code: 'ES-CS 102', batch: '', section: '', semester: 2, credits: 3 },
+  { name: 'Basic Electronics Engineering', code: 'PC-EE 102', batch: '', section: '', semester: 2, credits: 3 },
+  { name: 'Environmental Science', code: 'MC-EE 102', batch: '', section: '', semester: 2, credits: 0 },
   { name: 'Electric Circuit Theory', code: 'PC-EE 301', batch: '2024-2028', section: '', semester: 3, credits: 4 },
   { name: 'Analog Electronics', code: 'PC-EE 302', batch: '2024-2028', section: '', semester: 3, credits: 3 },
   { name: 'Electromagnetic Field Theory', code: 'PC-EE 303', batch: '2024-2028', section: '', semester: 3, credits: 3 },
@@ -122,12 +132,12 @@ router.get('/:id', optionalAuth, async (req, res) => {
 router.post('/', protect, guard('admin', 'super_admin'), async (req, res) => {
   try {
     const { name, code, batch, section, semester, credits, modules, syllabus, referenceBooks, objectives, l, t, p } = req.body
-    if (!name || !code || !batch) {
-      return res.status(400).json({ success: false, error: 'Name, code, and batch are required' })
+    if (!name || !code) {
+      return res.status(400).json({ success: false, error: 'Name and code are required' })
     }
     const existing = await Subject.findOne({
       code: code.trim().toUpperCase(),
-      batch: batch.trim(),
+      batch: (batch || '').trim(),
       section: (section || '').trim(),
     })
     if (existing) {
@@ -136,7 +146,7 @@ router.post('/', protect, guard('admin', 'super_admin'), async (req, res) => {
     const subject = await Subject.create({
       name: name.trim(),
       code: code.trim().toUpperCase(),
-      batch: batch.trim(),
+      batch: (batch || '').trim(),
       section: (section || '').trim(),
       semester: semester ? Number(semester) : 1,
       credits: credits ? Number(credits) : 0,

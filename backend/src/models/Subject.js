@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const subjectSchema = new mongoose.Schema({
   name: {type: String, required: true, trim: true},
   code: {type: String, required: true, trim: true, uppercase: true},
-  batch: {type: String, required: true, trim: true},
+  batch: {type: String, default: ''},
   section: {type: String, default: ''},
   semester: {type: Number, default: 1},
   credits: {type: Number, default: 0, min: 0},

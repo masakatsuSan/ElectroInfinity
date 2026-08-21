@@ -21,6 +21,7 @@ import {
   CalendarRange,
   Megaphone,
   Power,
+  Award,
 } from 'lucide-react'
 
 const LINKS = [
@@ -38,6 +39,7 @@ const LINKS = [
   { to: '/admin/calendar',    label: 'Academic Calendar',    icon: CalendarRange },
   { to: '/admin/projects',    label: 'Projects',             icon: Code2 },
   { to: '/admin/gallery',     label: 'Gallery',              icon: Image },
+  { to: '/admin/achievements',label: 'Achievements',         icon: Award },
   { to: '/admin/deadlines',   label: 'Deadlines',            icon: Clock },
   { to: '/admin/routines',    label: 'Routine',              icon: CalendarClock },
   { to: '/admin/contact',     label: 'Contacts',             icon: Mail },
@@ -57,7 +59,8 @@ export default function AdminLayout() {
     if (user?.role === 'cr') {
       return ['/admin', '/admin/faculty', '/admin/labs', '/admin/courses', '/admin/gallery',
         '/admin/notices', '/admin/announcements', '/admin/resources', '/admin/events', '/admin/calendar',
-        '/admin/projects', '/admin/deadlines', '/admin/routines', '/admin/attendance', '/admin/rooms'].includes(l.to);
+        '/admin/projects', '/admin/deadlines', '/admin/routines', '/admin/attendance', '/admin/rooms',
+        '/admin/achievements'].includes(l.to);
     }
     return true;
   });

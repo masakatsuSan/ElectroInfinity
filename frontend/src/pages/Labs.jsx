@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import { Zap } from 'lucide-react'
 import { getLabs } from '../api/labs'
 import SEO from '../components/SEO'
 
@@ -38,11 +37,14 @@ export default function Laboratory() {
             <div className="p-12 text-center text-slate">Loading laboratory facilities…</div>
           ) : LABS.length > 0 ? (
             LABS.map((lab, i) => (
-              <div key={lab.name || i} className="p-6 md:p-8 flex flex-col sm:flex-row gap-6 hover:bg-soft-stone/30 transition-colors">
-                <div className="w-14 h-14 rounded-22px bg-soft-stone flex items-center justify-center text-[24px] border border-hairline flex-shrink-0 shadow-sm">
-                  {lab.icon || <Zap size={24} />}
-                </div>
-
+              <div key={lab.name || i} className="flex flex-col sm:flex-row gap-6 p-6 md:p-8 hover:bg-soft-stone/30 transition-colors">
+                {lab.image && (
+                  <img
+                    src={lab.image}
+                    alt={lab.name}
+                    className="w-full sm:w-48 h-48 sm:h-auto object-cover rounded-2xl border border-hairline flex-shrink-0"
+                  />
+                )}
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <span className="font-mono text-[13px] font-bold text-coral">0{i + 1}.</span>

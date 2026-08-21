@@ -55,6 +55,7 @@ import AdminRooms from './pages/admin/AdminRooms'
 import AdminProjects from './pages/admin/AdminProjects'
 import AdminCalendar from './pages/admin/AdminCalendar'
 import AdminAnnouncements from './pages/admin/AdminAnnouncements'
+import AdminAchievements from './pages/admin/AdminAchievements'
 
 // Attendance pages
 import FacultyAttendance from './pages/attendance/FacultyAttendance'
@@ -265,23 +266,24 @@ export default function App() {
                 <ProtectedRoute role="cr, admin">
                   <Routes>
                     <Route element={<AdminLayout />}>
-                     <Route index             element={<AdminDashboard />} />
-                       <Route path="notices"    element={<AdminNotices />} />
-                       <Route path="announcements" element={<AdminAnnouncements />} />
-                       <Route path="resources"  element={<AdminResources />} />
-                       <Route path="events"     element={<AdminEvents />} />
-                       <Route path="calendar"   element={<AdminCalendar />} />
-                       <Route path="projects"   element={<AdminProjects />} />
-                       <Route path="rooms"      element={<AdminRooms />} />
-                       <Route path="students"   element={<AdminStudents />} />
-                       <Route path="deadlines"  element={<AdminDeadlines />} />
-                       <Route path="routines"   element={<AdminRoutines />} />
-                       <Route path="attendance" element={<AdminAttendance />} />
-                       <Route path="faculty"   element={<AdminFaculty />} />
-                       <Route path="labs"      element={<AdminLabs />} />
-                       <Route path="courses"   element={<AdminCourses />} />
-                       <Route path="gallery"   element={<AdminGallery />} />
-                       <Route path="contact"   element={<AdminContact />} />
+                      <Route index             element={<AdminDashboard />} />
+                        <Route path="notices"    element={<AdminNotices />} />
+                        <Route path="announcements" element={<AdminAnnouncements />} />
+                        <Route path="resources"  element={<AdminResources />} />
+                        <Route path="events"     element={<AdminEvents />} />
+                        <Route path="calendar"   element={<AdminCalendar />} />
+                        <Route path="projects"   element={<AdminProjects />} />
+                        <Route path="rooms"      element={<AdminRooms />} />
+                        <Route path="students"   element={<AdminStudents />} />
+                        <Route path="deadlines"  element={<AdminDeadlines />} />
+                        <Route path="routines"   element={<AdminRoutines />} />
+                        <Route path="attendance" element={<AdminAttendance />} />
+                        <Route path="faculty"   element={<AdminFaculty />} />
+                        <Route path="labs"      element={<AdminLabs />} />
+                        <Route path="courses"   element={<AdminCourses />} />
+                        <Route path="gallery"   element={<AdminGallery />} />
+                        <Route path="achievements" element={<AdminAchievements />} />
+                        <Route path="contact"   element={<AdminContact />} />
                     </Route>
                   </Routes>
                 </ProtectedRoute>

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { getSubjects } from '../api/subjects'
 import SEO from '../components/SEO'
 
-const SEMESTER_PILLS = [3, 4, 5, 6, 7, 8]
+const SEMESTER_PILLS = [1, 2, 3, 4, 5, 6, 7, 8]
 
 function typeLabel(code) {
   if (!code) return 'Course'
@@ -21,7 +21,7 @@ function typeLabel(code) {
 }
 
 export default function Courses() {
-  const [selectedSem, setSelectedSem] = useState(3)
+  const [selectedSem, setSelectedSem] = useState(1)
   const navigate = useNavigate()
 
   const { data, isLoading } = useQuery({

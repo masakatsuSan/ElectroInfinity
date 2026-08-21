@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../context/AuthContext'
-import { BATCHES } from '../../data/batches'
 import { getSubjects, createSubject, updateSubject, approveSubject, deleteSubject } from '../../api/subjects'
 
-const BLANK = { name: '', code: '', batch: '2024-2028', semester: 3, credits: 3, modules: [{title:'',topics:['']}], syllabus: '', referenceBooks: [''], objectives: [''], l: 3, t: 0, p: 0 }
+const BLANK = { name: '', code: '', batch: '', semester: 1, credits: 3, modules: [{title:'',topics:['']}], syllabus: '', referenceBooks: [''], objectives: [''], l: 3, t: 0, p: 0 }
 const STATUS_COLORS = {
   pending:  'text-yellow-500',
   approved: 'text-deep-green',
@@ -19,11 +18,10 @@ export default function AdminCourses() {
   const [editing, setEditing] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [error, setError] = useState('')
-  const [batchFilter, setBatchFilter] = useState('')
 
   const { data, isLoading } = useQuery({
-    queryKey: ['subjects', 'admin', batchFilter],
-    queryFn: () => getSubjects(batchFilter ? { batch: batchFilter } : {}).then(r => r.data),
+    queryKey: ['subjects', 'admin'],
+    queryFn: () => getSubjects({}).then(r => r.data),
   })
 
   const createMut = useMutation({
@@ -85,12 +83,12 @@ export default function AdminCourses() {
   const removeObjective = (i) => setForm({ ...form, objectives: form.objectives.filter((_,idx) => idx !== i) })
 
   const handleSave = () => {
-    if (!form.name || !form.code || !form.batch) return setError('Name, code and batch are required')
+    if (!form.name || !form.code) return setError('Name and code are required')
     setError('')
     const payload = {
       name: form.name,
       code: form.code,
-      batch: form.batch,
+      batch: form.batch || '',
       semester: Number(form.semester),
       credits: Number(form.credits),
       modules: form.modules.filter(m => m.title.trim()),
@@ -114,8 +112,8 @@ export default function AdminCourses() {
     setForm({
       name: s.name || '',
       code: s.code || '',
-      batch: s.batch || '2024-2028',
-      semester: s.semester || 3,
+      batch: s.batch || '',
+      semester: s.semester || 1,
       credits: s.credits || 0,
       modules: s.modules?.length ? s.modules : [{title:'',topics:['']}],
       syllabus: s.syllabus || '',
@@ -155,12 +153,6 @@ export default function AdminCourses() {
             <div>
               <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Code *</label>
               <input value={form.code} onChange={set('code')} className="input w-full" placeholder="e.g. PC-EE 301" />
-            </div>
-            <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Batch *</label>
-              <select value={form.batch} onChange={set('batch')} className="input w-full">
-                {BATCHES.map(b => <option key={b} value={b}>{b}</option>)}
-              </select>
             </div>
             <div>
               <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Semester</label>
@@ -240,21 +232,13 @@ export default function AdminCourses() {
           </div>
           {error && <p className="font-sans text-red-500 text-[14px] font-medium mt-4">{error}</p>}
           <div className="flex gap-3 mt-6">
-            <button onClick={handleSave} disabled={createMut.isPending || updateMut.isPending || !form.name || !form.code || !form.batch} className="button-primary">
+            <button onClick={handleSave} disabled={createMut.isPending || updateMut.isPending || !form.name || !form.code} className="button-primary">
               {createMut.isPending || updateMut.isPending ? 'Saving…' : (editing ? 'Update Course' : 'Create Course')}
             </button>
             <button onClick={() => { setShowForm(false); setEditing(null); setForm(BLANK); setError('') }} className="button-pill-outline">Cancel</button>
           </div>
         </div>
       )}
-
-      <div className="flex gap-2 overflow-x-auto pb-4 mb-6 border-b border-divider-soft">
-        <button onClick={() => setBatchFilter('')} className={'font-sans text-[14px] font-medium px-4 py-2 rounded-full transition-all whitespace-nowrap ' + (!batchFilter ? 'bg-primary text-white' : 'bg-soft-stone text-ink-muted-80 hover:text-ink')}>All Batches</button>
-        {BATCHES.map(b => (
-          <button key={b} onClick={() => setBatchFilter(b)}
-            className={'font-sans text-[14px] font-medium px-4 py-2 rounded-full transition-all whitespace-nowrap ' + (batchFilter === b ? 'bg-primary text-white' : 'bg-soft-stone text-ink-muted-80 hover:text-ink')}>{b}</button>
-        ))}
-      </div>
 
       {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading courses…</p>
         : semesters.length === 0 ? <p className="font-sans text-ink-muted-80 text-[15px]">No courses found. Create one above.</p>
@@ -268,7 +252,7 @@ export default function AdminCourses() {
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-medium text-ink truncate">{s.name}</p>
                     <p className="font-sans text-[12px] text-ink-muted-80 mt-0.5">
-                      {s.batch} · {s.credits !== undefined && s.credits + ' credits'}
+                      {s.credits !== undefined && s.credits + ' credits'}
                     </p>
                   </div>
                   <span className={'font-mono text-[11px] font-bold uppercase ' + (STATUS_COLORS[s.status] || 'text-slate')}>{s.status || 'pending'}</span>
