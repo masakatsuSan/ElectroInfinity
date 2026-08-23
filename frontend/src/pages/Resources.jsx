@@ -1,13 +1,10 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getResources, getDownloadUrl } from '../api/resources'
-import { getNotices } from '../api/notices'
-import NoticeCard from '../components/NoticeCard'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
 
 const TABS = [
-  { id: 'notices',    label: 'Notices',         type: null },
   { id: 'notes',      label: 'Study Materials',  type: 'notes' },
   { id: 'pyq',        label: 'PYQs',             type: 'pyq' },
   { id: 'assignment', label: 'Assignments',      type: 'assignment' },
@@ -19,25 +16,18 @@ export default function Resources() {
   const [activeTab, setActiveTab] = useState(TABS[0])
   const { user } = useAuth()
 
-  const { data: noticesData, isLoading: nLoading } = useQuery({
-    queryKey: ['notices', 'all'],
-    queryFn: () => getNotices({ limit: 50 }).then(r => r.data),
-    enabled: activeTab.id === 'notices',
-  })
-
   const { data: resData, isLoading: rLoading } = useQuery({
     queryKey: ['resources', activeTab.type],
     queryFn: () => getResources({ type: activeTab.type }).then(r => r.data),
-    enabled: activeTab.id !== 'notices',
   })
 
-  const isLoading = activeTab.id === 'notices' ? nLoading : rLoading
+  const isLoading = rLoading
 
   return (
     <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
       <SEO
         title="Resources & Bulletins | Electro Infinity"
-        description="Study materials, PYQs, assignments and notices for Electro Infinity members."
+        description="Study materials, PYQs, assignments and announcements for Electro Infinity members."
         path="/resources"
       />
 
@@ -51,7 +41,7 @@ export default function Resources() {
             Resources & Bulletins
           </h1>
           <p className="font-sans text-[17px] text-body-muted leading-relaxed">
-            Curated repository of previous year questions, class notes, laboratory manuals, and official departmental notices.
+            Curated repository of previous year questions, class notes, laboratory manuals, and official departmental announcements.
           </p>
         </div>
 
@@ -76,12 +66,6 @@ export default function Resources() {
         <div key={activeTab.id} className="animate-in fade-in duration-200">
           {isLoading ? (
             <SkeletonGrid />
-          ) : activeTab.id === 'notices' ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              {noticesData?.data?.length > 0
-                ? noticesData.data.map(n => <NoticeCard key={n._id} notice={n} />)
-                : <Empty label="notices" user={user} />}
-            </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {resData?.data?.length > 0

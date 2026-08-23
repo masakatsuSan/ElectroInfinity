@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { Zap } from 'lucide-react'
 import { Routes, Route, useLocation, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -7,6 +7,7 @@ import Navbar         from './components/Navbar'
 import Footer         from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
 import OrganicBlobs   from './components/OrganicBlobs'
+import ForumFlipOverlay from './components/ForumFlipOverlay'
 
 // Public pages
 import Home         from './pages/Home'
@@ -15,7 +16,6 @@ import Faculty      from './pages/Faculty'
 import Resources    from './pages/Resources'
 import Courses      from './pages/Courses'
 import SubjectDetails from './pages/SubjectDetails'
-import Events       from './pages/Events'
 import Labs         from './pages/Labs'
 import Contact      from './pages/Contact'
 import Placements   from './pages/Placements'
@@ -39,9 +39,7 @@ import Dashboard from './pages/Dashboard'
 // Admin pages
 import AdminLayout    from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
-import AdminNotices   from './pages/admin/AdminNotices'
 import AdminResources from './pages/admin/AdminResources'
-import AdminEvents    from './pages/admin/AdminEvents'
 import AdminStudents  from './pages/admin/AdminStudents'
 import AdminDeadlines from './pages/admin/AdminDeadlines'
 import AdminRoutines  from './pages/admin/AdminRoutines'
@@ -143,6 +141,7 @@ const AnimatedRoute = ({ children }) => (
 export default function App() {
   const location = useLocation()
   const lenisRef = useRef(null)
+  const [forumFlip, setForumFlip] = useState(null)
 
   // Initialize Lenis smooth scroll
   useEffect(() => {
@@ -188,7 +187,7 @@ export default function App() {
         <Route path="/admin/*" element={null} />
         <Route path="/forum"   element={null} />
         <Route path="/attendance/faculty" element={null} />
-        <Route path="*"        element={<Navbar />} />
+        <Route path="*"        element={<Navbar onForumFlip={(data) => setForumFlip(data)} />} />
       </Routes>
 
       <main className="flex flex-col flex-1">
@@ -202,7 +201,6 @@ export default function App() {
             <Route path="/courses"      element={<AnimatedRoute><Courses /></AnimatedRoute>} />
             <Route path="/subject/:id" element={<AnimatedRoute><SubjectDetails /></AnimatedRoute>} />
             <Route path="/resources"    element={<AnimatedRoute><Resources /></AnimatedRoute>} />
-            <Route path="/events"       element={<AnimatedRoute><Events /></AnimatedRoute>} />
             <Route path="/placements"   element={<AnimatedRoute><Placements /></AnimatedRoute>} />
             <Route path="/calendar"     element={<AnimatedRoute><Calendar /></AnimatedRoute>} />
             <Route path="/gallery"      element={<AnimatedRoute><Gallery /></AnimatedRoute>} />
@@ -267,10 +265,8 @@ export default function App() {
                   <Routes>
                     <Route element={<AdminLayout />}>
                       <Route index             element={<AdminDashboard />} />
-                        <Route path="notices"    element={<AdminNotices />} />
                         <Route path="announcements" element={<AdminAnnouncements />} />
                         <Route path="resources"  element={<AdminResources />} />
-                        <Route path="events"     element={<AdminEvents />} />
                         <Route path="calendar"   element={<AdminCalendar />} />
                         <Route path="projects"   element={<AdminProjects />} />
                         <Route path="rooms"      element={<AdminRooms />} />
@@ -301,6 +297,14 @@ export default function App() {
         <Route path="/attendance/*" element={null} />
         <Route path="*"        element={<Footer />} />
       </Routes>
+
+      {forumFlip && (
+        <ForumFlipOverlay
+          triggerRect={forumFlip.rect}
+          borderRadius={forumFlip.borderRadius}
+          onClose={() => setForumFlip(null)}
+        />
+      )}
 
     </div>
   )

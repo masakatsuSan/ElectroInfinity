@@ -8,21 +8,17 @@ import SEO from '../components/SEO'
 const CATEGORIES = [
   { key: 'all', label: 'All' },
   { key: 'general', label: 'General' },
-  { key: 'exam', label: 'Exam' },
-  { key: 'lab', label: 'Lab' },
-  { key: 'event', label: 'Event' },
   { key: 'academic', label: 'Academic' },
-  { key: 'placement', label: 'Placement' },
+  { key: 'class', label: 'Class' },
+  { key: 'exam', label: 'Exam' },
   { key: 'urgent', label: 'Urgent' },
 ]
 
 const CATEGORY_COLORS = {
   urgent:    { bg: 'bg-coral/10',     text: 'text-coral',         border: 'border-coral/30',        dot: 'bg-coral' },
   exam:      { bg: 'bg-action-blue/10', text: 'text-action-blue', border: 'border-action-blue/30', dot: 'bg-action-blue' },
-  lab:       { bg: 'bg-pale-green',  text: 'text-deep-green',    border: 'border-pale-green',      dot: 'bg-deep-green' },
-  event:     { bg: 'bg-form-focus/10', text: 'text-form-focus',  border: 'border-form-focus/30',   dot: 'bg-form-focus' },
+  class:     { bg: 'bg-form-focus/10', text: 'text-form-focus',  border: 'border-form-focus/30',   dot: 'bg-form-focus' },
   academic:  { bg: 'bg-orange-50',   text: 'text-orange-600',    border: 'border-orange-200',      dot: 'bg-orange-400' },
-  placement: { bg: 'bg-indigo-50',  text: 'text-indigo-600',    border: 'border-indigo-200',      dot: 'bg-indigo-400' },
   general:   { bg: 'bg-soft-stone',  text: 'text-slate',          border: 'border-hairline',        dot: 'bg-slate' },
 }
 

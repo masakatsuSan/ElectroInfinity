@@ -35,7 +35,7 @@ const protect = async (req, res, next) => {
 
 // ─── guard ─────────────────────────────────────────────────────────────────
 // Use this to restrict a route to certain roles
-// e.g. router.post('/notices', protect, guard('admin','super_admin'), createNotice)
+// e.g. router.post('/announcements', protect, guard('admin','faculty'), createAnnouncement)
 const guard = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {

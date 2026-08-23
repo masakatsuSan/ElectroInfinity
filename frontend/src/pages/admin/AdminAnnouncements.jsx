@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement } from '../../api/announcements'
-import { Plus, Edit2, Trash2, Pin, PinOff } from 'lucide-react'
+import { BATCHES } from '../../data/batches'
+import { Edit2, Trash2, Pin, PinOff } from 'lucide-react'
 
-const CATS = ['general', 'academic', 'exam', 'placement', 'event', 'urgent']
+const CATS = ['general', 'academic', 'class', 'exam', 'urgent']
 const AUDIENCES = [
-  { value: 'all', label: 'All' },
-  { value: 'batch', label: 'Batch' },
+  { value: 'all', label: 'All Batches' },
+  { value: 'batch', label: 'Specific Batch' },
 ]
 const BLANK = { title: '', content: '', category: 'general', isPinned: false, targetAudience: 'all', batchId: '', expiresAt: '' }
 
@@ -20,9 +21,8 @@ function toDateTimeLocal(iso) {
 const CAT_COLORS = {
   general: 'bg-soft-stone text-ink-muted-80 border-hairline',
   academic: 'bg-blue-50 text-blue-600 border-blue-100',
+  class: 'bg-purple-50 text-purple-600 border-purple-100',
   exam: 'bg-red-50 text-red-600 border-red-100',
-  placement: 'bg-green-50 text-green-600 border-green-100',
-  event: 'bg-purple-50 text-purple-600 border-purple-100',
   urgent: 'bg-orange-50 text-orange-600 border-orange-100',
 }
 
@@ -35,7 +35,7 @@ export default function AdminAnnouncements() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['announcements', 'admin'],
-    queryFn: () => getAnnouncements({ limit: 100 }).then(r => r.data),
+    queryFn: () => getAnnouncements({ limit: 100, includeExpired: true }).then(r => r.data),
   })
 
   const createMut = useMutation({
@@ -62,13 +62,9 @@ export default function AdminAnnouncements() {
     onError: (err) => setError(err.response?.data?.error || 'Delete failed'),
   })
 
-  const pinMut = useMutation({
-    mutationFn: (id) => updateAnnouncement(id, { isPinned: !editing?.isPinned }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['announcements'] }),
-  })
-
   const handleSave = () => {
     if (!form.title || !form.content) return setError('Title and content are required')
+    if (form.targetAudience === 'batch' && !form.batchId) return setError('Select a target classroom (batch)')
     setError('')
     if (editing) {
       updateMut.mutate({ id: editing._id, ...form })
@@ -85,7 +81,6 @@ export default function AdminAnnouncements() {
   }
 
   const togglePin = (a) => {
-    setEditing(a)
     updateAnnouncement(a._id, { isPinned: !a.isPinned }).then(() => qc.invalidateQueries({ queryKey: ['announcements'] }))
   }
 
@@ -100,7 +95,7 @@ export default function AdminAnnouncements() {
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <h1 className="font-display font-semibold text-[28px] tracking-tight text-ink">Announcements</h1>
         <button onClick={openCreate} className="button-primary !px-5 !py-2.5">
-          {editing ? 'Edit Form' : '+ New Announcement'}
+          + New Announcement
         </button>
       </div>
 
@@ -128,12 +123,18 @@ export default function AdminAnnouncements() {
                 {AUDIENCES.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
               </select>
             </div>
-            <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Batch ID</label>
-              <input value={form.batchId} onChange={set('batchId')} className="input w-full" placeholder="e.g. 2024-2028" />
-            </div>
+            {form.targetAudience === 'batch' && (
               <div>
-                <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Expires At</label>
+                <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Target Classroom *</label>
+                <select value={form.batchId} onChange={set('batchId')} className="input w-full">
+                  <option value="">Select a batch</option>
+                  {BATCHES.map(b => <option key={b} value={b}>{b}</option>)}
+                </select>
+                <p className="font-sans text-[12px] text-slate mt-1">Only students of this batch will see the announcement.</p>
+              </div>
+            )}
+            <div>
+              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Expires At (optional)</label>
               <input type="datetime-local" value={form.expiresAt} onChange={set('expiresAt')} className="input w-full" />
             </div>
             <div className="flex items-center gap-2 pt-6">
@@ -169,7 +170,7 @@ export default function AdminAnnouncements() {
                   </div>
                   <p className="font-sans text-[13px] text-ink-muted-80 mt-1 line-clamp-2">{a.content}</p>
                   <p className="font-sans text-[12px] text-slate mt-1.5">
-                    {a.targetAudience !== 'all' ? `Target: ${a.targetAudience}${a.batchId ? ` (${a.batchId})` : ''}` : 'Target: All'}
+                    {a.targetAudience === 'batch' && a.batchId ? `Target: ${a.batchId}` : 'Target: All Batches'}
                     {a.expiresAt ? ` · Expires ${new Date(a.expiresAt).toLocaleDateString('en-IN')}` : ''}
                     <span className="ml-2">{new Date(a.createdAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })}</span>
                   </p>

@@ -52,9 +52,9 @@ export default function Achievements() {
     photo: a.image
   })
 
-  const STUDENT_ACH = allAchievements.filter(a => a.category === 'academic' || a.category === 'sports').map(formatAch)
-  const FACULTY_ACH = allAchievements.filter(a => a.category === 'other').map(formatAch) // assuming faculty falls under other or create a new category later
-  const AWARDS = allAchievements.filter(a => a.category === 'cultural').map(formatAch) // just placeholder categorizations
+  const STUDENT_ACH = allAchievements.filter(a => a.category === 'student').map(formatAch)
+  const FACULTY_ACH = allAchievements.filter(a => a.category === 'faculty').map(formatAch)
+  const AWARDS = allAchievements.filter(a => a.category === 'awards').map(formatAch)
 
   return (
     <div className="min-h-screen pb-20 bg-canvas pt-28">
@@ -99,11 +99,6 @@ export default function Achievements() {
           </div>
         </div>
 
-        <div className="pt-8 mt-16 text-center border-t border-divider-soft">
-          <p className="font-sans text-[11px] uppercase tracking-[0.15em] text-ink-muted-48">
-            Replace placeholder data with real achievements — or connect to MongoDB in Phase 4 admin panel
-          </p>
-        </div>
       </div>
     </div>
   )

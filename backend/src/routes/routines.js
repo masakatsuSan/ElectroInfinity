@@ -18,8 +18,8 @@ router.get('/', protect, async (req, res) => {  try {
 })
 
 // PUT /api/routines/:batch
-// Upserts the schedule for a batch. Only CR of that batch or admins can do this.
-router.put('/:batch', protect, guard('admin', 'super_admin', 'cr'), async (req, res) => {  try {
+// Upserts the schedule for a batch. Only admins can do this (CRs manage content via their panel sections).
+router.put('/:batch', protect, guard('admin', 'super_admin'), async (req, res) => {  try {
     const { batch } = req.params
     const { schedule } = req.body
     

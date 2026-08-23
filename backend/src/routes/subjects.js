@@ -179,7 +179,7 @@ router.patch('/:id/approve', protect, guard('admin', 'super_admin'), async (req,
   }
 })
 
-router.patch('/:id', protect, guard('admin', 'super_admin', 'cr', 'faculty'), async (req, res) => {
+router.patch('/:id', protect, guard('admin', 'super_admin', 'faculty'), async (req, res) => {
   try {
     const { name, code, batch, section, semester, credits, modules, syllabus, referenceBooks, objectives, l, t, p } = req.body
     const subject = await Subject.findById(req.params.id)

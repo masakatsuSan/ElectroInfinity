@@ -40,7 +40,7 @@ export default function Footer() {
             <ul className="flex flex-col gap-3.5">
               <li><Link to="/courses" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Course Syllabus</Link></li>
               <li><Link to="/resources" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Study Resources & Notes</Link></li>
-              <li><Link to="/events" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Workshops & Events</Link></li>
+              <li><Link to="/announcements" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Announcements</Link></li>
               <li><Link to="/calendar" className="font-sans text-[14px] text-[#93939f] hover:text-white transition-colors">Academic Calendar</Link></li>
             </ul>
           </div>

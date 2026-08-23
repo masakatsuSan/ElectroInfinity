@@ -3,6 +3,10 @@ import api from './axios'
 export const getAnnouncements = (params) =>
   api.get('/announcements', { params })
 
+// Faculty-only - announcements authored by the logged-in faculty member
+export const getMyAnnouncements = () =>
+  api.get('/announcements/faculty/mine')
+
 export const getAnnouncement = (id) =>
   api.get(`/announcements/${id}`)
 

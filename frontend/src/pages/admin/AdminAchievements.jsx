@@ -3,8 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAchievements, createAchievement, updateAchievement, deleteAchievement } from '../../api/achievements'
 import { Check, X } from 'lucide-react'
 
-const CATS = ['academic', 'sports', 'cultural', 'other']
-const BLANK = { title: '', description: '', date: '', category: 'academic', students: '' }
+const CATS = [
+  { value: 'student', label: 'Student Achievements' },
+  { value: 'faculty', label: 'Faculty Achievements' },
+  { value: 'awards', label: 'Awards & Certificates' },
+]
+const CAT_LABELS = Object.fromEntries(CATS.map(c => [c.value, c.label]))
+const BLANK = { title: '', description: '', date: '', category: 'student', students: '' }
 
 function toDateTimeLocal(iso) {
   if (!iso) return ''
@@ -56,7 +61,7 @@ export default function AdminAchievements() {
       title: a.title || '',
       description: a.description || '',
       date: toDateTimeLocal(a.date),
-      category: a.category || 'academic',
+      category: a.category || 'student',
       students: (a.students || []).join(', ')
     })
     setPreview(a.image || '')
@@ -124,7 +129,7 @@ export default function AdminAchievements() {
             <div>
               <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Category</label>
               <select value={form.category} onChange={set('category')} className="input w-full">
-                {CATS.map(c => <option key={c} value={c}>{c}</option>)}
+                {CATS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
             <div>
@@ -174,7 +179,7 @@ export default function AdminAchievements() {
                   <p className="text-[16px] font-semibold text-ink">{a.title}</p>
                   <p className="font-sans text-[13px] text-ink-muted-80 mt-1 line-clamp-2">{a.description}</p>
                   <div className="flex items-center gap-3 mt-2">
-                    <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate">{a.category}</span>
+                    <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate">{CAT_LABELS[a.category] || a.category}</span>
                     {a.date && (
                       <span className="font-mono text-[11px] text-ink-muted-80">{new Date(a.date).toLocaleDateString()}</span>
                     )}

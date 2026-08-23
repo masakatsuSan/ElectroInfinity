@@ -5,9 +5,10 @@ import BackButton from '../../components/BackButton'
 import { MapPin, Radio, Check, AlertTriangle, Video, RefreshCw, Power } from 'lucide-react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { getActiveBatchSession, scanQr, getMyStats } from '../../api/attendance'
-import { getBestLocation, getAnchoredLocation, getStationary } from '../../utils/location'
+import { getAnchoredLocation, createWarmLocation, createStationaryMonitor } from '../../utils/location'
 import { requestCameraPermission } from '../../utils/permissions'
 import PermissionBanner from '../../components/PermissionBanner'
+import ErrorBoundary from '../../components/ErrorBoundary'
 
 function fmtCoord(value, digits = 6) {
   const n = Number(value)
@@ -50,6 +51,16 @@ export default function StudentAttendance() {
   // Tracks whether the live video feed is actually running (so the UI can show
   // "Starting…" / "Camera Active" instead of looking frozen).
   const [cameraActive, setCameraActive] = useState(false)
+  // Single-flight scan guard: while one QR frame is being verified, the 10fps
+  // decoder must not spawn parallel scans (the old glitch source).
+  const scanInFlightRef = useRef(false)
+  // Warm sensors started when the camera opens — a GPS fix & motion samples
+  // are ready BEFORE the QR is decoded, so verification takes ~1s not ~10s.
+  const warmLocationRef = useRef(null)
+  const stationaryMonitorRef = useRef(null)
+  const activeSessionRef = useRef(null)
+  const successTimerRef = useRef(null)
+  const [verifying, setVerifying] = useState(false)
 
   const normalize = (value) => String(value ?? '').trim().toLowerCase()
 
@@ -75,6 +86,19 @@ export default function StudentAttendance() {
     }
   }, [user])
 
+  // Keep the latest session reachable from long-lived scanner callbacks
+  useEffect(() => {
+    activeSessionRef.current = activeSession
+  }, [activeSession])
+
+  // Clear pending timers & sensors on unmount — no stray state writes after
+  // the page is gone.
+  useEffect(() => () => {
+    if (successTimerRef.current) clearTimeout(successTimerRef.current)
+    warmLocationRef.current?.stop()
+    stationaryMonitorRef.current?.stop()
+  }, [])
+
   const refreshStudentGps = async () => {
     try {
       setError('')
@@ -85,7 +109,7 @@ export default function StudentAttendance() {
         accuracy: gps.accuracy,
         timestamp: new Date().toLocaleTimeString(),
       })
-      setMsg(`GPS refreshed: ${fmtCoord(gps.latitude)}°, ${fmtCoord(gps.longitude)}° (±${gps.accuracy}m)`)
+      setMsg(`GPS refreshed: ${fmtCoord(gps.latitude)}°, ${fmtCoord(gps.longitude)}° (±${gps.accuracy ?? '?'}m)`)
     } catch (err) {
       setError(err.message || 'Failed to refresh GPS location')
     }
@@ -173,17 +197,21 @@ export default function StudentAttendance() {
   // Keep the latest scan handler reachable from the long-lived scanner instance
   const runScanRef = useRef(async () => {})
   runScanRef.current = async (decodedText) => {
-    // Prevent rapid repeated scans (debounce)
-    const now = Date.now()
-    if (now - scanCooldownRef.current < 2000) {
+    // Single-flight: while one scan is being verified, the 10fps decoder must
+    // not spawn parallel scans (the old glitch: overlapping GPS waits, success
+    // and failure states fighting each other, duplicate POSTs).
+    if (scanInFlightRef.current) return
+    if (Date.now() - scanCooldownRef.current < 1500) {
       return
     }
+    scanInFlightRef.current = true
 
     setError('')
     setMsg('')
     setScanSuccess(null)
     scanRetryCountRef.current = 0
     setScanRetryCount(0)
+    setVerifying(true)
 
     try {
       let payload
@@ -197,11 +225,6 @@ export default function StudentAttendance() {
       if (!sessionId || !token) {
         throw new Error('QR payload is missing session token. Please scan the latest code on the faculty screen.')
       }
-
-      // Step: get the best GPS fix we can, then verify with the backend.
-      // If the first fix is rejected for poor indoor accuracy, try once more
-      // with a longer sampling window (GPS often firms up in a few seconds).
-      let retried = false
 
       const recordDebug = (gps) => {
         setGpsDebug({
@@ -220,10 +243,12 @@ export default function StudentAttendance() {
           distance: res.data.distanceInMeters,
           checkpoint: cp,
         })
-        // Show success overlay with animation
+        // Show success overlay with animation, then auto-dismiss. The timer is
+        // tracked so it can be cancelled on unmount/restart (no stray writes).
         setShowSuccessOverlay(true)
-        // Auto-dismiss and reset after 2.5 seconds
-        setTimeout(() => {
+        if (successTimerRef.current) clearTimeout(successTimerRef.current)
+        successTimerRef.current = setTimeout(() => {
+          successTimerRef.current = null
           setShowSuccessOverlay(false)
           stopScanner()
           loadData()
@@ -231,14 +256,18 @@ export default function StudentAttendance() {
         scanCooldownRef.current = Date.now()
       }
 
-      const doScan = async (timeoutMs, maxAccuracy) => {
-        setMsg('Verifying location…')
-        const [gps, stationary] = await Promise.all([
-          getStudentGps(activeSession, timeoutMs, maxAccuracy),
-          getStationary(),
-        ])
+      // Fast path: GPS has been pre-warmed since the camera opened, so this
+      // resolves instantly with the fresh fix. Cold path: a brief 2.5s top-up
+      // (was 4.5s). Motion comes from the rolling monitor — no extra wait.
+      const doScan = async ({ timeoutMs = 2500, freshOnly = false } = {}) => {
+        const warm = warmLocationRef.current
+        const gps = warm
+          ? freshOnly
+            ? await warm.getFreshFix({ timeoutMs })
+            : await warm.getFix({ timeoutMs })
+          : await getStudentGps(activeSessionRef.current, freshOnly ? 3500 : timeoutMs, 200)
+        const stationary = stationaryMonitorRef.current?.snapshot?.() ?? null
         recordDebug(gps)
-        setMsg(`Location fix ±${gps.accuracy}m — verifying…`)
         return scanQr({
           sessionId,
           token,
@@ -251,40 +280,42 @@ export default function StudentAttendance() {
       }
 
       try {
-        const res = await doScan(4500, 200)
+        const res = await doScan()
         await complete(res, checkpointNumber)
       } catch (scanErr) {
         const scanText = scanErr.response?.data?.error || scanErr.message || ''
         if (
-          !retried &&
           /accuracy|confident|too poor|far|geofence|inside|stable|imprecise/i.test(scanText)
         ) {
-          retried = true
-          const res2 = await doScan(6500, 250)
+          // Retry ONCE with a brand-new GPS sample (the warm fix already
+          // failed) — shorter budget than before (3.5s vs 6.5s).
+          const res2 = await doScan({ timeoutMs: 3500, freshOnly: true })
           await complete(res2, checkpointNumber)
         } else {
           throw scanErr
         }
       }
     } catch (err) {
-      scanCooldownRef.current = now
+      scanCooldownRef.current = Date.now()
       let errText = err.response?.data?.error || err.message || 'Attendance scan failed'
       if (/far|GPS|geofence|accuracy|confident|signal/i.test(errText)) {
         errText += ' If you are physically in class, ask faculty to tap Mark Present on you.'
       }
-      const debugData = err.response?.data?.debug
       setError(errText)
-      setErrorDebug(debugData)
+      setErrorDebug(err.response?.data?.debug || null)
 
-      // For geofence/GPS errors, keep scanning but pause after 2 failed attempts
-      if (errText.includes('far') || errText.includes('GPS') || errText.includes('geofence')) {
+      // For geofence/GPS errors keep scanning, but pause the camera after
+      // repeated failures so the screen doesn't thrash. pause() can throw if
+      // the scanner is already stopping — never let that escape.
+      if (/far|GPS|geofence/i.test(errText)) {
         scanRetryCountRef.current += 1
-        if (scanRetryCountRef.current < 2) {
-          // Allow 1-2 retries, then require manual intervention
-          return
+        if (scanRetryCountRef.current >= 2) {
+          try { scannerInstance.current?.pause?.() } catch {}
         }
-        scannerInstance.current?.pause?.()
       }
+    } finally {
+      setVerifying(false)
+      scanInFlightRef.current = false
     }
   }
 
@@ -304,6 +335,21 @@ export default function StudentAttendance() {
     const scanner = new Html5Qrcode('qr-reader')
     scannerInstance.current = scanner
 
+    // Pre-warm GPS + motion sensors while the camera opens and the student
+    // aims. By decode time a fresh fix is usually ready → verification POSTs
+    // in ~1s instead of waiting 4-11s for a cold GPS lock.
+    const warmSession = activeSessionRef.current
+    warmLocationRef.current?.stop()
+    warmLocationRef.current = createWarmLocation({
+      targetLat: warmSession?.centerLat ?? null,
+      targetLng: warmSession?.centerLng ?? null,
+      maxAccuracyMeters: 200,
+    })
+    warmLocationRef.current.start()
+    stationaryMonitorRef.current?.stop()
+    stationaryMonitorRef.current = createStationaryMonitor()
+    stationaryMonitorRef.current.start()
+
     const scanConfig = {
       fps: 10,
       qrbox: { width: 260, height: 260 },
@@ -319,7 +365,13 @@ export default function StudentAttendance() {
           await scanner.start(
             { facingMode: 'environment' },
             scanConfig,
-            (decodedText) => runScanRef.current(decodedText),
+            (decodedText) => {
+              // Never let a scanner-callback rejection escape — an unhandled
+              // error here used to bubble up into a full-page crash.
+              Promise.resolve(runScanRef.current(decodedText)).catch((e) =>
+                console.warn('[scanner] scan handler error:', e)
+              )
+            },
             () => {}
           )
 
@@ -337,7 +389,11 @@ export default function StudentAttendance() {
         await scanner.start(
           currentCameraId,
           scanConfig,
-          (decodedText) => runScanRef.current(decodedText),
+          (decodedText) => {
+            Promise.resolve(runScanRef.current(decodedText)).catch((e) =>
+              console.warn('[scanner] scan handler error:', e)
+            )
+          },
           () => {}
         )
       } catch (err) {
@@ -363,6 +419,8 @@ export default function StudentAttendance() {
 
     return () => {
       cancelled = true
+      warmLocationRef.current?.stop()
+      stationaryMonitorRef.current?.stop()
       scanner.stop().then(() => {
         try {
           scanner.clear()
@@ -522,7 +580,16 @@ export default function StudentAttendance() {
         )}
 
         {/* Notifications */}
-        {msg && (
+        {verifying && (
+          <div className="p-5 border rounded-2xl bg-blue-500/10 border-blue-500/30 flex items-center gap-3">
+            <span className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+            <div>
+              <p className="font-sans text-[15px] font-bold text-blue-700 dark:text-blue-300">Verifying location…</p>
+              <p className="font-sans text-[12px] text-ink-muted-80 mt-0.5">Checking your GPS against the classroom geofence.</p>
+            </div>
+          </div>
+        )}
+        {msg && !verifying && (
           <div className="p-5 text-green-800 border rounded-2xl bg-green-500/15 border-green-500/30 dark:text-green-300">
             <div className="flex items-center gap-2 font-bold text-[16px]">
               <span><Check size={14} /></span> {msg}
@@ -622,6 +689,21 @@ export default function StudentAttendance() {
             </p>
           </div>
         ) : (
+          <ErrorBoundary
+            resetKey={scannerEpoch}
+            fallback={
+              <div className="p-6 space-y-3 border border-amber-500/40 bg-amber-500/5 rounded-2xl text-center">
+                <AlertTriangle size={28} className="mx-auto text-amber-500" />
+                <h3 className="font-display text-[18px] font-bold text-ink">Scanner hit a snag</h3>
+                <p className="font-sans text-[13px] text-ink-muted-80">
+                  The camera component hit an unexpected error, but the rest of the page is fine. Restart to try again.
+                </p>
+                <button onClick={restartCamera} className="button-primary !py-2.5 !px-5 text-[14px]">
+                  <RefreshCw size={14} /> Restart Scanner
+                </button>
+              </div>
+            }
+          >
           <div className="p-5 space-y-4 border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
             {/* Scanner header — Stop / Restart controls live OUTSIDE the camera viewport */}
             <div className="flex items-center justify-between gap-2">
@@ -684,6 +766,7 @@ export default function StudentAttendance() {
               </p>
             </div>
           </div>
+          </ErrorBoundary>
         )}
 
         {/* GPS Refresh & Debug Info */}
@@ -708,7 +791,7 @@ export default function StudentAttendance() {
                   Lng: {fmtCoord(gpsDebug.longitude)}°
                 </p>
                 <p className="font-mono text-[11px] text-ink-muted-80">
-                  Accuracy: ±{gpsDebug.accuracy}m
+                  Accuracy: {gpsDebug.accuracy != null ? `±${gpsDebug.accuracy}m` : '—'}
                 </p>
                 <p className="font-mono text-[11px] text-ink-muted-80 opacity-60">
                   Updated: {gpsDebug.timestamp}

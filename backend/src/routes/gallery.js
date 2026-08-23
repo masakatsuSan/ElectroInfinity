@@ -32,7 +32,7 @@ router.get('/:id', async (req, res) => {
 router.post(
   '/',
   protect,
-  guard('super_admin', 'admin'),
+  guard('super_admin', 'admin', 'cr'),
   upload.single('image'),
   async (req, res) => {
     try {
@@ -75,7 +75,7 @@ router.post(
 router.put(
   '/:id',
   protect,
-  guard('super_admin', 'admin'),
+  guard('super_admin', 'admin', 'cr'),
   upload.single('image'),
   async (req, res) => {
     try {
@@ -113,7 +113,7 @@ router.put(
 
 // ── DELETE /api/gallery/:id ─────────────────────────────────────────
 // Admin removes a moment (and the underlying Cloudinary image)
-router.delete('/:id', protect, guard('super_admin', 'admin'), async (req, res) => {
+router.delete('/:id', protect, guard('super_admin', 'admin', 'cr'), async (req, res) => {
   try {
     const photo = await Gallery.findById(req.params.id)
     if (!photo) return res.status(404).json({ success: false, error: 'Not found' })

@@ -7,6 +7,16 @@ export const LOCATION_SETTINGS = {
 // Classroom-safe GPS accuracy threshold (indoor environment)
 const DEFAULT_MAX_ACCURACY_METERS = 120
 
+// Distance from the faculty anchor within which a reading counts as "inside
+// the classroom" for ranking/early-exit purposes. Matches the backend's real
+// effective radius (50m base + accuracy slack, capped ~190m) far better than
+// the old 200m+ values, so we don't hand the backend a fix it must reject.
+const ANCHOR_INSIDE_METERS = 120
+
+// GPS accuracy early-exit: indoor phones rarely report <30m, which made every
+// scan burn its entire sampling budget. 50m inside the anchor radius is ample.
+const EARLY_EXIT_ACCURACY_METERS = 50
+
 function isValidCoordinate(latitude, longitude) {
   return Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180
 }
@@ -130,7 +140,9 @@ export function getAnchoredLocation({
       const { latitude, longitude, accuracy } = pos.coords
       if (!isValidCoordinate(latitude, longitude)) return
 
-      const meterAccuracy = Number.isFinite(accuracy) ? Math.round(accuracy) : 999
+      // Missing accuracy is stored as null (never a fake 999) so the UI shows
+      // "—" and the backend treats it as unknown instead of inflating slack.
+      const meterAccuracy = Number.isFinite(accuracy) ? Math.round(accuracy) : null
       const reading = {
         latitude,
         longitude,
@@ -138,11 +150,17 @@ export function getAnchoredLocation({
         targetDistance: preferTarget
           ? distanceMeters(latitude, longitude, targetLat, targetLng)
           : Infinity,
+        ts: Date.now(),
       }
       readings.push(reading)
 
       // Early exit: an accurate fix already close to the anchor is good enough.
-      if (meterAccuracy < 30 && (!preferTarget || reading.targetDistance <= maxAccuracyMeters)) {
+      // (50m accuracy / 120m from anchor — reachable indoors, was 30m/200m.)
+      if (
+        meterAccuracy != null &&
+        meterAccuracy < EARLY_EXIT_ACCURACY_METERS &&
+        (!preferTarget || reading.targetDistance <= ANCHOR_INSIDE_METERS)
+      ) {
         finish(selectBest(readings))
         return
       }
@@ -197,11 +215,16 @@ export function getAnchoredLocation({
 // most accurate fix. Inside the geofence, closeness to the anchor outweighs a
 // slightly better accuracy number, so "standing next to faculty" wins over a
 // random high-confidence fix far away.
+function rankReading(r, maxAccuracyMeters) {
+  // Missing accuracy must not poison the sort (NaN) — treat it as worst-case.
+  const acc = Number.isFinite(r.accuracy) ? r.accuracy : 999
+  const inside = r.targetDistance != null && r.targetDistance <= maxAccuracyMeters
+  return inside ? r.targetDistance * 0.35 + acc : 100000 + acc
+}
+
 function selectBest(readings, maxAccuracyMeters = DEFAULT_MAX_ACCURACY_METERS) {
-  const ranked = readings.map((r) => {
-    const inside = r.targetDistance != null && r.targetDistance <= maxAccuracyMeters
-    return { r, rank: inside ? r.targetDistance * 0.35 + r.accuracy : 100000 + r.accuracy }
-  })
+  if (!readings || readings.length === 0) return null
+  const ranked = readings.map((r) => ({ r, rank: rankReading(r, maxAccuracyMeters) }))
   ranked.sort((a, b) => a.rank - b.rank)
   return ranked[0].r
 }
@@ -247,4 +270,174 @@ function computeStationary(samples) {
   const variance =
     magnitudes.reduce((a, v) => a + (v - mean) * (v - mean), 0) / magnitudes.length
   return variance < STATIONARY_VARIANCE_THRESHOLD
+}
+
+// ── Continuous stationary monitor ────────────────────────────────────────────
+// Starts at scanner open and keeps a rolling window of accelerometer samples,
+// so "is the device still?" can be answered instantly at scan time instead of
+// adding a fixed 900ms wait after the QR decode.
+export function createStationaryMonitor({ windowMs = STATIONARY_WINDOW_MS } = {}) {
+  const samples = []
+  let handler = null
+  const Motion = typeof window !== 'undefined' ? window.DeviceMotionEvent : null
+  // iOS requires an explicit permission prompt — skip it and report unknown
+  // rather than interrupting the student mid-scan (same policy as getStationary).
+  const supported = Boolean(Motion) && typeof Motion.requestPermission !== 'function'
+
+  return {
+    start() {
+      if (!supported || handler) return
+      handler = (e) => {
+        const a = e.accelerationIncludingGravity
+        if (!a) return
+        const now = performance.now()
+        samples.push({ t: now, x: a.x || 0, y: a.y || 0, z: a.z || 0 })
+        while (samples.length && now - samples[0].t > windowMs) samples.shift()
+      }
+      window.addEventListener('devicemotion', handler)
+    },
+    // true/false when motion data exists, null when unavailable (unknown).
+    snapshot() {
+      if (!supported) return null
+      return computeStationary(samples)
+    },
+    stop() {
+      if (handler) {
+        window.removeEventListener('devicemotion', handler)
+        handler = null
+      }
+      samples.length = 0
+    },
+  }
+}
+
+// ── Warm GPS engine for the student scanner ──────────────────────────────────
+// Starts a watchPosition session the moment the camera opens and keeps the
+// best fresh fix in memory. By the time a QR code is decoded there is usually
+// a usable fix ready, so verification POSTs immediately instead of waiting
+// 4-11 seconds for a cold GPS lock.
+export function createWarmLocation({
+  targetLat = null,
+  targetLng = null,
+  maxAccuracyMeters = DEFAULT_MAX_ACCURACY_METERS,
+  freshnessMs = 8000,
+} = {}) {
+  const preferTarget = Number.isFinite(targetLat) && Number.isFinite(targetLng)
+  const readings = []
+  let watchId = null
+  let stopped = false
+  let permissionDenied = false
+
+  const handlePosition = (pos) => {
+    if (stopped) return
+    const { latitude, longitude, accuracy } = pos.coords
+    if (!isValidCoordinate(latitude, longitude)) return
+    readings.push({
+      latitude,
+      longitude,
+      accuracy: Number.isFinite(accuracy) ? Math.round(accuracy) : null,
+      targetDistance: preferTarget
+        ? distanceMeters(latitude, longitude, targetLat, targetLng)
+        : Infinity,
+      ts: Date.now(),
+    })
+    // Keep memory bounded — a scanner session never needs more than this.
+    if (readings.length > 30) readings.shift()
+  }
+
+  const handleError = (err) => {
+    if (err && (err.code === 1 || err.code === 'PERMISSION_DENIED')) {
+      permissionDenied = true
+    }
+    // Transient errors: keep the watch running, samples will come.
+  }
+
+  const bestWithin = (sinceMs = 0) => {
+    const now = Date.now()
+    const fresh = readings.filter((r) => now - r.ts <= freshnessMs && r.ts >= sinceMs)
+    return fresh.length ? selectBest(fresh, maxAccuracyMeters) : null
+  }
+
+  const waitFor = ({ sinceMs, timeoutMs, denyMessage, timeoutMessage }) =>
+    new Promise((resolve, reject) => {
+      const started = Date.now()
+      const iv = setInterval(() => {
+        if (permissionDenied) {
+          clearInterval(iv)
+          reject(new Error(denyMessage))
+          return
+        }
+        const got = bestWithin(sinceMs)
+        if (got) {
+          clearInterval(iv)
+          resolve(got)
+          return
+        }
+        if (Date.now() - started >= timeoutMs) {
+          clearInterval(iv)
+          reject(new Error(timeoutMessage))
+        }
+      }, 100)
+    })
+
+  const api = {
+    // Begin watching. Safe to call once per scanner session.
+    start() {
+      if (stopped || watchId != null) return
+      if (!navigator?.geolocation) return
+      try {
+        watchId = navigator.geolocation.watchPosition(handlePosition, handleError, {
+          ...LOCATION_SETTINGS,
+          enableHighAccuracy: true,
+          maximumAge: 0,
+        })
+      } catch {
+        watchId = null
+      }
+    },
+
+    // Best fresh fix right now (or null).
+    snapshot() {
+      return bestWithin(0)
+    },
+
+    // Resolve instantly with the warm fix; briefly wait for one only if none.
+    async getFix({ timeoutMs = 2500 } = {}) {
+      const warm = bestWithin(0)
+      if (warm) return warm
+      if (!navigator?.geolocation) {
+        throw new Error('Geolocation is not supported by your browser.')
+      }
+      return waitFor({
+        sinceMs: 0,
+        timeoutMs,
+        denyMessage: 'Location permission was denied. Allow location in your browser settings and re-scan.',
+        timeoutMessage: 'No GPS signal. Please turn on Location, move near a window, and re-scan.',
+      })
+    },
+
+    // Only accept readings newer than this call — used on retries, where the
+    // previous (already-rejected) fix must not be reused.
+    async getFreshFix({ timeoutMs = 3500 } = {}) {
+      if (!navigator?.geolocation) {
+        throw new Error('Geolocation is not supported by your browser.')
+      }
+      return waitFor({
+        sinceMs: Date.now(),
+        timeoutMs,
+        denyMessage: 'Location permission was denied. Allow location in your browser settings and re-scan.',
+        timeoutMessage: 'GPS is taking too long. Move near a window and re-scan.',
+      })
+    },
+
+    stop() {
+      stopped = true
+      if (watchId != null) {
+        try { navigator.geolocation.clearWatch(watchId) } catch {}
+        watchId = null
+      }
+    },
+  }
+
+  return api
 }

@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { CalendarDays, Bell, MessageCircle } from 'lucide-react'
+import { Bell, MessageCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
 
@@ -53,17 +52,6 @@ function formatDate(dateString) {
 
 export default function Dashboard() {
   const { user } = useAuth()
-  const [events, setEvents] = useState([])
-  const [announcements, setAnnouncements] = useState([])
-  const [posts, setPosts] = useState([])
-
-  const eventsQuery = useQuery({
-    queryKey: ['dashboard-events'],
-    queryFn: async () => {
-      const res = await api.get('/events', { params: { upcoming: true, limit: 5 } })
-      return res.data.data || []
-    },
-  })
 
   const announcementsQuery = useQuery({
     queryKey: ['dashboard-announcements'],
@@ -81,7 +69,7 @@ export default function Dashboard() {
     },
   })
 
-  if (eventsQuery.isLoading || announcementsQuery.isLoading || postsQuery.isLoading) {
+  if (announcementsQuery.isLoading || postsQuery.isLoading) {
     return (
       <div className="min-h-screen bg-canvas text-ink pt-28 pb-24">
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
@@ -89,13 +77,12 @@ export default function Dashboard() {
             <div className="h-8 w-40 bg-soft-stone rounded animate-pulse mb-2" />
             <div className="h-4 w-64 bg-soft-stone rounded animate-pulse" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-            <StatSkeleton />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
             <StatSkeleton />
             <StatSkeleton />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
           </div>
@@ -104,7 +91,6 @@ export default function Dashboard() {
     )
   }
 
-  const upcomingEvents = eventsQuery.data || []
   const recentAnnouncements = announcementsQuery.data || []
   const recentPosts = postsQuery.data || []
 
@@ -120,13 +106,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-          <StatCard
-            icon={CalendarDays}
-            label="Upcoming Events"
-            count={upcomingEvents.length}
-            accent="text-deep-green bg-pale-green"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
           <StatCard
             icon={Bell}
             label="Announcements"
@@ -141,30 +121,7 @@ export default function Dashboard() {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Section
-            title="Upcoming Events"
-            icon={CalendarDays}
-            items={upcomingEvents}
-            emptyMessage="No upcoming events scheduled."
-            renderItem={(e) => (
-              <div key={e._id} className="bg-canvas border border-hairline rounded-xl p-4 hover:border-slate/30 transition-colors">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-[15px] font-bold text-ink leading-snug line-clamp-1">{e.title}</h3>
-                </div>
-                <div className="flex items-center gap-3 text-[13px] text-body-muted">
-                  <span className="font-mono">{formatDate(e.date)}</span>
-                  {e.venue && (
-                    <>
-                      <span className="text-slate">·</span>
-                      <span className="truncate">{e.venue}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-          />
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Section
             title="Recent Announcements"
             icon={Bell}

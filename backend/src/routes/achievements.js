@@ -34,7 +34,7 @@ router.post('/', protect, guard('super_admin', 'admin'), upload.single('image'),
       title: title || '',
       description: description || '',
       date: date ? new Date(date) : Date.now(),
-      category: category || 'academic',
+      category: category || 'student',
       image,
       imagePublicId,
       students: students ? (typeof students === 'string' ? students.split(',').map(s => s.trim()).filter(Boolean) : students) : []

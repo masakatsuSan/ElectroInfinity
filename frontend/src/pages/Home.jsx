@@ -1,52 +1,16 @@
-import { useEffect, useRef, useState } from 'react'
-import { Check } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { Check } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
-import { getNotices } from '../api/notices'
+import { getAnnouncements } from '../api/announcements'
 import SEO from '../components/SEO'
-
-// ── Countdown component ──────────────────────────────────────────────────────
-function Countdown({ targetDate }) {
-  const [parts, setParts] = useState({ d: 0, h: 0, m: 0, s: 0 })
-
-  useEffect(() => {
-    const tick = () => {
-      let diff = Math.max(0, new Date(targetDate) - new Date())
-      const d = Math.floor(diff / 86400000); diff -= d * 86400000
-      const h = Math.floor(diff / 3600000);  diff -= h * 3600000
-      const m = Math.floor(diff / 60000);    diff -= m * 60000
-      const s = Math.floor(diff / 1000)
-      setParts({ d, h, m, s })
-    }
-    tick()
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [targetDate])
-
-  return (
-    <div className="flex justify-center gap-6 md:gap-12">
-      {[['d', 'Days'], ['h', 'Hours'], ['m', 'Mins'], ['s', 'Secs']].map(([k, label]) => (
-        <div key={k} className="text-center">
-          <div className="font-display font-medium text-[36px] md:text-[56px] leading-none text-ink tabular-nums tracking-tight">
-            {String(parts[k]).padStart(2, '0')}
-          </div>
-          <div className="font-mono text-[11px] uppercase tracking-wider text-slate mt-2">
-            {label}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
 
 export default function Home() {
   const { data, isLoading } = useQuery({
-    queryKey: ['notices', { limit: 4 }],
-    queryFn: () => getNotices({ limit: 4 }).then(r => r.data),
+    queryKey: ['announcements', { limit: 4 }],
+    queryFn: () => getAnnouncements({ limit: 4 }).then(r => r.data),
   })
 
-  const notices = data?.data || []
+  const announcements = data?.data || []
 
   return (
     <div className="bg-canvas text-ink">
@@ -186,65 +150,42 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── NEXT EVENT COUNTDOWN (Warm Stone Surface) ── */}
-      <section className="py-20 border-b md:py-28 bg-soft-stone border-hairline">
-        <div className="max-w-[1280px] mx-auto px-6 md:px-12 text-center">
-          <span className="font-mono text-[12px] uppercase tracking-wider text-slate font-semibold block mb-2">
-            Upcoming Department Workshop
-          </span>
-          <h2 className="font-display text-[32px] md:text-[44px] font-bold tracking-tight text-ink mb-4">
-            Workshop on Smart Grid & Microcontrollers
-          </h2>
-          <p className="font-sans text-[16px] text-body-muted max-w-lg mx-auto mb-10">
-            Live simulation on MATLAB/Simulink and hardware interfacing with ESP32 and industrial sensors.
-          </p>
-
-          <div className="mb-10">
-            <Countdown targetDate="2026-09-20T10:00:00" />
-          </div>
-
-          <Link to="/events" className="button-primary">
-            View Schedule & Register →
-          </Link>
-        </div>
-      </section>
-
-      {/* ── LATEST NOTICES (Research-table style) ── */}
+      {/* ── LATEST ANNOUNCEMENTS (Research-table style) ── */}
       <section className="py-20 md:py-28 bg-canvas">
         <div className="max-w-[1280px] mx-auto px-6 md:px-12">
           <div className="flex flex-col justify-between gap-4 pb-4 mb-12 border-b sm:flex-row sm:items-end border-hairline">
             <div>
               <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
-                Official Bulletins
+                Official Communications
               </span>
               <h2 className="font-display text-[32px] md:text-[40px] font-bold tracking-tight text-ink">
-                Department Notices
+                Latest Announcements
               </h2>
             </div>
-            <Link to="/resources" className="button-pill-outline text-[14px]">
-              View All Bulletins →
+            <Link to="/announcements" className="button-pill-outline text-[14px]">
+              View All Announcements →
             </Link>
           </div>
 
           <div className="overflow-hidden border border-hairline rounded-2xl shadow-card">
             {isLoading ? (
               <div className="p-12 text-center text-slate">Loading announcements…</div>
-            ) : notices.length > 0 ? (
+            ) : announcements.length > 0 ? (
               <div className="divide-y divide-hairline">
-                {notices.map(n => (
-                  <div key={n._id} className="flex flex-col justify-between gap-4 p-5 transition-colors md:p-6 sm:flex-row sm:items-center hover:bg-soft-stone/40">
+                {announcements.map(a => (
+                  <div key={a._id} className="flex flex-col justify-between gap-4 p-5 transition-colors md:p-6 sm:flex-row sm:items-center hover:bg-soft-stone/40">
                     <div className="flex items-center min-w-0 gap-4">
                       <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-md bg-pale-green text-deep-green border border-green-200 flex-shrink-0">
-                        {n.category || 'Academic'}
+                        {a.category || 'general'}
                       </span>
-                      <h3 className="font-sans text-[16px] font-semibold text-ink truncate">{n.title}</h3>
+                      <h3 className="font-sans text-[16px] font-semibold text-ink truncate">{a.title}</h3>
                     </div>
 
                     <div className="flex items-center flex-shrink-0 gap-4">
                       <span className="font-mono text-[12px] text-slate">
-                        {new Date(n.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {new Date(a.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
-                      <Link to="/resources" className="text-[13px] font-medium text-action-blue hover:underline">
+                      <Link to="/announcements" className="text-[13px] font-medium text-action-blue hover:underline">
                         Read →
                       </Link>
                     </div>
@@ -252,7 +193,7 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <div className="p-12 text-center text-slate">No recent notices published.</div>
+              <div className="p-12 text-center text-slate">No announcements published yet.</div>
             )}
           </div>
         </div>

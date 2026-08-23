@@ -1,4 +1,4 @@
-﻿import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+﻿import { NavLink, Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import BackButton from '../../components/BackButton'
 
@@ -7,9 +7,7 @@ import {
   ClipboardCheck,
   Users,
   UserCheck,
-  Bell,
   FolderOpen,
-  CalendarDays,
   Clock,
   CalendarClock,
   Building2,
@@ -32,10 +30,8 @@ const LINKS = [
   { to: '/admin/labs',        label: 'Laboratories',         icon: Building2 },
   { to: '/admin/courses',     label: 'Courses',              icon: BookOpen },
   { to: '/admin/rooms',       label: 'Community Rooms',      icon: Hash },
-  { to: '/admin/notices',     label: 'Notices',              icon: Bell },
   { to: '/admin/announcements', label: 'Announcements',      icon: Megaphone },
   { to: '/admin/resources',   label: 'Resources',            icon: FolderOpen },
-  { to: '/admin/events',      label: 'Events',               icon: CalendarDays },
   { to: '/admin/calendar',    label: 'Academic Calendar',    icon: CalendarRange },
   { to: '/admin/projects',    label: 'Projects',             icon: Code2 },
   { to: '/admin/gallery',     label: 'Gallery',              icon: Image },
@@ -48,19 +44,33 @@ const LINKS = [
 export default function AdminLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const handleLogout = () => {
     logout()
     navigate('/')
   }
 
-  // CRs can view everything except the Contact inbox (admin-only)
+  // CRs get full CRUD on exactly these sections — nothing else in the panel
+  const CR_SECTIONS = [
+    '/admin/labs',
+    '/admin/rooms',
+    '/admin/announcements',
+    '/admin/resources',
+    '/admin/calendar',
+    '/admin/gallery',
+    '/admin/deadlines',
+  ]
+
+  // Deep-link guard: bounce CRs out of any admin page outside their sections
+  const normalizedPath = location.pathname.replace(/\/+$/, '') || '/admin'
+  if (user?.role === 'cr' && !CR_SECTIONS.includes(normalizedPath)) {
+    return <Navigate to="/admin/announcements" replace />
+  }
+
   const availableLinks = LINKS.filter(l => {
     if (user?.role === 'cr') {
-      return ['/admin', '/admin/faculty', '/admin/labs', '/admin/courses', '/admin/gallery',
-        '/admin/notices', '/admin/announcements', '/admin/resources', '/admin/events', '/admin/calendar',
-        '/admin/projects', '/admin/deadlines', '/admin/routines', '/admin/attendance', '/admin/rooms',
-        '/admin/achievements'].includes(l.to);
+      return CR_SECTIONS.includes(l.to);
     }
     return true;
   });

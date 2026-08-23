@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.post('/', protect, guard('super_admin', 'admin'), upload.single('image'), async (req, res) => {
+router.post('/', protect, guard('super_admin', 'admin', 'cr'), upload.single('image'), async (req, res) => {
   try {
     const { name, icon, desc, equip } = req.body
 
@@ -45,7 +45,7 @@ router.post('/', protect, guard('super_admin', 'admin'), upload.single('image'),
   }
 })
 
-router.put('/:id', protect, guard('super_admin', 'admin'), upload.single('image'), async (req, res) => {
+router.put('/:id', protect, guard('super_admin', 'admin', 'cr'), upload.single('image'), async (req, res) => {
   try {
     const lab = await Lab.findById(req.params.id)
     if (!lab) return res.status(404).json({ success: false, error: 'Not found' })
@@ -80,7 +80,7 @@ router.put('/:id', protect, guard('super_admin', 'admin'), upload.single('image'
   }
 })
 
-router.delete('/:id', protect, guard('super_admin', 'admin'), async (req, res) => {
+router.delete('/:id', protect, guard('super_admin', 'admin', 'cr'), async (req, res) => {
   try {
     const lab = await Lab.findById(req.params.id)
     if (!lab) return res.status(404).json({ success: false, error: 'Not found' })

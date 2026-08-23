@@ -71,8 +71,8 @@ router.patch('/:id', protect, guard('cr', 'admin', 'super_admin'), async (req, r
 
 // @route   DELETE /api/rooms/:id
 // @desc    Soft delete a community room
-// @access  Private (admin, super_admin)
-router.delete('/:id', protect, guard('admin', 'super_admin'), async (req, res) => {
+// @access  Private (cr, admin, super_admin)
+router.delete('/:id', protect, guard('cr', 'admin', 'super_admin'), async (req, res) => {
   try {
     const room = await CommunityRoom.findById(req.params.id);
     if (!room) {

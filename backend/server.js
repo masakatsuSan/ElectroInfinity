@@ -15,10 +15,8 @@ app.use(express.urlencoded({ extended: true }))
 // ── Routes ──────────────────────────────────────────────────────
 // Phase 1
 app.use('/api/auth',       require('./src/routes/auth'))
-app.use('/api/notices',    require('./src/routes/notices'))
 // Phase 2
 app.use('/api/resources',  require('./src/routes/resources'))
-app.use('/api/events',     require('./src/routes/events'))
 app.use('/api/contact',    require('./src/routes/contact'))
 // Phase 3
 app.use('/api/students',   require('./src/routes/students'))

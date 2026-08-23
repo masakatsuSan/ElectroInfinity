@@ -4,11 +4,10 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { changePassword } from '../api/auth';
-import { getNotices } from '../api/notices';
+import { getAnnouncements } from '../api/announcements';
 import { uploadPhoto, getBatchStudents } from '../api/students';
 import { getDeadlines, submitDeadline } from '../api/deadlines';
 import { getRoutine } from '../api/routines';
-import { getEvents } from '../api/events';
 import { getStudentHistory } from '../api/attendance';
 
 export default function Students() {
@@ -43,11 +42,11 @@ export default function Students() {
     enabled: activeTab === 'routine' && !!user?.batch,
   });
 
-  // Calendar Query
-  const { data: eventsData, isLoading: eventsLoading } = useQuery({
-    queryKey: ['events'],
-    queryFn: () => getEvents().then(r => r.data),
-    enabled: activeTab === 'calendar',
+  // Announcements Query
+  const { data: announcementsData, isLoading: announcementsLoading } = useQuery({
+    queryKey: ['announcements'],
+    queryFn: () => getAnnouncements({ limit: 20 }).then(r => r.data),
+    enabled: activeTab === 'announcements',
   });
 
   // Batch roster for deadlines and visible batch mates
@@ -70,11 +69,7 @@ export default function Students() {
     }
   });
 
-  const { data: noticeData, isLoading: noticeLoading } = useQuery({
-    queryKey: ['notices', 'student'],
-    queryFn: () => getNotices({ limit: 20 }).then(r => r.data),
-    enabled: activeTab === 'notices',
-  });
+  
 
   const photoMut = useMutation({
     mutationFn: (fd) => uploadPhoto(fd),
@@ -100,7 +95,7 @@ export default function Students() {
   const batchMates = (batchMatesData?.data || []).filter(student => student._id !== user?._id);
   const totalStudents = roster.length;
 
-  const TABS = ['attendance', 'deadlines', 'routine', 'calendar', 'notices', 'password'];
+  const TABS = ['attendance', 'deadlines', 'routine', 'announcements', 'password'];
 
   // Helper to format countdown
   const getCountdown = (dateStr) => {
@@ -208,9 +203,8 @@ export default function Students() {
             {t === 'attendance' ?  'Attendance'
             : t === 'deadlines' ? 'Deadlines'
             : t === 'routine' ? 'Routine'
-            : t === 'calendar' ? 'Calendar'
-            : t === 'password' ? 'Password'
-            : 'Notices'}
+                        : t === 'password' ? 'Password'
+            : 'Announcements'}
           </button>
         ))}
       </div>
@@ -434,7 +428,7 @@ export default function Students() {
                                   : 'bg-ink text-canvas hover:bg-ink/80 shadow-md'
                               }`}
                             >
-                              {hasSubmitted ? <><CheckCircle2 size={14} /> Submitted</> : 'Mark as Submitted'}
+                              {hasSubmitted ? <>Submitted</> : 'Mark as Submitted'}
                             </button>
                             <p className="font-sans text-[12px] text-ink-muted-48 mt-3">
                               {hasSubmitted ? 'You have completed this task.' : 'Click to mark your work as done.'}
@@ -518,49 +512,38 @@ export default function Students() {
         </div>
       )}
 
-      {/* ── Calendar ── */}
-      {activeTab === 'calendar' && (
-        <div className="flex flex-col overflow-hidden duration-300 border rounded-lg text-ink animate-in fade-in border-divider-soft">
-          {eventsLoading ? (
-            <div className="h-40 animate-pulse bg-black/5"></div>
-          ) : eventsData?.data?.length > 0 ? (
-            eventsData.data.map((c, i) => (
-              <div key={i} className="flex items-center justify-between px-6 py-4 transition-colors border-b border-divider-soft last:border-b-0 bg-surface-pearl hover:bg-canvas-parchment">
-                <p className="font-sans text-[17px] font-medium text-ink">{c.title}</p>
-                <p className="font-sans text-[14px] font-normal text-ink-muted-80">{new Date(c.date).toLocaleDateString()}</p>
-              </div>
-            ))
-          ) : (
-            <div className="py-16 text-center bg-surface-pearl">
-              <p className="text-ink-muted-80 font-sans text-[16px] font-[450]">No upcoming events.</p>
+      
+
+      {/* -- Announcements -- */}
+      {activeTab === 'announcements' && (
+        <div className="space-y-4 duration-300 animate-in fade-in">
+          {announcementsLoading ? (
+            <div className="h-40 rounded-lg animate-pulse bg-black/5"></div>
+          ) : announcementsData?.data?.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2">
+              {announcementsData.data.map(a => (
+                <div key={a._id} className="bg-surface-pearl rounded-lg p-[24px] border border-divider-soft text-left hover:shadow-product transition-shadow duration-300">
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-pale-green text-deep-green border border-green-200">
+                      {a.category || 'general'}
+                    </span>
+                    <span className="font-sans text-[13px] text-ink-muted-80">{new Date(a.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <h3 className="font-sans text-[17px] font-semibold text-ink mb-1">{a.title}</h3>
+                  {a.content && <p className="font-sans text-[14px] text-ink-muted-80 line-clamp-3">{a.content}</p>}
+                  {a.targetAudience === 'batch' && a.batchId && (
+                    <p className="font-mono text-[12px] text-slate mt-2">Target classroom: {a.batchId}</p>
+                  )}
+                </div>
+              ))}
             </div>
+          ) : (
+            <p className="text-ink-muted-80 text-[17px] py-12 text-center font-sans border border-divider-soft rounded-lg bg-surface-pearl">No announcements yet.</p>
           )}
         </div>
       )}
 
-      {/* ── Notices ── */}
-      {activeTab === 'notices' && (
-        <div className="duration-300 animate-in fade-in">
-          {noticeLoading ? <div className="h-40 rounded-lg animate-pulse bg-black/5"></div> : noticeData?.data?.length > 0
-            ? (
-               <div className="grid gap-6 md:grid-cols-2">
-                 {noticeData.data.map(n => (
-                   <div key={n._id} className="bg-surface-pearl rounded-lg p-[24px] border border-divider-soft text-left flex flex-col justify-between hover:shadow-product transition-shadow duration-300">
-                      <h3 className="font-sans text-[17px] font-semibold text-ink line-clamp-2 mb-2">{n.title}</h3>
-                      <div className="flex items-center justify-between mt-4">
-                        <span className="font-sans text-[14px] text-ink-muted-80">{new Date(n.createdAt).toLocaleDateString()}</span>
-                        <a href={n.pdfUrl || '#'} className="button-secondary-pill !px-3 !py-1 !text-[14px]">View</a>
-                      </div>
-                   </div>
-                 ))}
-               </div>
-            )
-            : <p className="text-ink-muted-80 text-[17px] py-12 text-center font-sans border border-divider-soft rounded-lg bg-surface-pearl">No notices yet.</p>}
-        </div>
-      )}
-
-      {/* ── Change Password ── */}
-      {activeTab === 'password' && (
+{activeTab === 'password' && (
         <div className="max-w-[400px] animate-in fade-in duration-300">
           <p className="font-sans text-[17px] font-normal text-ink-muted-80 mb-8">
             Change your account password.

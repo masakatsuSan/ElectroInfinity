@@ -99,8 +99,8 @@ router.patch('/:id', protect, guard('cr', 'admin', 'super_admin'), async (req, r
 
 // @route   DELETE /api/calendar/:id
 // @desc    Delete a calendar entry
-// @access  Private (admin, super_admin)
-router.delete('/:id', protect, guard('admin', 'super_admin'), async (req, res) => {
+// @access  Private (cr, admin, super_admin)
+router.delete('/:id', protect, guard('cr', 'admin', 'super_admin'), async (req, res) => {
   try {
     const entry = await AcademicCalendar.findById(req.params.id);
     if (!entry) {

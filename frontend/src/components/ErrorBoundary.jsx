@@ -24,6 +24,14 @@ export default class ErrorBoundary extends React.Component {
     console.error('[ErrorBoundary] Caught error:', error, errorInfo)
   }
 
+  // Optional resetKey: when the parent changes it (e.g. a "Restart" button
+  // bumping an epoch counter), clear the error and render children again.
+  componentDidUpdate(prevProps) {
+    if (this.props.resetKey !== prevProps.resetKey && this.state.error) {
+      this.setState({ error: null })
+    }
+  }
+
   handleReload = () => {
     window.location.reload()
   }

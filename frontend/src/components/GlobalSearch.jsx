@@ -30,20 +30,19 @@ export default function GlobalSearch({ onClose }) {
 
     // Run 3 searches in parallel
     Promise.allSettled([
-      api.get('/notices',   { params: { limit: 3 } }),
+      api.get('/announcements', { params: { limit: 5 } }),
       api.get('/faculty'),
       api.get('/resources', { params: { limit: 3 } }),
-      api.get('/events'),
-    ]).then(([nRes, fRes, rRes, eRes]) => {
+    ]).then(([aRes, fRes, rRes]) => {
       const q = debounced.toLowerCase()
       const hits = []
 
-      // Notices
-      if (nRes.status === 'fulfilled') {
-        nRes.value.data.data
-          .filter(n => n.title.toLowerCase().includes(q))
+      // Announcements
+      if (aRes.status === 'fulfilled') {
+        aRes.value.data.data
+          .filter(a => a.title.toLowerCase().includes(q))
           .slice(0, 3)
-          .forEach(n => hits.push({ type:'Notice', label: n.title, sub: n.category, to:'/resources' }))
+          .forEach(a => hits.push({ type:'Announcement', label: a.title, sub: a.category, to:'/announcements' }))
       }
       // Faculty
       if (fRes.status === 'fulfilled') {
@@ -59,14 +58,6 @@ export default function GlobalSearch({ onClose }) {
           .slice(0, 3)
           .forEach(r => hits.push({ type:'Resource', label: r.title, sub: `Sem ${r.semester} · ${r.type}`, to:'/resources' }))
       }
-      // Events
-      if (eRes.status === 'fulfilled') {
-        eRes.value.data.data
-          .filter(e => e.title.toLowerCase().includes(q))
-          .slice(0, 2)
-          .forEach(e => hits.push({ type:'Event', label: e.title, sub: e.type, to:'/events' }))
-      }
-
       setResults(hits)
       setLoading(false)
     })
@@ -82,8 +73,8 @@ export default function GlobalSearch({ onClose }) {
   const go = (to) => { navigate(to); onClose?.() }
 
   const typeColor = {
-    Notice: 'text-vs', Faculty: 'text-green',
-    Resource: 'text-yellow-400', Event: 'text-orange-400',
+    Announcement: 'text-vs', Faculty: 'text-green',
+    Resource: 'text-yellow-400',
   }
 
   return (
@@ -101,7 +92,7 @@ export default function GlobalSearch({ onClose }) {
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search faculty, notices, resources, events…"
+            placeholder="Search faculty, announcements, resources…"
             className="flex-1 bg-transparent text-ink text-[15px] outline-none placeholder:text-ink-muted-48"
           />
           <button onClick={onClose}

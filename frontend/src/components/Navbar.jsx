@@ -3,7 +3,7 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GlobalSearch from './GlobalSearch';
 import BackButton from './BackButton'
-import { LayoutGrid, School, Contact, MessagesSquare, QrCode, BarChart3, CalendarDays, CalendarClock, ScanQrCode, Search, ChevronDown, ChevronRight, Power, Menu, X, Megaphone, Zap, Camera, BookOpen, FlaskConical, Briefcase, Rocket, Image, UserCheck, FolderOpen } from 'lucide-react'
+import { LayoutGrid, School, Contact, MessagesSquare, QrCode, BarChart3, CalendarClock, ScanQrCode, Search, ChevronDown, ChevronRight, Power, Menu, X, Megaphone, Zap, Camera, BookOpen, FlaskConical, Briefcase, Rocket, Image, UserCheck, FolderOpen } from 'lucide-react'
 
 const NAV_GROUPS = [
   {
@@ -15,20 +15,14 @@ const NAV_GROUPS = [
       { to: '/courses', label: 'Courses', icon: BookOpen },
       { to: '/resources', label: 'Resources', icon: FolderOpen },
     ]
-  },
+    },
   {
     label: 'Community',
     items: [
-      { to: '/forum', label: 'Forum', icon: MessagesSquare },
+      { to: '/forum', label: 'Forum', icon: MessagesSquare, flip: true },
       { to: '/projects', label: 'Projects', icon: Rocket },
       { to: '/announcements', label: 'Announcements', icon: Megaphone },
       { to: '/calendar', label: 'Calendar', icon: CalendarClock },
-    ]
-  },
-  {
-    label: 'Events',
-    items: [
-      { to: '/events', label: 'Events', icon: CalendarDays },
       { to: '/gallery', label: 'Gallery', icon: Image },
     ]
   },
@@ -38,7 +32,7 @@ const STANDALONE_LINKS = [
   { to: '/contact', label: 'Contact' },
 ]
 
-export default function Navbar() {
+export default function Navbar({ onForumFlip }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -138,12 +132,6 @@ export default function Navbar() {
 
           {/* Center: Navigation links */}
           <div className="items-center hidden gap-1 lg:flex">
-            {STANDALONE_LINKS.map(l => (
-              <NavLink key={l.to} to={l.to} className={({ isActive }) => navLinkClass(isActive)}>
-                {l.label}
-              </NavLink>
-            ))}
-            
             {NAV_GROUPS.map(group => (
               <div
                 key={group.label}
@@ -168,7 +156,18 @@ export default function Navbar() {
                       <NavLink
                         key={item.to}
                         to={item.to}
-                        onClick={() => setDropdownOpen(null)}
+                        onClick={(e) => {
+                          if (item.flip && user && typeof onForumFlip === 'function') {
+                            e.preventDefault()
+                            const el = e.currentTarget
+                            const rect = el.getBoundingClientRect()
+                            const borderRadius = getComputedStyle(el).borderRadius
+                            setDropdownOpen(null)
+                            onForumFlip({ rect, borderRadius })
+                          } else {
+                            setDropdownOpen(null)
+                          }
+                        }}
                         className={({ isActive }) => dropdownItemClass(isActive)}
                       >
                         <span className="flex items-center gap-2.5">
@@ -180,6 +179,12 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
+            ))}
+
+            {STANDALONE_LINKS.map(l => (
+              <NavLink key={l.to} to={l.to} className={({ isActive }) => navLinkClass(isActive)}>
+                {l.label}
+              </NavLink>
             ))}
           </div>
 
@@ -416,21 +421,6 @@ export default function Navbar() {
           )}
 
           <nav className="flex flex-col py-2 space-y-3">
-            {STANDALONE_LINKS.map((l) => (
-              <NavLink
-                key={l.to}
-                to={l.to}
-                onClick={closeMenu}
-                className={({ isActive }) =>
-                  `font-display text-[20px] font-semibold border-b border-hairline pb-2.5 transition-colors ${
-                    isActive ? 'text-deep-green' : 'text-ink hover:text-deep-green'
-                  }`
-                }
-              >
-                {l.label}
-              </NavLink>
-            ))}
-            
             {NAV_GROUPS.map(group => (
               <div key={group.label} className="border-b border-hairline pb-2.5">
                 <h3 className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate mb-2">{group.label}</h3>
@@ -438,7 +428,7 @@ export default function Navbar() {
                   {group.items.map(item => (
                     <NavLink
                       key={item.to}
-                      to={item.to}
+                        to={item.to}
                       onClick={closeMenu}
                       className={({ isActive }) =>
                         `font-display text-[18px] font-semibold transition-colors ${
@@ -453,6 +443,21 @@ export default function Navbar() {
               </div>
             ))}
             
+            {STANDALONE_LINKS.map((l) => (
+              <NavLink
+                key={l.to}
+                to={l.to}
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `font-display text-[20px] font-semibold border-b border-hairline pb-2.5 transition-colors ${
+                    isActive ? 'text-deep-green' : 'text-ink hover:text-deep-green'
+                  }`
+                }
+              >
+                {l.label}
+              </NavLink>
+            ))}
+
             <div className="pt-4 space-y-2">
               {user ? (
                 <div className="flex flex-col gap-2">
