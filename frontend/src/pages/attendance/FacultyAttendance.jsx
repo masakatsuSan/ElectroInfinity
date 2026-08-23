@@ -708,9 +708,6 @@ export default function FacultyAttendance() {
                       <p className="font-sans text-[11px] sm:text-[13px] text-ink-muted-80">
                         Real-time Socket.io updates as students scan
                       </p>
-                      <p className="font-sans text-[10px] sm:text-[11px] text-amber-600 dark:text-amber-400 mt-0.5">
-                        Indoor GPS unreliable? Tap <b><Check size={14} /> Present</b> on a student who is physically in class.
-                      </p>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3">
                       <div className="text-right">
