@@ -136,10 +136,13 @@ export default function App() {
         <Route path="/admin/*" element={null} />
         <Route path="/forum"   element={null} />
         <Route path="/attendance/faculty" element={null} />
-        <Route path="*"        element={<Navbar onForumFlip={(data) => setForumFlip(data)} />} />
+        <Route path="/login" element={null} />
+        <Route path="/activate" element={null} />
+        <Route path="/forgot-password" element={null} />
+        <Route path="*" element={<Navbar onForumFlip={(data) => setForumFlip(data)} />} />
       </Routes>
 
-      <main className="flex flex-col flex-1">
+        <main className="flex flex-col flex-1">
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             {/* â”€â”€ Public â”€â”€ */}

@@ -77,11 +77,12 @@ export default function Home() {
                 </p>
               </div>
 
-                <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-4 text-white items-center justify-between text-[13px] font-mono text-slate">
-                  <span><Check size={14} /> 50m GPS Verification</span>
-                  <span><Check size={14} /> Anti-Proxy QR Rotation</span>
-                  <span><Check size={14} /> Batch Scoping</span>
-                </div>
+              <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-4 text-white items-center justify-between text-[13px] font-mono text-slate-400">
+              <span className="flex items-center gap-2"><Check size={14} />10m GPS Verification</span>
+              <span className="flex items-center gap-2"><Check size={14} />Anti-Proxy QR Rotation</span>
+              <span className="flex items-center gap-2"><Check size={14} />Batch Scoping</span>
+              </div>
+              
             </div>
 
             {/* Soft Stone Capability Card */}
@@ -171,12 +172,12 @@ export default function Home() {
             {isLoading ? (
               <div className="p-4">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex flex-col justify-between gap-4 p-5 md:p-6 border-b border-hairline last:border-b-0">
+                  <div key={i} className="flex flex-col justify-between gap-4 p-5 border-b md:p-6 border-hairline last:border-b-0">
                     <div className="flex items-center gap-4">
-                      <div className="h-5 w-16 bg-soft-stone rounded animate-pulse" />
-                      <div className="h-4 w-48 bg-soft-stone rounded animate-pulse" />
+                      <div className="w-16 h-5 rounded bg-soft-stone animate-pulse" />
+                      <div className="w-48 h-4 rounded bg-soft-stone animate-pulse" />
                     </div>
-                    <div className="h-4 w-24 bg-soft-stone rounded animate-pulse" />
+                    <div className="w-24 h-4 rounded bg-soft-stone animate-pulse" />
                   </div>
                 ))}
               </div>

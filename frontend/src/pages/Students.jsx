@@ -1,14 +1,15 @@
 import { useState, useRef } from 'react';
-import { Camera, BarChart3, Check, AlertTriangle, XCircle, CheckCircle2 } from 'lucide-react';
+import { Camera, BarChart3, Check, AlertTriangle, XCircle, CheckCircle2, Mail, ShieldCheck, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
-import { changePassword } from '../api/auth';
+import { changePassword, forgotPassword, verifyOtp, resetPassword } from '../api/auth';
 import { getAnnouncements } from '../api/announcements';
 import { uploadPhoto, getBatchStudents } from '../api/students';
 import { getDeadlines, submitDeadline } from '../api/deadlines';
 import { getRoutine } from '../api/routines';
 import { getStudentHistory } from '../api/attendance';
+import ImageGuard from '../components/ImageGuard';
 
 export default function Students() {
   const { user } = useAuth();
@@ -20,6 +21,13 @@ export default function Students() {
   const [pwMsg,       setPwMsg]       = useState('');
   const [pwErr,       setPwErr]       = useState('');
   const [pwLoading,   setPwLoading]   = useState(false);
+  const [otpSent,     setOtpSent]     = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [resetToken,  setResetToken]  = useState('');
+  const [otpInput,    setOtpInput]    = useState('');
+  const [otpLoading,  setOtpLoading]  = useState(false);
+  const [otpError,    setOtpError]    = useState('');
+  const [otpMsg,      setOtpMsg]      = useState('');
 
   // Attendance History Query
   const { data: attendanceData, isLoading: attendanceLoading } = useQuery({
@@ -169,13 +177,15 @@ export default function Students() {
               {batchMates.map((mate) => (
                 <div key={mate._id} className="flex items-center gap-3 p-3 border rounded-2xl border-divider-soft bg-canvas">
                   <div className="flex items-center justify-center w-12 h-12 overflow-hidden rounded-full bg-ink/5 text-ink-muted-80">
-                    {mate.photo ? (
-                      <img src={mate.photo} alt={mate.name} className="object-cover w-full h-full" />
-                    ) : (
-                      <span className="font-display text-[15px] font-bold">
-                        {(mate.name || 'S').split(' ').map(part => part[0]).slice(0,2).join('').toUpperCase()}
-                      </span>
-                    )}
+                    <ImageGuard className="w-full h-full">
+                      {mate.photo ? (
+                        <img src={mate.photo} alt={mate.name} className="object-cover w-full h-full" />
+                      ) : (
+                        <span className="font-display text-[15px] font-bold">
+                          {(mate.name || 'S').split(' ').map(part => part[0]).slice(0,2).join('').toUpperCase()}
+                        </span>
+                      )}
+                    </ImageGuard>
                   </div>
                   <div className="min-w-0">
                     <p className="truncate font-sans text-[14px] font-semibold text-ink">{mate.name}</p>
@@ -544,56 +554,149 @@ export default function Students() {
       )}
 
 {activeTab === 'password' && (
-        <div className="max-w-[400px] animate-in fade-in duration-300">
-          <p className="font-sans text-[17px] font-normal text-ink-muted-80 mb-8">
-            Change your account password.
+  <div className="max-w-[400px] animate-in fade-in duration-300">
+    <p className="font-sans text-[17px] font-normal text-ink-muted-80 mb-8">
+      Change your account password.
+    </p>
+
+    {!otpSent ? (
+      <div className="flex flex-col gap-5">
+        <div className="p-6 border border-divider-soft rounded-2xl bg-surface-pearl text-center">
+          <div className="w-14 h-14 rounded-full bg-soft-stone flex items-center justify-center mx-auto mb-4">
+            <ShieldCheck size={24} className="text-body-muted" />
+          </div>
+          <p className="font-sans text-[15px] text-ink-muted-80 mb-1">
+            Verify your identity before changing password
           </p>
-          <div className="flex flex-col gap-5">
-            <div>
-              <label className="sr-only">Current Password</label>
-              <input type="password" value={pwForm.current} placeholder="Current Password"
-                onChange={e => setPwForm(f=>({...f,current:e.target.value}))}
-                className="w-full bg-canvas border border-divider-soft text-ink px-4 py-3 text-[17px] rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-ink-muted-48" />
-            </div>
-            <div>
-              <label className="sr-only">New Password</label>
-              <input type="password" value={pwForm.next} placeholder="New Password"
-                onChange={e => setPwForm(f=>({...f,next:e.target.value}))}
-                className="w-full bg-canvas border border-divider-soft text-ink px-4 py-3 text-[17px] rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-ink-muted-48" />
-            </div>
-            <div>
-              <label className="sr-only">Confirm Password</label>
-              <input type="password" value={pwForm.confirm} placeholder="Confirm Password"
-                onChange={e => setPwForm(f=>({...f,confirm:e.target.value}))}
-                className="w-full bg-canvas border border-divider-soft text-ink px-4 py-3 text-[17px] rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-ink-muted-48" />
-            </div>
-            
-            {pwErr && <p className="font-sans text-[14px] font-medium text-red-500 text-center">{pwErr}</p>}
-            {pwMsg && <p className="font-sans text-[14px] font-medium text-primary text-center">{pwMsg}</p>}
-            
+          <p className="font-sans text-[13px] text-slate mb-6">
+            We'll send a 6-digit OTP to your registered Gmail
+          </p>
+          {otpError && <p className="font-sans text-[14px] font-medium text-red-500 text-center mb-3">{otpError}</p>}
+          {otpMsg && <p className="font-sans text-[14px] font-medium text-primary text-center mb-3">{otpMsg}</p>}
+          <button
+            disabled={otpLoading}
+            onClick={async () => {
+              setOtpError(''); setOtpMsg('');
+              setOtpLoading(true);
+              try {
+                const res = await forgotPassword({ rollNumber: user?.rollNumber });
+                if (res.data?.success) {
+                  setOtpSent(true);
+                  setOtpMsg(res.data?.message || 'OTP sent to your registered email');
+                }
+              } catch (err) {
+                setOtpError(err.response?.data?.error || 'Failed to send OTP. Try again.');
+              } finally {
+                setOtpLoading(false);
+              }
+            }}
+            className="justify-center w-full button-primary disabled:opacity-50"
+          >
+            {otpLoading ? 'Sending OTP...' : <><Mail size={16} /> Send OTP to Gmail</>}
+          </button>
+        </div>
+      </div>
+    ) : !otpVerified ? (
+      <div className="flex flex-col gap-5">
+        <div className="p-6 border border-divider-soft rounded-2xl bg-surface-pearl">
+          <p className="font-sans text-[15px] font-normal text-ink mb-1">Enter OTP</p>
+          <p className="font-sans text-[13px] text-slate mb-5">
+            Enter the 6-digit code sent to your registered email
+          </p>
+          {otpError && <p className="font-sans text-[14px] font-medium text-red-500 text-center mb-3">{otpError}</p>}
+          {otpMsg && <p className="font-sans text-[14px] font-medium text-primary text-center mb-3">{otpMsg}</p>}
+          <div className="flex gap-3">
+            <input
+              type="text"
+              value={otpInput}
+              onChange={e => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder="000000"
+              maxLength={6}
+              className="flex-1 bg-canvas border border-divider-soft text-ink px-4 py-3 text-[17px] text-center tracking-[0.3em] font-mono rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-ink-muted-48"
+            />
             <button
-              disabled={pwLoading}
+              disabled={otpLoading || otpInput.length !== 6}
               onClick={async () => {
-                setPwErr(''); setPwMsg('');
-                if (pwForm.next.length < 6) return setPwErr('New password must be at least 6 characters');
-                if (pwForm.next !== pwForm.confirm) return setPwErr('Passwords do not match');
-                setPwLoading(true);
+                setOtpError(''); setOtpMsg('');
+                setOtpLoading(true);
                 try {
-                  await changePassword({ currentPassword: pwForm.current, newPassword: pwForm.next });
-                  setPwMsg('Password changed successfully');
-                  setPwForm({ current:'', next:'', confirm:'' });
+                  const res = await verifyOtp({ rollNumber: user?.rollNumber, otp: otpInput });
+                  if (res.data?.success && res.data?.resetToken) {
+                    setResetToken(res.data.resetToken);
+                    setOtpVerified(true);
+                    setOtpMsg('Identity verified! You can now set a new password.');
+                  }
                 } catch (err) {
-                  setPwErr(err.response?.data?.error || 'Failed to change password');
+                  setOtpError(err.response?.data?.error || 'Invalid OTP. Please try again.');
                 } finally {
-                  setPwLoading(false);
+                  setOtpLoading(false);
                 }
               }}
-              className="justify-center w-full mt-2 button-primary disabled:opacity-50">
-              {pwLoading ? 'Updating...' : 'Update Password'}
+              className="px-6 py-3 bg-primary text-white rounded-lg text-[14px] font-bold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              Verify <ArrowRight size={16} />
             </button>
           </div>
+          <button
+            onClick={() => { setOtpSent(false); setOtpInput(''); setOtpError(''); setOtpMsg(''); }}
+            className="w-full mt-3 text-[13px] font-medium text-body-muted hover:text-ink transition-colors"
+          >
+            Didn't receive OTP? Send again
+          </button>
         </div>
-      )}
+      </div>
+    ) : (
+      <div className="flex flex-col gap-5">
+        <div className="p-4 border border-green-200 rounded-xl bg-pale-green flex items-center gap-3">
+          <CheckCircle2 size={20} className="text-deep-green flex-shrink-0" />
+          <p className="font-sans text-[14px] font-medium text-deep-green">
+            Identity verified! Set your new password below.
+          </p>
+        </div>
+        <div>
+          <label className="sr-only">New Password</label>
+          <input type="password" value={pwForm.next} placeholder="New Password"
+            onChange={e => setPwForm(f=>({...f,next:e.target.value}))}
+            className="w-full bg-canvas border border-divider-soft text-ink px-4 py-3 text-[17px] rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-ink-muted-48" />
+        </div>
+        <div>
+          <label className="sr-only">Confirm Password</label>
+          <input type="password" value={pwForm.confirm} placeholder="Confirm Password"
+            onChange={e => setPwForm(f=>({...f,confirm:e.target.value}))}
+            className="w-full bg-canvas border border-divider-soft text-ink px-4 py-3 text-[17px] rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-ink-muted-48" />
+        </div>
+        
+        {pwErr && <p className="font-sans text-[14px] font-medium text-red-500 text-center">{pwErr}</p>}
+        {pwMsg && <p className="font-sans text-[14px] font-medium text-primary text-center">{pwMsg}</p>}
+        
+        <button
+          disabled={pwLoading}
+          onClick={async () => {
+            setPwErr(''); setPwMsg('');
+            if (pwForm.next.length < 6) return setPwErr('New password must be at least 6 characters');
+            if (pwForm.next !== pwForm.confirm) return setPwErr('Passwords do not match');
+            setPwLoading(true);
+            try {
+              await resetPassword({ resetToken, newPassword: pwForm.next });
+              setPwMsg('Password changed successfully');
+              setPwForm({ next:'', confirm:'' });
+              setOtpSent(false);
+              setOtpVerified(false);
+              setResetToken('');
+              setOtpInput('');
+            } catch (err) {
+              setPwErr(err.response?.data?.error || 'Failed to change password');
+            } finally {
+              setPwLoading(false);
+            }
+          }}
+          className="justify-center w-full mt-2 button-primary disabled:opacity-50">
+          {pwLoading ? 'Updating...' : 'Update Password'}
+        </button>
+      </div>
+    )}
+  </div>
+)}
     </div>
   );
 }

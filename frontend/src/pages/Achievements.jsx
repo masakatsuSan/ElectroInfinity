@@ -2,22 +2,25 @@ import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getAchievements } from '../api/achievements'
 import { Skeleton } from '../components/Skeleton'
+import ImageGuard from '../components/ImageGuard'
 
 function AchCard({ item, badgeText }) {
   return (
     <div className="flex flex-col overflow-hidden transition-all duration-300 transform border group bg-surface-pearl border-divider-soft rounded-2xl hover:shadow-xl hover:-translate-y-1">
       <div className="relative h-48 overflow-hidden sm:h-56 bg-canvas">
-        {item.photo ? (
-          <img 
-            src={item.photo} 
-            alt={item.name} 
-            className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex items-center justify-center w-full h-full bg-canvas-parchment">
-            <span className="font-sans text-ink-muted-48">No Photo</span>
-          </div>
-        )}
+        <ImageGuard className="w-full h-full">
+          {item.photo ? (
+            <img 
+              src={item.photo} 
+              alt={item.name} 
+              className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex items-center justify-center w-full h-full bg-canvas-parchment">
+              <span className="font-sans text-ink-muted-48">No Photo</span>
+            </div>
+          )}
+        </ImageGuard>
         <div className="absolute top-3 right-3 bg-canvas/90 backdrop-blur-sm border border-divider-soft px-2.5 py-1 rounded-md shadow-sm">
           <span className="font-sans text-[11px] font-bold text-primary uppercase tracking-widest">{item.year}</span>
         </div>

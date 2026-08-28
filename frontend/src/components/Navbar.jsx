@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GlobalSearch from './GlobalSearch';
-import BackButton from './BackButton'
-import { LayoutGrid, School, Contact, MessagesSquare, QrCode, BarChart3, CalendarClock, ScanQrCode, Search, ChevronDown, ChevronRight, Power, Menu, X, Megaphone, Zap, Camera, BookOpen, FlaskConical, Briefcase, Rocket, Image, UserCheck, FolderOpen } from 'lucide-react'
+import { LayoutGrid, School, Contact, MessagesSquare, QrCode, BarChart3, CalendarClock, ScanQrCode, Search, ChevronDown, ChevronRight, Power, Menu, X, Megaphone, Zap, Camera, BookOpen, FlaskConical, Briefcase, Rocket, Image, UserCheck, FolderOpen, GraduationCap, Beaker, FileText } from 'lucide-react'
 
 const NAV_GROUPS = [
   {
@@ -89,13 +88,6 @@ export default function Navbar({ onForumFlip }) {
         : 'text-body-muted hover:text-ink hover:bg-soft-stone/60'
     }`;
 
-  const dropdownItemClass = (isActive) =>
-    `block px-3 py-2 rounded-lg text-[14px] font-sans font-medium transition-colors ${
-      isActive
-        ? 'text-ink bg-soft-stone font-semibold'
-        : 'text-body-muted hover:text-ink hover:bg-soft-stone/60'
-    }`;
-
   // Role badge helper
   const getRoleBadge = (role) => {
     switch (role) {
@@ -113,14 +105,55 @@ export default function Navbar({ onForumFlip }) {
 
   const roleInfo = user ? getRoleBadge(userRole) : null;
 
+  const dropdownItemClass = (isActive) =>
+    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-sans font-medium transition-all ${
+      isActive
+        ? 'text-ink bg-soft-stone font-semibold'
+        : 'text-body-muted hover:text-ink hover:bg-soft-stone/60'
+    }`;
+
+  const iconTileClass = (isActive) =>
+    `w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
+      isActive
+        ? 'bg-primary text-white shadow-md scale-105'
+        : 'bg-soft-stone text-body-muted group-hover:bg-primary group-hover:text-white group-hover:shadow-md group-hover:scale-105'
+    }`;
+
+  const featuredCard = (group) => {
+    if (group.label === 'Academics') {
+      return (
+        <div className="hidden xl:flex flex-col w-60 p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-canvas border border-hairline">
+          <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-coral mb-2">Featured Section</span>
+          <p className="font-display font-bold text-[16px] text-ink leading-snug mb-1">Explore the Curriculum</p>
+          <p className="font-sans text-[12px] text-body-muted leading-relaxed mb-4">Semester-wise subjects, labs, and study materials in one place.</p>
+          <NavLink to="/courses" onClick={() => setDropdownOpen(null)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:underline">
+            View All Courses <ChevronRight size={14} />
+          </NavLink>
+        </div>
+      );
+    }
+    if (group.label === 'Community') {
+      return (
+        <div className="hidden xl:flex flex-col w-60 p-5 rounded-2xl bg-gradient-to-br from-coral/10 to-canvas border border-hairline">
+          <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-coral mb-2">What's Happening</span>
+          <p className="font-display font-bold text-[16px] text-ink leading-snug mb-1">Join the Conversation</p>
+          <p className="font-sans text-[12px] text-body-muted leading-relaxed mb-4">Latest discussions, projects, and announcements from peers.</p>
+          <NavLink to="/forum" onClick={() => setDropdownOpen(null)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:underline">
+            Open Forum <ChevronRight size={14} />
+          </NavLink>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <>
       <nav className="fixed left-0 right-0 z-50 flex justify-center px-4 transition-all duration-200 pointer-events-none top-4">
         <div className="w-full max-w-[1280px] rounded-full px-6 py-2.5 flex items-center justify-between pointer-events-auto bg-canvas/95 backdrop-blur-md border border-hairline shadow-card">
           
-          {/* Left: Back + Brand Logo */}
+          {/* Left: Brand Logo */}
           <div className="flex items-center gap-1">
-            <BackButton />
             <Link to="/" className="flex items-center gap-2" onClick={closeMenu}>
               <div className="flex items-center gap-2">
                 <span className="font-display font-bold text-[18px] tracking-tight text-ink">
@@ -136,7 +169,9 @@ export default function Navbar({ onForumFlip }) {
               <div
                 key={group.label}
                 ref={el => dropdownRefs.current[group.label] = el}
-                className="relative"
+                className="relative py-2"
+                onMouseEnter={() => setDropdownOpen(group.label)}
+                onMouseLeave={() => setDropdownOpen(null)}
               >
                 <button
                   onClick={() => setDropdownOpen(dropdownOpen === group.label ? null : group.label)}
@@ -151,31 +186,43 @@ export default function Navbar({ onForumFlip }) {
                 </button>
                 
                 {dropdownOpen === group.label && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-canvas border border-hairline rounded-xl shadow-modal py-1 z-50">
-                    {group.items.map(item => (
-                      <NavLink
-                        key={item.to}
-                        to={item.to}
-                        onClick={(e) => {
-                          if (item.flip && user && typeof onForumFlip === 'function') {
-                            e.preventDefault()
-                            const el = e.currentTarget
-                            const rect = el.getBoundingClientRect()
-                            const borderRadius = getComputedStyle(el).borderRadius
-                            setDropdownOpen(null)
-                            onForumFlip({ rect, borderRadius })
-                          } else {
-                            setDropdownOpen(null)
-                          }
-                        }}
-                        className={({ isActive }) => dropdownItemClass(isActive)}
-                      >
-                        <span className="flex items-center gap-2.5">
-                          {item.icon && <item.icon size={16} strokeWidth={1.75} className="text-body-muted" />}
-                          {item.label}
-                        </span>
-                      </NavLink>
-                    ))}
+                  <div 
+                    className="absolute top-full left-1/2 -translate-x-1/2 w-[540px] bg-white border border-hairline rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.12)] py-2 z-50"
+                    onMouseEnter={() => setDropdownOpen(group.label)}
+                    onMouseLeave={() => setDropdownOpen(null)}
+                  >
+                    <div className="flex gap-2 p-2">
+                      <div className="flex-1">
+                        {group.items.map(item => (
+                          <NavLink
+                            key={item.to}
+                            to={item.to}
+                            onClick={(e) => {
+                              if (item.flip && user && typeof onForumFlip === 'function') {
+                                e.preventDefault()
+                                const el = e.currentTarget
+                                const rect = el.getBoundingClientRect()
+                                const borderRadius = getComputedStyle(el).borderRadius
+                                setDropdownOpen(null)
+                                onForumFlip({ rect, borderRadius })
+                              } else {
+                                setDropdownOpen(null)
+                              }
+                            }}
+                            className={({ isActive }) => `group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${dropdownItemClass(isActive)}`}
+                          >
+                            <span className={iconTileClass(item.to === '/courses' || item.to === '/forum')}>
+                              {item.icon && <item.icon size={18} strokeWidth={1.75} />}
+                            </span>
+                            <span className="flex-1">
+                              <span className="block text-[14px] font-medium">{item.label}</span>
+                            </span>
+                            <ChevronRight size={14} className="text-slate opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+                          </NavLink>
+                        ))}
+                      </div>
+                      {featuredCard(group)}
+                    </div>
                   </div>
                 )}
               </div>

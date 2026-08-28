@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getGallery } from '../api/gallery'
 import SEO from '../components/SEO'
+import ImageGuard from '../components/ImageGuard'
 
 const CATEGORIES = ['All', 'Workshops', 'Events', 'Lab', 'Campus']
 
@@ -75,11 +76,13 @@ export default function Gallery() {
                 rel="noreferrer"
                 className="aspect-video relative overflow-hidden group rounded-22px border border-hairline shadow-card block"
               >
-                <img
-                  src={img.url}
-                  alt={img.label}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
+                <ImageGuard className="w-full h-full">
+                  <img
+                    src={img.url}
+                    alt={img.label}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                </ImageGuard>
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4">
                   <p className="font-sans text-[13px] font-semibold text-white">
                     {img.label}

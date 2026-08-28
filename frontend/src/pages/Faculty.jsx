@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Mail } from 'lucide-react'
 import { getFaculty } from '../api/faculty'
 import SEO from '../components/SEO'
+import ImageGuard from '../components/ImageGuard'
 import { SkeletonFaculty, SkeletonAvatar, SkeletonButton } from '../components/Skeleton'
 
 export default function Faculty() {
@@ -75,11 +76,13 @@ function FacultyRow({ faculty: f }) {
       <div className="flex items-center gap-5 min-w-0">
         {/* Avatar */}
         <div className="w-16 h-16 rounded-22px bg-soft-stone flex items-center justify-center flex-shrink-0 overflow-hidden border border-hairline shadow-sm">
-          {f.photo ? (
-            <img src={f.photo} alt={f.name} className="w-full h-full object-cover" />
-          ) : (
-            <span className="font-display font-bold text-[20px] text-ink">{initials}</span>
-          )}
+          <ImageGuard className="w-full h-full">
+            {f.photo ? (
+              <img src={f.photo} alt={f.name} className="w-full h-full object-cover" />
+            ) : (
+              <span className="font-display font-bold text-[20px] text-ink">{initials}</span>
+            )}
+          </ImageGuard>
         </div>
 
         {/* Info */}
