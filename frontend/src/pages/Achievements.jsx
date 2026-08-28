@@ -1,6 +1,7 @@
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getAchievements } from '../api/achievements'
+import { Skeleton } from '../components/Skeleton'
 
 function AchCard({ item, badgeText }) {
   return (
@@ -36,11 +37,57 @@ function AchCard({ item, badgeText }) {
   )
 }
 
+function SkeletonAchCard() {
+  return (
+    <div className="flex flex-col overflow-hidden border bg-surface-pearl border-divider-soft rounded-2xl animate-pulse">
+      <div className="h-48 sm:h-56 bg-soft-stone" />
+      <div className="flex flex-col flex-grow p-5">
+        <div className="h-5 w-3/4 bg-soft-stone rounded mb-2" />
+        <div className="h-4 w-full bg-soft-stone rounded mb-1.5" />
+        <div className="h-4 w-full bg-soft-stone rounded mb-1.5" />
+        <div className="h-4 w-2/3 bg-soft-stone rounded" />
+      </div>
+    </div>
+  )
+}
+
+function SkeletonSection() {
+  return (
+    <div className="mb-20">
+      <div className="flex items-center gap-4 mb-8">
+        <div className="h-7 w-48 bg-soft-stone rounded animate-pulse" />
+        <div className="flex-grow h-px mt-2 bg-divider-soft" />
+      </div>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <SkeletonAchCard key={i} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function Achievements() {
   const { data, isLoading } = useQuery({
     queryKey: ['achievements'],
     queryFn: () => getAchievements().then(r => r.data),
   })
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen pb-20 bg-canvas pt-28">
+        <div className="px-6 mx-auto max-w-7xl">
+          <div className="max-w-2xl mx-auto mb-16 text-center">
+            <div className="h-4 w-40 bg-soft-stone rounded animate-pulse mx-auto mb-3" />
+            <div className="h-12 w-64 bg-soft-stone rounded animate-pulse mx-auto mb-4" />
+            <div className="h-5 w-96 bg-soft-stone rounded animate-pulse mx-auto" />
+          </div>
+          <SkeletonSection />
+          <SkeletonSection />
+        </div>
+      </div>
+    )
+  }
 
   const allAchievements = data?.data || []
   

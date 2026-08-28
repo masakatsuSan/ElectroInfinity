@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getLabs } from '../api/labs'
 import SEO from '../components/SEO'
+import { Skeleton } from '../components/Skeleton'
 
 export default function Laboratory() {
   const { data, isLoading } = useQuery({
@@ -34,7 +35,22 @@ export default function Laboratory() {
         {/* Labs rule-separated cards */}
         <div className="border border-hairline bg-canvas rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
           {isLoading ? (
-            <div className="p-12 text-center text-slate">Loading laboratory facilities…</div>
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex flex-col sm:flex-row gap-6 p-6 md:p-8 animate-pulse">
+                <div className="w-full sm:w-48 h-48 rounded-2xl bg-soft-stone" />
+                <div className="flex-1">
+                  <div className="h-6 w-48 bg-soft-stone rounded mb-3" />
+                  <div className="h-4 w-full bg-soft-stone rounded mb-2" />
+                  <div className="h-4 w-full bg-soft-stone rounded mb-2" />
+                  <div className="h-4 w-3/4 bg-soft-stone rounded mb-4" />
+                  <div className="flex flex-wrap gap-2">
+                    <div className="h-6 w-20 bg-soft-stone rounded-full" />
+                    <div className="h-6 w-24 bg-soft-stone rounded-full" />
+                    <div className="h-6 w-16 bg-soft-stone rounded-full" />
+                  </div>
+                </div>
+              </div>
+            ))
           ) : LABS.length > 0 ? (
             LABS.map((lab, i) => (
               <div key={lab.name || i} className="flex flex-col sm:flex-row gap-6 p-6 md:p-8 hover:bg-soft-stone/30 transition-colors">

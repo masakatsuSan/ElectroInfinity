@@ -56,7 +56,34 @@ export default function AdminRoutines() {
     setSchedule(updated);
   };
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading) return (
+    <div>
+      <div className="flex justify-between items-center mb-8">
+        <div className="h-8 w-48 bg-soft-stone rounded animate-pulse" />
+        <div className="h-10 w-32 bg-soft-stone rounded-full animate-pulse" />
+      </div>
+      <div className="overflow-x-auto border border-divider-soft rounded-[20px] bg-surface-pearl animate-pulse">
+        <div className="p-4 border-b border-divider-soft flex gap-4">
+          <div className="h-4 w-32 bg-soft-stone rounded" />
+          <div className="h-4 flex-1 bg-soft-stone rounded" />
+          <div className="h-4 flex-1 bg-soft-stone rounded" />
+          <div className="h-4 flex-1 bg-soft-stone rounded" />
+          <div className="h-4 flex-1 bg-soft-stone rounded" />
+          <div className="h-4 flex-1 bg-soft-stone rounded" />
+        </div>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="p-4 border-b border-divider-soft last:border-b-0 flex gap-4">
+            <div className="h-4 w-32 bg-soft-stone rounded" />
+            <div className="h-4 flex-1 bg-soft-stone rounded" />
+            <div className="h-4 flex-1 bg-soft-stone rounded" />
+            <div className="h-4 flex-1 bg-soft-stone rounded" />
+            <div className="h-4 flex-1 bg-soft-stone rounded" />
+            <div className="h-4 flex-1 bg-soft-stone rounded" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div>

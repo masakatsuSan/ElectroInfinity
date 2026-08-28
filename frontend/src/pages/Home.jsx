@@ -169,7 +169,17 @@ export default function Home() {
 
           <div className="overflow-hidden border border-hairline rounded-2xl shadow-card">
             {isLoading ? (
-              <div className="p-12 text-center text-slate">Loading announcements…</div>
+              <div className="p-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex flex-col justify-between gap-4 p-5 md:p-6 border-b border-hairline last:border-b-0">
+                    <div className="flex items-center gap-4">
+                      <div className="h-5 w-16 bg-soft-stone rounded animate-pulse" />
+                      <div className="h-4 w-48 bg-soft-stone rounded animate-pulse" />
+                    </div>
+                    <div className="h-4 w-24 bg-soft-stone rounded animate-pulse" />
+                  </div>
+                ))}
+              </div>
             ) : announcements.length > 0 ? (
               <div className="divide-y divide-hairline">
                 {announcements.map(a => (

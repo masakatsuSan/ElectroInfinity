@@ -1,12 +1,54 @@
 import { useQuery } from '@tanstack/react-query'
 import { getPlacements } from '../api/placements'
 import SEO from '../components/SEO'
+import { Skeleton } from '../components/Skeleton'
 
 export default function Placements() {
   const { data: allData, isLoading } = useQuery({
     queryKey: ['placements'],
     queryFn: () => getPlacements().then(r => r.data),
   })
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
+        <SEO title="Placements & Career | Electro Infinity" />
+        <div className="max-w-[1280px] mx-auto px-6 md:px-12">
+          <div className="max-w-3xl mb-14">
+            <div className="h-4 w-24 bg-soft-stone rounded animate-pulse mb-2" />
+            <div className="h-12 w-64 bg-soft-stone rounded animate-pulse mb-4" />
+            <div className="h-5 w-96 bg-soft-stone rounded animate-pulse" />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-16">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="border border-hairline bg-soft-stone rounded-2xl p-8 text-center animate-pulse">
+                <div className="h-12 w-16 bg-soft-stone/60 rounded mx-auto mb-2" />
+                <div className="h-3 w-20 bg-soft-stone/60 rounded mx-auto" />
+              </div>
+            ))}
+          </div>
+          <div className="mb-16">
+            <div className="h-4 w-28 bg-soft-stone rounded animate-pulse mb-2" />
+            <div className="h-7 w-48 bg-soft-stone rounded animate-pulse mb-6" />
+            <div className="border border-hairline bg-canvas rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="p-5 md:p-6 flex items-center justify-between gap-4 animate-pulse">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-soft-stone" />
+                    <div>
+                      <div className="h-4 w-32 bg-soft-stone rounded mb-1" />
+                      <div className="h-3 w-24 bg-soft-stone rounded" />
+                    </div>
+                  </div>
+                  <div className="h-6 w-16 bg-soft-stone rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const placements = allData?.data || []
   const STATS = placements.filter(p => p.type === 'stat').map(p => ({ n: p.statValue, l: p.statLabel }))

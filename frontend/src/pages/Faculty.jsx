@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Mail } from 'lucide-react'
 import { getFaculty } from '../api/faculty'
 import SEO from '../components/SEO'
+import { SkeletonFaculty, SkeletonAvatar, SkeletonButton } from '../components/Skeleton'
 
 export default function Faculty() {
   const { data, isLoading } = useQuery({
@@ -35,7 +36,19 @@ export default function Faculty() {
         {/* Directory (Rule-separated research layout) */}
         <div className="border border-hairline bg-canvas rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
           {isLoading ? (
-            <div className="p-12 text-center text-slate">Loading faculty directory…</div>
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                <div className="flex items-center gap-5">
+                  <SkeletonAvatar size="lg" />
+                  <div>
+                    <div className="h-5 w-40 bg-soft-stone rounded animate-pulse mb-2" />
+                    <div className="h-3 w-28 bg-soft-stone rounded animate-pulse mb-1" />
+                    <div className="h-3 w-56 bg-soft-stone rounded animate-pulse" />
+                  </div>
+                </div>
+                <SkeletonButton />
+              </div>
+            ))
           ) : faculty.length > 0 ? (
             faculty.map(f => <FacultyRow key={f._id} faculty={f} />)
           ) : (

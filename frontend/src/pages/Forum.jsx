@@ -12,6 +12,7 @@ import {
   Image, BarChart3, Link2, FileText, Pin, PinOff,
   Search, Filter, MoreHorizontal, Power
 } from 'lucide-react'
+import { SkeletonPost } from '../components/Skeleton'
 
 const POST_TYPES = [
   { key: 'text', label: 'Text', icon: FileText },
@@ -401,8 +402,24 @@ export default function Forum() {
 
             {/* Posts Feed */}
             {loading ? (
-              <div className="flex items-center justify-center py-20">
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="bg-canvas border border-hairline rounded-xl p-4 animate-pulse">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-6 h-6 rounded-full bg-soft-stone" />
+                      <div className="h-3 w-24 bg-soft-stone rounded" />
+                      <div className="h-3 w-16 bg-soft-stone rounded" />
+                    </div>
+                    <div className="h-5 w-full bg-soft-stone rounded mb-2" />
+                    <div className="h-4 w-full bg-soft-stone rounded mb-1.5" />
+                    <div className="h-4 w-3/4 bg-soft-stone rounded mb-3" />
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-20 bg-soft-stone rounded-full" />
+                      <div className="h-8 w-24 bg-soft-stone rounded-full" />
+                      <div className="h-8 w-16 bg-soft-stone rounded-full" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : posts.length === 0 ? (
               <div className="text-center py-20 bg-canvas border border-hairline rounded-xl">

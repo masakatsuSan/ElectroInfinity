@@ -49,7 +49,34 @@ export default function AdminDeadlines() {
         </button>
       </div>
 
-      {isLoading ? <p>Loading...</p> : deadlines.length === 0 ? (
+      {isLoading ? (
+        <div className="grid gap-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="p-6 border border-divider-soft rounded-[24px] bg-surface-pearl flex flex-col md:flex-row md:items-start justify-between gap-6 animate-pulse">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="h-6 w-16 bg-soft-stone rounded-full" />
+                  <div className="h-4 w-24 bg-soft-stone rounded" />
+                </div>
+                <div className="h-6 w-48 bg-soft-stone rounded mb-1" />
+                <div className="h-4 w-full max-w-md bg-soft-stone rounded mb-3" />
+                <div className="h-4 w-32 bg-soft-stone rounded" />
+              </div>
+              <div className="md:w-[250px] flex-shrink-0 bg-canvas rounded-2xl p-5 border border-divider-soft">
+                <div className="flex items-end justify-between mb-2">
+                  <div className="h-4 w-20 bg-soft-stone rounded" />
+                  <div className="h-4 w-16 bg-soft-stone rounded" />
+                </div>
+                <div className="h-2 mb-4 bg-soft-stone rounded-full" />
+                <div className="space-y-2">
+                  <div className="h-3 w-full bg-soft-stone rounded" />
+                  <div className="h-3 w-3/4 bg-soft-stone rounded" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : deadlines.length === 0 ? (
         <p className="text-ink-muted-80 font-sans text-[15px]">No deadlines posted yet.</p>
       ) : (
         <div className="grid gap-6">
