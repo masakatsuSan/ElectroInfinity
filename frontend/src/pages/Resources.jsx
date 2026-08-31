@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { getResources, getDownloadUrl } from '../api/resources'
+import { getSubjects } from '../api/subjects'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
 
@@ -12,14 +14,30 @@ const TABS = [
   { id: 'syllabus',   label: 'Syllabus',         type: 'syllabus' },
 ]
 
+const SEMS = [1,2,3,4,5,6,7,8]
+
 export default function Resources() {
   const [activeTab, setActiveTab] = useState(TABS[0])
+  const [semesterFilter, setSemesterFilter] = useState('')
+  const [subjectFilter, setSubjectFilter] = useState('')
   const { user } = useAuth()
+  const navigate = useNavigate()
 
   const { data: resData, isLoading: rLoading } = useQuery({
-    queryKey: ['resources', activeTab.type],
-    queryFn: () => getResources({ type: activeTab.type }).then(r => r.data),
+    queryKey: ['resources', activeTab.type, semesterFilter, subjectFilter],
+    queryFn: () => {
+      const params = { type: activeTab.type }
+      if (semesterFilter) params.semester = Number(semesterFilter)
+      if (subjectFilter) params.subject = subjectFilter
+      return getResources(params).then(r => r.data)
+    },
   })
+
+  const { data: subjectsData } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: () => getSubjects({ status: 'approved' }).then(r => r.data),
+  })
+  const subjects = subjectsData?.data || []
 
   const isLoading = rLoading
 
@@ -50,7 +68,13 @@ export default function Resources() {
           {TABS.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                if (tab.id === 'syllabus') {
+                  navigate('/courses')
+                  return
+                }
+                setActiveTab(tab)
+              }}
               className={`font-sans text-[14px] font-semibold px-5 py-2 rounded-full transition-all whitespace-nowrap ${
                 activeTab.id === tab.id
                   ? 'bg-primary text-white shadow-sm'
@@ -60,6 +84,34 @@ export default function Resources() {
               {tab.label}
             </button>
           ))}
+        </div>
+
+        {/* Semester filter */}
+        <div className="mb-6">
+          <label className="font-sans text-[13px] font-medium text-ink-muted-80 mr-3">Filter by Semester:</label>
+          <select
+            value={semesterFilter}
+            onChange={e => setSemesterFilter(e.target.value)}
+            className="bg-canvas border border-divider-soft rounded-lg px-4 py-2 text-[14px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          >
+            <option value="">All Semesters</option>
+            {SEMS.map(s => <option key={s} value={s}>Semester {s}</option>)}
+          </select>
+        </div>
+
+        {/* Subject filter */}
+        <div className="mb-6">
+          <label className="font-sans text-[13px] font-medium text-ink-muted-80 mr-3">Filter by Subject:</label>
+          <select
+            value={subjectFilter}
+            onChange={e => setSubjectFilter(e.target.value)}
+            className="bg-canvas border border-divider-soft rounded-lg px-4 py-2 text-[14px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          >
+            <option value="">All Subjects</option>
+            {(semesterFilter ? subjects.filter(s => s.semester === Number(semesterFilter)) : subjects).map(s => (
+              <option key={s._id} value={s.name}>{s.name}</option>
+            ))}
+          </select>
         </div>
 
         {/* Content */}

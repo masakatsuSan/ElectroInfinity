@@ -482,9 +482,9 @@ export default function StudentAttendance() {
         </div>
       )}
 
-      <div className="max-w-lg px-6 py-8 mx-auto space-y-6">
+      <div className="max-w-6xl px-6 py-8 mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-6 lg:mb-8">
           <div className="flex items-center gap-3">
             <BackButton />
             <div>
@@ -510,328 +510,336 @@ export default function StudentAttendance() {
         {/* Camera / location permission guidance */}
         <PermissionBanner permissions={['camera', 'location']} />
 
-        {/* Stats card */}
-        {stats && (
-          <div className={`border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm p-5 ${
-            stats.lowAttendance ? 'border-amber-500/40 bg-amber-500/5' : ''
-          }`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-sans text-[13px] text-ink-muted-80 font-medium">Your Overall Attendance</p>
-                <p className="font-display text-[36px] font-bold text-ink mt-0.5">{stats.percentage}%</p>
+        {/* Desktop grid layout */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          {/* LEFT SIDEBAR: Stats, Session, GPS, Info */}
+          <div className="space-y-6 lg:col-span-4">
+            {/* Stats card */}
+            {stats && (
+              <div className={`border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm p-5 ${
+                stats.lowAttendance ? 'border-amber-500/40 bg-amber-500/5' : ''
+              }`}>
+                <div className="flex items-center justify-between p-3">
+                  <div>
+                    <p className="font-sans text-[13px] text-ink-muted-80 font-medium">Your Overall Attendance</p>
+                    <p className="font-display text-[36px] font-bold text-ink mt-0.5">{stats.percentage}%</p>
+                  </div>
+                  <div className="text-right">
+                    <span className={`px-3 py-1 rounded-full text-[12px] font-bold uppercase tracking-wider ${
+                      stats.percentage >= 75 ? 'bg-green-500/10 text-green-600' : 'bg-amber-500/15 text-amber-600'
+                    }`}>
+                      {stats.percentage >= 75 ? <><Check size={14}/> Eligible</> : <><AlertTriangle size={14} /> Below 75%</>}
+                    </span>
+                    <p className="font-sans text-[12px] text-ink-muted-80 mt-1">
+                      {stats.attended} of {stats.totalSessions} sessions
+                    </p>
+                  </div>
+                </div>
+                {stats.lowAttendance && (
+                  <p className="font-sans text-[12px] text-amber-600 dark:text-amber-400 mt-3 pt-3 border-t border-amber-500/20 font-medium">
+                    <AlertTriangle size={14} /> Attendance is below mandatory 75%. Please ensure you scan in upcoming lectures.
+                  </p>
+                )}
               </div>
-              <div className="text-right">
-                <span className={`px-3 py-1 rounded-full text-[12px] font-bold uppercase tracking-wider ${
-                  stats.percentage >= 75 ? 'bg-green-500/10 text-green-600' : 'bg-amber-500/15 text-amber-600'
-                }`}>
-                  {stats.percentage >= 75 ? <><Check size={14} /> Eligible</> : <><AlertTriangle size={14} /> Below 75%</>}
-                </span>
-                <p className="font-sans text-[12px] text-ink-muted-80 mt-1">
-                  {stats.attended} of {stats.totalSessions} sessions
+            )}
+
+            {/* Active session card */}
+            {activeSession ? (
+              <div className="p-6 space-y-3 border shadow-sm border-green-500/30 bg-green-500/5 rounded-2xl">
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-green-500 text-white">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> Live Lecture
+                  </span>
+                  <span className="font-mono text-[12px] text-ink-muted-80 font-medium">{activeSession.batch}</span>
+                </div>
+
+                <div>
+                  <h2 className="font-display text-[22px] font-bold text-ink">{activeSession.subject || activeSession.course}</h2>
+                  <p className="font-sans text-[14px] text-ink-muted-80 mt-0.5">
+                    Faculty: <span className="font-semibold text-ink">{activeSession.faculty?.name || 'Professor'}</span>
+                  </p>
+                </div>
+
+                <p className="font-sans text-[13px] text-green-700 dark:text-green-400 font-medium pt-1">
+                  <Check size={14} /> Geofence is active. Ensure you are in the classroom and scan the QR on screen.
                 </p>
               </div>
-            </div>
-
-            {stats.lowAttendance && (
-              <p className="font-sans text-[12px] text-amber-600 dark:text-amber-400 mt-3 pt-3 border-t border-amber-500/20 font-medium">
-                <AlertTriangle size={14} /> Attendance is below mandatory 75%. Please ensure you scan in upcoming lectures.
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Active session card */}
-        {activeSession ? (
-          <div className="p-6 space-y-3 border shadow-sm border-green-500/30 bg-green-500/5 rounded-2xl">
-            <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-green-500 text-white">
-                <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> Live Lecture
-              </span>
-              <span className="font-mono text-[12px] text-ink-muted-80 font-medium">{activeSession.batch}</span>
-            </div>
-
-            <div>
-              <h2 className="font-display text-[22px] font-bold text-ink">{activeSession.subject || activeSession.course}</h2>
-              <p className="font-sans text-[14px] text-ink-muted-80 mt-0.5">
-                Faculty: <span className="font-semibold text-ink">{activeSession.faculty?.name || 'Professor'}</span>
-              </p>
-            </div>
-
-            <p className="font-sans text-[13px] text-green-700 dark:text-green-400 font-medium pt-1">
-              <Check size={14} /> Geofence is active. Ensure you are in the classroom and scan the QR on screen.
-            </p>
-          </div>
-        ) : (
-          <div className="p-6 text-center border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
-            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-divider-soft text-ink-muted-80">
-              <RefreshCw size={24} />
-            </div>
-            <h3 className="font-display text-[18px] font-semibold text-ink">No Active Lecture</h3>
-            <p className="font-sans text-[14px] text-ink-muted-80 mt-1 max-w-xs mx-auto">
-              There is currently no active attendance session for batch {user?.batch}. The scanner will activate when the faculty starts a session.
-            </p>
-            <button
-              onClick={loadData}
-              className="button-secondary text-[13px] !py-2 !px-4 mt-4"
-            >
-              <><RefreshCw size={14} /> Check Again</>
-            </button>
-          </div>
-        )}
-
-        {/* Notifications */}
-        {verifying && (
-          <div className="p-5 border rounded-2xl bg-blue-500/10 border-blue-500/30 flex items-center gap-3">
-            <span className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
-            <div>
-              <p className="font-sans text-[15px] font-bold text-blue-700 dark:text-blue-300">Verifying location…</p>
-              <p className="font-sans text-[12px] text-ink-muted-80 mt-0.5">Checking your GPS against the classroom geofence.</p>
-            </div>
-          </div>
-        )}
-        {msg && !verifying && (
-          <div className="p-5 text-green-800 border rounded-2xl bg-green-500/15 border-green-500/30 dark:text-green-300">
-            <div className="flex items-center gap-2 font-bold text-[16px]">
-              <span><Check size={14} /></span> {msg}
-            </div>
-            {scanSuccess && scanSuccess.distance != null && (
-              <p className="font-sans text-[13px] mt-1 opacity-90">
-                Verified: You were <strong>{scanSuccess.distance} meters</strong> from the faculty device.
-              </p>
-            )}
-          </div>
-        )}
-
-        {error && (
-          <div className="p-5 text-red-700 border rounded-2xl bg-red-500/15 border-red-500/30 dark:text-red-400">
-              <div className="flex items-center gap-2 font-bold text-[15px]">
-                <AlertTriangle size={14} /> Scan Failed
-              </div>
-            <p className="font-sans text-[14px] mt-1">{error}</p>
-
-            {/* GPS Debug Info */}
-            {errorDebug && (
-              <div className="pt-4 mt-4 space-y-2 border-t border-red-500/20">
-                <p className="font-sans text-[13px] font-semibold"><MapPin size={14} /> GPS Debug Info:</p>
-                <div className="bg-red-500/5 rounded-lg p-3 font-mono text-[11px] space-y-1 text-red-900 dark:text-red-200">
-                  {errorDebug.studentLat && (
-                    <>
-                      <div> Your GPS: {errorDebug.studentLat}°N, {errorDebug.studentLng}°E</div>
-                      <div> Your GPS accuracy: {errorDebug.studentAccuracy ?? 'N/A'}m</div>
-                      <div> Faculty GPS: {errorDebug.facultyLat}°N, {errorDebug.facultyLng}°E</div>
-                      <div> Faculty GPS accuracy: {errorDebug.facultyAccuracy ?? 'N/A'}m</div>
-                      <div> Distance: {errorDebug.calculatedDistance}m (limit: {errorDebug.effectiveRadius ?? 50}m)</div>
-                      <div>Confidence: {errorDebug.score ?? 'N/A'}/100 {errorDebug.score != null && errorDebug.score >= errorDebug.passThreshold ? '(PASS)' : '(LOW)'}</div>
-                      {errorDebug.deviceStationary != null && (
-                        <div>Device stationary: {errorDebug.deviceStationary ? 'Yes' : 'No'}</div>
-                      )}
-                      {errorDebug.swappedDistance && (
-                        <div className="pt-1 mt-1 border-t border-red-500/20">
-                           <RefreshCw size={14} /> If coords swapped: {errorDebug.swappedDistance}m {errorDebug.swappedDistance <= 100 ? <><Check size={14} /> WOULD WORK</> : ''}
-                        </div>
-                      )}
-                    </>
-                  )}
+            ) : (
+              <div className="p-6 text-center border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
+                <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-divider-soft text-ink-muted-80">
+                  <RefreshCw size={24} />
                 </div>
-                {errorDebug.troubleshooting && (
-                  <div className="mt-2 space-y-1 text-[12px]">
-                    {errorDebug.troubleshooting.split('\n').map((line, i) => (
-                      <div key={i}>{line}</div>
-                    ))}
+                <h3 className="font-display text-[18px] font-semibold text-ink">No Active Lecture</h3>
+                <p className="font-sans text-[14px] text-ink-muted-80 mt-1 max-w-xs mx-auto">
+                  There is currently no active attendance session for batch {user?.batch}. The scanner will activate when the faculty starts a session.
+                </p>
+                <button
+                  onClick={loadData}
+                  className="button-secondary text-[13px] !py-2 !px-4 mt-4"
+                >
+                  <><RefreshCw size={14} /> Check Again</>
+                </button>
+              </div>
+            )}
+
+            {/* GPS Refresh & Debug Info */}
+            {activeSession && (
+              <div className="p-4 space-y-3 border border-divider-soft bg-surface-pearl rounded-2xl">
+                <div className="flex items-center justify-between">
+                  <span className="font-sans text-[13px] font-semibold text-ink">Your Live Location</span>
+                  <button
+                    onClick={refreshStudentGps}
+                    className="text-[12px] font-medium text-primary hover:underline"
+                  >
+                     Refresh GPS
+                  </button>
+                </div>
+                
+                {gpsDebug && (
+                  <div className="p-3 space-y-1 rounded-lg bg-canvas">
+                    <p className="font-mono text-[11px] text-ink-muted-80">
+                      Lat: {fmtCoord(gpsDebug.latitude)}°
+                    </p>
+                    <p className="font-mono text-[11px] text-ink-muted-80">
+                      Lng: {fmtCoord(gpsDebug.longitude)}°
+                    </p>
+                    <p className="font-mono text-[11px] text-ink-muted-80">
+                      Accuracy: {gpsDebug.accuracy != null ? `±${gpsDebug.accuracy}m` : '—'}
+                    </p>
+                    <p className="font-mono text-[11px] text-ink-muted-80 opacity-60">
+                      Updated: {gpsDebug.timestamp}
+                    </p>
+                  </div>
+                )}
+                
+                {activeSession && (
+                  <div className="bg-canvas rounded-lg p-3 space-y-1 text-[11px]">
+                    <p className="font-mono text-ink-muted-80">
+                      Faculty Lat: {fmtCoord(activeSession.centerLat)}°
+                    </p>
+                    <p className="font-mono text-ink-muted-80">
+                      Faculty Lng: {fmtCoord(activeSession.centerLng)}°
+                    </p>
+                    <p className="font-mono text-ink-muted-80">
+                      Faculty GPS accuracy: ±{activeSession.centerAccuracy ?? 'N/A'}m
+                    </p>
                   </div>
                 )}
               </div>
             )}
 
-            {error.includes('far') && (
-              <div className="pt-3 mt-3 space-y-2 border-t border-red-500/20">
-                <p className="font-sans text-[13px] font-semibold">Try these:</p>
-                <ul className="font-sans text-[12px] space-y-1 ml-4">
-                  <li><Check size={14} /> Move closer to the faculty device</li>
-                  <li><Check size={14} /> Ensure location permissions are enabled</li>
-                  <li><Check size={14} /> Verify your device GPS is accurate</li>
-                  <li><Check size={14} /> Ask faculty to re-calibrate their GPS location</li>
-                </ul>
+            {/* Info instructions */}
+            <div className="p-5 space-y-3 border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
+              <h4 className="font-display text-[16px] font-bold text-ink">How Smart Attendance Works</h4>
+              <ul className="font-sans text-[13px] text-ink-muted-80 space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-primary">1.</span>
+                  <span><strong>10m GPS Geofence:</strong> Attendance is anchored to the faculty's live device location and uses a confidence score (distance + GPS accuracy + device-stationary) so genuine classroom scans pass reliably.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-primary">2.</span>
+                  <span><strong>15s Rotating QR:</strong> Screen QR dynamically regenerates every 15 seconds so screenshots cannot be shared in WhatsApp groups.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-primary">3.</span>
+                  <span><strong>Surprise Checkpoints:</strong> A random checkpoint QR may appear mid-class. Re-scan within 20 seconds to stay marked present.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* RIGHT MAIN: Notifications, Scanner */}
+          <div className="space-y-6 lg:col-span-8">
+            {/* Notifications */}
+            {verifying && (
+              <div className="flex items-center gap-3 p-5 border rounded-2xl bg-blue-500/10 border-blue-500/30">
+                <span className="flex-shrink-0 w-5 h-5 border-2 border-blue-500 rounded-full border-t-transparent animate-spin" />
+                <div>
+                  <p className="font-sans text-[15px] font-bold text-blue-700 dark:text-blue-300">Verifying location…</p>
+                  <p className="font-sans text-[12px] text-ink-muted-80 mt-0.5">Checking your GPS against the classroom geofence.</p>
+                </div>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Scanner Controller */}
-        {!scanning ? (
-          <div className="space-y-3">
-            <button
-              onClick={() => { setScanning(true); setError(''); setMsg(''); setScanSuccess(null); setShowSuccessOverlay(false) }}
-              disabled={!activeSession || showSuccessOverlay}
-              className="button-primary w-full py-4 text-[16px] font-bold shadow-lg disabled:opacity-50 transition-all duration-300"
-            >
-              {showSuccessOverlay ? <><Check size={14} /> Attendance Confirmed</> : activeSession ? ' Open Camera & Scan QR Code' : 'Waiting for Class Session to Start'}
-            </button>
-            {activeSession && (
-              <button
-                type="button"
-                onClick={async () => {
-                  try {
-                    await requestCameraPermission()
-                    setError('')
-                    setMsg(' Camera access granted — tap "Open Camera" to scan.')
-                  } catch (err) {
-                    setError(err?.message || 'Camera permission was not granted.')
-                  }
-                }}
-                className="w-full text-[12px] font-semibold text-primary border border-primary/30 hover:bg-primary/5 rounded-xl px-3 py-2 transition-colors"
-              >
-                 Request Camera Access
-              </button>
+            {msg && !verifying && (
+              <div className="p-5 text-green-800 border rounded-2xl bg-green-500/15 border-green-500/30 dark:text-green-300">
+                <div className="flex items-center gap-2 font-bold text-[16px]">
+                  <span><Check size={14} /></span> {msg}
+                </div>
+                {scanSuccess && scanSuccess.distance != null && (
+                  <p className="font-sans text-[13px] mt-1 opacity-90">
+                    Verified: You were <strong>{scanSuccess.distance} meters</strong> from the faculty device.
+                  </p>
+                )}
+              </div>
             )}
-            <p className="font-sans text-[12px] text-ink-muted-80 text-center">
-              You'll be asked to allow camera &amp; location when you open the scanner.
-            </p>
-          </div>
-        ) : (
-          <ErrorBoundary
-            resetKey={scannerEpoch}
-            fallback={
-              <div className="p-6 space-y-3 border border-amber-500/40 bg-amber-500/5 rounded-2xl text-center">
-                <AlertTriangle size={28} className="mx-auto text-amber-500" />
-                <h3 className="font-display text-[18px] font-bold text-ink">Scanner hit a snag</h3>
-                <p className="font-sans text-[13px] text-ink-muted-80">
-                  The camera component hit an unexpected error, but the rest of the page is fine. Restart to try again.
+
+            {error && (
+              <div className="p-5 text-red-700 border rounded-2xl bg-red-500/15 border-red-500/30 dark:text-red-400">
+                  <div className="flex items-center gap-2 font-bold text-[15px]">
+                    <AlertTriangle size={14} /> Scan Failed
+                  </div>
+                <p className="font-sans text-[14px] mt-1">{error}</p>
+
+                {/* GPS Debug Info */}
+                {errorDebug && (
+                  <div className="pt-4 mt-4 space-y-2 border-t border-red-500/20">
+                    <p className="font-sans text-[13px] font-semibold"><MapPin size={14} /> GPS Debug Info:</p>
+                    <div className="bg-red-500/5 rounded-lg p-3 font-mono text-[11px] space-y-1 text-red-900 dark:text-red-200">
+                      {errorDebug.studentLat && (
+                        <>
+                          <div> Your GPS: {errorDebug.studentLat}°N, {errorDebug.studentLng}°E</div>
+                          <div> Your GPS accuracy: {errorDebug.studentAccuracy ?? 'N/A'}m</div>
+                          <div> Faculty GPS: {errorDebug.facultyLat}°N, {errorDebug.facultyLng}°E</div>
+                          <div> Faculty GPS accuracy: {errorDebug.facultyAccuracy ?? 'N/A'}m</div>
+                          <div> Distance: {errorDebug.calculatedDistance}m (limit: {errorDebug.effectiveRadius ?? 50}m)</div>
+                          <div>Confidence: {errorDebug.score ?? 'N/A'}/100 {errorDebug.score != null && errorDebug.score >= errorDebug.passThreshold ? '(PASS)' : '(LOW)'}</div>
+                          {errorDebug.deviceStationary != null && (
+                            <div>Device stationary: {errorDebug.deviceStationary ? 'Yes' : 'No'}</div>
+                          )}
+                          {errorDebug.swappedDistance && (
+                            <div className="pt-1 mt-1 border-t border-red-500/20">
+                               <RefreshCw size={14} /> If coords swapped: {errorDebug.swappedDistance}m {errorDebug.swappedDistance <= 100 ? <><Check size={14} /> WOULD WORK</> : ''}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    {errorDebug.troubleshooting && (
+                      <div className="mt-2 space-y-1 text-[12px]">
+                        {errorDebug.troubleshooting.split('\n').map((line, i) => (
+                          <div key={i}>{line}</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {error.includes('far') && (
+                  <div className="pt-3 mt-3 space-y-2 border-t border-red-500/20">
+                    <p className="font-sans text-[13px] font-semibold">Try these:</p>
+                    <ul className="font-sans text-[12px] space-y-1 ml-4">
+                      <li><Check size={14} /> Move closer to the faculty device</li>
+                      <li><Check size={14} /> Ensure location permissions are enabled</li>
+                      <li><Check size={14} /> Verify your device GPS is accurate</li>
+                      <li><Check size={14} /> Ask faculty to re-calibrate their GPS location</li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Scanner Controller */}
+            {!scanning ? (
+              <div className="space-y-3">
+                <button
+                  onClick={() => { setScanning(true); setError(''); setMsg(''); setScanSuccess(null); setShowSuccessOverlay(false) }}
+                  disabled={!activeSession || showSuccessOverlay}
+                  className="button-primary w-full py-4 text-[16px] font-bold shadow-lg disabled:opacity-50 transition-all duration-300"
+                >
+                  {showSuccessOverlay ? <><Check size={14} /> Attendance Confirmed</> : activeSession ? ' Open Camera & Scan QR Code' : 'Waiting for Class Session to Start'}
+                </button>
+                {activeSession && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await requestCameraPermission()
+                        setError('')
+                        setMsg(' Camera access granted — tap "Open Camera" to scan.')
+                      } catch (err) {
+                        setError(err?.message || 'Camera permission was not granted.')
+                      }
+                    }}
+                    className="w-full text-[12px] font-semibold text-primary border border-primary/30 hover:bg-primary/5 rounded-xl px-3 py-2 transition-colors"
+                  >
+                     Request Camera Access
+                  </button>
+                )}
+                <p className="font-sans text-[12px] text-ink-muted-80 text-center">
+                  You'll be asked to allow camera &amp; location when you open the scanner.
                 </p>
-                <button onClick={restartCamera} className="button-primary !py-2.5 !px-5 text-[14px]">
-                  <RefreshCw size={14} /> Restart Scanner
-                </button>
               </div>
-            }
-          >
-          <div className="p-5 space-y-4 border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
-            {/* Scanner header — Stop / Restart controls live OUTSIDE the camera viewport */}
-            <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-2 font-sans text-[14px] font-semibold text-ink">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="absolute inline-flex w-full h-full bg-red-400 rounded-full opacity-75 animate-ping"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
-                </span>
-                Camera Active
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={restartCamera}
-                  className="text-[12px] font-semibold text-ink bg-divider-soft hover:bg-soft-stone rounded-lg px-3 py-2 transition-colors"
-                >
-                  <><RefreshCw size={14} /> Restart</>
-                </button>
-                <button
-                  onClick={stopScanner}
-                  className="text-[12px] font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg px-3 py-2 transition-colors"
-                >
-                  ■ Stop
-                </button>
-              </div>
-            </div>
+            ) : (
+              <ErrorBoundary
+                resetKey={scannerEpoch}
+                fallback={
+                  <div className="p-6 space-y-3 text-center border border-amber-500/40 bg-amber-500/5 rounded-2xl">
+                    <AlertTriangle size={28} className="mx-auto text-amber-500" />
+                    <h3 className="font-display text-[18px] font-bold text-ink">Scanner hit a snag</h3>
+                    <p className="font-sans text-[13px] text-ink-muted-80">
+                      The camera component hit an unexpected error, but the rest of the page is fine. Restart to try again.
+                    </p>
+                    <button onClick={restartCamera} className="button-primary !py-2.5 !px-5 text-[14px]">
+                      <RefreshCw size={14} /> Restart Scanner
+                    </button>
+                  </div>
+                }
+              >
+              <div className="p-5 space-y-4 border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
+                {/* Scanner header — Stop / Restart controls live OUTSIDE the camera viewport */}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="inline-flex items-center gap-2 font-sans text-[14px] font-semibold text-ink">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="absolute inline-flex w-full h-full bg-red-400 rounded-full opacity-75 animate-ping"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                    </span>
+                    Camera Active
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={restartCamera}
+                      className="text-[12px] font-semibold text-ink bg-divider-soft hover:bg-soft-stone rounded-lg px-3 py-2 transition-colors"
+                    >
+                      <><RefreshCw size={14} /> Restart</>
+                    </button>
+                    <button
+                      onClick={stopScanner}
+                      className="text-[12px] font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg px-3 py-2 transition-colors"
+                    >
+                      ■ Stop
+                    </button>
+                  </div>
+                </div>
 
-            {/* Camera viewport — the library renders ONLY the live video feed here */}
-            <div className="relative w-full overflow-hidden bg-black shadow-inner qr-video-viewport rounded-xl aspect-square">
-              <div id="qr-reader" ref={scannerRef} style={{ width: '100%', height: '100%' }} />
-            </div>
+                {/* Camera viewport — the library renders ONLY the live video feed here */}
+                <div className="relative w-full overflow-hidden bg-black shadow-inner qr-video-viewport rounded-xl aspect-square">
+                  <div id="qr-reader" ref={scannerRef} style={{ width: '100%', height: '100%' }} />
+                </div>
 
-            {/* Active camera selector — OUTSIDE the scanner */}
-            {cameraDevices.length > 0 && (
-              <div className="flex items-center gap-2 bg-canvas rounded-xl border border-divider-soft px-3 py-2.5">
-                <span className="font-sans text-[12px] font-semibold text-ink whitespace-nowrap"><Video size={14} /> Camera</span>
-                <select
-                  value={currentCameraId || ''}
-                  onChange={(e) => setCurrentCameraId(e.target.value)}
-                  className="flex-1 input !py-2 !text-[13px] font-medium cursor-pointer"
-                >
-                  {cameraDevices.map((c, i) => (
-                    <option key={c.id} value={c.id}>
-                      {c.label || 'Camera ' + (i + 1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+                {/* Active camera selector — OUTSIDE the scanner */}
+                {cameraDevices.length > 0 && (
+                  <div className="flex items-center gap-2 bg-canvas rounded-xl border border-divider-soft px-3 py-2.5">
+                    <span className="font-sans text-[12px] font-semibold text-ink whitespace-nowrap"><Video size={14} /> Camera</span>
+                    <select
+                      value={currentCameraId || ''}
+                      onChange={(e) => setCurrentCameraId(e.target.value)}
+                      className="flex-1 input !py-2 !text-[13px] font-medium cursor-pointer"
+                    >
+                      {cameraDevices.map((c, i) => (
+                        <option key={c.id} value={c.id}>
+                          {c.label || 'Camera ' + (i + 1)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
-            <p className="font-sans text-[12px] text-ink-muted-80 text-center leading-relaxed">
-               Point your camera at the revolving QR code displayed on the classroom screen. Live GPS coordinates will be verified automatically.
-            </p>
+                <p className="font-sans text-[12px] text-ink-muted-80 text-center leading-relaxed">
+                   Point your camera at the revolving QR code displayed on the classroom screen. Live GPS coordinates will be verified automatically.
+                </p>
 <p className="font-sans text-[11px] text-amber-600 dark:text-amber-400 text-center leading-relaxed">
-              If your accuracy stays high (±100m+), enable high-accuracy / Wi-Fi location, hold your phone still, then re-scan.
-            </p>
+                  If your accuracy stays high (±100m+), enable high-accuracy / Wi-Fi location, hold your phone still, then re-scan.
+                </p>
 
-            <div className="p-3 border rounded-lg bg-blue-500/10 border-blue-500/30">
-              <p className="font-sans text-[12px] text-blue-700 dark:text-blue-300">
-                 <strong>Tip:</strong> Ensure adequate lighting and hold the camera steady for accurate scanning.
-              </p>
-            </div>
-          </div>
-          </ErrorBoundary>
-        )}
-
-        {/* GPS Refresh & Debug Info */}
-        {activeSession && (
-          <div className="p-4 space-y-3 border border-divider-soft bg-surface-pearl rounded-2xl">
-            <div className="flex items-center justify-between">
-              <span className="font-sans text-[13px] font-semibold text-ink">Your Live Location</span>
-              <button
-                onClick={refreshStudentGps}
-                className="text-[12px] font-medium text-primary hover:underline"
-              >
-                 Refresh GPS
-              </button>
-            </div>
-            
-            {gpsDebug && (
-              <div className="p-3 space-y-1 rounded-lg bg-canvas">
-                <p className="font-mono text-[11px] text-ink-muted-80">
-                  Lat: {fmtCoord(gpsDebug.latitude)}°
-                </p>
-                <p className="font-mono text-[11px] text-ink-muted-80">
-                  Lng: {fmtCoord(gpsDebug.longitude)}°
-                </p>
-                <p className="font-mono text-[11px] text-ink-muted-80">
-                  Accuracy: {gpsDebug.accuracy != null ? `±${gpsDebug.accuracy}m` : '—'}
-                </p>
-                <p className="font-mono text-[11px] text-ink-muted-80 opacity-60">
-                  Updated: {gpsDebug.timestamp}
-                </p>
+                <div className="p-3 border rounded-lg bg-blue-500/10 border-blue-500/30">
+                  <p className="font-sans text-[12px] text-blue-700 dark:text-blue-300">
+                     <strong>Tip:</strong> Ensure adequate lighting and hold the camera steady for accurate scanning.
+                  </p>
+                </div>
               </div>
-            )}
-            
-            {activeSession && (
-              <div className="bg-canvas rounded-lg p-3 space-y-1 text-[11px]">
-                <p className="font-mono text-ink-muted-80">
-                  Faculty Lat: {fmtCoord(activeSession.centerLat)}°
-                </p>
-                <p className="font-mono text-ink-muted-80">
-                  Faculty Lng: {fmtCoord(activeSession.centerLng)}°
-                </p>
-                <p className="font-mono text-ink-muted-80">
-                  Faculty GPS accuracy: ±{activeSession.centerAccuracy ?? 'N/A'}m
-                </p>
-              </div>
+              </ErrorBoundary>
             )}
           </div>
-        )}
-
-        {/* Info instructions */}
-        <div className="p-5 space-y-3 border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
-          <h4 className="font-display text-[16px] font-bold text-ink">How Smart Attendance Works</h4>
-          <ul className="font-sans text-[13px] text-ink-muted-80 space-y-2">
-            <li className="flex items-start gap-2">
-              <span className="font-bold text-primary">1.</span>
-              <span><strong>50m GPS Geofence:</strong> Attendance is anchored to the faculty's live device location and uses a confidence score (distance + GPS accuracy + device-stationary) so genuine classroom scans pass reliably.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold text-primary">2.</span>
-              <span><strong>15s Rotating QR:</strong> Screen QR dynamically regenerates every 15 seconds so screenshots cannot be shared in WhatsApp groups.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold text-primary">3.</span>
-              <span><strong>Surprise Checkpoints:</strong> A random checkpoint QR may appear mid-class. Re-scan within 20 seconds to stay marked present.</span>
-            </li>
-          </ul>
         </div>
       </div>
     </div>

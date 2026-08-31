@@ -6,25 +6,15 @@ const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../utils/u
 const router = express.Router()
 
 // ── GET /api/resources ─────────────────────────────────────────────────────
-// Public — supports ?type=notes&semester=5
+// Public — supports ?type=notes&semester=5&subject=Power+System-I
+// All resources are visible to all users; semester/subject are only for filtering
 router.get('/', optionalAuth, async (req, res) => {
   try {
-    const { type, semester } = req.query
+    const { type, semester, subject } = req.query
     const filter = {}
     if (type) filter.type = type
     if (semester) filter.semester = Number(semester)
-
-    // Batch Isolation Logic
-    if (req.user && (req.user.role === 'student' || req.user.role === 'cr')) {
-      // Students/CRs see global content AND their own batch's content
-      filter.$or = [
-        { visibility: 'BATCH', batchId: req.user.batch },
-        { visibility: 'GLOBAL' }
-      ]
-    } else if (!req.user) {
-      // Public visitors see only global content
-      filter.visibility = 'GLOBAL'
-    }
+    if (subject) filter.subject = subject
 
     const resources = await Resource.find(filter)
       .populate('uploadedBy', 'name')
@@ -103,10 +93,73 @@ router.post(
         fileName: req.file.originalname,
         uploadedBy: req.user._id,
         batchId: req.user.role === 'cr' ? req.user.batch : (req.body.batchId || ''),
-        visibility: req.user.role === 'cr' ? 'BATCH' : (req.body.visibility || 'BATCH'),
+        visibility: 'GLOBAL',
       })
 
       res.status(201).json({ success: true, data: resource })
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message })
+    }
+  }
+)
+
+// ── PUT /api/resources/:id ───────────────────────────────────────────────────
+// Edit resource — CR (own batch only), super_admin, admin
+router.put(
+  '/:id',
+  protect,
+  guard('cr', 'super_admin', 'admin'),
+  upload.single('file'),
+  async (req, res) => {
+    try {
+      const resource = await Resource.findById(req.params.id)
+      if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
+
+      // CR can only edit their own batch's uploads
+      if (req.user.role === 'cr' && resource.batchId !== req.user.batch) {
+        return res.status(403).json({ success: false, error: 'Not your upload' })
+      }
+
+      const { title, type, semester, subject, dueDate, visibility } = req.body
+      const updates = {
+        title:      title      || resource.title,
+        type:       type       || resource.type,
+        semester:   semester   !== undefined ? Number(semester) : resource.semester,
+        subject:    subject    !== undefined ? subject : resource.subject,
+        dueDate:    dueDate    || resource.dueDate,
+        visibility: visibility || resource.visibility,
+      }
+
+      // If a new file is provided, delete the old one and upload the new
+      if (req.file) {
+        if (resource.filePublicId) {
+          const isRaw = resource.fileUrl.includes('/raw/upload/')
+          await deleteFromCloudinary(resource.filePublicId, isRaw ? 'raw' : 'image')
+        }
+
+        const folderMap = {
+          notes: 'notes',
+          pyq: 'previous-year-papers',
+          assignment: 'assignments',
+          lab_manual: 'lab-manuals',
+          syllabus: 'syllabus',
+        }
+        const folder = `electro-infinity/${folderMap[updates.type] || 'resources'}`
+        const isPdf = req.file.mimetype === 'application/pdf'
+        const { url, publicId } = await uploadToCloudinary(req.file.buffer, {
+          folder,
+          resource_type: 'auto',
+          public_id: req.file.originalname.replace(/\.[^/.]+$/, ''),
+          overwrite: false,
+        })
+
+        updates.fileUrl      = url
+        updates.filePublicId = publicId
+        updates.fileName     = req.file.originalname
+      }
+
+      const updated = await Resource.findByIdAndUpdate(req.params.id, updates, { new: true })
+      res.json({ success: true, data: updated })
     } catch (err) {
       res.status(500).json({ success: false, error: err.message })
     }

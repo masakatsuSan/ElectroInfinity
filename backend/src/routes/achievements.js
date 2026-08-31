@@ -14,6 +14,16 @@ router.get('/', async (req, res) => {
   }
 })
 
+router.get('/:id', async (req, res) => {
+  try {
+    const achievement = await Achievement.findById(req.params.id)
+    if (!achievement) return res.status(404).json({ success: false, error: 'Achievement not found' })
+    res.json({ success: true, data: achievement })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
 router.post('/', protect, guard('super_admin', 'admin'), upload.single('image'), async (req, res) => {
   try {
     const { title, description, date, category, students } = req.body

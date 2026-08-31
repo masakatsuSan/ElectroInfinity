@@ -21,10 +21,12 @@ import Labs         from './pages/Labs'
 import Contact      from './pages/Contact'
 import Placements   from './pages/Placements'
 import Achievements from './pages/Achievements'
+import AchievementDetails from './pages/AchievementDetails'
 import Announcements  from './pages/Announcements'
 import Calendar     from './pages/Calendar'
 import Gallery      from './pages/Gallery'
 import Projects     from './pages/Projects'
+import ProjectDetails from './pages/ProjectDetails'
 
 // Auth pages
 import Login    from './pages/Login'
@@ -157,8 +159,10 @@ export default function App() {
             <Route path="/calendar"     element={<AnimatedRoute><Calendar /></AnimatedRoute>} />
             <Route path="/gallery"      element={<AnimatedRoute><Gallery /></AnimatedRoute>} />
             <Route path="/achievements" element={<AnimatedRoute><Achievements /></AnimatedRoute>} />
+            <Route path="/achievements/:id" element={<AnimatedRoute><AchievementDetails /></AnimatedRoute>} />
             <Route path="/announcements" element={<AnimatedRoute><Announcements /></AnimatedRoute>} />
             <Route path="/projects"     element={<AnimatedRoute><Projects /></AnimatedRoute>} />
+            <Route path="/projects/:id" element={<AnimatedRoute><ProjectDetails /></AnimatedRoute>} />
             <Route path="/contact"      element={<AnimatedRoute><Contact /></AnimatedRoute>} />
 
             {/* â”€â”€ Auth â”€â”€ */}

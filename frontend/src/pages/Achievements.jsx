@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getAchievements } from '../api/achievements'
 import { Skeleton } from '../components/Skeleton'
@@ -96,6 +97,7 @@ export default function Achievements() {
   
   // Assuming the DB schema has name as title, desc as description, year as date (we'll format it), photo as image
   const formatAch = (a) => ({
+    id: a._id,
     name: a.title,
     desc: a.description,
     year: a.date ? new Date(a.date).getFullYear() : '',
@@ -125,7 +127,11 @@ export default function Achievements() {
             <div className="flex-grow h-px mt-2 bg-divider-soft"></div>
           </div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {STUDENT_ACH.map(a => <AchCard key={a.name} item={a} badgeText="Student" />)}
+            {STUDENT_ACH.map(a => (
+              <Link key={a.id} to={`/achievements/${a.id}`} className="block">
+                <AchCard item={a} badgeText="Student" />
+              </Link>
+            ))}
           </div>
         </div>
 
@@ -135,7 +141,11 @@ export default function Achievements() {
             <div className="flex-grow h-px mt-2 bg-divider-soft"></div>
           </div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {FACULTY_ACH.map(a => <AchCard key={a.name} item={a} badgeText="Faculty" />)}
+            {FACULTY_ACH.map(a => (
+              <Link key={a.id} to={`/achievements/${a.id}`} className="block">
+                <AchCard item={a} badgeText="Faculty" />
+              </Link>
+            ))}
           </div>
         </div>
 
@@ -145,7 +155,11 @@ export default function Achievements() {
             <div className="flex-grow h-px mt-2 bg-divider-soft"></div>
           </div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {AWARDS.map(a => <AchCard key={a.name} item={a} badgeText="Award" />)}
+            {AWARDS.map(a => (
+              <Link key={a.id} to={`/achievements/${a.id}`} className="block">
+                <AchCard item={a} badgeText="Award" />
+              </Link>
+            ))}
           </div>
         </div>
 

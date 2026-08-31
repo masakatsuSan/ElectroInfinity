@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { GitBranch, ExternalLink, Heart, Code2, Plus, Search, X } from 'lucide-react'
 import { getProjects, likeProject, createProject } from '../api/projects'
@@ -130,93 +131,97 @@ function ProjectCard({ project, liked, onLike, liking }) {
   const isPending = !project.isApproved
 
   return (
-    <div className="border border-hairline bg-canvas rounded-2xl p-6 shadow-card hover:border-slate/30 transition-all flex flex-col h-full">
-      <div className="flex-1">
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <h3 className="font-display text-[20px] font-bold text-ink leading-snug">
-            {project.title}
-          </h3>
-          {isPending && (
-            <span className="shrink-0 font-mono text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-soft-stone text-slate border border-hairline">
-              Pending Approval
-            </span>
-          )}
-        </div>
-
-        <p className="font-sans text-[14px] text-body-muted leading-relaxed mb-4">
-          {truncated}
-        </p>
-
-        {techStack.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {techStack.map((tech) => (
-              <span
-                key={tech}
-                className="font-mono text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-soft-stone text-ink border border-hairline"
-              >
-                {tech}
+    <Link to={`/projects/${project._id}`} className="block h-full">
+      <div className="border border-hairline bg-canvas rounded-2xl p-6 shadow-card hover:border-slate/30 transition-all flex flex-col h-full">
+        <div className="flex-1">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <h3 className="font-display text-[20px] font-bold text-ink leading-snug">
+              {project.title}
+            </h3>
+            {isPending && (
+              <span className="shrink-0 font-mono text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-soft-stone text-slate border border-hairline">
+                Pending Approval
               </span>
-            ))}
+            )}
           </div>
-        )}
 
-        <p className="font-mono text-[12px] text-slate mb-4">
-          by {authorName}
-        </p>
-      </div>
+          <p className="font-sans text-[14px] text-body-muted leading-relaxed mb-4">
+            {truncated}
+          </p>
 
-      <div className="flex items-center justify-between pt-4 border-t border-hairline">
-        <div className="flex items-center gap-4">
-          <span className="font-sans text-[13px] text-body-muted flex items-center gap-1">
-            <Heart size={14} className={liked ? 'fill-coral text-coral' : 'text-slate'} />
-            {project.likes?.length || 0}
-          </span>
-
-          {project.github && (
-            <a
-              href={project.github}
-              target="_blank"
-              rel="noreferrer"
-              className="text-slate hover:text-ink transition-colors"
-              aria-label="GitBranch"
-            >
-              <GitBranch size={16} />
-            </a>
+          {techStack.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {techStack.map((tech) => (
+                <span
+                  key={tech}
+                  className="font-mono text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-soft-stone text-ink border border-hairline"
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
           )}
 
-          {project.demoLink && (
-            <a
-              href={project.demoLink}
-              target="_blank"
-              rel="noreferrer"
-              className="text-slate hover:text-ink transition-colors"
-              aria-label="Live demo"
-            >
-              <ExternalLink size={16} />
-            </a>
-          )}
+          <p className="font-mono text-[12px] text-slate mb-4">
+            by {authorName}
+          </p>
         </div>
 
-        {!isPending && liked && (
-          <button
-            onClick={onLike}
-            disabled={liking}
-            className="text-[12px] font-semibold text-coral hover:text-coral-soft transition-colors disabled:opacity-50"
-          >
-            {liking ? 'Saving…' : 'Unlike'}
-          </button>
-        )}
-        {!isPending && !liked && (
-          <button
-            onClick={onLike}
-            disabled={liking}
-            className="text-[12px] font-semibold text-slate hover:text-ink transition-colors disabled:opacity-50"
-          >
-            {liking ? 'Saving…' : 'Like'}
-          </button>
-        )}
+        <div className="flex items-center justify-between pt-4 border-t border-hairline">
+          <div className="flex items-center gap-4">
+            <span className="font-sans text-[13px] text-body-muted flex items-center gap-1">
+              <Heart size={14} className={liked ? 'fill-coral text-coral' : 'text-slate'} />
+              {project.likes?.length || 0}
+            </span>
+
+            {project.github && (
+              <a
+                href={project.github}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => e.preventDefault()}
+                className="text-slate hover:text-ink transition-colors"
+                aria-label="GitBranch"
+              >
+                <GitBranch size={16} />
+              </a>
+            )}
+
+            {project.demoLink && (
+              <a
+                href={project.demoLink}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => e.preventDefault()}
+                className="text-slate hover:text-ink transition-colors"
+                aria-label="Live demo"
+              >
+                <ExternalLink size={16} />
+              </a>
+            )}
+          </div>
+
+          {!isPending && liked && (
+            <button
+              onClick={(e) => { e.preventDefault(); onLike() }}
+              disabled={liking}
+              className="text-[12px] font-semibold text-coral hover:text-coral-soft transition-colors disabled:opacity-50"
+            >
+              {liking ? 'Saving…' : 'Unlike'}
+            </button>
+          )}
+          {!isPending && !liked && (
+            <button
+              onClick={(e) => { e.preventDefault(); onLike() }}
+              disabled={liking}
+              className="text-[12px] font-semibold text-slate hover:text-ink transition-colors disabled:opacity-50"
+            >
+              {liking ? 'Saving…' : 'Like'}
+            </button>
+          )}
+        </div>
       </div>
-    </div>
+    </Link>
   )
 }
 

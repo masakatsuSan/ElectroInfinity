@@ -14,6 +14,12 @@ export const uploadResource = (formData) =>
     headers: { 'Content-Type': 'multipart/form-data' },
   })
 
+// Update a resource — sends as FormData (optionally with a new file)
+export const updateResource = (id, formData) =>
+  api.put(`/resources/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+
 // Delete a resource
 export const deleteResource = (id) =>
   api.delete(`/resources/${id}`)
