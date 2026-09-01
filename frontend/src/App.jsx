@@ -42,6 +42,8 @@ import Students  from './pages/Students'
 import Forum     from './pages/Forum'
 import Directory from './pages/Directory'
 import Dashboard from './pages/Dashboard'
+import Search    from './pages/Search'
+import ScanQR    from './pages/ScanQR'
 
 // Network page
 import Network from './pages/Network'
@@ -206,6 +208,16 @@ export default function App() {
             <Route path="/network" element={
               <AnimatedRoute>
                 <ProtectedRoute><Network /></ProtectedRoute>
+              </AnimatedRoute>
+            }/>
+            <Route path="/search" element={
+              <AnimatedRoute>
+                <ProtectedRoute><Search /></ProtectedRoute>
+              </AnimatedRoute>
+            }/>
+            <Route path="/scan-qr" element={
+              <AnimatedRoute>
+                <ProtectedRoute><ScanQR /></ProtectedRoute>
               </AnimatedRoute>
             }/>
 

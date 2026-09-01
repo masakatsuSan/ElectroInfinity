@@ -28,8 +28,13 @@ export const getFollowers = (userId) =>
 export const getFollowing = (userId) =>
   api.get(`/profile/${userId}/following`)
 
-export const searchUsers = (query) =>
-  api.get('/profile/search', { params: { q: query } })
+export const searchUsers = (query, filters = {}) => {
+  const params = { q: query, ...filters }
+  return api.get('/profile/search', { params })
+}
+
+export const getProfileQr = (userId) =>
+  api.get(`/profile/${userId}/qr`)
 
 export const getBadges = () =>
   api.get('/profile/badges')

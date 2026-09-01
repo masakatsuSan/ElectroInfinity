@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getPublicProfile } from '../api/profile'
 import { getProjects, createProject } from '../api/projects'
 import { updateMyProfile } from '../api/profile'
-import { getAchievements, createAchievement } from '../api/achievements'
+import { getAchievements, createAchievement, updateAchievement, deleteAchievement } from '../api/achievements'
+import { getGallery, createGalleryPhoto, updateGalleryPhoto, deleteGalleryPhoto } from '../api/gallery'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
 import ProfileHeader from '../components/ProfileHeader'
@@ -45,6 +46,9 @@ export default function Profile() {
 
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showAchievementModal, setShowAchievementModal] = useState(false)
+  const [showGalleryModal, setShowGalleryModal] = useState(false)
+  const [editingGallery, setEditingGallery] = useState(null)
+  const [editingAchievement, setEditingAchievement] = useState(null)
 
   const { data: profileData, isLoading: profileLoading } = useQuery({
     queryKey: ['profile', id],
@@ -61,6 +65,12 @@ export default function Profile() {
     queryKey: ['myAchievements', id],
     queryFn: () => getAchievements({ author: id, limit: 20 }).then((r) => r.data.data),
     enabled: activeTab === 'achievements',
+  })
+
+  const { data: galleryData } = useQuery({
+    queryKey: ['myGallery', id],
+    queryFn: () => getGallery({ author: id, limit: 20 }).then((r) => r.data.data),
+    enabled: activeTab === 'gallery',
   })
 
   useEffect(() => {
@@ -177,6 +187,54 @@ export default function Profile() {
       alert('Profile link copied to clipboard!')
     }
   }
+
+  const saveAchievementMut = useMutation({
+    mutationFn: createAchievement,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['myAchievements', id] })
+      qc.invalidateQueries({ queryKey: ['profile', id] })
+    },
+  })
+
+  const updateAchievementMut = useMutation({
+    mutationFn: ({ id, data }) => updateAchievement(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['myAchievements', id] })
+      qc.invalidateQueries({ queryKey: ['profile', id] })
+      setEditingAchievement(null)
+    },
+  })
+
+  const deleteAchievementMut = useMutation({
+    mutationFn: (achievementId) => deleteAchievement(achievementId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['myAchievements', id] })
+      qc.invalidateQueries({ queryKey: ['profile', id] })
+    },
+  })
+
+  const createGalleryMut = useMutation({
+    mutationFn: createGalleryPhoto,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['myGallery', id] })
+      setShowGalleryModal(false)
+    },
+  })
+
+  const updateGalleryMut = useMutation({
+    mutationFn: ({ id, data }) => updateGalleryPhoto(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['myGallery', id] })
+      setEditingGallery(null)
+    },
+  })
+
+  const deleteGalleryMut = useMutation({
+    mutationFn: (photoId) => deleteGalleryPhoto(photoId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['myGallery', id] })
+    },
+  })
 
   if (profileLoading) {
     return (
@@ -506,50 +564,65 @@ export default function Profile() {
             </div>
           )}
 
-          {activeTab === 'achievements' && (
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="font-display text-[24px] font-bold text-ink">Achievements</h2>
-                {isOwn && (
-                  <button
-                    onClick={() => setShowAchievementModal(true)}
-                    className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-full text-[14px] font-semibold hover:bg-ink/90 transition-colors shadow-sm"
-                  >
-                    <Trophy size={16} />
-                    Post Achievement
-                  </button>
-                )}
-              </div>
-              <AchievementsList achievements={achievementsData || []} />
-            </div>
-          )}
+           {activeTab === 'achievements' && (
+             <div>
+               <div className="flex items-center justify-between mb-6">
+                 <h2 className="font-display text-[24px] font-bold text-ink">Achievements</h2>
+                 {isOwn && (
+                   <button
+                     onClick={() => setShowAchievementModal(true)}
+                     className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-full text-[14px] font-semibold hover:bg-ink/90 transition-colors shadow-sm"
+                   >
+                     <Trophy size={16} />
+                     Post Achievement
+                   </button>
+                 )}
+               </div>
+               <AchievementsList
+                 achievements={achievementsData || []}
+                 isOwn={isOwn}
+                 onEdit={(a) => setEditingAchievement(a)}
+                 onDelete={(aid) => deleteAchievementMut.mutate(aid)}
+               />
+             </div>
+           )}
 
-          {activeTab === 'gallery' && (
-            <div>
-              <h2 className="font-display text-[24px] font-bold text-ink mb-6">Gallery</h2>
-              {galleryImages.length === 0 ? (
-                <div className="py-16 text-center border border-divider-soft rounded-2xl bg-surface-pearl">
-                  <ImageIcon size={32} className="mx-auto text-slate mb-3" />
-                  <p className="font-sans text-[15px] text-ink-muted-80">No gallery images yet.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {galleryImages.map((img, i) => (
-                    <button
-                      key={i}
-                      onClick={() => {
-                        setLightboxImages(galleryImages)
-                        setLightboxIndex(i)
-                      }}
-                      className="aspect-square rounded-2xl overflow-hidden border border-divider-soft hover:shadow-md transition-shadow"
-                    >
-                      <img src={img} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+           {activeTab === 'gallery' && (
+             <div>
+               <div className="flex items-center justify-between mb-6">
+                 <h2 className="font-display text-[24px] font-bold text-ink">Gallery</h2>
+                 {isOwn && (
+                   <button
+                     onClick={() => setShowGalleryModal(true)}
+                     className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-full text-[14px] font-semibold hover:bg-ink/90 transition-colors shadow-sm"
+                   >
+                     <Plus size={16} />
+                     Upload Photo
+                   </button>
+                 )}
+               </div>
+               {galleryData?.data?.length === 0 ? (
+                 <div className="py-16 text-center border border-divider-soft rounded-2xl bg-surface-pearl">
+                   <ImageIcon size={32} className="mx-auto text-slate mb-3" />
+                   <p className="font-sans text-[15px] text-ink-muted-80">No gallery images yet.</p>
+                 </div>
+               ) : (
+                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                   {galleryData?.data?.map((img, i) => (
+                     <div key={img._id} className="relative aspect-square rounded-2xl overflow-hidden border border-divider-soft hover:shadow-md transition-shadow group">
+                       <img src={img.imageUrl} alt={img.title} className="w-full h-full object-cover" />
+                       {isOwn && (
+                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                           <button onClick={() => setEditingGallery(img)} className="px-3 py-1.5 bg-white text-ink text-[12px] font-semibold rounded-lg hover:bg-soft-stone transition-colors">Edit</button>
+                           <button onClick={() => { if (window.confirm('Remove this photo?')) deleteGalleryMut.mutate(img._id) }} className="px-3 py-1.5 bg-red-500 text-white text-[12px] font-semibold rounded-lg hover:bg-red-600 transition-colors">Delete</button>
+                         </div>
+                       )}
+                     </div>
+                   ))}
+                 </div>
+               )}
+             </div>
+           )}
         </div>
 
         {/* Lightbox */}
@@ -580,12 +653,34 @@ export default function Profile() {
           <AchievementSubmitModal
             onClose={() => setShowAchievementModal(false)}
             onSubmit={async (data) => {
-              const res = await createAchievement(data)
-              setShowAchievementModal(false)
-              qc.invalidateQueries({ queryKey: ['myAchievements', id] })
-              qc.invalidateQueries({ queryKey: ['profile', id] })
-              return res.data
+              await saveAchievementMut.mutateAsync(data)
             }}
+            loading={saveAchievementMut.isPending}
+          />
+        )}
+
+        {/* Achievement Edit Modal */}
+        {editingAchievement && (
+          <AchievementEditModal
+            achievement={editingAchievement}
+            onClose={() => setEditingAchievement(null)}
+            onSubmit={async (data) => {
+              await updateAchievementMut.mutateAsync({ id: editingAchievement._id, data })
+            }}
+            loading={updateAchievementMut.isPending}
+          />
+        )}
+
+        {/* Gallery Submit Modal */}
+        {showGalleryModal && (
+          <GallerySubmitModal
+            onClose={() => { setShowGalleryModal(false); setEditingGallery(null) }}
+            onSubmit={async (data) => {
+              await createGalleryMut.mutateAsync(data)
+              qc.invalidateQueries({ queryKey: ['profile', id] })
+            }}
+            loading={createGalleryMut.isPending}
+            initialData={editingGallery || undefined}
           />
         )}
       </div>
@@ -692,7 +787,7 @@ function ProjectCard({ project }) {
   )
 }
 
-function AchievementsList({ achievements }) {
+function AchievementsList({ achievements, isOwn, onEdit, onDelete }) {
   if (achievements.length === 0) {
     return (
       <div className="py-16 text-center border border-divider-soft rounded-2xl bg-surface-pearl">
@@ -709,7 +804,15 @@ function AchievementsList({ achievements }) {
             <img src={achievement.image} alt={achievement.title} className="w-full h-48 object-cover" />
           )}
           <div className="p-6">
-            <h3 className="font-display text-[18px] font-bold text-ink mb-2">{achievement.title}</h3>
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <h3 className="font-display text-[18px] font-bold text-ink">{achievement.title}</h3>
+              {isOwn && (
+                <div className="flex gap-2 flex-shrink-0">
+                  <button onClick={() => onEdit?.(achievement)} className="font-sans text-[12px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 transition-colors px-2.5 py-1 rounded-md">Edit</button>
+                  <button onClick={() => onDelete?.(achievement._id)} className="font-sans text-[12px] font-medium text-red-500/70 hover:text-red-500 transition-colors bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1 rounded-md">Delete</button>
+                </div>
+              )}
+            </div>
             <p className="font-sans text-[14px] text-ink-muted-80 mb-4">{achievement.description}</p>
             <div className="flex items-center justify-between">
               <p className="font-mono text-[12px] text-slate">
@@ -833,7 +936,7 @@ function ProjectSubmitModal({ onClose, onSubmit }) {
   )
 }
 
-function AchievementSubmitModal({ onClose, onSubmit }) {
+function AchievementSubmitModal({ onClose, onSubmit, loading }) {
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -943,8 +1046,237 @@ function AchievementSubmitModal({ onClose, onSubmit }) {
             <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl text-[14px] font-semibold text-slate hover:text-ink transition-colors">
               Cancel
             </button>
-            <button type="submit" disabled={submitting} className="button-primary px-6 py-2.5 text-[14px]">
-              {submitting ? 'Posting…' : 'Post Achievement'}
+            <button type="submit" disabled={submitting || loading} className="button-primary px-6 py-2.5 text-[14px]">
+              {submitting || loading ? 'Posting…' : 'Post Achievement'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function AchievementEditModal({ achievement, onClose, onSubmit, loading }) {
+  const [form, setForm] = useState({
+    title: achievement?.title || '',
+    description: achievement?.description || '',
+    date: achievement?.date ? new Date(achievement.date).toISOString().slice(0, 16) : '',
+    category: achievement?.category || 'student',
+    image: null,
+  })
+  const [errors, setErrors] = useState({})
+  const [submitting, setSubmitting] = useState(false)
+  const [imagePreview, setImagePreview] = useState(achievement?.image || '')
+  const fileRef = useRef(null)
+
+  const set = (k) => (e) => {
+    const value = e.target.type === 'file' ? e.target.files?.[0] : e.target.value
+    setForm((f) => ({ ...f, [k]: value }))
+    setErrors((errs) => ({ ...errs, [k]: '' }))
+    if (k === 'image' && value) {
+      setImagePreview(URL.createObjectURL(value))
+    }
+  }
+
+  const validate = () => {
+    const errs = {}
+    if (!form.title.trim()) errs.title = 'Title is required'
+    if (!form.description.trim()) errs.description = 'Description is required'
+    if (!form.date) errs.date = 'Date is required'
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!validate()) return
+    setSubmitting(true)
+    try {
+      const data = new FormData()
+      data.append('title', form.title.trim())
+      data.append('description', form.description.trim())
+      data.append('date', form.date)
+      data.append('category', form.category)
+      if (form.image) {
+        data.append('image', form.image)
+      }
+      await onSubmit(data)
+    } catch (err) {
+      console.error(err)
+      alert('Failed to update achievement')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-canvas text-ink border border-divider-soft rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+        <div className="p-6 border-b border-divider-soft flex items-center justify-between">
+          <div>
+            <h3 className="font-display text-[22px] font-bold">Edit Achievement</h3>
+            <p className="font-sans text-[13px] text-body-muted">
+              Update your achievement details.
+            </p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-soft-stone border border-hairline flex items-center justify-center hover:bg-soft-stone/80 transition-colors">
+            <X size={14} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5 flex-1">
+          <div>
+            <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Title *</label>
+            <input required value={form.title} onChange={set('title')} placeholder="e.g. Won First Place at Hackathon" className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+            {errors.title && <p className="text-error text-[12px] mt-1">{errors.title}</p>}
+          </div>
+
+          <div>
+            <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Description *</label>
+            <textarea required value={form.description} onChange={set('description')} placeholder="Describe your achievement..." rows={4} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary resize-none" />
+            {errors.description && <p className="text-error text-[12px] mt-1">{errors.description}</p>}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Date *</label>
+              <input type="datetime-local" required value={form.date} onChange={set('date')} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+              {errors.date && <p className="text-error text-[12px] mt-1">{errors.date}</p>}
+            </div>
+            <div>
+              <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Category</label>
+              <select value={form.category} onChange={set('category')} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary">
+                <option value="student">Student</option>
+                <option value="faculty">Faculty</option>
+                <option value="awards">Award</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Image (optional - upload new to replace)</label>
+            <input ref={fileRef} type="file" accept="image/*" onChange={set('image')} className="hidden" />
+            <button type="button" onClick={() => fileRef.current?.click()} className="inline-flex items-center gap-2 px-4 py-2 border border-divider-soft rounded-xl text-[13px] font-semibold hover:bg-soft-stone/50 transition-colors">
+              Choose Image
+            </button>
+            {imagePreview && <img src={imagePreview} alt="Preview" className="mt-3 w-full h-48 object-cover rounded-xl" />}
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl text-[14px] font-semibold text-slate hover:text-ink transition-colors">
+              Cancel
+            </button>
+            <button type="submit" disabled={submitting || loading} className="button-primary px-6 py-2.5 text-[14px]">
+              {submitting || loading ? 'Saving…' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function GallerySubmitModal({ onClose, onSubmit, loading, initialData }) {
+  const isEdit = !!initialData
+  const [form, setForm] = useState({
+    title: initialData?.title || '',
+    category: initialData?.category || 'campus',
+    date: initialData?.date ? new Date(initialData.date).toISOString().slice(0, 16) : '',
+    image: null,
+  })
+  const [errors, setErrors] = useState({})
+  const [submitting, setSubmitting] = useState(false)
+  const [imagePreview, setImagePreview] = useState(initialData?.imageUrl || '')
+  const fileRef = useRef(null)
+
+  const set = (k) => (e) => {
+    const value = e.target.type === 'file' ? e.target.files?.[0] : e.target.value
+    setForm((f) => ({ ...f, [k]: value }))
+    setErrors((errs) => ({ ...errs, [k]: '' }))
+    if (k === 'image' && value) {
+      setImagePreview(URL.createObjectURL(value))
+    }
+  }
+
+  const validate = () => {
+    const errs = {}
+    if (!form.title.trim()) errs.title = 'Title is required'
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!validate()) return
+    setSubmitting(true)
+    try {
+      const data = new FormData()
+      data.append('title', form.title.trim())
+      data.append('category', form.category)
+      if (form.date) data.append('date', form.date)
+      if (form.image) data.append('image', form.image)
+      await onSubmit(data)
+    } catch (err) {
+      console.error(err)
+      alert('Failed to upload photo')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-canvas text-ink border border-divider-soft rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+        <div className="p-6 border-b border-divider-soft flex items-center justify-between">
+          <div>
+            <h3 className="font-display text-[22px] font-bold">{isEdit ? 'Edit Photo' : 'Upload Photo'}</h3>
+            <p className="font-sans text-[13px] text-body-muted">
+              {isEdit ? 'Update your gallery photo details.' : 'Share a moment with the department. Photos require admin approval.'}
+            </p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-soft-stone border border-hairline flex items-center justify-center hover:bg-soft-stone/80 transition-colors">
+            <X size={14} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5 flex-1">
+          <div>
+            <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Title *</label>
+            <input required value={form.title} onChange={set('title')} placeholder="e.g. Lab Workshop 2024" className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+            {errors.title && <p className="text-error text-[12px] mt-1">{errors.title}</p>}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Category</label>
+              <select value={form.category} onChange={set('category')} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary">
+                <option value="campus">Campus</option>
+                <option value="event">Event</option>
+                <option value="lab">Lab</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Date</label>
+              <input type="datetime-local" value={form.date} onChange={set('date')} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Image</label>
+            <input ref={fileRef} type="file" accept="image/*" onChange={set('image')} className="hidden" />
+            <button type="button" onClick={() => fileRef.current?.click()} className="inline-flex items-center gap-2 px-4 py-2 border border-divider-soft rounded-xl text-[13px] font-semibold hover:bg-soft-stone/50 transition-colors">
+              Choose Image
+            </button>
+            {imagePreview && <img src={imagePreview} alt="Preview" className="mt-3 w-full h-48 object-cover rounded-xl" />}
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl text-[14px] font-semibold text-slate hover:text-ink transition-colors">
+              Cancel
+            </button>
+            <button type="submit" disabled={submitting || loading} className="button-primary px-6 py-2.5 text-[14px]">
+              {submitting || loading ? (isEdit ? 'Saving…' : 'Uploading…') : (isEdit ? 'Save Changes' : 'Upload Photo')}
             </button>
           </div>
         </form>

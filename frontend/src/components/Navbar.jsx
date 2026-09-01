@@ -366,6 +366,13 @@ export default function Navbar({ onForumFlip }) {
                             <UserCheck size={17} strokeWidth={1.75} /> My Profile
                           </Link>
                           <Link
+                            to="/scan-qr"
+                            onClick={() => setProfileOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink font-semibold hover:bg-soft-stone transition-colors"
+                          >
+                            <ScanQrCode size={17} strokeWidth={1.75} /> Scan Profile QR
+                          </Link>
+                          <Link
                             to="/attendance/student"
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink font-semibold hover:bg-soft-stone transition-colors"
@@ -561,16 +568,19 @@ export default function Navbar({ onForumFlip }) {
                        {user.role === 'admin' ? 'Admin Dashboard' : 'CR Panel'}
                      </Link>
                    )}
-                   {(user.role === 'student' || user.role === 'cr') && (
-                     <>
-                       <Link to="/attendance/student" onClick={closeMenu} className="justify-center w-full button-primary">
-                         <Camera size={16} /> Scan Class QR
-                       </Link>
-                       <Link to="/students" onClick={closeMenu} className="justify-center w-full button-secondary">
-                         My Dashboard & Attendance
-                       </Link>
-                     </>
-                   )}
+                    {(user.role === 'student' || user.role === 'cr') && (
+                      <>
+                        <Link to="/scan-qr" onClick={closeMenu} className="justify-center w-full button-primary">
+                          <ScanQrCode size={16} /> Scan Profile QR
+                        </Link>
+                        <Link to="/attendance/student" onClick={closeMenu} className="justify-center w-full button-primary">
+                          <Camera size={16} /> Scan Class QR
+                        </Link>
+                        <Link to="/students" onClick={closeMenu} className="justify-center w-full button-secondary">
+                          My Dashboard & Attendance
+                        </Link>
+                      </>
+                    )}
                    <button onClick={() => { logout(); closeMenu() }} className="font-sans text-[15px] text-error font-semibold text-left py-2">
                      Sign out
                    </button>

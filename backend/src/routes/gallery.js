@@ -14,9 +14,14 @@ router.get('/', async (req, res) => {
   try {
     const user = req.user
     const { pending } = req.query
+    const { author } = req.query
     const query = {}
 
     const isReviewer = user && (user.role === 'admin' || user.role === 'super_admin' || user.role === 'cr')
+
+    if (author) {
+      query.uploadedBy = author
+    }
 
     if (!isReviewer && pending !== 'true') {
       query.isApproved = true
@@ -88,6 +93,8 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       return res.status(400).json({ success: false, error: 'An image file or imageUrl is required' })
     }
 
+    const isReviewer = req.user.role === 'admin' || req.user.role === 'super_admin' || req.user.role === 'cr'
+
     const photo = await Gallery.create({
       title: title || '',
       imageUrl: finalUrl,
@@ -95,7 +102,8 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       category: category || 'campus',
       date: date ? new Date(date) : Date.now(),
       uploadedBy: req.user._id,
-      isApproved: false,
+      isApproved: isReviewer,
+      approvedBy: isReviewer ? req.user._id : null,
     })
 
     // Notify admins/CRs about new gallery photo for review

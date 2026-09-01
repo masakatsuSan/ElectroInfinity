@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Camera, Share2, Edit3 } from 'lucide-react'
+import { Camera, Share2, Edit3, X, QrCode } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { uploadCoverPhoto, uploadProfilePhoto, toggleFollow } from '../api/profile'
+import { uploadCoverPhoto, uploadProfilePhoto, toggleFollow, getProfileQr } from '../api/profile'
 import FollowButton from './FollowButton'
+import { QRCodeSVG } from 'qrcode.react'
 
 export default function ProfileHeader({
   profile,
@@ -18,6 +19,9 @@ export default function ProfileHeader({
   const photoRef = useRef(null)
   const [coverLoading, setCoverLoading] = useState(false)
   const [photoLoading, setPhotoLoading] = useState(false)
+  const [qrOpen, setQrOpen] = useState(false)
+  const [qrData, setQrData] = useState(null)
+  const [qrLoading, setQrLoading] = useState(false)
 
   const handleCoverChange = async (e) => {
     const file = e.target.files?.[0]
@@ -54,6 +58,25 @@ export default function ProfileHeader({
   const displayUsername = profile.rollNumber
     ? `@${profile.rollNumber.toLowerCase()}`
     : `@${profile.name.toLowerCase().replace(/\s+/g, '')}`
+
+  const openQr = async () => {
+    setQrLoading(true)
+    setQrOpen(true)
+    try {
+      const res = await getProfileQr(profile._id)
+      setQrData(res.data.data)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setQrLoading(false)
+    }
+  }
+
+  const handleCopyLink = async () => {
+    const url = window.location.href
+    await navigator.clipboard.writeText(url)
+    alert('Profile link copied to clipboard!')
+  }
 
   return (
     <div className="relative w-full">
@@ -132,12 +155,27 @@ export default function ProfileHeader({
                     onUpdate={(updates) => onUpdate?.({ ...profile, ...updates })}
                   />
                 )}
-                <button
-                  onClick={onShare}
-                  className="inline-flex items-center gap-2 bg-white border border-hairline text-ink px-4 py-2 rounded-full text-[13px] font-semibold hover:bg-soft-stone/50 transition-colors shadow-sm"
-                >
-                  <Share2 size={14} /> Share
-                </button>
+                <div className="relative group">
+                  <button
+                    className="inline-flex items-center gap-2 bg-white border border-hairline text-ink px-4 py-2 rounded-full text-[13px] font-semibold hover:bg-soft-stone/50 transition-colors shadow-sm"
+                  >
+                    <Share2 size={14} /> Share
+                  </button>
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-canvas border border-divider-soft rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 overflow-hidden">
+                    <button
+                      onClick={handleCopyLink}
+                      className="w-full text-left px-4 py-2.5 text-[13px] font-semibold text-ink hover:bg-soft-stone transition-colors"
+                    >
+                      Copy Link
+                    </button>
+                    <button
+                      onClick={openQr}
+                      className="w-full text-left px-4 py-2.5 text-[13px] font-semibold text-ink hover:bg-soft-stone transition-colors flex items-center gap-2"
+                    >
+                      <QrCode size={14} /> Share QR Code
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -184,6 +222,48 @@ export default function ProfileHeader({
           ))}
         </div>
       </div>
+
+      {/* QR Modal */}
+      {qrOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setQrOpen(false)}>
+          <div className="bg-canvas border border-divider-soft rounded-2xl w-full max-w-md shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-divider-soft flex items-center justify-between">
+              <div>
+                <h3 className="font-display text-[22px] font-bold">Share Profile</h3>
+                <p className="font-sans text-[13px] text-body-muted">
+                  Scan this QR code to open {profile?.name}'s profile.
+                </p>
+              </div>
+              <button onClick={() => setQrOpen(false)} className="w-8 h-8 rounded-full bg-soft-stone border border-hairline flex items-center justify-center hover:bg-soft-stone/80 transition-colors">
+                <X size={14} />
+              </button>
+            </div>
+            <div className="p-8 flex flex-col items-center">
+              {qrLoading ? (
+                <div className="w-[260px] h-[260px] flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ink"></div>
+                </div>
+              ) : qrData ? (
+                <div className="bg-white p-4 rounded-2xl shadow-sm border border-hairline">
+                  <QRCodeSVG
+                    value={qrData.profileUrl}
+                    size={240}
+                    level="M"
+                    includeMargin
+                  />
+                </div>
+              ) : (
+                <p className="text-ink-muted-80 text-[14px]">Failed to load QR code.</p>
+              )}
+              {qrData?.profileUrl && (
+                <p className="font-mono text-[11px] text-slate mt-4 break-all text-center">
+                  {qrData.profileUrl}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -225,38 +225,129 @@ router.get('/me/completeness', protect, async (req, res) => {
   }
 })
 
+const QRCode = require('qrcode')
+
 // ── GET /api/profile/search ───────────────────────────────────────────────
+// Enhanced search with filters, pagination, and fuzzy matching
+// Query: q, department, semester, batch, role, page, limit
 router.get('/search', optionalAuth, async (req, res) => {
   try {
-    const { q } = req.query
-    if (!q || q.trim().length < 2) {
-      return res.json({ success: true, data: [] })
-    }
-
+    const { q, department, semester, batch, role, page = 1, limit = 20 } = req.query
     const query = {
-      $or: [
-        { name: { $regex: q.trim(), $options: 'i' } },
-        { rollNumber: { $regex: q.trim(), $options: 'i' } },
-        { 'profile.department': { $regex: q.trim(), $options: 'i' } },
-        { 'profile.skills': { $in: [new RegExp(q.trim(), 'i')] } },
-        { 'profile.interests': { $in: [new RegExp(q.trim(), 'i')] } },
-      ],
-      role: { $in: ['student', 'cr', 'faculty'] },
       isActive: true,
     }
 
-    const users = await User.find(query)
-      .select('name rollNumber batch semester role photo profile.department profile.skills followers following')
-      .limit(20)
+    if (q && q.trim().length >= 1) {
+      const regex = new RegExp(q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
+      query.$or = [
+        { name: regex },
+        { rollNumber: regex },
+        { regNumber: regex },
+        { email: regex },
+        { collegeEmail: regex },
+        { 'profile.department': regex },
+        { 'profile.skills': { $in: [regex] } },
+        { 'profile.interests': { $in: [regex] } },
+      ]
+    }
+
+    if (department) {
+      query['profile.department'] = new RegExp(department, 'i')
+    }
+
+    if (semester) {
+      query.semester = Number(semester)
+    }
+
+    if (batch) {
+      query.batch = new RegExp(batch, 'i')
+    }
+
+    if (role && ['student', 'cr', 'faculty'].includes(role)) {
+      query.role = role
+    } else {
+      query.role = { $in: ['student', 'cr', 'faculty'] }
+    }
+
+    const skip = (Number(page) - 1) * Number(limit)
+    const [users, total] = await Promise.all([
+      User.find(query)
+        .select('name rollNumber batch semester role photo email profile.department profile.skills profile.interests followers following')
+        .sort({ name: 1 })
+        .skip(skip)
+        .limit(Number(limit)),
+      User.countDocuments(query),
+    ])
 
     const viewerId = req.user?._id
     const formatted = users.map(u => ({
-      ...u.toObject(),
+      _id: u._id,
+      name: u.name,
+      rollNumber: u.rollNumber,
+      email: u.email,
+      batch: u.batch,
+      semester: u.semester,
+      role: u.role,
+      photo: u.photo,
+      department: u.profile?.department || '',
+      skills: u.profile?.skills || [],
+      interests: u.profile?.interests || [],
+      followers: u.followers?.length || 0,
+      following: u.following?.length || 0,
       isFollowing: viewerId ? u.followers?.some(id => id.toString() === viewerId.toString()) : false,
       followsMe: viewerId ? u.following?.some(id => id.toString() === viewerId.toString()) : false,
     }))
 
-    res.json({ success: true, data: formatted })
+    res.json({
+      success: true,
+      data: formatted,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        totalPages: Math.ceil(total / Number(limit)),
+      },
+    })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── GET /api/profile/:id/qr ──────────────────────────────────────────────
+// Generate QR code for a user profile
+router.get('/:id/qr', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('name rollNumber batch semester role photo profile.department')
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
+
+    const profileUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/profile/${user._id}`
+
+    const qrDataUrl = await QRCode.toDataURL(profileUrl, {
+      width: 400,
+      margin: 2,
+      color: {
+        dark: '#111827',
+        light: '#ffffff',
+      },
+    })
+
+    res.json({
+      success: true,
+      data: {
+        qrCode: qrDataUrl,
+        profileUrl,
+        user: {
+          _id: user._id,
+          name: user.name,
+          rollNumber: user.rollNumber,
+          batch: user.batch,
+          semester: user.semester,
+          role: user.role,
+          photo: user.photo,
+          department: user.profile?.department || '',
+        },
+      },
+    })
   } catch (err) {
     res.status(500).json({ success: false, error: err.message })
   }

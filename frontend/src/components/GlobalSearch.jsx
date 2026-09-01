@@ -2,10 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { UserPlus, UserCheck, UserRound } from 'lucide-react'
 import api from '../api/axios'
-import { searchUsers, toggleFollow } from '../api/profile'
+import { searchUsers } from '../api/profile'
 import { useAuth } from '../context/AuthContext'
 
-// Debounce hook — waits until user stops typing before calling the function
 function useDebounce(value, delay = 350) {
   const [debounced, setDebounced] = useState(value)
   useEffect(() => {
@@ -25,72 +24,35 @@ export default function GlobalSearch({ onClose }) {
   const debounced = useDebounce(query)
   const { user: currentUser } = useAuth()
 
-  // Focus input on mount
   useEffect(() => { inputRef.current?.focus() }, [])
 
-  // Search whenever debounced query changes
   useEffect(() => {
     if (!debounced.trim()) { setResults([]); return }
     setLoading(true)
-
-    // Run 4 searches in parallel
-    Promise.allSettled([
-      api.get('/announcements', { params: { limit: 5 } }),
-      api.get('/faculty'),
-      api.get('/resources', { params: { limit: 3 } }),
-      searchUsers(debounced),
-    ]).then(([aRes, fRes, rRes, uRes]) => {
-      const q = debounced.toLowerCase()
-      const hits = []
-
-       // Users
-        if (uRes.status === 'fulfilled') {
-          (uRes.value.data.data || [])
-            .slice(0, 5)
-            .forEach(u => {
-              const alreadyFollowing = u.isFollowing || false
-              const followsMe = u.followsMe || false
-              setFollowStates(prev => ({ ...prev, [u._id]: { following: alreadyFollowing, followsMe: followsMe } }))
-              hits.push({
-                type: 'User',
-                label: u.name,
-                sub: `${u.profile?.department || ''} · Batch ${u.batch || ''}`,
-                to: `/profile/${u._id}`,
-                avatar: u.photo,
-                userId: u._id,
-                isFollowing: alreadyFollowing,
-                followsMe: followsMe,
-              })
-            })
-        }
-
-      // Announcements
-      if (aRes.status === 'fulfilled') {
-        aRes.value.data.data
-          .filter(a => a.title.toLowerCase().includes(q))
-          .slice(0, 3)
-          .forEach(a => hits.push({ type:'Announcement', label: a.title, sub: a.category, to:'/announcements' }))
-      }
-      // Faculty
-      if (fRes.status === 'fulfilled') {
-        fRes.value.data.data
-          .filter(f => f.name.toLowerCase().includes(q) || f.specialization?.toLowerCase().includes(q))
-          .slice(0, 2)
-          .forEach(f => hits.push({ type:'Faculty', label: f.name, sub: f.designation, to:'/faculty' }))
-      }
-      // Resources
-      if (rRes.status === 'fulfilled') {
-        rRes.value.data.data
-          .filter(r => r.title.toLowerCase().includes(q))
-          .slice(0, 3)
-          .forEach(r => hits.push({ type:'Resource', label: r.title, sub: `Sem ${r.semester} · ${r.type}`, to:'/resources' }))
-      }
-      setResults(hits)
-      setLoading(false)
-    })
+    searchUsers(debounced)
+      .then((res) => {
+        const users = (res.data.data || []).slice(0, 6)
+        const hits = users.map((u) => {
+          const alreadyFollowing = u.isFollowing || false
+          const followsMe = u.followsMe || false
+          setFollowStates((prev) => ({ ...prev, [u._id]: { following: alreadyFollowing, followsMe: followsMe } }))
+          return {
+            type: 'User',
+            label: u.name,
+            sub: `${u.profile?.department || ''}${u.department ? ' · ' : ''}${u.batch ? `Batch ${u.batch}` : ''}`,
+            to: `/profile/${u._id}`,
+            avatar: u.photo,
+            userId: u._id,
+            isFollowing: alreadyFollowing,
+            followsMe: followsMe,
+          }
+        })
+        setResults(hits)
+      })
+      .catch(() => setResults([]))
+      .finally(() => setLoading(false))
   }, [debounced])
 
-  // Close on Escape key
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose?.() }
     window.addEventListener('keydown', onKey)
@@ -99,20 +61,13 @@ export default function GlobalSearch({ onClose }) {
 
   const go = (to) => { navigate(to); onClose?.() }
 
-  const typeColor = {
-    User: 'text-primary',
-    Announcement: 'text-vs',
-    Faculty: 'text-green',
-    Resource: 'text-yellow-400',
-  }
-
   const handleFollowToggle = async (userId, currentFollowing, currentFollowsMe) => {
     if (!currentUser?._id) return
     try {
-      const res = await toggleFollow(userId)
-      const { isFollowing, followers, following } = res.data.data
-      setFollowStates(prev => ({ ...prev, [userId]: { following: isFollowing, followsMe: currentFollowsMe } }))
-      setResults(prev => prev.map(r =>
+      const res = await import('../api/profile').then(m => m.toggleFollow(userId))
+      const { isFollowing } = res.data.data
+      setFollowStates((prev) => ({ ...prev, [userId]: { following: isFollowing, followsMe: currentFollowsMe } }))
+      setResults((prev) => prev.map((r) =>
         r.userId === userId ? { ...r, isFollowing: isFollowing, followsMe: currentFollowsMe } : r
       ))
     } catch (err) {
@@ -157,10 +112,8 @@ export default function GlobalSearch({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) onClose?.() }}>
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Search panel */}
       <div className="relative z-10 bg-canvas border-b border-divider-soft shadow-2xl">
         <div className="page-wrap flex items-center gap-3 py-4">
           <svg className="text-ink-muted-48 flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -170,7 +123,7 @@ export default function GlobalSearch({ onClose }) {
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search users, announcements, faculty, resources…"
+            placeholder="Search students, faculty…"
             className="flex-1 bg-transparent text-ink text-[15px] outline-none placeholder:text-ink-muted-48"
           />
           <button onClick={onClose}
@@ -179,7 +132,6 @@ export default function GlobalSearch({ onClose }) {
           </button>
         </div>
 
-        {/* Results */}
         {(loading || results.length > 0) && (
           <div className="page-wrap pb-4">
             {loading ? (
@@ -190,23 +142,23 @@ export default function GlobalSearch({ onClose }) {
               </div>
             ) : (
               <div className="flex flex-col">
-                   {results.map((r, i) => (
-                     <div key={i} onClick={() => go(r.to)}
-                       className="flex items-center gap-3 py-3 border-b border-divider-soft last:border-b-0 text-left hover:bg-surface-pearl -mx-5 px-5 transition-colors group cursor-pointer">
-                       {r.avatar ? (
-                         <img src={r.avatar} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-                       ) : (
-                         <span className={`font-mono text-[10px] font-bold uppercase tracking-wider w-20 flex-shrink-0 ${typeColor[r.type]}`}>
-                           {r.type}
-                         </span>
-                       )}
-                       <div className="flex-1 min-w-0">
-                         <span className="text-[15px] font-medium text-ink flex-1 truncate group-hover:text-primary transition-colors">{r.label}</span>
-                         {r.sub && <span className="font-mono text-[10px] font-semibold text-ink-muted-48 block sm:mt-0.5">{r.sub}</span>}
-                       </div>
-                       {r.type === 'User' && getFollowButton(r)}
-                     </div>
-                   ))}
+                {results.map((r, i) => (
+                  <div key={i} onClick={() => go(r.to)}
+                    className="flex items-center gap-3 py-3 border-b border-divider-soft last:border-b-0 text-left hover:bg-surface-pearl -mx-5 px-5 transition-colors group cursor-pointer">
+                    {r.avatar ? (
+                      <img src={r.avatar} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <span className="font-mono text-[10px] font-bold uppercase tracking-wider w-20 flex-shrink-0 text-primary">
+                        {r.type}
+                      </span>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[15px] font-medium text-ink flex-1 truncate group-hover:text-primary transition-colors">{r.label}</span>
+                      {r.sub && <span className="font-mono text-[10px] font-semibold text-ink-muted-48 block sm:mt-0.5">{r.sub}</span>}
+                    </div>
+                    {r.type === 'User' && getFollowButton(r)}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -221,3 +173,4 @@ export default function GlobalSearch({ onClose }) {
     </div>
   )
 }
+

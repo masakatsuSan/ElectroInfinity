@@ -81,7 +81,7 @@ export default function Resources() {
         </div>
 
         {/* Tab selector pills */}
-        <div className="flex gap-2 overflow-x-auto pb-4 mb-10 border-b border-hairline">
+        <div className="flex gap-2 pb-4 mb-10 overflow-x-auto border-b border-hairline">
           {TABS.map(tab => (
             <button
               key={tab.id}
@@ -102,7 +102,7 @@ export default function Resources() {
         </div>
 
         {/* Semester filter */}
-        <div className="mb-6 flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 mb-6">
           <label className="font-sans text-[13px] font-medium text-ink-muted-80">Filter by Semester:</label>
           <FilterSelect
             value={semesterFilter}
@@ -113,7 +113,7 @@ export default function Resources() {
         </div>
 
         {/* Subject filter */}
-        <div className="mb-6 flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 mb-6">
           <label className="font-sans text-[13px] font-medium text-ink-muted-80">Filter by Subject:</label>
           <FilterSelect
             value={subjectFilter}
@@ -130,7 +130,7 @@ export default function Resources() {
         </div>
 
         {/* Content */}
-        <div key={activeTab.id} className="animate-in fade-in duration-200">
+        <div key={activeTab.id} className="duration-200 animate-in fade-in">
           {isLoading ? (
             <SkeletonGrid />
           ) : (
@@ -229,7 +229,7 @@ function ResourceCard({ resource: r }) {
   })
 
   return (
-    <div className="border border-hairline bg-canvas rounded-2xl p-6 shadow-card hover:bg-soft-stone/30 transition-colors flex flex-col justify-between group">
+    <div className="flex flex-col justify-between p-6 transition-colors border border-hairline bg-canvas rounded-2xl shadow-card hover:bg-soft-stone/30 group">
       <div>
         <div className="flex items-center justify-between gap-2 mb-3">
           <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-pale-blue text-action-blue border border-blue-200">
@@ -278,12 +278,12 @@ function YTLectureCard({ lecture: l }) {
   const youtubeUrl = `https://www.youtube.com/watch?v=${l.youtubeVideoId}`
 
   return (
-    <div className="border border-hairline bg-canvas rounded-2xl shadow-card hover:bg-soft-stone/30 transition-colors flex flex-col overflow-hidden group">
-      <div className="relative aspect-video bg-soft-stone overflow-hidden">
+    <div className="flex flex-col overflow-hidden transition-colors border border-hairline bg-canvas rounded-2xl shadow-card hover:bg-soft-stone/30 group">
+      <div className="relative overflow-hidden aspect-video bg-soft-stone">
         <img
           src={thumbnail}
           alt={l.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
           onError={(e) => {
             e.target.src = `https://img.youtube.com/vi/${l.youtubeVideoId}/hqdefault.jpg`
           }}
@@ -297,17 +297,17 @@ function YTLectureCard({ lecture: l }) {
           rel="noreferrer"
           className="absolute inset-0 flex items-center justify-center"
         >
-          <span className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Play size={20} className="text-primary ml-1" fill="currentColor" />
+          <span className="flex items-center justify-center w-12 h-12 transition-transform rounded-full bg-white/90 group-hover:scale-110">
+            <Play size={20} className="ml-1 text-primary" fill="currentColor" />
           </span>
         </a>
       </div>
 
-      <div className="p-5 flex flex-col flex-1">
+      <div className="flex flex-col flex-1 p-5">
         <h3 className="font-sans text-[15px] font-semibold text-ink leading-snug line-clamp-2">
           {l.title}
         </h3>
-        <div className="flex items-center gap-2 mt-3 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2 mt-3">
           {l.semester && (
             <span className="font-mono text-[11px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-soft-stone text-ink">
               Sem {l.semester}
@@ -317,14 +317,6 @@ function YTLectureCard({ lecture: l }) {
             <span className="font-sans text-[12px] text-body-muted">{l.subject}</span>
           )}
         </div>
-        <a
-          href={youtubeUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="button-primary !py-1.5 !px-4 !text-[13px] !bg-soft-stone !text-ink border border-hairline hover:bg-hairline mt-4 self-start"
-        >
-          Watch on YouTube
-        </a>
       </div>
     </div>
   )
@@ -344,7 +336,7 @@ function SkeletonGrid() {
 /* ── Empty state ────────────────────────────────────────────────── */
 function Empty({ label, user }) {
   return (
-    <div className="col-span-full border border-hairline bg-soft-stone rounded-2xl py-16 text-center">
+    <div className="py-16 text-center border col-span-full border-hairline bg-soft-stone rounded-2xl">
       <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-slate block mb-2">
         No Content Available
       </span>

@@ -75,7 +75,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 router.post('/', protect, upload.single('image'), async (req, res) => {
   try {
     const { title, description, date, category, students } = req.body
-    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin'
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin' || req.user.role === 'cr'
 
     let image = ''
     let imagePublicId = ''
@@ -89,11 +89,22 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       imagePublicId = result.publicId
     }
 
+    let finalCategory = category
+    if (!finalCategory) {
+      if (req.user.role === 'faculty') {
+        finalCategory = 'faculty'
+      } else if (isAdmin) {
+        finalCategory = 'awards'
+      } else {
+        finalCategory = 'student'
+      }
+    }
+
     const achievement = await Achievement.create({
       title: title || '',
       description: description || '',
       date: date ? new Date(date) : Date.now(),
-      category: category || 'student',
+      category: finalCategory,
       image,
       imagePublicId,
       author: req.user._id,
