@@ -9,7 +9,7 @@
     --color-ink: #212121;
     --color-deep-green: #003c33;
     --color-dark-navy: #071829;
-    --color-canvas: #ffffff;
+    --color-canvas: #F9F6F0;
     --color-soft-stone: #eeece7;
     --color-pale-green: #edfce9;
     --color-pale-blue: #f1f5ff;
@@ -42,6 +42,28 @@
   html::-webkit-scrollbar,
   body::-webkit-scrollbar {
     display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    overscroll-behavior: contain;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .overflow-y-auto,
+    .overflow-x-auto {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .overflow-y-auto::-webkit-scrollbar,
+    .overflow-x-auto::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   body {

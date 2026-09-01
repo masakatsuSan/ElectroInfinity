@@ -272,7 +272,7 @@ router.get('/search', optionalAuth, async (req, res) => {
     const skip = (Number(page) - 1) * Number(limit)
     const [users, total] = await Promise.all([
       User.find(query)
-        .select('name rollNumber batch semester role photo email profile.department profile.skills profile.interests followers following')
+        .select('name rollNumber batch semester role photo email profile.department profile.skills profile.socialLinks profile.interests followers following')
         .sort({ name: 1 })
         .skip(skip)
         .limit(Number(limit)),
@@ -292,6 +292,7 @@ router.get('/search', optionalAuth, async (req, res) => {
       department: u.profile?.department || '',
       skills: u.profile?.skills || [],
       interests: u.profile?.interests || [],
+      socialLinks: u.profile?.socialLinks || {},
       followers: u.followers?.length || 0,
       following: u.following?.length || 0,
       isFollowing: viewerId ? u.followers?.some(id => id.toString() === viewerId.toString()) : false,

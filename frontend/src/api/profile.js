@@ -49,3 +49,27 @@ export const getCollegeNetwork = (query = '') => {
   const params = query ? { q: query } : undefined
   return api.get('/network/college', { params })
 }
+
+export const getProfileViews = () =>
+  api.get('/profile/me/views')
+
+export const setStatus = (text) =>
+  api.post('/profile/me/status', { text })
+
+export const clearStatus = () =>
+  api.delete('/profile/me/status')
+
+export const createHighlight = (data) =>
+  api.post('/profile/me/highlight', data)
+
+export const deleteHighlight = (id) =>
+  api.delete(`/profile/me/highlight/${id}`)
+
+export const setFeaturedProject = (projectId) =>
+  api.patch('/profile/me/featured', { projectId })
+
+export const getTrendingUsers = () =>
+  api.get('/profile/trending')
+
+export const getSuggestedUsers = () =>
+  api.get('/profile/suggested')

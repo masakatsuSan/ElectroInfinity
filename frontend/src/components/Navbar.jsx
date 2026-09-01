@@ -49,9 +49,29 @@ export default function Navbar({ onForumFlip }) {
   const userRole = String(user?.role ?? '').trim().toLowerCase();
 
   useEffect(() => {
-    document.body.style.overflow = menuOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [menuOpen]);
+    if (menuOpen || profileOpen || dropdownOpen) {
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.overflow = 'hidden'
+      document.body.style.width = '100%'
+    } else {
+      const scrollY = parseInt(document.body.style.top || '0', 10)
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.overflow = ''
+      document.body.style.width = ''
+      window.scrollTo(0, scrollY)
+    }
+    return () => {
+      const scrollY = parseInt(document.body.style.top || '0', 10)
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.overflow = ''
+      document.body.style.width = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [menuOpen, profileOpen, dropdownOpen])
 
   // Open search with Cmd/Ctrl+K
   useEffect(() => {
@@ -115,7 +135,7 @@ export default function Navbar({ onForumFlip }) {
     `flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-sans font-medium transition-all ${
       isActive
         ? 'text-ink bg-soft-stone font-semibold'
-        : 'text-body-muted hover:text-ink hover:bg-soft-stone/60'
+        : 'text-body-muted hover:text-ink hover:bg-soft-stone'
     }`;
 
   const iconTileClass = (isActive) =>
@@ -128,7 +148,7 @@ export default function Navbar({ onForumFlip }) {
   const featuredCard = (group) => {
     if (group.label === 'Academics') {
       return (
-        <div className="hidden xl:flex flex-col w-60 p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-canvas border border-hairline">
+        <div className="hidden lg:flex flex-col w-60 p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-canvas border border-hairline">
           <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-coral mb-2">Featured Section</span>
           <p className="font-display font-bold text-[16px] text-ink leading-snug mb-1">Explore the Curriculum</p>
           <p className="font-sans text-[12px] text-body-muted leading-relaxed mb-4">Semester-wise subjects, labs, and study materials in one place.</p>
@@ -140,7 +160,7 @@ export default function Navbar({ onForumFlip }) {
     }
     if (group.label === 'Community') {
       return (
-        <div className="hidden xl:flex flex-col w-60 p-5 rounded-2xl bg-gradient-to-br from-coral/10 to-canvas border border-hairline">
+        <div className="hidden lg:flex flex-col w-60 p-5 rounded-2xl bg-gradient-to-br from-coral/10 to-canvas border border-hairline">
           <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-coral mb-2">What's Happening</span>
           <p className="font-display font-bold text-[16px] text-ink leading-snug mb-1">Join the Conversation</p>
           <p className="font-sans text-[12px] text-body-muted leading-relaxed mb-4">Latest discussions, projects, and announcements from peers.</p>
@@ -152,7 +172,7 @@ export default function Navbar({ onForumFlip }) {
     }
     if (group.label === 'Resources') {
       return (
-        <div className="hidden xl:flex flex-col w-60 p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-canvas border border-hairline">
+        <div className="hidden lg:flex flex-col w-60 p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-canvas border border-hairline">
           <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-coral mb-2">Resources</span>
           <p className="font-display font-bold text-[16px] text-ink leading-snug mb-1">Tools & Materials</p>
           <p className="font-sans text-[12px] text-body-muted leading-relaxed mb-4">Access labs, study materials, and the gallery in one place.</p>
@@ -204,11 +224,11 @@ export default function Navbar({ onForumFlip }) {
                 </button>
                 
                 {dropdownOpen === group.label && (
-                  <div 
-                    className="absolute top-full left-1/2 -translate-x-1/2 w-[540px] bg-white border border-hairline rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.12)] py-2 z-50"
-                    onMouseEnter={() => setDropdownOpen(group.label)}
-                    onMouseLeave={() => setDropdownOpen(null)}
-                  >
+                   <div 
+                     className="absolute top-full left-1/2 -translate-x-1/2 w-[620px] bg-white border border-hairline rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.12)] py-2 z-50"
+                     onMouseEnter={() => setDropdownOpen(group.label)}
+                     onMouseLeave={() => setDropdownOpen(null)}
+                   >
                     <div className="flex gap-2 p-2">
                       <div className="flex-1">
                         {group.items.map(item => (
@@ -320,8 +340,7 @@ export default function Navbar({ onForumFlip }) {
 
                     {/* Navigation Actions based on Role */}
                     <div className="space-y-1 text-[13px] font-sans font-medium">
-                      
-                                            {/* Faculty actions */}
+                                                {/* Faculty actions */}
                       {userRole === 'faculty' && (
                         <>
                           <Link
@@ -491,7 +510,7 @@ export default function Navbar({ onForumFlip }) {
       </nav>
 
       {/* Mobile overlay menu */}
-      <div className={`fixed inset-0 z-40 bg-canvas flex flex-col px-4 sm:px-6 transition-opacity duration-200 lg:hidden ${
+      <div className={`fixed inset-0 z-40 bg-canvas flex flex-col px-4 sm:px-6 transition-opacity duration-200 lg:hidden no-scrollbar ${
         menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
         <div className="pt-[100px] flex-1 overflow-y-auto pb-8">
@@ -510,6 +529,14 @@ export default function Navbar({ onForumFlip }) {
           )}
 
           <nav className="flex flex-col py-2 space-y-3">
+            {user && (
+              <div className="flex flex-col gap-2 mb-2">
+                <Link to={`/profile/${user._id}`} onClick={closeMenu} className="justify-center w-full button-secondary">
+                  <UserCheck size={16} /> My Profile
+                </Link>
+              </div>
+            )}
+
             {NAV_GROUPS.map(group => (
               <div key={group.label} className="border-b border-hairline pb-2.5">
                 <h3 className="font-mono text-[15px] font-bold uppercase tracking-wider text-ink mb-2">{group.label}</h3>
@@ -517,11 +544,11 @@ export default function Navbar({ onForumFlip }) {
                   {group.items.map(item => (
                     <NavLink
                       key={item.to}
-                        to={item.to}
+                      to={item.to}
                       onClick={closeMenu}
                       className={({ isActive }) =>
-                        `font-display text-[14px] font-normal transition-colors ${
-                          isActive ? 'text-deep-green' : 'text-body-muted hover:text-ink'
+                        `block rounded-xl px-3 py-2.5 font-display text-[14px] font-normal transition-colors ${
+                          isActive ? 'bg-soft-stone text-deep-green font-semibold' : 'text-body-muted hover:bg-soft-stone hover:text-ink'
                         }`
                       }
                     >
@@ -547,27 +574,24 @@ export default function Navbar({ onForumFlip }) {
               </NavLink>
             ))}
 
-             <div className="pt-4 space-y-2">
-               {user ? (
-                 <div className="flex flex-col gap-2">
-                   <Link to={`/profile/${user._id}`} onClick={closeMenu} className="justify-center w-full button-secondary">
-                     <UserCheck size={16} /> My Profile
-                   </Link>
-                                 {user.role === 'faculty' && (
-                     <>
-                       <Link to="/faculty/dashboard" onClick={closeMenu} className="button-secondary w-full justify-center">
-                         <Megaphone size={16} /> Faculty Dashboard
-                       </Link>
-                       <Link to="/attendance/faculty" onClick={closeMenu} className="button-primary w-full justify-center !bg-deep-green">
-                         <Zap size={16} /> Take Attendance
-                       </Link>
-                     </>
-                   )}
-                   {(user.role === 'cr' || user.role === 'admin') && (
-                     <Link to="/admin" onClick={closeMenu} className="justify-center w-full button-secondary">
-                       {user.role === 'admin' ? 'Admin Dashboard' : 'CR Panel'}
-                     </Link>
-                   )}
+              <div className="pt-4 space-y-2">
+                {user ? (
+                  <div className="flex flex-col gap-2">
+                    {(user.role === 'faculty') && (
+                      <>
+                        <Link to="/faculty/dashboard" onClick={closeMenu} className="button-secondary w-full justify-center">
+                          <Megaphone size={16} /> Faculty Dashboard
+                        </Link>
+                        <Link to="/attendance/faculty" onClick={closeMenu} className="button-primary w-full justify-center !bg-deep-green">
+                          <Zap size={16} /> Take Attendance
+                        </Link>
+                      </>
+                    )}
+                    {(user.role === 'cr' || user.role === 'admin') && (
+                      <Link to="/admin" onClick={closeMenu} className="justify-center w-full button-secondary">
+                        {user.role === 'admin' ? 'Admin Dashboard' : 'CR Panel'}
+                      </Link>
+                    )}
                     {(user.role === 'student' || user.role === 'cr') && (
                       <>
                         <Link to="/scan-qr" onClick={closeMenu} className="justify-center w-full button-primary">
@@ -581,16 +605,16 @@ export default function Navbar({ onForumFlip }) {
                         </Link>
                       </>
                     )}
-                   <button onClick={() => { logout(); closeMenu() }} className="font-sans text-[15px] text-error font-semibold text-left py-2">
-                     Sign out
-                   </button>
-                 </div>
-               ) : (
-                 <Link to="/login" onClick={closeMenu} className="justify-center w-full button-primary">
-                   Sign in
-                 </Link>
-               )}
-             </div>
+                    <button onClick={() => { logout(); closeMenu() }} className="font-sans text-[15px] text-error font-semibold text-left py-2">
+                      Sign out
+                    </button>
+                  </div>
+                ) : (
+                  <Link to="/login" onClick={closeMenu} className="justify-center w-full button-primary">
+                    Sign in
+                  </Link>
+                )}
+              </div>
           </nav>
         </div>
       </div>

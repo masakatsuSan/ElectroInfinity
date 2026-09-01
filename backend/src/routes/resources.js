@@ -78,7 +78,7 @@ router.post(
       // Upload the file buffer to Cloudinary
       const { url, publicId } = await uploadToCloudinary(req.file.buffer, {
         folder,
-        resource_type: 'auto',
+        resource_type: resourceType,
         // Use original filename (cleaned) as the Cloudinary public ID
         public_id: req.file.originalname.replace(/\.[^/.]+$/, ''),
         overwrite: false,
@@ -181,9 +181,10 @@ router.put(
         }
         const folder = `electro-infinity/${folderMap[updates.type] || 'resources'}`
         const isPdf = req.file.mimetype === 'application/pdf'
+        const resourceType = isPdf ? 'raw' : 'auto';
         const { url, publicId } = await uploadToCloudinary(req.file.buffer, {
           folder,
-          resource_type: 'auto',
+          resource_type: resourceType,
           public_id: req.file.originalname.replace(/\.[^/.]+$/, ''),
           overwrite: false,
         })

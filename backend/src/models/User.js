@@ -53,13 +53,15 @@ const userSchema = new mongoose.Schema(
       coverPhoto:      { type: String, default: '' },
       coverPhotoPublicId: { type: String, default: '' },
       socialLinks: {
-        instagram:  { type: String, default: '' },
-        facebook:   { type: String, default: '' },
-        twitter:    { type: String, default: '' },
-        discord:    { type: String, default: '' },
-        youtube:    { type: String, default: '' },
-        website:    { type: String, default: '' },
-        blog:       { type: String, default: '' },
+        github:    { type: String, default: '' },
+        linkedin:  { type: String, default: '' },
+        instagram: { type: String, default: '' },
+        facebook:  { type: String, default: '' },
+        twitter:   { type: String, default: '' },
+        discord:   { type: String, default: '' },
+        youtube:   { type: String, default: '' },
+        website:   { type: String, default: '' },
+        blog:      { type: String, default: '' },
       },
       profileVisibility: { type: String, enum: ['public', 'friends', 'private'], default: 'public' },
       isProfileComplete: { type: Boolean, default: false },
@@ -85,6 +87,29 @@ const userSchema = new mongoose.Schema(
     collegeEmail:  { type: String, default: '' },
     personalEmail: { type: String, default: '' },
     phone:         { type: String, default: '' },
+
+    profileViews: [{
+      viewer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      viewedAt: { type: Date, default: Date.now }
+    }],
+
+    status: {
+      text: { type: String, default: '', maxlength: 100 },
+      expiresAt: { type: Date, default: null }
+    },
+
+    highlights: [{
+      title: { type: String, required: true, trim: true, maxlength: 30 },
+      coverImage: { type: String, default: '' },
+      items: [{
+        type: { type: String, enum: ['project', 'achievement', 'gallery'], required: true },
+        refId: { type: mongoose.Schema.Types.ObjectId, required: true }
+      }]
+    }],
+
+    featuredProject: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', default: null },
+
+    lastActive: { type: Date, default: Date.now },
   },
   { timestamps: true }
 )

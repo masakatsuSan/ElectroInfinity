@@ -46,7 +46,7 @@ export default function NotificationDropdown({ onClose }) {
   }
 
   return (
-    <div className="absolute top-full right-0 mt-2 w-[360px] max-w-[calc(100vw-2rem)] bg-canvas border border-hairline rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] z-50 overflow-hidden">
+    <div className="absolute top-full right-0 md:left-auto md:right-0 left-1/2 -translate-x-1/2 md:translate-x-0 mt-2 w-[360px] max-w-[calc(100vw-2rem)] bg-canvas border border-hairline rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] z-50 overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-hairline bg-soft-stone/30">
         <div className="flex items-center gap-2">
           <h3 className="font-display font-bold text-[15px] text-ink">Notifications</h3>
@@ -67,7 +67,7 @@ export default function NotificationDropdown({ onClose }) {
         )}
       </div>
 
-      <div className="max-h-[380px] overflow-y-auto">
+      <div className="max-h-[380px] overflow-y-auto no-scrollbar">
         {loading && notifications.length === 0 ? (
           <div className="flex flex-col gap-2 p-4">
             {Array.from({ length: 3 }).map((_, i) => (

@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getPublicProfile } from '../api/profile'
 import { getProjects, createProject } from '../api/projects'
-import { updateMyProfile } from '../api/profile'
+import { updateMyProfile, getSuggestedUsers, setStatus as setStatusApi, clearStatus as clearStatusApi, getProfileViews } from '../api/profile'
 import { getAchievements, createAchievement, updateAchievement, deleteAchievement } from '../api/achievements'
 import { getGallery, createGalleryPhoto, updateGalleryPhoto, deleteGalleryPhoto } from '../api/gallery'
 import { useAuth } from '../context/AuthContext'
@@ -11,7 +12,7 @@ import SEO from '../components/SEO'
 import ProfileHeader from '../components/ProfileHeader'
 import SocialLinkCard from '../components/SocialLinkCard'
 import GalleryLightbox from '../components/GalleryLightbox'
-import { ExternalLink, GitBranch, Users, Image as ImageIcon, Plus, Edit3, Save, X, Trophy } from 'lucide-react'
+import { ExternalLink, GitBranch, Users, Image as ImageIcon, Plus, Edit3, Save, X, Trophy, Sparkles, Eye, TrendingUp } from 'lucide-react'
 
 const TABS = ['about', 'projects', 'achievements', 'gallery']
 
@@ -43,6 +44,8 @@ export default function Profile() {
   const [editingSocial, setEditingSocial] = useState(false)
   const [socialForm, setSocialForm] = useState({})
   const [saving, setSaving] = useState(false)
+  const [statusText, setStatusText] = useState('')
+  const [statusSaving, setStatusSaving] = useState(false)
 
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showAchievementModal, setShowAchievementModal] = useState(false)
@@ -53,6 +56,18 @@ export default function Profile() {
   const { data: profileData, isLoading: profileLoading } = useQuery({
     queryKey: ['profile', id],
     queryFn: () => getPublicProfile(id).then((r) => r.data.data),
+  })
+
+  const { data: suggestedData } = useQuery({
+    queryKey: ['suggestedUsers'],
+    queryFn: () => getSuggestedUsers().then((r) => r.data.data),
+    enabled: !!id && !!currentUser,
+  })
+
+  const { data: viewsData } = useQuery({
+    queryKey: ['profileViews'],
+    queryFn: () => getProfileViews().then((r) => r.data.data),
+    enabled: !!currentUser && currentUser._id === id,
   })
 
   const { data: projectsData } = useQuery({
@@ -74,7 +89,10 @@ export default function Profile() {
   })
 
   useEffect(() => {
-    if (profileData) setProfile(profileData)
+    if (profileData) {
+      setProfile(profileData)
+      setStatusText(profileData.status || '')
+    }
   }, [profileData])
 
   const stats = {
@@ -84,9 +102,36 @@ export default function Profile() {
     followers: profile?.followers || 0,
     following: profile?.following || 0,
     achievements: profile?.achievements || 0,
+    profileViews: profile?.profileViews || 0,
   }
 
   const isOwn = currentUser && currentUser._id === profile?._id
+
+  const handleSetStatus = async () => {
+    if (!statusText.trim()) return
+    setStatusSaving(true)
+    try {
+      const res = await setStatusApi(statusText.trim())
+      setProfile((p) => ({ ...p, status: res.data.data.text }))
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setStatusSaving(false)
+    }
+  }
+
+  const handleClearStatus = async () => {
+    setStatusSaving(true)
+    try {
+      await clearStatusApi()
+      setStatusText('')
+      setProfile((p) => ({ ...p, status: '' }))
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setStatusSaving(false)
+    }
+  }
 
   const startEditAbout = () => {
     if (!profile) return
@@ -122,7 +167,7 @@ export default function Profile() {
   const saveAbout = async () => {
     setSaving(true)
     try {
-      const res = await updateMyProfile({
+      await updateMyProfile({
         bio: aboutForm.bio,
         department: aboutForm.department,
         location: aboutForm.location,
@@ -132,7 +177,6 @@ export default function Profile() {
         personalEmail: aboutForm.personalEmail,
         phone: aboutForm.phone,
       })
-      setProfile(res.data.data)
       setEditingAbout(false)
       qc.invalidateQueries({ queryKey: ['profile', id] })
     } catch (err) {
@@ -145,12 +189,11 @@ export default function Profile() {
   const saveSkills = async () => {
     setSaving(true)
     try {
-      const res = await updateMyProfile({
+      await updateMyProfile({
         skills: skillsForm.skills.split(',').map((s) => s.trim()).filter(Boolean),
         interests: skillsForm.interests.split(',').map((s) => s.trim()).filter(Boolean),
         languages: skillsForm.languages.split(',').map((s) => s.trim()).filter(Boolean),
       })
-      setProfile(res.data.data)
       setEditingSkills(false)
       qc.invalidateQueries({ queryKey: ['profile', id] })
     } catch (err) {
@@ -163,10 +206,9 @@ export default function Profile() {
   const saveSocial = async () => {
     setSaving(true)
     try {
-      const res = await updateMyProfile({
+      await updateMyProfile({
         socialLinks: socialForm,
       })
-      setProfile(res.data.data)
       setEditingSocial(false)
       qc.invalidateQueries({ queryKey: ['profile', id] })
     } catch (err) {
@@ -262,9 +304,10 @@ export default function Profile() {
   }
 
   const galleryImages = profile?.gallery || []
+  const suggested = suggestedData?.slice(0, 5) || []
 
   return (
-    <div className="min-h-screen bg-canvas">
+    <div className="min-h-screen bg-canvas pt-24 md:pt-28">
       <SEO
         title={`${profile.name} | Electro Infinity`}
         description={profile.bio || `Profile of ${profile.name} at Electro Infinity`}
@@ -282,9 +325,10 @@ export default function Profile() {
         {/* Tabs */}
         <div className="flex gap-2 mt-8 mb-8 overflow-x-auto p-1 bg-surface-pearl border border-divider-soft rounded-[999px] w-max max-w-full">
           {TABS.map((tab) => (
-            <button
+            <motion.button
               key={tab}
               onClick={() => setActiveTab(tab)}
+              whileTap={{ scale: 0.97 }}
               className={`font-sans text-[13px] font-bold uppercase tracking-[0.04em] px-5 py-2.5 rounded-[999px] transition-all whitespace-nowrap ${
                 activeTab === tab
                   ? 'bg-ink text-canvas shadow-sm'
@@ -292,337 +336,457 @@ export default function Profile() {
               }`}
             >
               {tab}
-            </button>
+            </motion.button>
           ))}
         </div>
 
-        {/* Tab Content */}
         <div className="pb-20">
-          {activeTab === 'about' && (
-            <div className="grid gap-6 md:grid-cols-3">
-              {/* About Card */}
-              <div className="md:col-span-2 p-6 md:p-8 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="font-display text-[22px] font-bold text-ink">About</h2>
-                  {isOwn && !editingAbout && (
-                    <button onClick={startEditAbout} className="inline-flex items-center gap-1 text-[13px] font-semibold text-action-blue hover:underline">
-                      <Edit3 size={14} /> Edit
-                    </button>
-                  )}
-                </div>
-
-                {editingAbout ? (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Bio</label>
-                      <textarea value={aboutForm.bio} onChange={(e) => setAboutForm((f) => ({ ...f, bio: e.target.value }))} rows={4} className="input resize-none" />
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Department</label>
-                        <input value={aboutForm.department} onChange={(e) => setAboutForm((f) => ({ ...f, department: e.target.value }))} className="input" />
-                      </div>
-                      <div>
-                        <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Location</label>
-                        <input value={aboutForm.location} onChange={(e) => setAboutForm((f) => ({ ...f, location: e.target.value }))} className="input" />
-                      </div>
-                      <div>
-                        <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Batch</label>
-                        <input value={aboutForm.batch} onChange={(e) => setAboutForm((f) => ({ ...f, batch: e.target.value }))} className="input" />
-                      </div>
-                      <div>
-                        <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Semester</label>
-                        <input type="number" value={aboutForm.semester} onChange={(e) => setAboutForm((f) => ({ ...f, semester: e.target.value }))} className="input" />
-                      </div>
-                      <div>
-                        <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">College Email</label>
-                        <input value={aboutForm.collegeEmail} onChange={(e) => setAboutForm((f) => ({ ...f, collegeEmail: e.target.value }))} className="input" />
-                      </div>
-                      <div>
-                        <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Personal Email</label>
-                        <input value={aboutForm.personalEmail} onChange={(e) => setAboutForm((f) => ({ ...f, personalEmail: e.target.value }))} className="input" />
-                      </div>
-                      <div>
-                        <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Phone</label>
-                        <input value={aboutForm.phone} onChange={(e) => setAboutForm((f) => ({ ...f, phone: e.target.value }))} className="input" />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 pt-2">
-                      <button onClick={saveAbout} disabled={saving} className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-ink/90 transition-colors disabled:opacity-50">
-                        <Save size={14} /> {saving ? 'Saving…' : 'Save'}
-                      </button>
-                      <button onClick={() => setEditingAbout(false)} className="inline-flex items-center gap-2 bg-soft-stone text-ink px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-soft-stone/80 transition-colors">
-                        <X size={14} /> Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    <div>
-                      <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-1">Department</p>
-                      <p className="font-sans text-[15px] text-ink">{profile.department || '—'}</p>
-                    </div>
-                    <div>
-                      <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-1">Semester</p>
-                      <p className="font-sans text-[15px] text-ink">{profile.semester || '—'}</p>
-                    </div>
-                    <div>
-                      <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-1">Location</p>
-                      <p className="font-sans text-[15px] text-ink">{profile.location || '—'}</p>
-                    </div>
-                    <div>
-                      <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-1">Batch</p>
-                      <p className="font-sans text-[15px] text-ink">{profile.batch || '—'}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Skills */}
-                <div className="mt-8">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48">Skills</p>
-                    {isOwn && !editingSkills && (
-                      <button onClick={startEditSkills} className="text-[12px] font-semibold text-action-blue hover:underline inline-flex items-center gap-1">
-                        <Edit3 size={12} /> Edit
+          <AnimatePresence mode="wait">
+            {activeTab === 'about' && (
+              <motion.div
+                key="about"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.25 }}
+                className="grid gap-6 md:grid-cols-3"
+              >
+                {/* About Card */}
+                <div className="md:col-span-2 p-6 md:p-8 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="font-display text-[22px] font-bold text-ink">About</h2>
+                    {isOwn && !editingAbout && (
+                      <button onClick={startEditAbout} className="inline-flex items-center gap-1 text-[13px] font-semibold text-action-blue hover:underline">
+                        <Edit3 size={14} /> Edit
                       </button>
                     )}
                   </div>
-                  {editingSkills ? (
-                    <div className="space-y-3">
-                      <input value={skillsForm.skills} onChange={(e) => setSkillsForm((f) => ({ ...f, skills: e.target.value }))} className="input" placeholder="React, Python, Flutter..." />
-                      <input value={skillsForm.interests} onChange={(e) => setSkillsForm((f) => ({ ...f, interests: e.target.value }))} className="input" placeholder="Machine Learning, Robotics..." />
-                      <input value={skillsForm.languages} onChange={(e) => setSkillsForm((f) => ({ ...f, languages: e.target.value }))} className="input" placeholder="English, Hindi, Bengali..." />
-                      <div className="flex items-center gap-3">
-                        <button onClick={saveSkills} disabled={saving} className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-ink/90 transition-colors disabled:opacity-50">
+
+                  {editingAbout ? (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Bio</label>
+                        <textarea value={aboutForm.bio} onChange={(e) => setAboutForm((f) => ({ ...f, bio: e.target.value }))} rows={4} className="input resize-none" />
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                          <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Department</label>
+                          <input value={aboutForm.department} onChange={(e) => setAboutForm((f) => ({ ...f, department: e.target.value }))} className="input" />
+                        </div>
+                        <div>
+                          <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Location</label>
+                          <input value={aboutForm.location} onChange={(e) => setAboutForm((f) => ({ ...f, location: e.target.value }))} className="input" />
+                        </div>
+                        <div>
+                          <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Batch</label>
+                          <input value={aboutForm.batch} onChange={(e) => setAboutForm((f) => ({ ...f, batch: e.target.value }))} className="input" />
+                        </div>
+                        <div>
+                          <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Semester</label>
+                          <input type="number" value={aboutForm.semester} onChange={(e) => setAboutForm((f) => ({ ...f, semester: e.target.value }))} className="input" />
+                        </div>
+                        <div>
+                          <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">College Email</label>
+                          <input value={aboutForm.collegeEmail} onChange={(e) => setAboutForm((f) => ({ ...f, collegeEmail: e.target.value }))} className="input" />
+                        </div>
+                        <div>
+                          <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Personal Email</label>
+                          <input value={aboutForm.personalEmail} onChange={(e) => setAboutForm((f) => ({ ...f, personalEmail: e.target.value }))} className="input" />
+                        </div>
+                        <div>
+                          <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Phone</label>
+                          <input value={aboutForm.phone} onChange={(e) => setAboutForm((f) => ({ ...f, phone: e.target.value }))} className="input" />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 pt-2">
+                        <button onClick={saveAbout} disabled={saving} className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-ink/90 transition-colors disabled:opacity-50">
                           <Save size={14} /> {saving ? 'Saving…' : 'Save'}
                         </button>
-                        <button onClick={() => setEditingSkills(false)} className="inline-flex items-center gap-2 bg-soft-stone text-ink px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-soft-stone/80 transition-colors">
+                        <button onClick={() => setEditingAbout(false)} className="inline-flex items-center gap-2 bg-soft-stone text-ink px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-soft-stone/80 transition-colors">
                           <X size={14} /> Cancel
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <>
-                      {profile.skills?.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {profile.skills.map((skill) => (
-                            <span key={skill} className="font-mono text-[12px] font-semibold px-3 py-1.5 rounded-full bg-soft-stone text-ink border border-hairline">
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      {profile.interests?.length > 0 && (
-                        <div className="mt-4">
-                          <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-2">Interests</p>
-                          <div className="flex flex-wrap gap-2">
-                            {profile.interests.map((interest) => (
-                              <span key={interest} className="font-mono text-[12px] font-semibold px-3 py-1.5 rounded-full bg-blue-50 text-action-blue border border-blue-100">
-                                {interest}
-                              </span>
-                            ))}
+                    <div className="grid gap-6 sm:grid-cols-2">
+                      <div>
+                        <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-1">Department</p>
+                        <p className="font-sans text-[15px] text-ink">{profile.department || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-1">Semester</p>
+                        <p className="font-sans text-[15px] text-ink">{profile.semester || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-1">Location</p>
+                        <p className="font-sans text-[15px] text-ink">{profile.location || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-1">Batch</p>
+                        <p className="font-sans text-[15px] text-ink">{profile.batch || '—'}</p>
+                      </div>
+                      {isOwn && (
+                        <div className="sm:col-span-2 mt-2">
+                          <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-1.5">Status</p>
+                          <div className="flex gap-2">
+                            <input
+                              value={statusText}
+                              onChange={(e) => setStatusText(e.target.value)}
+                              placeholder="What's on your mind? (max 100 chars)"
+                              maxLength={100}
+                              className="input flex-1"
+                            />
+                            <button
+                              onClick={handleSetStatus}
+                              disabled={statusSaving || !statusText.trim()}
+                              className="px-4 py-2 bg-ink text-canvas rounded-full text-[13px] font-semibold disabled:opacity-50"
+                            >
+                              Set
+                            </button>
+                            {profile.status?.text && (
+                              <button
+                                onClick={handleClearStatus}
+                                className="px-4 py-2 bg-soft-stone text-ink rounded-full text-[13px] font-semibold"
+                              >
+                                Clear
+                              </button>
+                            )}
                           </div>
+                          <p className="font-mono text-[10px] text-ink-muted-48 mt-1">Auto-expires after 24 hours</p>
                         </div>
-                      )}
-                      {profile.languages?.length > 0 && (
-                        <div className="mt-4">
-                          <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-2">Languages</p>
-                          <div className="flex flex-wrap gap-2">
-                            {profile.languages.map((lang) => (
-                              <span key={lang} className="font-mono text-[12px] font-semibold px-3 py-1.5 rounded-full bg-green-50 text-deep-green border border-green-100">
-                                {lang}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-
-                {/* Contact */}
-                {(profile.collegeEmail || profile.personalEmail || profile.phone) && (
-                  <div className="mt-8 pt-6 border-t border-divider-soft">
-                    <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-3">Contact</p>
-                    <div className="space-y-2">
-                      {profile.collegeEmail && (
-                        <p className="font-sans text-[14px] text-ink-muted-80">College Email: {profile.collegeEmail}</p>
-                      )}
-                      {profile.personalEmail && (
-                        <p className="font-sans text-[14px] text-ink-muted-80">Personal Email: {profile.personalEmail}</p>
-                      )}
-                      {profile.phone && (
-                        <p className="font-sans text-[14px] text-ink-muted-80">Phone: {profile.phone}</p>
                       )}
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
 
-              {/* Social Links + Network Sidebar */}
-              <div className="space-y-6">
-                {/* Social Links */}
-                {socialPlatforms.some((p) => profile.socialLinks?.[p.key]) && (
-                  <div className="p-6 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-display text-[18px] font-bold text-ink">Social Links</h3>
-                      {isOwn && !editingSocial && (
-                        <button onClick={startEditSocial} className="text-[12px] font-semibold text-action-blue hover:underline inline-flex items-center gap-1">
+                  {/* Skills */}
+                  <div className="mt-8">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48">Skills</p>
+                      {isOwn && !editingSkills && (
+                        <button onClick={startEditSkills} className="text-[12px] font-semibold text-action-blue hover:underline inline-flex items-center gap-1">
                           <Edit3 size={12} /> Edit
                         </button>
                       )}
                     </div>
-                    {editingSocial ? (
+                    {editingSkills ? (
                       <div className="space-y-3">
-                        {socialPlatforms.map((platform) => (
-                          <div key={platform.key}>
-                            <label className="block font-sans text-[12px] font-semibold text-ink-muted-80 mb-1">{platform.label}</label>
-                            <input
-                              value={socialForm[platform.key] || ''}
-                              onChange={(e) => setSocialForm((f) => ({ ...f, [platform.key]: e.target.value }))}
-                              className="input"
-                              placeholder={`@${platform.key}`}
-                            />
-                          </div>
-                        ))}
-                        <div className="flex items-center gap-3 pt-2">
-                          <button onClick={saveSocial} disabled={saving} className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-ink/90 transition-colors disabled:opacity-50">
+                        <input value={skillsForm.skills} onChange={(e) => setSkillsForm((f) => ({ ...f, skills: e.target.value }))} className="input" placeholder="React, Python, Flutter..." />
+                        <input value={skillsForm.interests} onChange={(e) => setSkillsForm((f) => ({ ...f, interests: e.target.value }))} className="input" placeholder="Machine Learning, Robotics..." />
+                        <input value={skillsForm.languages} onChange={(e) => setSkillsForm((f) => ({ ...f, languages: e.target.value }))} className="input" placeholder="English, Hindi, Bengali..." />
+                        <div className="flex items-center gap-3">
+                          <button onClick={saveSkills} disabled={saving} className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-ink/90 transition-colors disabled:opacity-50">
                             <Save size={14} /> {saving ? 'Saving…' : 'Save'}
                           </button>
-                          <button onClick={() => setEditingSocial(false)} className="inline-flex items-center gap-2 bg-soft-stone text-ink px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-soft-stone/80 transition-colors">
+                          <button onClick={() => setEditingSkills(false)} className="inline-flex items-center gap-2 bg-soft-stone text-ink px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-soft-stone/80 transition-colors">
                             <X size={14} /> Cancel
                           </button>
                         </div>
                       </div>
                     ) : (
-                      <div className="space-y-3">
-                        {socialPlatforms
-                          .filter((p) => profile.socialLinks?.[p.key])
-                          .map((p) => (
-                            <SocialLinkCard
-                              key={p.key}
-                              platform={p.key}
-                              username={profile.socialLinks[p.key]}
-                              url={p.key === 'website' ? profile.socialLinks[p.key] : undefined}
-                            />
+                      <>
+                        {profile.skills?.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {profile.skills.map((skill) => (
+                              <span key={skill} className="font-mono text-[12px] font-semibold px-3 py-1.5 rounded-full bg-soft-stone text-ink border border-hairline">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {profile.interests?.length > 0 && (
+                          <div className="mt-4">
+                            <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-2">Interests</p>
+                            <div className="flex flex-wrap gap-2">
+                              {profile.interests.map((interest) => (
+                                <span key={interest} className="font-mono text-[12px] font-semibold px-3 py-1.5 rounded-full bg-blue-50 text-action-blue border border-blue-100">
+                                  {interest}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {profile.languages?.length > 0 && (
+                          <div className="mt-4">
+                            <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-2">Languages</p>
+                            <div className="flex flex-wrap gap-2">
+                              {profile.languages.map((lang) => (
+                                <span key={lang} className="font-mono text-[12px] font-semibold px-3 py-1.5 rounded-full bg-green-50 text-deep-green border border-green-100">
+                                  {lang}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Contact */}
+                  {(profile.collegeEmail || profile.personalEmail || profile.phone) && (
+                    <div className="mt-8 pt-6 border-t border-divider-soft">
+                      <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-3">Contact</p>
+                      <div className="space-y-2">
+                        {profile.collegeEmail && (
+                          <p className="font-sans text-[14px] text-ink-muted-80">College Email: {profile.collegeEmail}</p>
+                        )}
+                        {profile.personalEmail && (
+                          <p className="font-sans text-[14px] text-ink-muted-80">Personal Email: {profile.personalEmail}</p>
+                        )}
+                        {profile.phone && (
+                          <p className="font-sans text-[14px] text-ink-muted-80">Phone: {profile.phone}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right sidebar */}
+                <div className="space-y-6">
+                  {/* Social Links */}
+                  {socialPlatforms.some((p) => profile.socialLinks?.[p.key]) && (
+                    <div className="p-6 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-display text-[18px] font-bold text-ink">Social Links</h3>
+                        {isOwn && !editingSocial && (
+                          <button onClick={startEditSocial} className="text-[12px] font-semibold text-action-blue hover:underline inline-flex items-center gap-1">
+                            <Edit3 size={12} /> Edit
+                          </button>
+                        )}
+                      </div>
+                      {editingSocial ? (
+                        <div className="space-y-3">
+                          {socialPlatforms.map((platform) => (
+                            <div key={platform.key}>
+                              <label className="block font-sans text-[12px] font-semibold text-ink-muted-80 mb-1">{platform.label}</label>
+                              <input
+                                value={socialForm[platform.key] || ''}
+                                onChange={(e) => setSocialForm((f) => ({ ...f, [platform.key]: e.target.value }))}
+                                className="input"
+                                placeholder={`@${platform.key}`}
+                              />
+                            </div>
                           ))}
+                          <div className="flex items-center gap-3 pt-2">
+                            <button onClick={saveSocial} disabled={saving} className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-ink/90 transition-colors disabled:opacity-50">
+                              <Save size={14} /> {saving ? 'Saving…' : 'Save'}
+                            </button>
+                            <button onClick={() => setEditingSocial(false)} className="inline-flex items-center gap-2 bg-soft-stone text-ink px-5 py-2.5 rounded-full text-[13px] font-semibold hover:bg-soft-stone/80 transition-colors">
+                              <X size={14} /> Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {socialPlatforms
+                            .filter((p) => profile.socialLinks?.[p.key])
+                            .map((p) => (
+                              <SocialLinkCard
+                                key={p.key}
+                                platform={p.key}
+                                username={profile.socialLinks[p.key]}
+                                url={p.key === 'website' ? profile.socialLinks[p.key] : undefined}
+                              />
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Badges */}
+                  {profile.badges?.length > 0 && (
+                    <div className="p-6 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
+                      <h3 className="font-display text-[18px] font-bold text-ink mb-4">Badges</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.badges.map((badge) => (
+                          <span key={badge} className="inline-flex items-center px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[12px] font-semibold">
+                            {badge}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Profile Views (own profile only) */}
+                  {isOwn && viewsData?.length > 0 && (
+                    <div className="p-6 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Eye size={18} className="text-slate" />
+                        <h3 className="font-display text-[18px] font-bold text-ink">Recent Views</h3>
+                      </div>
+                      <div className="space-y-2">
+                        {viewsData.slice(0, 5).map((viewer) => (
+                          <Link key={viewer._id} to={`/profile/${viewer._id}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-soft-stone transition-colors">
+                            <div className="w-8 h-8 rounded-full bg-soft-stone flex items-center justify-center overflow-hidden">
+                              {viewer.photo ? (
+                                <img src={viewer.photo} alt={viewer.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="font-display font-bold text-[14px] text-ink-muted-48">
+                                  {viewer.name?.charAt(0)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-sans text-[13px] font-semibold text-ink truncate">{viewer.name}</p>
+                              <p className="font-mono text-[11px] text-slate">{viewer.profile?.department || viewer.role}</p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Similar Profiles */}
+                  {!isOwn && suggested.length > 0 && (
+                    <div className="p-6 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Sparkles size={18} className="text-coral" />
+                        <h3 className="font-display text-[18px] font-bold text-ink">Similar Profiles</h3>
+                      </div>
+                      <div className="space-y-3">
+                        {suggested.map((user) => (
+                          <Link key={user._id} to={`/profile/${user._id}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-soft-stone transition-colors group">
+                            <div className="w-10 h-10 rounded-full bg-soft-stone flex items-center justify-center overflow-hidden flex-shrink-0">
+                              {user.photo ? (
+                                <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="font-display font-bold text-[16px] text-ink-muted-48">
+                                  {user.name?.charAt(0)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-sans text-[14px] font-semibold text-ink group-hover:text-action-blue transition-colors truncate">{user.name}</p>
+                              <p className="font-mono text-[11px] text-slate">{user.department || user.role} {user.batch ? `· Batch ${user.batch}` : ''}</p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Network Stats */}
+                  <div className="p-6 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-display text-[18px] font-bold text-ink">Network</h3>
+                      <Users size={18} className="text-slate" />
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex-1 text-center p-3 bg-canvas rounded-xl">
+                        <p className="font-display text-[20px] font-bold text-ink">{profile.followers || 0}</p>
+                        <p className="font-mono text-[11px] uppercase tracking-wider text-ink-muted-48">Followers</p>
+                      </div>
+                      <div className="flex-1 text-center p-3 bg-canvas rounded-xl">
+                        <p className="font-display text-[20px] font-bold text-ink">{profile.following || 0}</p>
+                        <p className="font-mono text-[11px] uppercase tracking-wider text-ink-muted-48">Following</p>
+                      </div>
+                    </div>
+                    {isOwn && stats.profileViews > 0 && (
+                      <div className="mt-3 flex items-center justify-center gap-2 text-[13px] text-ink-muted-80">
+                        <Eye size={14} className="text-slate" />
+                        <span>{stats.profileViews} profile views</span>
                       </div>
                     )}
                   </div>
-                )}
-
-                {/* Badges */}
-                {profile.badges?.length > 0 && (
-                  <div className="p-6 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
-                    <h3 className="font-display text-[18px] font-bold text-ink mb-4">Badges</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {profile.badges.map((badge) => (
-                        <span key={badge} className="inline-flex items-center px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[12px] font-semibold">
-                          {badge}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Followers / Following */}
-                <div className="p-6 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-display text-[18px] font-bold text-ink">Network</h3>
-                    <Users size={18} className="text-slate" />
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-1 text-center p-3 bg-canvas rounded-xl">
-                      <p className="font-display text-[20px] font-bold text-ink">{profile.followers || 0}</p>
-                      <p className="font-mono text-[11px] uppercase tracking-wider text-ink-muted-48">Followers</p>
-                    </div>
-                    <div className="flex-1 text-center p-3 bg-canvas rounded-xl">
-                      <p className="font-display text-[20px] font-bold text-ink">{profile.following || 0}</p>
-                      <p className="font-mono text-[11px] uppercase tracking-wider text-ink-muted-48">Following</p>
-                    </div>
-                  </div>
                 </div>
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
 
-          {activeTab === 'projects' && (
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="font-display text-[24px] font-bold text-ink">Projects</h2>
-                {isOwn && (
-                  <button
-                    onClick={() => setShowProjectModal(true)}
-                    className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-full text-[14px] font-semibold hover:bg-ink/90 transition-colors shadow-sm"
-                  >
-                    <Plus size={16} />
-                    Upload Your Project
-                  </button>
+            {activeTab === 'projects' && (
+              <motion.div
+                key="projects"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.25 }}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-display text-[24px] font-bold text-ink">Projects</h2>
+                  {isOwn && (
+                    <button
+                      onClick={() => setShowProjectModal(true)}
+                      className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-full text-[14px] font-semibold hover:bg-ink/90 transition-colors shadow-sm"
+                    >
+                      <Plus size={16} />
+                      Upload Your Project
+                    </button>
+                  )}
+                </div>
+                <ProjectsList projects={projectsData?.data || []} />
+              </motion.div>
+            )}
+
+            {activeTab === 'achievements' && (
+              <motion.div
+                key="achievements"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.25 }}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-display text-[24px] font-bold text-ink">Achievements</h2>
+                  {isOwn && (
+                    <button
+                      onClick={() => setShowAchievementModal(true)}
+                      className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-full text-[14px] font-semibold hover:bg-ink/90 transition-colors shadow-sm"
+                    >
+                      <Trophy size={16} />
+                      Post Achievement
+                    </button>
+                  )}
+                </div>
+                <AchievementsList
+                  achievements={achievementsData || []}
+                  isOwn={isOwn}
+                  onEdit={(a) => setEditingAchievement(a)}
+                  onDelete={(aid) => deleteAchievementMut.mutate(aid)}
+                />
+              </motion.div>
+            )}
+
+            {activeTab === 'gallery' && (
+              <motion.div
+                key="gallery"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.25 }}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-display text-[24px] font-bold text-ink">Gallery</h2>
+                  {isOwn && (
+                    <button
+                      onClick={() => setShowGalleryModal(true)}
+                      className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-full text-[14px] font-semibold hover:bg-ink/90 transition-colors shadow-sm"
+                    >
+                      <Plus size={16} />
+                      Upload Photo
+                    </button>
+                  )}
+                </div>
+                {galleryData?.data?.length === 0 ? (
+                  <div className="py-16 text-center border border-divider-soft rounded-2xl bg-surface-pearl">
+                    <ImageIcon size={32} className="mx-auto text-slate mb-3" />
+                    <p className="font-sans text-[15px] text-ink-muted-80">No gallery images yet.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {galleryData?.data?.map((img, i) => (
+                      <div key={img._id} className="relative aspect-square rounded-2xl overflow-hidden border border-divider-soft hover:shadow-md transition-shadow group">
+                        <img src={img.imageUrl} alt={img.title} className="w-full h-full object-cover" />
+                        {isOwn && (
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <button onClick={() => setEditingGallery(img)} className="px-3 py-1.5 bg-white text-ink text-[12px] font-semibold rounded-lg hover:bg-soft-stone transition-colors">Edit</button>
+                            <button onClick={() => { if (window.confirm('Remove this photo?')) deleteGalleryMut.mutate(img._id) }} className="px-3 py-1.5 bg-red-500 text-white text-[12px] font-semibold rounded-lg hover:bg-red-600 transition-colors">Delete</button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 )}
-              </div>
-              <ProjectsList projects={projectsData?.data || []} />
-            </div>
-          )}
-
-           {activeTab === 'achievements' && (
-             <div>
-               <div className="flex items-center justify-between mb-6">
-                 <h2 className="font-display text-[24px] font-bold text-ink">Achievements</h2>
-                 {isOwn && (
-                   <button
-                     onClick={() => setShowAchievementModal(true)}
-                     className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-full text-[14px] font-semibold hover:bg-ink/90 transition-colors shadow-sm"
-                   >
-                     <Trophy size={16} />
-                     Post Achievement
-                   </button>
-                 )}
-               </div>
-               <AchievementsList
-                 achievements={achievementsData || []}
-                 isOwn={isOwn}
-                 onEdit={(a) => setEditingAchievement(a)}
-                 onDelete={(aid) => deleteAchievementMut.mutate(aid)}
-               />
-             </div>
-           )}
-
-           {activeTab === 'gallery' && (
-             <div>
-               <div className="flex items-center justify-between mb-6">
-                 <h2 className="font-display text-[24px] font-bold text-ink">Gallery</h2>
-                 {isOwn && (
-                   <button
-                     onClick={() => setShowGalleryModal(true)}
-                     className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-full text-[14px] font-semibold hover:bg-ink/90 transition-colors shadow-sm"
-                   >
-                     <Plus size={16} />
-                     Upload Photo
-                   </button>
-                 )}
-               </div>
-               {galleryData?.data?.length === 0 ? (
-                 <div className="py-16 text-center border border-divider-soft rounded-2xl bg-surface-pearl">
-                   <ImageIcon size={32} className="mx-auto text-slate mb-3" />
-                   <p className="font-sans text-[15px] text-ink-muted-80">No gallery images yet.</p>
-                 </div>
-               ) : (
-                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                   {galleryData?.data?.map((img, i) => (
-                     <div key={img._id} className="relative aspect-square rounded-2xl overflow-hidden border border-divider-soft hover:shadow-md transition-shadow group">
-                       <img src={img.imageUrl} alt={img.title} className="w-full h-full object-cover" />
-                       {isOwn && (
-                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                           <button onClick={() => setEditingGallery(img)} className="px-3 py-1.5 bg-white text-ink text-[12px] font-semibold rounded-lg hover:bg-soft-stone transition-colors">Edit</button>
-                           <button onClick={() => { if (window.confirm('Remove this photo?')) deleteGalleryMut.mutate(img._id) }} className="px-3 py-1.5 bg-red-500 text-white text-[12px] font-semibold rounded-lg hover:bg-red-600 transition-colors">Delete</button>
-                         </div>
-                       )}
-                     </div>
-                   ))}
-                 </div>
-               )}
-             </div>
-           )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Lightbox */}

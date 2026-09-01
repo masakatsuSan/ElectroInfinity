@@ -19,8 +19,49 @@ router.get('/batch/:batch', protect, async (req, res) => {
     }
 
     const students = await User.find({ batch: req.params.batch, role: { $in: ['student', 'cr'] } })
-      .select('name rollNumber email batch role photo followers following')
+      .select('name rollNumber email batch semester role photo profile.socialLinks followers following')
       .sort({ rollNumber: 1 })
+
+    const viewerId = req.user._id
+    const formatted = students.map(s => {
+      const obj = s.toObject()
+      return {
+        ...obj,
+        isFollowing: s.followers?.some(id => id.toString() === viewerId.toString()),
+        followsMe: s.following?.some(id => id.toString() === viewerId.toString()),
+      }
+    })
+
+    res.json({ success: true, count: formatted.length, data: formatted })
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+// ── GET /api/students/all ──────────────────────────────────────────────────
+// Any authenticated student/CR can view the full campus directory across batches
+router.get('/all', protect, async (req, res) => {
+  try {
+    const { search = '', role = '' } = req.query
+    const filter = { role: { $in: ['student', 'cr'] } }
+
+    if (search.trim()) {
+      const regex = new RegExp(search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
+      filter.$or = [
+        { name: regex },
+        { rollNumber: regex },
+        { email: regex },
+        { 'profile.department': regex },
+      ]
+    }
+
+    if (role && ['student', 'cr'].includes(role)) {
+      filter.role = role
+    }
+
+    const students = await User.find(filter)
+      .select('name rollNumber email batch semester role photo profile.socialLinks followers following')
+      .sort({ batch: -1, rollNumber: 1 })
 
     const viewerId = req.user._id
     const formatted = students.map(s => ({

@@ -19,7 +19,7 @@ export default {
         'error': '#b30000',
 
         // Surface & Background
-        'canvas': '#ffffff',
+        'canvas': '#F9F6F0',
         'soft-stone': '#eeece7',
         'pale-green': '#edfce9',
         'pale-blue': '#f1f5ff',
