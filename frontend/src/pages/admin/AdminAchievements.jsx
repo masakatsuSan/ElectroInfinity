@@ -169,7 +169,7 @@ export default function AdminAchievements() {
         : (
           <div className="border border-divider-soft bg-surface-pearl rounded-xl overflow-hidden shadow-sm divide-y divide-hairline">
             {achievements.map(a => (
-              <div key={a._id} className="flex items-center gap-4 px-6 py-4 hover:bg-canvas-parchment transition-colors">
+              <div key={a._id} className="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 hover:bg-canvas-parchment transition-colors">
                 {a.image ? (
                   <img src={a.image} alt={a.title} className="w-16 h-16 rounded-lg object-cover border border-hairline flex-shrink-0" />
                 ) : (

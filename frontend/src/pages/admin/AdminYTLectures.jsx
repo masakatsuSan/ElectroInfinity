@@ -304,7 +304,7 @@ export default function AdminYTLectures() {
       ) : (
         <div className="border border-divider-soft bg-surface-pearl rounded-xl overflow-hidden shadow-sm">
           {lectures.map(l => (
-            <div key={l._id} className="flex items-center gap-4 px-6 py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
+            <div key={l._id} className="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
               <span className="font-mono text-[11px] font-bold text-primary uppercase tracking-widest w-20 flex-shrink-0">Lec {l.lectureNumber}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-[15px] font-medium text-ink truncate">{l.title}</p>

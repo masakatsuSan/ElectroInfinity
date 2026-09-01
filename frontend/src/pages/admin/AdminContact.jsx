@@ -55,7 +55,7 @@ export default function AdminContact() {
         : (
           <div className="border border-divider-soft bg-surface-pearl rounded-xl overflow-hidden shadow-sm divide-y divide-hairline">
             {contacts.map(c => (
-              <div key={c._id} className={`flex items-start gap-4 px-6 py-4 hover:bg-canvas-parchment transition-colors ${c.status === 'new' ? 'bg-pale-blue/30' : ''}`}>
+              <div key={c._id} className={`flex items-start gap-4 px-4 sm:px-6 py-3 sm:py-4 hover:bg-canvas-parchment transition-colors ${c.status === 'new' ? 'bg-pale-blue/30' : ''}`}>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-[15px] font-medium text-ink">{c.name}</p>

@@ -107,7 +107,7 @@ export default function AdminRoutines() {
         <table className="w-full min-w-[600px] border-collapse text-[14px] font-sans">
           <thead>
             <tr className="border-b border-divider-soft bg-canvas">
-              <th className="font-bold text-ink-muted-80 text-left py-4 px-6 w-40">Time</th>
+              <th className="font-bold text-ink-muted-80 text-left py-4 px-4 sm:px-6 w-40">Time</th>
               {['Mon','Tue','Wed','Thu','Fri'].map(d => (
                 <th key={d} className="font-bold text-ink-muted-80 text-center py-4 px-2">{d}</th>
               ))}

@@ -244,10 +244,10 @@ export default function AdminCourses() {
         : semesters.length === 0 ? <p className="font-sans text-ink-muted-80 text-[15px]">No courses found. Create one above.</p>
         : semesters.map(sem => (
           <div key={sem} className="border border-divider-soft bg-surface-pearl rounded-xl overflow-hidden shadow-sm mb-6">
-            <div className="px-6 py-4 border-b border-divider-soft font-display font-bold text-[18px] text-ink">Semester {sem}</div>
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft font-display font-bold text-[18px] text-ink">Semester {sem}</div>
             <div className="divide-y divide-hairline">
               {bySem[sem].map(s => (
-                <div key={s._id} className="flex items-center gap-4 px-6 py-3 hover:bg-canvas-parchment transition-colors">
+                  <div key={s._id} className="flex items-center gap-4 px-4 sm:px-6 py-2 sm:py-3 hover:bg-canvas-parchment transition-colors">
                   <span className="font-mono text-[11px] font-bold uppercase px-2.5 py-1 rounded-md bg-soft-stone text-ink border border-hairline flex-shrink-0">{s.code}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-medium text-ink truncate">{s.name}</p>

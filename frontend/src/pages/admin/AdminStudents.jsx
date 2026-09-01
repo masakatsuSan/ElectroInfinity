@@ -235,7 +235,7 @@ function DirectoryTab({ qc }) {
       ) : (
         <div className="border border-divider-soft bg-surface-pearl rounded-xl overflow-hidden shadow-sm">
           {students.map(s => (
-            <div key={s._id} className="flex items-center gap-4 px-6 py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
+            <div key={s._id} className="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-[15px] font-medium text-ink">{s.name || '(No name)'}</p>

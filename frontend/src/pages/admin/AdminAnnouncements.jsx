@@ -159,7 +159,7 @@ export default function AdminAnnouncements() {
         : (
           <div className="border border-divider-soft bg-surface-pearl rounded-xl overflow-hidden shadow-sm">
             {announcements.map(a => (
-              <div key={a._id} className="flex items-start gap-4 px-6 py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
+              <div key={a._id} className="flex items-start gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
                 <span className={`font-mono text-[11px] font-bold uppercase px-2.5 py-1 rounded-md border flex-shrink-0 ${CAT_COLORS[a.category] || CAT_COLORS.general}`}>
                   {a.category}
                 </span>

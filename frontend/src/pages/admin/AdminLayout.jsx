@@ -137,7 +137,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* ── Main content — each admin page renders here ── */}
-      <main className="flex-1 p-6 md:p-10 overflow-x-hidden bg-canvas">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-x-hidden bg-canvas">
         <Outlet />
       </main>
     </div>

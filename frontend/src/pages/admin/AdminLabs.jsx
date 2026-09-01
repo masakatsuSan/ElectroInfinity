@@ -148,7 +148,7 @@ export default function AdminLabs() {
         : (
           <div className="border border-divider-soft bg-surface-pearl rounded-xl overflow-hidden shadow-sm divide-y divide-hairline">
             {labs.map(l => (
-              <div key={l._id} className="flex items-center gap-4 px-6 py-4 hover:bg-canvas-parchment transition-colors">
+              <div key={l._id} className="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 hover:bg-canvas-parchment transition-colors">
                 {l.image ? (
                   <img src={l.image} alt={l.name} className="w-14 h-14 rounded-22px object-cover border border-hairline flex-shrink-0 shadow-sm" />
                 ) : (

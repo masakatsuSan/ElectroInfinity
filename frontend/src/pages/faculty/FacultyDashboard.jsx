@@ -304,7 +304,7 @@ function AnnouncementRow({ announcement: a, onEdit, onDelete }) {
   })
 
   return (
-    <div className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-soft-stone/30 transition-colors">
+    <div className="flex items-center justify-between gap-4 px-4 sm:px-6 py-3 sm:py-4 hover:bg-soft-stone/30 transition-colors">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2.5 flex-wrap">
           <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-pale-green text-deep-green border border-green-200">

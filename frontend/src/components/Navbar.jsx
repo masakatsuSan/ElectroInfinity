@@ -491,7 +491,7 @@ export default function Navbar({ onForumFlip }) {
       </nav>
 
       {/* Mobile overlay menu */}
-      <div className={`fixed inset-0 z-40 bg-canvas flex flex-col px-6 transition-opacity duration-200 lg:hidden ${
+      <div className={`fixed inset-0 z-40 bg-canvas flex flex-col px-4 sm:px-6 transition-opacity duration-200 lg:hidden ${
         menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
         <div className="pt-[100px] flex-1 overflow-y-auto pb-8">

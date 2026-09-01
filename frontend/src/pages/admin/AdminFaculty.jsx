@@ -106,7 +106,7 @@ export default function AdminFaculty() {
         : (
           <div className="border border-divider-soft bg-surface-pearl rounded-xl overflow-hidden shadow-sm">
             {faculty.map(f => (
-              <div key={f._id} className="flex items-center gap-4 px-6 py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
+              <div key={f._id} className="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
                 <div className="w-12 h-12 rounded-22px bg-soft-stone flex items-center justify-center flex-shrink-0 overflow-hidden border border-hairline shadow-sm">
                   {f.photo ? <img src={f.photo} alt={f.name} className="w-full h-full object-cover" />
                     : <span className="font-display font-bold text-[18px] text-ink">{initials(f.name)}</span>}
