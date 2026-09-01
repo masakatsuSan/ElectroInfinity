@@ -9,6 +9,8 @@ const projectSchema = new mongoose.Schema(
     demoLink:    { type: String, default: '' },
     author:      { type: mongoose.Schema.ObjectId, ref: 'User', required: true },
     images:      [{ type: String }],
+    thumbnail:   { type: String, default: '' },
+    pinned:      { type: Boolean, default: false },
     likes:       [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
     isApproved:  { type: Boolean, default: false },
     approvedBy:  { type: mongoose.Schema.ObjectId, ref: 'User', default: null },

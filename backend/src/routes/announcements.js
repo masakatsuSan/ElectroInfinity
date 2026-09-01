@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Announcement = require('../models/Announcement');
 const { protect, guard, optionalAuth } = require('../middleware/auth');
+const { createNotificationBulk } = require('../utils/notification');
 
 // Canonical batches — keep in sync with frontend/src/data/batches.js
 const BATCHES = ['2023-2027', '2024-2028', '2025-2029', '2026-2030'];
@@ -178,6 +179,31 @@ router.post('/', protect, guard('cr', 'faculty', 'admin', 'super_admin'), async 
       attachmentUrl: req.body.attachmentUrl || '',
       isPinned: ['faculty', 'cr'].includes(role) ? false : !!req.body.isPinned,
     });
+
+    // Notify relevant users about new announcement
+    const io = req.app.get('io')
+    const User = require('../models/User')
+    let recipientQuery = { role: { $in: ['student', 'cr'] }, isActive: true }
+    if (audience === 'batch' && clean.batchId) {
+      recipientQuery.batch = clean.batchId
+    }
+    const recipients = await User.find(recipientQuery).select('_id')
+    const recipientIds = recipients
+      .map(r => r._id.toString())
+      .filter(id => id !== req.user._id.toString())
+    if (recipientIds.length > 0) {
+      await createNotificationBulk({
+        recipients: recipientIds,
+        actor: req.user._id,
+        type: 'announcement',
+        title: `New announcement: ${announcement.title}`,
+        message: announcement.content?.substring(0, 100) || '',
+        link: '/announcements',
+        entityId: announcement._id,
+        entityType: 'Announcement',
+        io,
+      })
+    }
 
     res.status(201).json({ success: true, data: announcement });
   } catch (error) {

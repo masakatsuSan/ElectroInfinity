@@ -718,7 +718,7 @@ export default function FacultyAttendance() {
                   </div>
 
                   {/* Attendance List */}
-                  <div className="flex-1 overflow-y-auto max-h-[300px] sm:max-h-[480px] space-y-1 sm:space-y-2 pr-1 scrollbar-none">
+                  <div className="flex-1 overflow-y-auto max-h-[300px] sm:max-h-[480px] space-y-1 sm:space-y-2 pr-1">
                     {feed.length === 0 ? (
                       <div className="py-8 text-center sm:py-16 text-ink-muted-80">
                         <p className="font-sans text-[13px] sm:text-[15px]">Waiting for students to scan QR…</p>

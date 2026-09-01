@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
+const User = require('../models/User');
 const { protect, guard, optionalAuth } = require('../middleware/auth');
+const { createActivity } = require('../utils/activity');
+const { createNotification, createNotificationBulk } = require('../utils/notification');
 
 // @route   GET /api/projects
 // @desc    Get all approved projects (public), all projects for admins
@@ -81,6 +84,35 @@ router.post('/', protect, guard('student', 'cr', 'faculty', 'admin', 'super_admi
     req.body.isApproved = false;
 
     const project = await Project.create(req.body);
+    await createActivity(
+      req.user.id,
+      'project_shared',
+      project.title,
+      project.description,
+      `/projects/${project._id}`
+    );
+
+    // Notify admins about new project for review
+    const io = req.app.get('io')
+    const User = require('../models/User')
+    const admins = await User.find({
+      role: { $in: ['admin', 'super_admin'] },
+      _id: { $ne: req.user.id },
+    }).select('_id')
+    if (admins.length > 0) {
+      await createNotificationBulk({
+        recipients: admins.map(a => a._id.toString()),
+        actor: req.user.id,
+        type: 'project_submitted',
+        title: `${req.user.name || 'Someone'} submitted a new project`,
+        message: project.title,
+        link: `/projects/${project._id}`,
+        entityId: project._id,
+        entityType: 'Project',
+        io,
+      })
+    }
+
     res.status(201).json({ success: true, data: project });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
@@ -108,6 +140,34 @@ router.patch('/:id', protect, guard('admin', 'super_admin'), async (req, res) =>
 
     Object.assign(project, req.body);
     await project.save();
+
+    // Notify project author about approval/rejection
+    const io = req.app.get('io')
+    if (req.body.isApproved === true && project.author.toString() !== req.user.id) {
+      await createNotification({
+        recipient: project.author,
+        actor: req.user.id,
+        type: 'project_approved',
+        title: 'Your project has been approved!',
+        message: project.title,
+        link: `/projects/${project._id}`,
+        entityId: project._id,
+        entityType: 'Project',
+        io,
+      })
+    } else if (req.body.isApproved === false && project.author.toString() !== req.user.id) {
+      await createNotification({
+        recipient: project.author,
+        actor: req.user.id,
+        type: 'project_rejected',
+        title: 'Your project was not approved',
+        message: project.rejectionReason || project.title,
+        link: `/projects/${project._id}`,
+        entityId: project._id,
+        entityType: 'Project',
+        io,
+      })
+    }
 
     res.json({ success: true, data: project });
   } catch (error) {
@@ -161,6 +221,23 @@ router.post('/:id/like', protect, async (req, res) => {
     }
 
     await project.save();
+
+    // Notify project author about like (only when adding like, not removing)
+    if (likeIndex === -1 && project.author.toString() !== req.user.id) {
+      const io = req.app.get('io')
+      await createNotification({
+        recipient: project.author,
+        actor: req.user.id,
+        type: 'project_like',
+        title: `${req.user.name || 'Someone'} liked your project`,
+        message: project.title,
+        link: `/projects/${project._id}`,
+        entityId: project._id,
+        entityType: 'Project',
+        io,
+      })
+    }
+
     res.json({ success: true, data: { likes: project.likes } });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

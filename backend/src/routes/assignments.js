@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Assignment = require('../models/Assignment');
 const { protect, guard } = require('../middleware/auth');
+const { createNotificationBulk } = require('../utils/notification');
 
 // @route   GET /api/assignments
 // @desc    Get all assignments for the user's batch
@@ -46,6 +47,35 @@ router.post('/', protect, guard('cr', 'admin', 'super_admin'), async (req, res) 
     }
     
     const assignment = await Assignment.create(req.body);
+
+    // Notify students in the same batch about new assignment
+    const io = req.app.get('io')
+    const User = require('../models/User')
+    const batchId = assignment.batchId || req.user.batch
+    if (batchId) {
+      const recipients = await User.find({
+        role: { $in: ['student', 'cr'] },
+        batch: batchId,
+        isActive: true,
+      }).select('_id')
+      const recipientIds = recipients
+        .map(r => r._id.toString())
+        .filter(id => id !== req.user._id.toString())
+      if (recipientIds.length > 0) {
+        await createNotificationBulk({
+          recipients: recipientIds,
+          actor: req.user._id,
+          type: 'assignment',
+          title: `New assignment: ${assignment.title}`,
+          message: `Due: ${new Date(assignment.deadline).toLocaleDateString('en-IN')}`,
+          link: '/resources',
+          entityId: assignment._id,
+          entityType: 'Assignment',
+          io,
+        })
+      }
+    }
+
     res.status(201).json({ success: true, data: assignment });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });

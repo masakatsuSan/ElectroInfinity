@@ -6,6 +6,7 @@ const Subject = require('../models/Subject')
 const AttendanceRecord = require('../models/AttendanceRecord')
 const { protect, guard } = require('../middleware/auth')
 const { distanceMeters } = require('../utils/geofence')
+const { createNotificationBulk } = require('../utils/notification')
 const {
   endSession,
   triggerCheckpoint,
@@ -280,6 +281,28 @@ router.post('/sessions/start', protect, guard('faculty'), async (req, res) => {
     const io = getIo(req)
     if (io) {
       await startSessionTimers(populated, io)
+    }
+
+    // Notify students in the batch about new attendance session
+    const User = require('../models/User')
+    const students = await User.find({
+      role: { $in: ['student', 'cr'] },
+      batch: session.batch,
+      isActive: true,
+    }).select('_id')
+    const recipientIds = students.map(s => s._id.toString())
+    if (recipientIds.length > 0) {
+      await createNotificationBulk({
+        recipients: recipientIds,
+        actor: req.user._id,
+        type: 'attendance_session',
+        title: `Attendance session started: ${targetSubject}`,
+        message: `Batch ${targetBatch}${targetSection ? ` Sec ${targetSection}` : ''} — scan QR to mark attendance`,
+        link: '/attendance/student',
+        entityId: session._id,
+        entityType: 'Session',
+        io,
+      })
     }
 
     res.status(201).json({

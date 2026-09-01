@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const Deadline = require('../models/Deadline')
 const { protect, guard } = require('../middleware/auth')
+const { createNotificationBulk } = require('../utils/notification')
 
 // @route   GET /api/deadlines
 // @desc    Get all deadlines (filtered by batch/section)
@@ -41,6 +42,32 @@ router.post('/', protect, guard('cr', 'super_admin', 'admin'), async (req, res) 
     }
 
     const deadline = await Deadline.create(req.body)
+
+    // Notify students in the same batch about new deadline
+    const io = req.app.get('io')
+    const User = require('../models/User')
+    const recipients = await User.find({
+      role: { $in: ['student', 'cr'] },
+      batch: deadline.batch,
+      isActive: true,
+    }).select('_id')
+    const recipientIds = recipients
+      .map(r => r._id.toString())
+      .filter(id => id !== req.user._id.toString())
+    if (recipientIds.length > 0) {
+      await createNotificationBulk({
+        recipients: recipientIds,
+        actor: req.user._id,
+        type: 'deadline',
+        title: `New deadline: ${deadline.title}`,
+        message: `Due: ${new Date(deadline.deadline).toLocaleDateString('en-IN')}`,
+        link: '/students',
+        entityId: deadline._id,
+        entityType: 'Deadline',
+        io,
+      })
+    }
+
     res.status(201).json({ success: true, data: deadline })
   } catch (error) {
     res.status(400).json({ success: false, error: error.message })

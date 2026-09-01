@@ -3,6 +3,7 @@ const jwt          = require('jsonwebtoken')
 const axios        = require('axios')
 const User         = require('../models/User')
 const { protect }  = require('../middleware/auth')
+const { createActivity } = require('../utils/activity')
 
 const router = express.Router()
 
@@ -343,11 +344,26 @@ router.post('/change-password', protect, async (req, res) => {
 // ── PATCH /api/auth/me ────────────────────────────────────────────────────
 router.patch('/me', protect, async (req, res) => {
   try {
-    const allowed = ['name', 'phone']
-    const updates = {}
-    allowed.forEach(f => { if (req.body[f] !== undefined) updates[f] = req.body[f] })
-    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true })
-    res.json({ success: true, user })
+    const user = await User.findById(req.user._id)
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
+
+    const allowedRoot = ['name', 'phone', 'collegeEmail', 'personalEmail', 'rollNumber', 'batch', 'section', 'semester']
+    const allowedProfile = ['bio', 'department', 'location', 'skills', 'interests', 'languages', 'profileVisibility']
+
+    allowedRoot.forEach(f => {
+      if (req.body[f] !== undefined) user[f] = req.body[f]
+    })
+
+    allowedProfile.forEach(f => {
+      if (req.body[f] !== undefined) {
+        user.profile = user.profile || {}
+        user.profile[f] = req.body[f]
+      }
+    })
+
+    await user.save()
+    await createActivity(req.user._id, 'profile_updated', 'Updated profile', '', `/profile/${user._id}`)
+    res.json({ success: true, user: user.toObject() })
   } catch (err) {
     res.status(500).json({ success: false, error: err.message })
   }

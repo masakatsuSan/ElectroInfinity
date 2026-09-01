@@ -14,7 +14,7 @@ export default function AdminStudents() {
     <div>
       <h1 className="font-display font-semibold text-[28px] tracking-tight text-ink mb-8">Students</h1>
 
-      <div className="flex gap-2 border-b border-divider-soft mb-8 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex gap-2 border-b border-divider-soft mb-8 overflow-x-auto pb-1">
         {[['add','Add Students'],['directory','Directory']].map(([id,label]) => (
           <button key={id} onClick={() => setTab(id)}
             className={`font-sans text-[14px] font-medium capitalize px-4 py-2 flex-none border-b-2 transition-colors rounded-t-md ${

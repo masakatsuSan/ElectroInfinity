@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import BackButton from '../components/BackButton'
 import {
@@ -13,6 +14,7 @@ import {
   Search, Filter, MoreHorizontal, Power
 } from 'lucide-react'
 import { SkeletonPost } from '../components/Skeleton'
+import UserPopover from '../components/UserPopover'
 
 const POST_TYPES = [
   { key: 'text', label: 'Text', icon: FileText },
@@ -28,6 +30,7 @@ const SORT_OPTIONS = [
 
 export default function Forum() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [posts, setPosts] = useState([])
   const [rooms, setRooms] = useState([])
   const [loading, setLoading] = useState(true)
@@ -50,6 +53,8 @@ export default function Forum() {
   const [openComments, setOpenComments] = useState({})
   const [commentDrafts, setCommentDrafts] = useState({})
   const [replyingTo, setReplyingTo] = useState(null)
+
+  const [activePopover, setActivePopover] = useState(null)
 
   useEffect(() => {
     fetchRooms()
@@ -169,6 +174,64 @@ export default function Forum() {
     if (interval > 1) return Math.floor(interval) + ' mins ago'
     return Math.floor(seconds) + ' secs ago'
   }
+
+  const handleUserClick = (author, event) => {
+    if (!author?._id) return
+    const rect = event.currentTarget.getBoundingClientRect()
+    setActivePopover({ userId: author._id, rect })
+  }
+
+  const handlePopoverClose = () => {
+    setActivePopover(null)
+  }
+
+  const handleFollowUpdate = (updates) => {
+    if (!activePopover?.userId) return
+    const targetUserId = activePopover.userId
+    setPosts(prev => prev.map(post => {
+      if (post.author?._id === targetUserId) {
+        const enrichedAuthor = post.author ? {
+          ...post.author,
+          isFollowing: updates.isFollowing ?? post.author.isFollowing,
+          followsMe: updates.followsMe ?? post.author.followsMe,
+          followers: updates.followers ?? post.author.followers,
+          following: updates.following ?? post.author.following,
+        } : null
+        return { ...post, author: enrichedAuthor }
+      }
+      return post
+    }))
+  }
+
+  const handleViewProfile = (userId) => {
+    setActivePopover(null)
+    navigate(`/profile/${userId}`)
+  }
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (activePopover) {
+        const popover = document.querySelector('[data-user-popover]')
+        if (popover && !popover.contains(e.target)) {
+          handlePopoverClose()
+        }
+      }
+    }
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && activePopover) {
+        handlePopoverClose()
+      }
+    }
+
+    if (activePopover) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleEscape)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [activePopover])
 
   const selectedRoomData = rooms.find(r => r._id === selectedRoom)
 
@@ -446,6 +509,8 @@ export default function Forum() {
                     replyingTo={replyingTo}
                     setReplyingTo={setReplyingTo}
                     formatTimeAgo={formatTimeAgo}
+                    onUserClick={handleUserClick}
+                    onUpvoteComment={upvoteComment}
                   />
                 ))}
               </div>
@@ -516,6 +581,20 @@ export default function Forum() {
           </aside>
         </div>
       </div>
+
+      {/* User Popover */}
+      {activePopover && (() => {
+        const activeUser = posts.flatMap(p => [p.author, ...(p.comments || []).map(c => c.author)]).find(u => u?._id === activePopover.userId)
+        return (
+          <UserPopover
+            user={activeUser}
+            rect={activePopover.rect}
+            onClose={handlePopoverClose}
+            onFollow={handleFollowUpdate}
+            onViewProfile={handleViewProfile}
+          />
+        )
+      })()}
     </div>
   )
 }
@@ -523,7 +602,8 @@ export default function Forum() {
 function PostCard({
   post, user, userVote, onUpvote, onDownvote,
   onToggleComments, openComments, commentDrafts, setCommentDrafts,
-  onCommentSubmit, replyingTo, setReplyingTo, formatTimeAgo
+  onCommentSubmit, replyingTo, setReplyingTo, formatTimeAgo,
+  onUserClick, onUpvoteComment
 }) {
   const [localDraft, setLocalDraft] = useState('')
   const [replyDraft, setReplyDraft] = useState('')
@@ -565,12 +645,22 @@ function PostCard({
     <div className="bg-canvas border border-hairline rounded-xl p-4 hover:border-slate/30 transition-colors">
       {/* Author & Meta */}
       <div className="flex items-center gap-2 mb-2 text-[13px] text-body-muted">
-        <div className="w-6 h-6 rounded-full bg-soft-stone flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
-          {post.author?.name?.charAt(0)?.toUpperCase()}
-        </div>
-        <span className="font-bold text-ink hover:underline cursor-pointer">
+        <button
+          onClick={(e) => onUserClick?.(post.author, e)}
+          className="w-6 h-6 rounded-full overflow-hidden bg-soft-stone flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 hover:ring-2 hover:ring-primary/30 transition-all"
+        >
+          {post.author?.photo ? (
+            <img src={post.author.photo} alt={post.author.name} className="w-full h-full object-cover" />
+          ) : (
+            post.author?.name?.charAt(0)?.toUpperCase()
+          )}
+        </button>
+        <button
+          onClick={(e) => onUserClick?.(post.author, e)}
+          className="font-bold text-ink hover:underline transition-colors"
+        >
           {post.author?.name}
-        </span>
+        </button>
         <span className="text-slate">·</span>
         <span>{formatTimeAgo(post.createdAt)}</span>
         {post.isPinned && (
@@ -725,18 +815,30 @@ function PostCard({
             )}
             {topLevelComments.map(comment => (
               <div key={comment._id} className="flex gap-3">
-                <div className="w-7 h-7 rounded-full bg-soft-stone flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0">
-                  {comment.author?.name?.charAt(0)?.toUpperCase()}
-                </div>
+                <button
+                  onClick={(e) => onUserClick?.(comment.author, e)}
+                  className="w-7 h-7 rounded-full overflow-hidden bg-soft-stone flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0 hover:ring-2 hover:ring-primary/30 transition-all"
+                >
+                  {comment.author?.photo ? (
+                    <img src={comment.author.photo} alt={comment.author.name} className="w-full h-full object-cover" />
+                  ) : (
+                    comment.author?.name?.charAt(0)?.toUpperCase()
+                  )}
+                </button>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <span className="font-semibold text-[13px] text-ink">{comment.author?.name}</span>
+                    <button
+                      onClick={(e) => onUserClick?.(comment.author, e)}
+                      className="font-semibold text-[13px] text-ink hover:underline transition-colors"
+                    >
+                      {comment.author?.name}
+                    </button>
                     <span className="text-[11px] text-body-muted">{formatTimeAgo(comment.createdAt)}</span>
                   </div>
                   <p className="text-[14px] text-body-muted break-words">{comment.content}</p>
                   <div className="flex items-center gap-3 mt-1.5">
                     <button
-                      onClick={() => onUpvote(comment._id)}
+                      onClick={() => onUpvoteComment(comment._id)}
                       className="flex items-center gap-1 text-[12px] text-body-muted hover:text-orange-500 transition-colors"
                     >
                       <ArrowBigUp size={14} strokeWidth={1.75} />
@@ -776,12 +878,24 @@ function PostCard({
                     <div className="mt-3 pl-4 border-l-2 border-hairline space-y-3">
                       {replyMap[comment._id].map(reply => (
                         <div key={reply._id} className="flex gap-2">
-                          <div className="w-6 h-6 rounded-full bg-soft-stone flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
-                            {reply.author?.name?.charAt(0)?.toUpperCase()}
-                          </div>
+                          <button
+                            onClick={(e) => onUserClick?.(reply.author, e)}
+                            className="w-6 h-6 rounded-full overflow-hidden bg-soft-stone flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 hover:ring-2 hover:ring-primary/30 transition-all"
+                          >
+                            {reply.author?.photo ? (
+                              <img src={reply.author.photo} alt={reply.author.name} className="w-full h-full object-cover" />
+                            ) : (
+                              reply.author?.name?.charAt(0)?.toUpperCase()
+                            )}
+                          </button>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-0.5">
-                              <span className="font-semibold text-[12px] text-ink">{reply.author?.name}</span>
+                              <button
+                                onClick={(e) => onUserClick?.(reply.author, e)}
+                                className="font-semibold text-[12px] text-ink hover:underline transition-colors"
+                              >
+                                {reply.author?.name}
+                              </button>
                               <span className="text-[10px] text-body-muted">{formatTimeAgo(reply.createdAt)}</span>
                             </div>
                             <p className="text-[13px] text-body-muted break-words">{reply.content}</p>

@@ -45,7 +45,24 @@ const userSchema = new mongoose.Schema(
       github:          { type: String, default: '' },
       bio:             { type: String, default: '' },
       internships:     [{ company: String, role: String, duration: String }],
-      placementStatus: { type: String, default: '' }
+      placementStatus: { type: String, default: '' },
+      interests:       [String],
+      languages:       [String],
+      department:      { type: String, default: '' },
+      location:        { type: String, default: '' },
+      coverPhoto:      { type: String, default: '' },
+      coverPhotoPublicId: { type: String, default: '' },
+      socialLinks: {
+        instagram:  { type: String, default: '' },
+        facebook:   { type: String, default: '' },
+        twitter:    { type: String, default: '' },
+        discord:    { type: String, default: '' },
+        youtube:    { type: String, default: '' },
+        website:    { type: String, default: '' },
+        blog:       { type: String, default: '' },
+      },
+      profileVisibility: { type: String, enum: ['public', 'friends', 'private'], default: 'public' },
+      isProfileComplete: { type: Boolean, default: false },
     },
     
     eligibleStudentRef: { type: mongoose.Schema.Types.ObjectId, ref: 'EligibleStudent' },
@@ -58,9 +75,16 @@ const userSchema = new mongoose.Schema(
     isActivated: { type: Boolean, default: false },
 
     // OTP for forgot-password flow
-    // Stored as plain string â€” expires in 10 minutes, deleted after use
+    // Stored as plain string — expires in 10 minutes, deleted after use
     otp:       { type: String,  default: '' },
     otpExpiry: { type: Date,    default: null },
+
+    badges:    [{ type: String }],
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    collegeEmail:  { type: String, default: '' },
+    personalEmail: { type: String, default: '' },
+    phone:         { type: String, default: '' },
   },
   { timestamps: true }
 )

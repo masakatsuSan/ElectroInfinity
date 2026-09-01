@@ -2,6 +2,8 @@ const express = require('express')
 const Resource = require('../models/Resource')
 const { protect, guard, optionalAuth } = require('../middleware/auth')
 const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
+const { createActivity } = require('../utils/activity')
+const { createNotificationBulk } = require('../utils/notification')
 
 const router = express.Router()
 
@@ -95,6 +97,39 @@ router.post(
         batchId: req.user.role === 'cr' ? req.user.batch : (req.body.batchId || ''),
         visibility: 'GLOBAL',
       })
+
+      await createActivity(
+        req.user._id,
+        'resource_uploaded',
+        title,
+        `Uploaded a ${type || 'resource'} for ${subject || '—'}`,
+        `/resources`
+      );
+
+      // Notify relevant users about new resource
+      const io = req.app.get('io')
+      const User = require('../models/User')
+      let recipientQuery = { role: { $in: ['student', 'cr'] }, isActive: true }
+      if (resource.batchId) {
+        recipientQuery.batch = resource.batchId
+      }
+      const recipients = await User.find(recipientQuery).select('_id')
+      const recipientIds = recipients
+        .map(r => r._id.toString())
+        .filter(id => id !== req.user._id.toString())
+      if (recipientIds.length > 0) {
+        await createNotificationBulk({
+          recipients: recipientIds,
+          actor: req.user._id,
+          type: 'resource_uploaded',
+          title: `New ${type || 'resource'}: ${title}`,
+          message: subject || `Semester ${resource.semester || '—'}`,
+          link: '/resources',
+          entityId: resource._id,
+          entityType: 'Resource',
+          io,
+        })
+      }
 
       res.status(201).json({ success: true, data: resource })
     } catch (err) {

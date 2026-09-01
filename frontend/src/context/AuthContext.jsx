@@ -50,7 +50,7 @@ export function AuthProvider({ children }) {
   const canManageRooms = isModerator || isAdmin
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin, isFaculty, isStudent, isModerator, canManageRooms }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, setUser, isAdmin, isFaculty, isStudent, isModerator, canManageRooms }}>
       {children}
     </AuthContext.Provider>
   )

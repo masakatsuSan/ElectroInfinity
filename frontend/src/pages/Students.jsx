@@ -8,8 +8,8 @@ import { getAnnouncements } from '../api/announcements';
 import { uploadPhoto, getBatchStudents } from '../api/students';
 import { getDeadlines, submitDeadline } from '../api/deadlines';
 import { getRoutine } from '../api/routines';
-import { getStudentHistory } from '../api/attendance';
 import ImageGuard from '../components/ImageGuard';
+import FollowButton from '../components/FollowButton';
 
 export default function Students() {
   const { user } = useAuth();
@@ -170,41 +170,42 @@ export default function Students() {
             <span className="font-sans text-[12px] font-semibold text-ink-muted-80">{batchMates.length + 1} people</span>
           </div>
 
-          {batchMates.length === 0 ? (
-            <p className="font-sans text-[14px] text-ink-muted-80">No other students in your batch have joined yet.</p>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {batchMates.map((mate) => (
-                <div key={mate._id} className="flex items-center gap-3 p-3 border rounded-2xl border-divider-soft bg-canvas">
-                  <div className="flex items-center justify-center w-12 h-12 overflow-hidden rounded-full bg-ink/5 text-ink-muted-80">
-                    <ImageGuard className="w-full h-full">
-                      {mate.photo ? (
-                        <img src={mate.photo} alt={mate.name} className="object-cover w-full h-full" />
-                      ) : (
-                        <span className="font-display text-[15px] font-bold">
-                          {(mate.name || 'S').split(' ').map(part => part[0]).slice(0,2).join('').toUpperCase()}
-                        </span>
-                      )}
-                    </ImageGuard>
+                {batchMates.length === 0 ? (
+                  <p className="font-sans text-[14px] text-ink-muted-80">No other students in your batch have joined yet.</p>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {batchMates.map((mate) => (
+                      <Link key={mate._id} to={`/profile/${mate._id}`} className="flex items-center gap-3 p-3 border rounded-2xl border-divider-soft bg-canvas hover:bg-soft-stone/50 transition-colors">
+                        <div className="flex items-center justify-center w-12 h-12 overflow-hidden rounded-full bg-ink/5 text-ink-muted-80">
+                          <ImageGuard className="w-full h-full">
+                            {mate.photo ? (
+                              <img src={mate.photo} alt={mate.name} className="object-cover w-full h-full" />
+                            ) : (
+                              <span className="font-display text-[15px] font-bold">
+                                {(mate.name || 'S').split(' ').map(part => part[0]).slice(0,2).join('').toUpperCase()}
+                              </span>
+                            )}
+                          </ImageGuard>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-sans text-[14px] font-semibold text-ink">{mate.name}</p>
+                          <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-muted-80">{mate.rollNumber || 'Roll —'}</p>
+                          {mate.role === 'cr' && (
+                            <span className="inline-flex mt-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-amber-600">
+                              CR
+                            </span>
+                          )}
+                        </div>
+                        <FollowButton userId={mate._id} isFollowing={mate.isFollowing} followsMe={mate.followsMe} size="sm" showIcon={false} />
+                      </Link>
+                    ))}
                   </div>
-                  <div className="min-w-0">
-                    <p className="truncate font-sans text-[14px] font-semibold text-ink">{mate.name}</p>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-ink-muted-80">{mate.rollNumber || 'Roll —'}</p>
-                    {mate.role === 'cr' && (
-                      <span className="inline-flex mt-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-amber-600">
-                        CR
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                )}
         </div>
       )}
 
       {/* ── Tabs (Pill style) ── */}
-      <div className="flex gap-2 mb-10 overflow-x-auto scrollbar-none p-1 bg-surface-pearl border border-divider-soft rounded-[999px] w-max max-w-full">
+      <div className="flex gap-2 mb-10 overflow-x-auto p-1 bg-surface-pearl border border-divider-soft rounded-[999px] w-max max-w-full">
         {TABS.map(t => (
           <button key={t} onClick={() => setActiveTab(t)}
             className={`font-sans text-[14px] font-bold uppercase tracking-[0.04em] px-6 py-3 flex-none rounded-[999px] transition-all whitespace-nowrap ${
@@ -462,7 +463,7 @@ export default function Students() {
                                 Ready to deliver to professor <CheckCircle2 size={14} />
                               </button>
                             ) : (
-                              <div className="flex-1 overflow-y-auto pr-1 max-h-[120px] scrollbar-none scrollbar-thumb-black/10">
+                              <div className="flex-1 overflow-y-auto pr-1 max-h-[120px] scrollbar-thumb-black/10">
                                 <span className="font-sans text-[11px] font-bold text-ink-muted-48 uppercase tracking-wider block mb-2">Not Submitted ({missingStudents.length})</span>
                                 <ul className="space-y-1.5">
                                   {missingStudents.map(student => (

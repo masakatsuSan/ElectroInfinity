@@ -19,10 +19,17 @@ router.get('/batch/:batch', protect, async (req, res) => {
     }
 
     const students = await User.find({ batch: req.params.batch, role: { $in: ['student', 'cr'] } })
-      .select('name rollNumber email batch role photo')
+      .select('name rollNumber email batch role photo followers following')
       .sort({ rollNumber: 1 })
 
-    res.json({ success: true, count: students.length, data: students })
+    const viewerId = req.user._id
+    const formatted = students.map(s => ({
+      ...s.toObject(),
+      isFollowing: s.followers?.some(id => id.toString() === viewerId.toString()),
+      followsMe: s.following?.some(id => id.toString() === viewerId.toString()),
+    }))
+
+    res.json({ success: true, count: formatted.length, data: formatted })
   } catch (error) {
     res.status(500).json({ success: false, error: error.message })
   }

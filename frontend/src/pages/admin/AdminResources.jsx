@@ -243,7 +243,7 @@ export default function AdminResources() {
       )}
 
       {/* Filter tabs */}
-      <div className="flex gap-2 border-b border-divider-soft mb-6 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex gap-2 border-b border-divider-soft mb-6 overflow-x-auto pb-1">
         {['', ...TYPES].map(t => (
           <button
             key={t}

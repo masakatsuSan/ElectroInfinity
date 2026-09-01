@@ -3,7 +3,10 @@ const router = express.Router();
 const ForumPost = require('../models/ForumPost');
 const ForumComment = require('../models/ForumComment');
 const CommunityRoom = require('../models/CommunityRoom');
+const User = require('../models/User');
 const { protect, guard } = require('../middleware/auth');
+const { createActivity } = require('../utils/activity');
+const { createNotification, createNotificationBulk } = require('../utils/notification');
 
 // @route   GET /api/forum/rooms
 // @desc    Get all community rooms
@@ -97,17 +100,65 @@ router.get('/', protect, async (req, res) => {
       .sort(sortOption)
       .skip(skip)
       .limit(parseInt(limit))
-      .populate('author', 'name role')
+      .populate('author', 'name role photo rollNumber batch semester followers following')
       .populate('room', 'name icon color isPopular')
       .populate({
         path: 'comments',
         populate: {
           path: 'author',
-          select: 'name role'
+          select: 'name role photo rollNumber batch semester followers following'
         }
       });
 
     const total = await ForumPost.countDocuments(query);
+
+    const viewerId = req.user?._id;
+    if (viewerId) {
+      const authorIds = new Set();
+      posts.forEach(post => {
+        if (post.author?._id) authorIds.add(post.author._id.toString());
+        (post.comments || []).forEach(c => {
+          if (c.author?._id) authorIds.add(c.author._id.toString());
+        });
+      });
+
+      const postCounts = await ForumPost.aggregate([
+        { $match: { author: { $in: Array.from(authorIds).map(id => require('mongoose').Types.ObjectId(id)) } } },
+        { $group: { _id: '$author', count: { $sum: 1 } } }
+      ]);
+      const postCountMap = {};
+      postCounts.forEach(pc => { postCountMap[pc._id.toString()] = pc.count; });
+
+      const enrichedPosts = posts.map(post => {
+        const enrichedAuthor = post.author ? {
+          ...post.author.toObject(),
+          isFollowing: post.author.followers?.some(id => id.toString() === viewerId.toString()) || false,
+          followsMe: post.author.following?.some(id => id.toString() === viewerId.toString()) || false,
+          postCount: postCountMap[post.author._id.toString()] || 0,
+        } : null;
+
+        const enrichedComments = (post.comments || []).map(comment => {
+          const enrichedCommentAuthor = comment.author ? {
+            ...comment.author.toObject(),
+            isFollowing: comment.author.followers?.some(id => id.toString() === viewerId.toString()) || false,
+            followsMe: comment.author.following?.some(id => id.toString() === viewerId.toString()) || false,
+            postCount: postCountMap[comment.author._id.toString()] || 0,
+          } : null;
+          return { ...comment.toObject(), author: enrichedCommentAuthor };
+        });
+
+        return { ...post.toObject(), author: enrichedAuthor, comments: enrichedComments };
+      });
+
+      return res.json({
+        success: true,
+        count: enrichedPosts.length,
+        total,
+        page: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        data: enrichedPosts
+      });
+    }
 
     res.json({
       success: true,
@@ -128,19 +179,55 @@ router.get('/', protect, async (req, res) => {
 router.get('/:id', protect, async (req, res) => {
   try {
     const post = await ForumPost.findById(req.params.id)
-      .populate('author', 'name role')
+      .populate('author', 'name role photo rollNumber batch semester followers following')
       .populate('room', 'name icon color isPopular')
       .populate({
         path: 'comments',
         populate: {
           path: 'author',
-          select: 'name role'
+          select: 'name role photo rollNumber batch semester followers following'
         }
       });
 
     if (!post) {
       return res.status(404).json({ success: false, error: 'Post not found' });
     }
+
+    const viewerId = req.user?._id;
+    if (viewerId) {
+      const authorIds = new Set();
+      if (post.author?._id) authorIds.add(post.author._id.toString());
+      (post.comments || []).forEach(c => {
+        if (c.author?._id) authorIds.add(c.author._id.toString());
+      });
+
+      const postCounts = await ForumPost.aggregate([
+        { $match: { author: { $in: Array.from(authorIds).map(id => require('mongoose').Types.ObjectId(id)) } } },
+        { $group: { _id: '$author', count: { $sum: 1 } } }
+      ]);
+      const postCountMap = {};
+      postCounts.forEach(pc => { postCountMap[pc._id.toString()] = pc.count; });
+
+      const enrichedAuthor = post.author ? {
+        ...post.author.toObject(),
+        isFollowing: post.author.followers?.some(id => id.toString() === viewerId.toString()) || false,
+        followsMe: post.author.following?.some(id => id.toString() === viewerId.toString()) || false,
+        postCount: postCountMap[post.author._id.toString()] || 0,
+      } : null;
+
+      const enrichedComments = (post.comments || []).map(comment => {
+        const enrichedCommentAuthor = comment.author ? {
+          ...comment.author.toObject(),
+          isFollowing: comment.author.followers?.some(id => id.toString() === viewerId.toString()) || false,
+          followsMe: comment.author.following?.some(id => id.toString() === viewerId.toString()) || false,
+          postCount: postCountMap[comment.author._id.toString()] || 0,
+        } : null;
+        return { ...comment.toObject(), author: enrichedCommentAuthor };
+      });
+
+      return res.json({ success: true, data: { ...post.toObject(), author: enrichedAuthor, comments: enrichedComments } });
+    }
+
     res.json({ success: true, data: post });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -168,10 +255,41 @@ router.post('/', protect, async (req, res) => {
 
     const post = await ForumPost.create(req.body);
 
+    await createActivity(
+      req.user.id,
+      'forum_post',
+      post.title,
+      post.content?.substring(0, 100) || '',
+      `/forum`
+    );
+
     await CommunityRoom.findByIdAndUpdate(req.body.room, {
       $inc: { postCount: 1 },
       $set: { lastActivity: new Date() }
     });
+
+    // Notify room members about new post
+    const io = req.app.get('io')
+    const room = await CommunityRoom.findById(req.body.room).select('name members')
+    if (room?.members?.length > 0) {
+      const actorName = req.user.name || 'Someone'
+      const memberIds = room.members
+        .filter(id => id.toString() !== req.user.id)
+        .map(id => id.toString())
+      if (memberIds.length > 0) {
+        await createNotificationBulk({
+          recipients: memberIds,
+          actor: req.user.id,
+          type: 'forum_comment',
+          title: `New post in ${room.name}`,
+          message: `${actorName}: ${post.title}`,
+          link: '/forum',
+          entityId: post._id,
+          entityType: 'ForumPost',
+          io,
+        })
+      }
+    }
 
     res.status(201).json({ success: true, data: post });
   } catch (error) {
@@ -201,6 +319,23 @@ router.put('/:id/upvote', protect, async (req, res) => {
     }
 
     await post.save();
+
+    // Notify post author about upvote (only when adding upvote, not removing)
+    if (upvoteIndex === -1 && post.author.toString() !== req.user.id) {
+      const io = req.app.get('io')
+      await createNotification({
+        recipient: post.author,
+        actor: req.user.id,
+        type: 'forum_upvote',
+        title: `${req.user.name || 'Someone'} upvoted your post`,
+        message: post.title,
+        link: '/forum',
+        entityId: post._id,
+        entityType: 'ForumPost',
+        io,
+      })
+    }
+
     res.json({ success: true, data: post.upvotes });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -260,6 +395,43 @@ router.post('/:id/comments', protect, async (req, res) => {
     await CommunityRoom.findByIdAndUpdate(post.room, {
       $set: { lastActivity: new Date() }
     });
+
+    // Create notifications for comment/reply
+    const io = req.app.get('io')
+    const actorName = req.user.name || 'Someone'
+
+    // Notify parent comment author (reply notification)
+    if (req.body.parent) {
+      const parentComment = await ForumComment.findById(req.body.parent).select('author')
+      if (parentComment && parentComment.author.toString() !== req.user.id) {
+        await createNotification({
+          recipient: parentComment.author,
+          actor: req.user.id,
+          type: 'forum_reply',
+          title: `${actorName} replied to your comment`,
+          message: comment.content?.substring(0, 80) || '',
+          link: '/forum',
+          entityId: post._id,
+          entityType: 'ForumPost',
+          io,
+        })
+      }
+    }
+
+    // Notify post author (comment notification)
+    if (post.author.toString() !== req.user.id) {
+      await createNotification({
+        recipient: post.author,
+        actor: req.user.id,
+        type: 'forum_comment',
+        title: `${actorName} commented on your post`,
+        message: comment.content?.substring(0, 80) || '',
+        link: '/forum',
+        entityId: post._id,
+        entityType: 'ForumPost',
+        io,
+      })
+    }
 
     res.status(201).json({ success: true, data: comment });
   } catch (error) {

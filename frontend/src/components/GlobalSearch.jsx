@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { UserPlus, UserCheck, UserRound } from 'lucide-react'
 import api from '../api/axios'
+import { searchUsers, toggleFollow } from '../api/profile'
+import { useAuth } from '../context/AuthContext'
 
 // Debounce hook — waits until user stops typing before calling the function
 function useDebounce(value, delay = 350) {
@@ -16,9 +19,11 @@ export default function GlobalSearch({ onClose }) {
   const [query,   setQuery]   = useState('')
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
+  const [followStates, setFollowStates] = useState({})
   const inputRef  = useRef(null)
   const navigate  = useNavigate()
   const debounced = useDebounce(query)
+  const { user: currentUser } = useAuth()
 
   // Focus input on mount
   useEffect(() => { inputRef.current?.focus() }, [])
@@ -28,14 +33,36 @@ export default function GlobalSearch({ onClose }) {
     if (!debounced.trim()) { setResults([]); return }
     setLoading(true)
 
-    // Run 3 searches in parallel
+    // Run 4 searches in parallel
     Promise.allSettled([
       api.get('/announcements', { params: { limit: 5 } }),
       api.get('/faculty'),
       api.get('/resources', { params: { limit: 3 } }),
-    ]).then(([aRes, fRes, rRes]) => {
+      searchUsers(debounced),
+    ]).then(([aRes, fRes, rRes, uRes]) => {
       const q = debounced.toLowerCase()
       const hits = []
+
+       // Users
+        if (uRes.status === 'fulfilled') {
+          (uRes.value.data.data || [])
+            .slice(0, 5)
+            .forEach(u => {
+              const alreadyFollowing = u.isFollowing || false
+              const followsMe = u.followsMe || false
+              setFollowStates(prev => ({ ...prev, [u._id]: { following: alreadyFollowing, followsMe: followsMe } }))
+              hits.push({
+                type: 'User',
+                label: u.name,
+                sub: `${u.profile?.department || ''} · Batch ${u.batch || ''}`,
+                to: `/profile/${u._id}`,
+                avatar: u.photo,
+                userId: u._id,
+                isFollowing: alreadyFollowing,
+                followsMe: followsMe,
+              })
+            })
+        }
 
       // Announcements
       if (aRes.status === 'fulfilled') {
@@ -73,8 +100,59 @@ export default function GlobalSearch({ onClose }) {
   const go = (to) => { navigate(to); onClose?.() }
 
   const typeColor = {
-    Announcement: 'text-vs', Faculty: 'text-green',
+    User: 'text-primary',
+    Announcement: 'text-vs',
+    Faculty: 'text-green',
     Resource: 'text-yellow-400',
+  }
+
+  const handleFollowToggle = async (userId, currentFollowing, currentFollowsMe) => {
+    if (!currentUser?._id) return
+    try {
+      const res = await toggleFollow(userId)
+      const { isFollowing, followers, following } = res.data.data
+      setFollowStates(prev => ({ ...prev, [userId]: { following: isFollowing, followsMe: currentFollowsMe } }))
+      setResults(prev => prev.map(r =>
+        r.userId === userId ? { ...r, isFollowing: isFollowing, followsMe: currentFollowsMe } : r
+      ))
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const getFollowButton = (r) => {
+    if (!currentUser?._id || r.userId === currentUser._id) return null
+    const state = followStates[r.userId] || { following: r.isFollowing || false, followsMe: r.followsMe || false }
+    const { following, followsMe } = state
+
+    if (following) {
+      return (
+        <button
+          onClick={(e) => { e.stopPropagation(); handleFollowToggle(r.userId, following, followsMe) }}
+          className="flex-shrink-0 px-3 py-1.5 text-[12px] font-semibold rounded-full bg-soft-stone text-ink border border-hairline hover:bg-soft-stone/80 transition-colors"
+        >
+          <UserCheck size={12} />
+        </button>
+      )
+    }
+    if (followsMe) {
+      return (
+        <button
+          onClick={(e) => { e.stopPropagation(); handleFollowToggle(r.userId, following, followsMe) }}
+          className="flex-shrink-0 px-3 py-1.5 text-[12px] font-semibold rounded-full bg-ink text-canvas hover:bg-ink/90 transition-colors"
+        >
+          <UserRound size={12} />
+        </button>
+      )
+    }
+    return (
+      <button
+        onClick={(e) => { e.stopPropagation(); handleFollowToggle(r.userId, following, followsMe) }}
+        className="flex-shrink-0 px-3 py-1.5 text-[12px] font-semibold rounded-full bg-ink text-canvas hover:bg-ink/90 transition-colors"
+      >
+        <UserPlus size={12} />
+      </button>
+    )
   }
 
   return (
@@ -92,7 +170,7 @@ export default function GlobalSearch({ onClose }) {
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search faculty, announcements, resources…"
+            placeholder="Search users, announcements, faculty, resources…"
             className="flex-1 bg-transparent text-ink text-[15px] outline-none placeholder:text-ink-muted-48"
           />
           <button onClick={onClose}
@@ -112,16 +190,23 @@ export default function GlobalSearch({ onClose }) {
               </div>
             ) : (
               <div className="flex flex-col">
-                {results.map((r, i) => (
-                  <button key={i} onClick={() => go(r.to)}
-                    className="flex items-center gap-3 py-3 border-b border-divider-soft last:border-b-0 text-left hover:bg-surface-pearl -mx-5 px-5 transition-colors group">
-                    <span className={`font-mono text-[10px] font-bold uppercase tracking-wider w-20 flex-shrink-0 ${typeColor[r.type]}`}>
-                      {r.type}
-                    </span>
-                    <span className="text-[15px] font-medium text-ink flex-1 truncate group-hover:text-primary transition-colors">{r.label}</span>
-                    <span className="font-mono text-[10px] font-semibold text-ink-muted-48 flex-shrink-0 hidden sm:block">{r.sub}</span>
-                  </button>
-                ))}
+                   {results.map((r, i) => (
+                     <div key={i} onClick={() => go(r.to)}
+                       className="flex items-center gap-3 py-3 border-b border-divider-soft last:border-b-0 text-left hover:bg-surface-pearl -mx-5 px-5 transition-colors group cursor-pointer">
+                       {r.avatar ? (
+                         <img src={r.avatar} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                       ) : (
+                         <span className={`font-mono text-[10px] font-bold uppercase tracking-wider w-20 flex-shrink-0 ${typeColor[r.type]}`}>
+                           {r.type}
+                         </span>
+                       )}
+                       <div className="flex-1 min-w-0">
+                         <span className="text-[15px] font-medium text-ink flex-1 truncate group-hover:text-primary transition-colors">{r.label}</span>
+                         {r.sub && <span className="font-mono text-[10px] font-semibold text-ink-muted-48 block sm:mt-0.5">{r.sub}</span>}
+                       </div>
+                       {r.type === 'User' && getFollowButton(r)}
+                     </div>
+                   ))}
               </div>
             )}
           </div>

@@ -1,14 +1,11 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/User')
+const { getUnreadCount } = require('../utils/notification')
 
 function initSocket(server) {
   const { Server } = require('socket.io')
   const io = new Server(server, {
     cors: {
-      // CLIENT_URL can pin the exact allowed origin (e.g. the deployed site).
-      // In development the Vite server proxies /socket.io, and the page origin
-      // may be http://localhost:5173, https://localhost:5173 or a phone's
-      // https://192.168.x.x:5173 — so without CLIENT_URL we reflect any origin.
       origin: process.env.CLIENT_URL || true,
       credentials: true,
     },
@@ -31,12 +28,29 @@ function initSocket(server) {
   })
 
   io.on('connection', (socket) => {
+    // Join personal notification room
+    if (socket.user?._id) {
+      socket.join(`user:${socket.user._id}`)
+    }
+
+    socket.on('join-notifications', async (userId) => {
+      if (userId && String(userId) === String(socket.user?._id)) {
+        socket.join(`user:${userId}`)
+        const count = await getUnreadCount(userId)
+        socket.emit('notification:count', count)
+      }
+    })
+
     socket.on('join-session', (sessionId) => {
       if (sessionId) socket.join(`session:${sessionId}`)
     })
 
     socket.on('leave-session', (sessionId) => {
       if (sessionId) socket.leave(`session:${sessionId}`)
+    })
+
+    socket.on('disconnect', () => {
+      // Socket.io auto-leaves rooms on disconnect
     })
   })
 

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const AcademicCalendar = require('../models/AcademicCalendar');
 const { protect, guard, optionalAuth } = require('../middleware/auth');
+const { createNotificationBulk } = require('../utils/notification');
 
 // @route   GET /api/calendar
 // @desc    Get academic calendar entries
@@ -74,6 +75,32 @@ router.post('/', protect, guard('cr', 'admin', 'super_admin', 'faculty'), async 
   try {
     req.body.createdBy = req.user.id;
     const entry = await AcademicCalendar.create(req.body);
+
+    // Notify relevant users about new calendar event
+    const io = req.app.get('io')
+    const User = require('../models/User')
+    let recipientQuery = { role: { $in: ['student', 'cr'] }, isActive: true }
+    if (entry.batch) {
+      recipientQuery.batch = entry.batch
+    }
+    const recipients = await User.find(recipientQuery).select('_id')
+    const recipientIds = recipients
+      .map(r => r._id.toString())
+      .filter(id => id !== req.user._id.toString())
+    if (recipientIds.length > 0) {
+      await createNotificationBulk({
+        recipients: recipientIds,
+        actor: req.user._id,
+        type: 'calendar_event',
+        title: `New calendar event: ${entry.title}`,
+        message: `${entry.type} on ${new Date(entry.date).toLocaleDateString('en-IN')}`,
+        link: '/calendar',
+        entityId: entry._id,
+        entityType: 'AcademicCalendar',
+        io,
+      })
+    }
+
     res.status(201).json({ success: true, data: entry });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });

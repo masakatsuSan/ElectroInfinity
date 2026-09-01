@@ -329,7 +329,7 @@ export default function Announcements() {
     isError: detailError,
   } = useQuery({
     queryKey: ['announcement', selectedId],
-    queryFn: () => getAnnouncement(selectedId).then((r) => r.data),
+    queryFn: () => getAnnouncement(selectedId).then((r) => r.data.data),
     enabled: !!selectedId,
     staleTime: 60_000,
   })

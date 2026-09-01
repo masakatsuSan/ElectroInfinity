@@ -11,10 +11,11 @@ export default function Projects() {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
+  const [myProjects, setMyProjects] = useState(false)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['projects'],
-    queryFn: () => getProjects().then(r => r.data),
+    queryKey: ['projects', myProjects ? user?._id : 'all'],
+    queryFn: () => getProjects(myProjects && user ? { author: user._id } : {}).then(r => r.data),
   })
 
   const projects = data?.data || []
@@ -76,15 +77,29 @@ export default function Projects() {
             />
           </div>
 
-          {user && (
-            <button
-              onClick={() => setShowModal(true)}
-              className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-xl text-[14px] font-semibold hover:bg-ink/90 transition-colors shadow-sm"
-            >
-              <Plus size={16} />
-              Submit Project
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {user && (
+              <button
+                onClick={() => setMyProjects(!myProjects)}
+                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[14px] font-semibold transition-colors shadow-sm ${
+                  myProjects
+                    ? 'bg-ink text-canvas hover:bg-ink/90'
+                    : 'bg-white border border-divider-soft text-ink hover:bg-soft-stone/50'
+                }`}
+              >
+                {myProjects ? 'Showing My Projects' : 'My Projects'}
+              </button>
+            )}
+            {user && (
+              <button
+                onClick={() => setShowModal(true)}
+                className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-xl text-[14px] font-semibold hover:bg-ink/90 transition-colors shadow-sm"
+              >
+                <Plus size={16} />
+                Submit Project
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Loading */}

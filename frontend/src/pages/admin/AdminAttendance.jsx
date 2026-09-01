@@ -42,7 +42,7 @@ export default function AdminAttendance() {
         </p>
       </div>
 
-      <div className="flex gap-2 border-b border-divider-soft mb-8 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex gap-2 border-b border-divider-soft mb-8 overflow-x-auto pb-1">
         {tabs.map(([id, label]) => (
           <button
             key={id}

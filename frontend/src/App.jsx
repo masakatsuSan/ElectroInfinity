@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import OrganicBlobs   from './components/OrganicBlobs'
 import ForumFlipOverlay from './components/ForumFlipOverlay'
 import OhmNo from './components/OhmNo'
+import { NotificationProvider } from './context/NotificationContext'
 
 // Public pages
 import Home         from './pages/Home'
@@ -27,6 +28,9 @@ import Calendar     from './pages/Calendar'
 import Gallery      from './pages/Gallery'
 import Projects     from './pages/Projects'
 import ProjectDetails from './pages/ProjectDetails'
+import Profile      from './pages/Profile'
+import EditProfile  from './pages/EditProfile'
+import Notifications from './pages/Notifications'
 
 // Auth pages
 import Login    from './pages/Login'
@@ -38,6 +42,9 @@ import Students  from './pages/Students'
 import Forum     from './pages/Forum'
 import Directory from './pages/Directory'
 import Dashboard from './pages/Dashboard'
+
+// Network page
+import Network from './pages/Network'
 
 // Admin pages
 import AdminLayout    from './pages/admin/AdminLayout'
@@ -57,6 +64,7 @@ import AdminProjects from './pages/admin/AdminProjects'
 import AdminCalendar from './pages/admin/AdminCalendar'
 import AdminAnnouncements from './pages/admin/AdminAnnouncements'
 import AdminAchievements from './pages/admin/AdminAchievements'
+import AdminYTLectures from './pages/admin/AdminYTLectures'
 
 // Attendance pages
 import FacultyAttendance from './pages/attendance/FacultyAttendance'
@@ -132,7 +140,8 @@ export default function App() {
   }, [location.pathname])
 
   return (
-    <div className="relative z-0 flex flex-col min-h-screen">
+    <NotificationProvider>
+      <div className="relative z-0 flex flex-col min-h-screen">
       <OrganicBlobs />
       <Routes>
         <Route path="/admin/*" element={null} />
@@ -164,6 +173,12 @@ export default function App() {
             <Route path="/projects"     element={<AnimatedRoute><Projects /></AnimatedRoute>} />
             <Route path="/projects/:id" element={<AnimatedRoute><ProjectDetails /></AnimatedRoute>} />
             <Route path="/contact"      element={<AnimatedRoute><Contact /></AnimatedRoute>} />
+            <Route path="/profile/:id"  element={<AnimatedRoute><Profile /></AnimatedRoute>} />
+            <Route path="/profile/edit" element={
+              <AnimatedRoute>
+                <ProtectedRoute><EditProfile /></ProtectedRoute>
+              </AnimatedRoute>
+            } />
 
             {/* â”€â”€ Auth â”€â”€ */}
             <Route path="/login"            element={<AnimatedRoute><Login /></AnimatedRoute>} />
@@ -186,6 +201,11 @@ export default function App() {
             <Route path="/dashboard" element={
               <AnimatedRoute>
                 <ProtectedRoute><Dashboard /></ProtectedRoute>
+              </AnimatedRoute>
+            }/>
+            <Route path="/network" element={
+              <AnimatedRoute>
+                <ProtectedRoute><Network /></ProtectedRoute>
               </AnimatedRoute>
             }/>
 
@@ -214,6 +234,12 @@ export default function App() {
               </AnimatedRoute>
             }/>
 
+            <Route path="/notifications" element={
+              <AnimatedRoute>
+                <ProtectedRoute><Notifications /></ProtectedRoute>
+              </AnimatedRoute>
+            }/>
+
             {/* â”€â”€ Admin â”€â”€ */}
             <Route path="/admin/*" element={
               <AnimatedRoute>
@@ -234,8 +260,9 @@ export default function App() {
                         <Route path="labs"      element={<AdminLabs />} />
                         <Route path="courses"   element={<AdminCourses />} />
                         <Route path="gallery"   element={<AdminGallery />} />
-                        <Route path="achievements" element={<AdminAchievements />} />
-                        <Route path="contact"   element={<AdminContact />} />
+                    <Route path="achievements" element={<AdminAchievements />} />
+                    <Route path="yt-lectures" element={<AdminYTLectures />} />
+                    <Route path="contact"   element={<AdminContact />} />
                     </Route>
                   </Routes>
                 </ProtectedRoute>
@@ -263,5 +290,6 @@ export default function App() {
       )}
 
     </div>
+    </NotificationProvider>
   )
 }

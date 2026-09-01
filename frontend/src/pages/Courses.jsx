@@ -57,7 +57,7 @@ export default function Courses() {
           </p>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-4 mb-10 scrollbar-none border-b border-hairline">
+         <div className="flex gap-2 overflow-x-auto pb-4 mb-10 border-b border-hairline">
           {SEMESTER_PILLS.map((sem) => (
             <button
               key={sem}

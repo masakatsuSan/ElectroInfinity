@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GlobalSearch from './GlobalSearch';
+import NotificationBell from './NotificationBell';
 import { LayoutGrid, School, Contact, MessagesSquare, QrCode, BarChart3, CalendarClock, ScanQrCode, Search, ChevronDown, ChevronRight, Power, Menu, X, Megaphone, Zap, Camera, BookOpen, FlaskConical, Briefcase, Rocket, Image, UserCheck, FolderOpen, GraduationCap, Beaker, FileText } from 'lucide-react'
 
 const NAV_GROUPS = [
@@ -10,11 +11,17 @@ const NAV_GROUPS = [
     items: [
       { to: '/about', label: 'About', icon: School },
       { to: '/faculty', label: 'Faculty', icon: UserCheck },
-      { to: '/laboratory', label: 'Labs', icon: FlaskConical },
       { to: '/courses', label: 'Courses', icon: BookOpen },
-      { to: '/resources', label: 'Resources', icon: FolderOpen },
     ]
-    },
+  },
+  {
+    label: 'Resources',
+    items: [
+      { to: '/laboratory', label: 'Labs', icon: FlaskConical },
+      { to: '/resources', label: 'Study Materials', icon: FolderOpen },
+      { to: '/gallery', label: 'Gallery', icon: Image },
+    ]
+  },
   {
     label: 'Community',
     items: [
@@ -22,10 +29,9 @@ const NAV_GROUPS = [
       { to: '/projects', label: 'Projects', icon: Rocket },
       { to: '/announcements', label: 'Announcements', icon: Megaphone },
       { to: '/calendar', label: 'Calendar', icon: CalendarClock },
-      { to: '/gallery', label: 'Gallery', icon: Image },
     ]
   },
-]
+];
 
 const STANDALONE_LINKS = [
   { to: '/contact', label: 'Contact' },
@@ -144,6 +150,18 @@ export default function Navbar({ onForumFlip }) {
         </div>
       );
     }
+    if (group.label === 'Resources') {
+      return (
+        <div className="hidden xl:flex flex-col w-60 p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-canvas border border-hairline">
+          <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-coral mb-2">Resources</span>
+          <p className="font-display font-bold text-[16px] text-ink leading-snug mb-1">Tools & Materials</p>
+          <p className="font-sans text-[12px] text-body-muted leading-relaxed mb-4">Access labs, study materials, and the gallery in one place.</p>
+          <NavLink to="/resources" onClick={() => setDropdownOpen(null)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:underline">
+            Browse Resources <ChevronRight size={14} />
+          </NavLink>
+        </div>
+      );
+    }
     return null;
   };
 
@@ -175,9 +193,9 @@ export default function Navbar({ onForumFlip }) {
               >
                 <button
                   onClick={() => setDropdownOpen(dropdownOpen === group.label ? null : group.label)}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[14px] font-sans font-medium transition-colors ${
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[14px] font-sans font-bold transition-colors ${
                     dropdownOpen === group.label
-                      ? 'text-ink bg-soft-stone font-semibold'
+                      ? 'text-ink bg-soft-stone'
                       : 'text-body-muted hover:text-ink hover:bg-soft-stone/60'
                   }`}
                 >
@@ -215,7 +233,7 @@ export default function Navbar({ onForumFlip }) {
                               {item.icon && <item.icon size={18} strokeWidth={1.75} />}
                             </span>
                             <span className="flex-1">
-                              <span className="block text-[14px] font-medium">{item.label}</span>
+                              <span className="block text-[14px] font-normal">{item.label}</span>
                             </span>
                             <ChevronRight size={14} className="text-slate opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
                           </NavLink>
@@ -244,6 +262,8 @@ export default function Navbar({ onForumFlip }) {
              >
                <Search size={18} />
             </button>
+
+            {user && <NotificationBell />}
 
             {user ? (
               /* Profile Button with Interactive Dropdown */
@@ -305,6 +325,13 @@ export default function Navbar({ onForumFlip }) {
                       {userRole === 'faculty' && (
                         <>
                           <Link
+                            to={`/profile/${user._id}`}
+                            onClick={() => setProfileOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink font-semibold hover:bg-soft-stone transition-colors"
+                          >
+                            <UserCheck size={17} strokeWidth={1.75} /> My Profile
+                          </Link>
+                          <Link
                             to="/faculty/dashboard"
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink font-semibold hover:bg-soft-stone transition-colors"
@@ -331,6 +358,13 @@ export default function Navbar({ onForumFlip }) {
                       {/* Student & CR actions */}
                       {(userRole === 'student' || userRole === 'cr') && (
                         <>
+                          <Link
+                            to={`/profile/${user._id}`}
+                            onClick={() => setProfileOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-ink font-semibold hover:bg-soft-stone transition-colors"
+                          >
+                            <UserCheck size={17} strokeWidth={1.75} /> My Profile
+                          </Link>
                           <Link
                             to="/attendance/student"
                             onClick={() => setProfileOpen(false)}
@@ -428,6 +462,7 @@ export default function Navbar({ onForumFlip }) {
 
           {/* Mobile hamburger */}
           <div className="flex items-center gap-2 lg:hidden">
+            {user && <NotificationBell />}
             <button
               onClick={() => setSearchOpen(true)}
               aria-label="Search"
@@ -470,7 +505,7 @@ export default function Navbar({ onForumFlip }) {
           <nav className="flex flex-col py-2 space-y-3">
             {NAV_GROUPS.map(group => (
               <div key={group.label} className="border-b border-hairline pb-2.5">
-                <h3 className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate mb-2">{group.label}</h3>
+                <h3 className="font-mono text-[15px] font-bold uppercase tracking-wider text-ink mb-2">{group.label}</h3>
                 <div className="flex flex-col gap-2">
                   {group.items.map(item => (
                     <NavLink
@@ -478,8 +513,8 @@ export default function Navbar({ onForumFlip }) {
                         to={item.to}
                       onClick={closeMenu}
                       className={({ isActive }) =>
-                        `font-display text-[18px] font-semibold transition-colors ${
-                          isActive ? 'text-deep-green' : 'text-ink hover:text-deep-green'
+                        `font-display text-[14px] font-normal transition-colors ${
+                          isActive ? 'text-deep-green' : 'text-body-muted hover:text-ink'
                         }`
                       }
                     >
@@ -505,44 +540,47 @@ export default function Navbar({ onForumFlip }) {
               </NavLink>
             ))}
 
-            <div className="pt-4 space-y-2">
-              {user ? (
-                <div className="flex flex-col gap-2">
-                                {user.role === 'faculty' && (
-                    <>
-                      <Link to="/faculty/dashboard" onClick={closeMenu} className="button-secondary w-full justify-center">
-                        <Megaphone size={16} /> Faculty Dashboard
-                      </Link>
-                      <Link to="/attendance/faculty" onClick={closeMenu} className="button-primary w-full justify-center !bg-deep-green">
-                        <Zap size={16} /> Take Attendance
-                      </Link>
-                    </>
-                  )}
-                  {(user.role === 'cr' || user.role === 'admin') && (
-                    <Link to="/admin" onClick={closeMenu} className="justify-center w-full button-secondary">
-                      {user.role === 'admin' ? 'Admin Dashboard' : 'CR Panel'}
-                    </Link>
-                  )}
-                  {(user.role === 'student' || user.role === 'cr') && (
-                    <>
-                      <Link to="/attendance/student" onClick={closeMenu} className="justify-center w-full button-primary">
-                        <Camera size={16} /> Scan Class QR
-                      </Link>
-                      <Link to="/students" onClick={closeMenu} className="justify-center w-full button-secondary">
-                        My Dashboard & Attendance
-                      </Link>
-                    </>
-                  )}
-                  <button onClick={() => { logout(); closeMenu() }} className="font-sans text-[15px] text-error font-semibold text-left py-2">
-                    Sign out
-                  </button>
-                </div>
-              ) : (
-                <Link to="/login" onClick={closeMenu} className="justify-center w-full button-primary">
-                  Sign in
-                </Link>
-              )}
-            </div>
+             <div className="pt-4 space-y-2">
+               {user ? (
+                 <div className="flex flex-col gap-2">
+                   <Link to={`/profile/${user._id}`} onClick={closeMenu} className="justify-center w-full button-secondary">
+                     <UserCheck size={16} /> My Profile
+                   </Link>
+                                 {user.role === 'faculty' && (
+                     <>
+                       <Link to="/faculty/dashboard" onClick={closeMenu} className="button-secondary w-full justify-center">
+                         <Megaphone size={16} /> Faculty Dashboard
+                       </Link>
+                       <Link to="/attendance/faculty" onClick={closeMenu} className="button-primary w-full justify-center !bg-deep-green">
+                         <Zap size={16} /> Take Attendance
+                       </Link>
+                     </>
+                   )}
+                   {(user.role === 'cr' || user.role === 'admin') && (
+                     <Link to="/admin" onClick={closeMenu} className="justify-center w-full button-secondary">
+                       {user.role === 'admin' ? 'Admin Dashboard' : 'CR Panel'}
+                     </Link>
+                   )}
+                   {(user.role === 'student' || user.role === 'cr') && (
+                     <>
+                       <Link to="/attendance/student" onClick={closeMenu} className="justify-center w-full button-primary">
+                         <Camera size={16} /> Scan Class QR
+                       </Link>
+                       <Link to="/students" onClick={closeMenu} className="justify-center w-full button-secondary">
+                         My Dashboard & Attendance
+                       </Link>
+                     </>
+                   )}
+                   <button onClick={() => { logout(); closeMenu() }} className="font-sans text-[15px] text-error font-semibold text-left py-2">
+                     Sign out
+                   </button>
+                 </div>
+               ) : (
+                 <Link to="/login" onClick={closeMenu} className="justify-center w-full button-primary">
+                   Sign in
+                 </Link>
+               )}
+             </div>
           </nav>
         </div>
       </div>

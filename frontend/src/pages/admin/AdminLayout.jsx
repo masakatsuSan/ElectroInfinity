@@ -20,6 +20,7 @@ import {
   Megaphone,
   Power,
   Award,
+  Play,
 } from 'lucide-react'
 
 const LINKS = [
@@ -36,6 +37,7 @@ const LINKS = [
   { to: '/admin/projects',    label: 'Projects',             icon: Code2 },
   { to: '/admin/gallery',     label: 'Gallery',              icon: Image },
   { to: '/admin/achievements',label: 'Achievements',         icon: Award },
+  { to: '/admin/yt-lectures', label: 'YT Lectures',          icon: Play },
   { to: '/admin/deadlines',   label: 'Deadlines',            icon: Clock },
   { to: '/admin/routines',    label: 'Routine',              icon: CalendarClock },
   { to: '/admin/contact',     label: 'Contacts',             icon: Mail },
@@ -57,6 +59,7 @@ export default function AdminLayout() {
     '/admin/rooms',
     '/admin/announcements',
     '/admin/resources',
+    '/admin/yt-lectures',
     '/admin/calendar',
     '/admin/gallery',
     '/admin/deadlines',
@@ -94,7 +97,7 @@ export default function AdminLayout() {
           <p className="font-sans text-[13px] text-body-muted mt-0.5 capitalize">{user?.role?.replace('_', ' ')}</p>
         </div>
 
-        <nav className="p-4 flex md:flex-col gap-1 overflow-x-auto md:overflow-x-visible scrollbar-none">
+        <nav className="p-4 flex md:flex-col gap-1 overflow-x-auto md:overflow-x-visible">
           {availableLinks.map(l => {
             const Icon = l.icon
             return (

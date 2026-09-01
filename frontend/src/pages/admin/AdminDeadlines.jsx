@@ -125,7 +125,7 @@ export default function AdminDeadlines() {
                   {isComplete ? (
                     <p className="text-green-500 text-[13px] font-bold">Ready to deliver                     <CheckCircle2 size={14} /></p>
                   ) : (
-                    <div className="max-h-[100px] overflow-y-auto pr-1 scrollbar-none">
+                    <div className="max-h-[100px] overflow-y-auto pr-1">
                       <span className="font-sans text-[11px] font-bold text-ink-muted-48 uppercase tracking-wider block mb-1">Missing ({missingStudents.length})</span>
                       <ul className="space-y-1">
                         {missingStudents.map(student => (
