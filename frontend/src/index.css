@@ -37,6 +37,10 @@
     color: var(--color-ink);
     scrollbar-width: none;
     -ms-overflow-style: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
   }
 
   html::-webkit-scrollbar,
