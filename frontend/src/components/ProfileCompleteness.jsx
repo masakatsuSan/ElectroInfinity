@@ -2,7 +2,7 @@ export default function ProfileCompleteness({ percentage, missing, onEdit }) {
   const color = percentage >= 80 ? 'bg-green-500' : percentage >= 50 ? 'bg-amber-500' : 'bg-red-500'
 
   return (
-    <div className="p-6 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
+    <div className="p-6 border border-divider-soft bg-white rounded-2xl shadow-sm">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-display text-[18px] font-bold text-ink">Profile Completeness</h3>
         <span className="font-mono text-[14px] font-bold text-ink">{percentage}%</span>

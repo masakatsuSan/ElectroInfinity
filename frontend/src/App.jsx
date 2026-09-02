@@ -143,7 +143,7 @@ export default function App() {
 
   return (
     <NotificationProvider>
-      <div className="relative z-0 flex flex-col min-h-screen">
+      <div className="relative z-0 flex flex-col min-h-screen overflow-x-hidden">
       <OrganicBlobs />
       <Routes>
         <Route path="/admin/*" element={null} />

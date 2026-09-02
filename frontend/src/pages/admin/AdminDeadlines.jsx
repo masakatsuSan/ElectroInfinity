@@ -52,7 +52,7 @@ export default function AdminDeadlines() {
       {isLoading ? (
         <div className="grid gap-6">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="p-6 border border-divider-soft rounded-[24px] bg-surface-pearl flex flex-col md:flex-row md:items-start justify-between gap-6 animate-pulse">
+            <div key={i} className="p-6 border border-divider-soft rounded-[24px] bg-white flex flex-col md:flex-row md:items-start justify-between gap-6 animate-pulse">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="h-6 w-16 bg-soft-stone rounded-full" />
@@ -86,7 +86,7 @@ export default function AdminDeadlines() {
             const missingStudents = totalStudents > 0 ? roster.filter(s => !d.submittedBy?.includes(s._id)) : [];
 
             return (
-              <div key={d._id} className="p-6 border border-divider-soft rounded-[24px] bg-surface-pearl flex flex-col md:flex-row md:items-start justify-between gap-6 relative group hover:border-primary/50 transition-colors">
+              <div key={d._id} className="p-6 border border-divider-soft rounded-[24px] bg-white flex flex-col md:flex-row md:items-start justify-between gap-6 relative group hover:border-primary/50 transition-colors">
                 
                 <button 
                   onClick={() => { if(window.confirm('Delete this deadline?')) deleteMut.mutate(d._id) }}
@@ -118,7 +118,7 @@ export default function AdminDeadlines() {
                     <span className="font-sans text-[13px] font-bold text-ink uppercase tracking-wider">Progress</span>
                     <span className="font-sans text-[16px] font-medium text-ink">{submitCount} / {totalStudents}</span>
                   </div>
-                  <div className="w-full h-2 mb-4 overflow-hidden rounded-full bg-surface-pearl">
+                  <div className="w-full h-2 mb-4 overflow-hidden rounded-full bg-white">
                     <div className="h-full transition-all duration-500 bg-green-500" style={{ width: `${totalStudents > 0 ? (submitCount/totalStudents)*100 : 0}%` }}></div>
                   </div>
                   
@@ -154,17 +154,17 @@ export default function AdminDeadlines() {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-[13px] font-bold text-ink-muted-80 mb-1.5">Title</label>
-                <input type="text" value={form.title} onChange={e => setForm(f=>({...f,title:e.target.value}))} className="w-full bg-surface-pearl border border-divider-soft text-ink px-4 py-2.5 rounded-lg focus:outline-none focus:border-primary" />
+                <input type="text" value={form.title} onChange={e => setForm(f=>({...f,title:e.target.value}))} className="w-full bg-white border border-divider-soft text-ink px-4 py-2.5 rounded-lg focus:outline-none focus:border-primary" />
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[13px] font-bold text-ink-muted-80 mb-1.5">Subject</label>
-                  <input type="text" value={form.subject} onChange={e => setForm(f=>({...f,subject:e.target.value}))} className="w-full bg-surface-pearl border border-divider-soft text-ink px-4 py-2.5 rounded-lg focus:outline-none focus:border-primary" />
+                  <input type="text" value={form.subject} onChange={e => setForm(f=>({...f,subject:e.target.value}))} className="w-full bg-white border border-divider-soft text-ink px-4 py-2.5 rounded-lg focus:outline-none focus:border-primary" />
                 </div>
                 <div>
                   <label className="block text-[13px] font-bold text-ink-muted-80 mb-1.5">Type</label>
-                  <select value={form.type} onChange={e => setForm(f=>({...f,type:e.target.value}))} className="w-full bg-surface-pearl border border-divider-soft text-ink px-4 py-2.5 rounded-lg focus:outline-none focus:border-primary">
+                  <select value={form.type} onChange={e => setForm(f=>({...f,type:e.target.value}))} className="w-full bg-white border border-divider-soft text-ink px-4 py-2.5 rounded-lg focus:outline-none focus:border-primary">
                     <option value="CA">CA</option><option value="PCA">PCA</option><option value="LA">LA</option>
                   </select>
                 </div>
@@ -172,21 +172,21 @@ export default function AdminDeadlines() {
               
               <div>
                 <label className="block text-[13px] font-bold text-ink-muted-80 mb-1.5">Deadline Time</label>
-                <input type="datetime-local" value={form.deadline} onChange={e => setForm(f=>({...f,deadline:e.target.value}))} className="w-full bg-surface-pearl border border-divider-soft text-ink px-4 py-2.5 rounded-lg focus:outline-none focus:border-primary" />
+                <input type="datetime-local" value={form.deadline} onChange={e => setForm(f=>({...f,deadline:e.target.value}))} className="w-full bg-white border border-divider-soft text-ink px-4 py-2.5 rounded-lg focus:outline-none focus:border-primary" />
               </div>
 
               <div>
                 <label className="block text-[13px] font-bold text-ink-muted-80 mb-1.5">Drive Link (Optional)</label>
-                <input type="url" value={form.driveLink} onChange={e => setForm(f=>({...f,driveLink:e.target.value}))} className="w-full bg-surface-pearl border border-divider-soft text-ink px-4 py-2.5 rounded-lg focus:outline-none focus:border-primary" />
+                <input type="url" value={form.driveLink} onChange={e => setForm(f=>({...f,driveLink:e.target.value}))} className="w-full bg-white border border-divider-soft text-ink px-4 py-2.5 rounded-lg focus:outline-none focus:border-primary" />
               </div>
               
               <div>
                 <label className="block text-[13px] font-bold text-ink-muted-80 mb-1.5">Description (Optional)</label>
-                <textarea rows="2" value={form.description} onChange={e => setForm(f=>({...f,description:e.target.value}))} className="w-full bg-surface-pearl border border-divider-soft text-ink px-4 py-2.5 rounded-lg focus:outline-none focus:border-primary resize-none" />
+                <textarea rows="2" value={form.description} onChange={e => setForm(f=>({...f,description:e.target.value}))} className="w-full bg-white border border-divider-soft text-ink px-4 py-2.5 rounded-lg focus:outline-none focus:border-primary resize-none" />
               </div>
             </div>
             
-            <div className="flex justify-end gap-3 p-6 border-t border-divider-soft bg-surface-pearl">
+            <div className="flex justify-end gap-3 p-6 border-t border-divider-soft bg-white">
               <button onClick={() => setShowModal(false)} className="px-4 py-2 text-ink-muted-80">Cancel</button>
               <button onClick={() => createMut.mutate({ ...form, batch: user.batch })} disabled={createMut.isPending || !form.title || !form.subject || !form.deadline} className="button-primary">
                 {createMut.isPending ? 'Posting...' : 'Post Deadline'}

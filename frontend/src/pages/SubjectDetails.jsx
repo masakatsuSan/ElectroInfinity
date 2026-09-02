@@ -74,11 +74,11 @@ export default function SubjectDetails() {
           <h2 className="font-display font-medium text-[20px] text-primary tracking-wide mb-2 uppercase">{course.code}</h2>
           <h1 className="font-display font-semibold text-[32px] md:text-[56px] leading-tight tracking-tight text-ink mb-6">{course.name}</h1>
           <div className="flex flex-wrap gap-4">
-            <div className="bg-surface-pearl border border-divider-soft rounded-[20px] px-6 py-4 flex items-center gap-4 shadow-sm">
+            <div className="bg-white border border-divider-soft rounded-[20px] px-6 py-4 flex items-center gap-4 shadow-sm">
               <span className="font-sans text-[13px] font-bold uppercase tracking-widest text-[#696969]">Credits</span>
               <span className="font-display font-medium text-[24px] text-ink">{course.credits}</span>
             </div>
-            <div className="bg-surface-pearl border border-divider-soft rounded-[20px] px-6 py-4 flex gap-6 shadow-sm">
+            <div className="bg-white border border-divider-soft rounded-[20px] px-6 py-4 flex gap-6 shadow-sm">
               <div className="flex flex-col items-center">
                 <span className="font-sans text-[13px] font-bold uppercase tracking-widest text-[#696969]">L</span>
                 <span className="font-display font-medium text-[24px] text-ink">{course.l || 0}</span>
@@ -123,7 +123,7 @@ export default function SubjectDetails() {
                 <h3 className="font-display font-semibold text-[28px] text-ink mb-6">Modules</h3>
                 <div className="space-y-6">
                   {course.modules.map((mod, i) => (
-                    <div key={i} className="bg-surface-pearl border border-divider-soft rounded-[24px] p-8 shadow-sm">
+                    <div key={i} className="bg-white border border-divider-soft rounded-[24px] p-8 shadow-sm">
                       <h4 className="font-display font-medium text-[20px] text-ink tracking-tight mb-4">{mod.title}</h4>
                       <ul className="list-disc pl-5 space-y-2 marker:text-primary">
                         {mod.topics.map((topic, j) => (

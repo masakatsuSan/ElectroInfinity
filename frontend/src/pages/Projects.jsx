@@ -305,7 +305,7 @@ function SubmitModal({ onClose, onSubmit, loading, error }) {
               value={form.title}
               onChange={set('title')}
               placeholder="e.g. Solar-Powered IoT Weather Station"
-              className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
+              className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
             />
             {errors.title && <p className="text-error text-[12px] mt-1">{errors.title}</p>}
           </div>
@@ -319,7 +319,7 @@ function SubmitModal({ onClose, onSubmit, loading, error }) {
               onChange={set('description')}
               placeholder="What does your project do? What problem does it solve?"
               rows={4}
-              className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary resize-none"
+              className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary resize-none"
             />
             {errors.description && <p className="text-error text-[12px] mt-1">{errors.description}</p>}
           </div>
@@ -332,7 +332,7 @@ function SubmitModal({ onClose, onSubmit, loading, error }) {
               value={form.techStack}
               onChange={set('techStack')}
               placeholder="e.g. React, Node.js, Arduino, TensorFlow"
-              className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
+              className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
             />
             <p className="font-sans text-[11px] text-ink-muted-48 mt-1">Separate technologies with commas.</p>
             {errors.techStack && <p className="text-error text-[12px] mt-1">{errors.techStack}</p>}
@@ -347,7 +347,7 @@ function SubmitModal({ onClose, onSubmit, loading, error }) {
                 value={form.github}
                 onChange={set('github')}
                 placeholder="https://github.com/username/repo"
-                className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
+                className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
               />
             </div>
             <div>
@@ -357,7 +357,7 @@ function SubmitModal({ onClose, onSubmit, loading, error }) {
                 value={form.demoLink}
                 onChange={set('demoLink')}
                 placeholder="https://your-demo.vercel.app"
-                className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
+                className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
               />
             </div>
           </div>
@@ -369,7 +369,7 @@ function SubmitModal({ onClose, onSubmit, loading, error }) {
               value={form.images}
               onChange={set('images')}
               placeholder="Paste image URLs separated by commas"
-              className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
+              className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
             />
           </div>
 

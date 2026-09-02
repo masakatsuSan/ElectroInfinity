@@ -122,7 +122,7 @@ export default function AdminResources() {
 
       {/* Edit form */}
       {editingId && (
-        <div className="border border-primary/30 bg-surface-pearl p-6 mb-8 rounded-xl shadow-sm">
+        <div className="border border-primary/30 bg-white p-6 mb-8 rounded-xl shadow-sm">
           <h2 className="font-display font-semibold text-[18px] text-ink mb-6">Edit Resource</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <div className="sm:col-span-2">
@@ -187,7 +187,7 @@ export default function AdminResources() {
 
       {/* Upload form */}
       {showForm && (
-        <div className="border border-divider-soft bg-surface-pearl p-6 mb-8 rounded-xl shadow-sm">
+        <div className="border border-divider-soft bg-white p-6 mb-8 rounded-xl shadow-sm">
           <h2 className="font-display font-semibold text-[18px] text-ink mb-6">Upload Resource</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <div className="sm:col-span-2">
@@ -249,7 +249,7 @@ export default function AdminResources() {
             key={t}
             onClick={() => setFilterType(t)}
             className={`font-sans text-[14px] font-medium capitalize px-4 py-2 flex-none border-b-2 transition-colors rounded-t-md ${
-              filterType === t ? 'text-ink border-primary bg-surface-pearl' : 'text-ink-muted-80 border-transparent hover:text-ink hover:bg-surface-pearl/50'
+              filterType === t ? 'text-ink border-primary bg-white' : 'text-ink-muted-80 border-transparent hover:text-ink hover:bg-white/50'
             }`}
           >
             {t.replace('_', ' ') || 'All'}
@@ -263,7 +263,7 @@ export default function AdminResources() {
       ) : resources.length === 0 ? (
         <p className="font-sans text-ink-muted-80 text-[15px]">No resources yet. Upload one above.</p>
       ) : (
-        <div className="border border-divider-soft bg-surface-pearl rounded-xl overflow-hidden shadow-sm">
+        <div className="border border-divider-soft bg-white rounded-xl overflow-hidden shadow-sm">
           {resources.map(r => (
             <div key={r._id} className="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
               <span className="font-sans text-[11px] font-semibold text-primary uppercase tracking-widest w-24 flex-shrink-0">{r.type.replace('_', ' ')}</span>

@@ -62,7 +62,7 @@ export default function AdminRoutines() {
         <div className="h-8 w-48 bg-soft-stone rounded animate-pulse" />
         <div className="h-10 w-32 bg-soft-stone rounded-full animate-pulse" />
       </div>
-      <div className="overflow-x-auto border border-divider-soft rounded-[20px] bg-surface-pearl animate-pulse">
+      <div className="overflow-x-auto border border-divider-soft rounded-[20px] bg-white animate-pulse">
         <div className="p-4 border-b border-divider-soft flex gap-4">
           <div className="h-4 w-32 bg-soft-stone rounded" />
           <div className="h-4 flex-1 bg-soft-stone rounded" />
@@ -103,7 +103,7 @@ export default function AdminRoutines() {
         )}
       </div>
 
-      <div className="overflow-x-auto border border-divider-soft rounded-[20px] bg-surface-pearl">
+      <div className="overflow-x-auto border border-divider-soft rounded-[20px] bg-white">
         <table className="w-full min-w-[600px] border-collapse text-[14px] font-sans">
           <thead>
             <tr className="border-b border-divider-soft bg-canvas">

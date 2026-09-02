@@ -118,7 +118,7 @@ export default function ScanQR() {
         </div>
 
         <div className="max-w-lg mx-auto">
-          <div className="border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm overflow-hidden">
+          <div className="border border-divider-soft bg-white rounded-2xl shadow-sm overflow-hidden">
             {/* Scanner Area */}
             <div className="relative bg-black aspect-[4/3] flex items-center justify-center">
               {!scanning && !success && (
@@ -165,7 +165,7 @@ export default function ScanQR() {
 
             {/* Camera Selector */}
             {cameraDevices.length > 1 && scanning && (
-              <div className="p-4 border-t border-divider-soft bg-surface-pearl">
+              <div className="p-4 border-t border-divider-soft bg-white">
                 <label className="block font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-2">
                   Switch Camera
                 </label>
@@ -205,7 +205,7 @@ export default function ScanQR() {
           </div>
 
           {/* Instructions */}
-          <div className="mt-8 p-6 bg-surface-pearl border border-divider-soft rounded-2xl shadow-sm">
+          <div className="mt-8 p-6 bg-white border border-divider-soft rounded-2xl shadow-sm">
             <h3 className="font-display text-[16px] font-bold text-ink mb-3">How to use</h3>
             <ol className="space-y-2 text-[14px] text-ink-muted-80 font-sans">
               <li className="flex gap-2">

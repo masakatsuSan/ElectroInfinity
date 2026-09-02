@@ -7,7 +7,7 @@ import ImageGuard from '../components/ImageGuard'
 
 function AchCard({ item, badgeText }) {
   return (
-    <div className="flex flex-col overflow-hidden transition-all duration-300 transform border group bg-surface-pearl border-divider-soft rounded-2xl hover:shadow-xl hover:-translate-y-1">
+    <div className="flex flex-col overflow-hidden transition-all duration-300 transform border group bg-white border-divider-soft rounded-2xl hover:shadow-xl hover:-translate-y-1">
       <div className="relative h-48 overflow-hidden sm:h-56 bg-canvas">
         <ImageGuard className="w-full h-full">
           {item.photo ? (
@@ -43,7 +43,7 @@ function AchCard({ item, badgeText }) {
 
 function SkeletonAchCard() {
   return (
-    <div className="flex flex-col overflow-hidden border bg-surface-pearl border-divider-soft rounded-2xl animate-pulse">
+    <div className="flex flex-col overflow-hidden border bg-white border-divider-soft rounded-2xl animate-pulse">
       <div className="h-48 sm:h-56 bg-soft-stone" />
       <div className="flex flex-col flex-grow p-5">
         <div className="h-5 w-3/4 bg-soft-stone rounded mb-2" />

@@ -62,7 +62,7 @@ export default function AdminProjects() {
         : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {visible.map(p => (
-              <div key={p._id} className="border border-divider-soft bg-surface-pearl rounded-xl p-5 shadow-sm hover:border-primary/30 transition-colors flex flex-col">
+              <div key={p._id} className="border border-divider-soft bg-white rounded-xl p-5 shadow-sm hover:border-primary/30 transition-colors flex flex-col">
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="text-[15px] font-semibold text-ink line-clamp-2 pr-2">{p.title}</h3>
                   <span className={`font-mono text-[11px] font-bold uppercase px-2 py-1 rounded-md flex-shrink-0 ${p.isApproved ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-yellow-50 text-yellow-600 border border-yellow-100'}`}>

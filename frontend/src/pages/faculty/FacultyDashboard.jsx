@@ -172,7 +172,7 @@ function FacultyDashboardInner() {
 
             {/* Create / edit form */}
             {showForm && (
-              <div className="border border-divider-soft bg-surface-pearl p-6 rounded-2xl shadow-sm">
+              <div className="border border-divider-soft bg-white p-6 rounded-2xl shadow-sm">
                 <h3 className="font-display font-semibold text-[18px] text-ink mb-6">
                   {editing ? 'Edit Announcement' : 'New Announcement'}
                 </h3>
@@ -220,7 +220,7 @@ function FacultyDashboardInner() {
             ) : announcements.length === 0 ? (
               <p className="font-sans text-ink-muted-80 text-[15px]">No announcements posted yet. Create one above.</p>
             ) : (
-              <div className="border border-divider-soft bg-surface-pearl rounded-2xl overflow-hidden shadow-sm divide-y divide-hairline">
+              <div className="border border-divider-soft bg-white rounded-2xl overflow-hidden shadow-sm divide-y divide-hairline">
                 {announcements.map(a => (
                   <AnnouncementRow key={a._id} announcement={a} onEdit={() => openEdit(a)} onDelete={() => handleDelete(a._id, a.title)} />
                 ))}
@@ -239,12 +239,12 @@ function FacultyDashboardInner() {
               </Link>
             </div>
 
-            <div className="border border-divider-soft bg-surface-pearl rounded-2xl p-6 shadow-sm">
+            <div className="border border-divider-soft bg-white rounded-2xl p-6 shadow-sm">
               <h3 className="font-display font-semibold text-[16px] text-ink mb-4">Teaching Assignments</h3>
               <TeachingAssignments />
             </div>
 
-            <div className="border border-divider-soft bg-surface-pearl rounded-2xl p-6 shadow-sm">
+            <div className="border border-divider-soft bg-white rounded-2xl p-6 shadow-sm">
               <h3 className="font-display font-semibold text-[16px] text-ink mb-4">Recent Sessions</h3>
               <RecentSessions sessions={sessions} loading={classesLoading} />
             </div>

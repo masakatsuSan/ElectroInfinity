@@ -143,7 +143,7 @@ export default function AdminCourses() {
       </div>
 
       {showForm && (
-        <div className="border border-divider-soft bg-surface-pearl p-6 mb-8 rounded-xl shadow-sm">
+        <div className="border border-divider-soft bg-white p-6 mb-8 rounded-xl shadow-sm">
           <h2 className="font-display font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Course' : 'New Course'}</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <div>
@@ -243,7 +243,7 @@ export default function AdminCourses() {
       {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading courses…</p>
         : semesters.length === 0 ? <p className="font-sans text-ink-muted-80 text-[15px]">No courses found. Create one above.</p>
         : semesters.map(sem => (
-          <div key={sem} className="border border-divider-soft bg-surface-pearl rounded-xl overflow-hidden shadow-sm mb-6">
+          <div key={sem} className="border border-divider-soft bg-white rounded-xl overflow-hidden shadow-sm mb-6">
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft font-display font-bold text-[18px] text-ink">Semester {sem}</div>
             <div className="divide-y divide-hairline">
               {bySem[sem].map(s => (

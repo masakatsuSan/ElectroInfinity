@@ -1,4 +1,4 @@
-ï»¿import { useState } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getContacts, updateContact, deleteContact } from '../../api/contact'
 
@@ -50,10 +50,10 @@ export default function AdminContact() {
 
       {error && <p className="font-sans text-red-500 text-[14px] font-medium mb-4">{error}</p>}
 
-      {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading messagesâ€¦</p>
+      {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading messages…</p>
         : contacts.length === 0 ? <p className="font-sans text-ink-muted-80 text-[15px]">No messages in this view.</p>
         : (
-          <div className="border border-divider-soft bg-surface-pearl rounded-xl overflow-hidden shadow-sm divide-y divide-hairline">
+          <div className="border border-divider-soft bg-white rounded-xl overflow-hidden shadow-sm divide-y divide-hairline">
             {contacts.map(c => (
               <div key={c._id} className={`flex items-start gap-4 px-4 sm:px-6 py-3 sm:py-4 hover:bg-canvas-parchment transition-colors ${c.status === 'new' ? 'bg-pale-blue/30' : ''}`}>
                 <div className="flex-1 min-w-0">
@@ -65,7 +65,7 @@ export default function AdminContact() {
                   {c.subject && <p className="font-sans text-[13px] font-semibold text-ink mt-1">{c.subject}</p>}
                   <p className="font-sans text-[14px] text-ink-muted-80 mt-2 leading-relaxed line-clamp-3">{c.message.replace(/\n/g, ' ')}</p>
                   <div className="flex items-center gap-4 mt-3 text-[12px] text-slate">
-                    <span>â€¢ {new Date(c.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    <span>• {new Date(c.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                     {c.isReplied && <span className="text-deep-green font-semibold">Replied</span>}
                   </div>
                 </div>

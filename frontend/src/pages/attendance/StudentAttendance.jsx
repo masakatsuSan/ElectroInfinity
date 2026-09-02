@@ -516,7 +516,7 @@ export default function StudentAttendance() {
           <div className="space-y-8 lg:col-span-4">
             {/* Stats card */}
             {stats && (
-              <div className={`border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm p-6 ${
+              <div className={`border border-divider-soft bg-white rounded-2xl shadow-sm p-6 ${
                 stats.lowAttendance ? 'border-amber-500/40 bg-amber-500/5' : ''
               }`}>
                 <div className="flex items-center justify-between p-3">
@@ -565,7 +565,7 @@ export default function StudentAttendance() {
                 </p>
               </div>
             ) : (
-              <div className="p-6 lg:p-8 text-center border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
+              <div className="p-6 lg:p-8 text-center border shadow-sm border-divider-soft bg-white rounded-2xl">
                 <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-full bg-divider-soft text-ink-muted-80">
                   <RefreshCw size={24} />
                 </div>
@@ -584,7 +584,7 @@ export default function StudentAttendance() {
 
             {/* GPS Refresh & Debug Info */}
             {activeSession && (
-              <div className="p-5 lg:p-6 space-y-3 border border-divider-soft bg-surface-pearl rounded-2xl">
+              <div className="p-5 lg:p-6 space-y-3 border border-divider-soft bg-white rounded-2xl">
                 <div className="flex items-center justify-between">
                   <span className="font-sans text-[13px] font-semibold text-ink">Your Live Location</span>
                   <button
@@ -629,7 +629,7 @@ export default function StudentAttendance() {
             )}
 
             {/* Info instructions */}
-            <div className="p-5 lg:p-6 space-y-3 border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
+            <div className="p-5 lg:p-6 space-y-3 border shadow-sm border-divider-soft bg-white rounded-2xl">
               <h4 className="font-display text-[16px] font-bold text-ink">How Smart Attendance Works</h4>
               <ul className="font-sans text-[13px] text-ink-muted-80 space-y-2">
                 <li className="flex items-start gap-2">
@@ -775,7 +775,7 @@ export default function StudentAttendance() {
                   </div>
                 }
               >
-              <div className="p-5 lg:p-6 space-y-4 border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
+              <div className="p-5 lg:p-6 space-y-4 border shadow-sm border-divider-soft bg-white rounded-2xl">
                 {/* Scanner header — Stop / Restart controls live OUTSIDE the camera viewport */}
                 <div className="flex items-center justify-between gap-2">
                   <span className="inline-flex items-center gap-2 font-sans text-[14px] font-semibold text-ink">

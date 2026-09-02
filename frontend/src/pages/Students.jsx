@@ -5,11 +5,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { changePassword, forgotPassword, verifyOtp, resetPassword } from '../api/auth';
 import { getAnnouncements } from '../api/announcements';
-import { uploadPhoto, getBatchStudents, getAllStudents } from '../api/students';
+import { uploadPhoto, getBatchStudents } from '../api/students';
 import { getDeadlines, submitDeadline } from '../api/deadlines';
 import { getRoutine } from '../api/routines';
-import ImageGuard from '../components/ImageGuard';
-import FollowButton from '../components/FollowButton';
 
 export default function Students() {
   const { user } = useAuth();
@@ -65,12 +63,6 @@ export default function Students() {
     enabled: activeTab === 'deadlines' && user?.role === 'cr' && !!user?.batch,
   });
 
-  const { data: batchMatesData, isLoading: batchMatesLoading } = useQuery({
-    queryKey: ['allStudents'],
-    queryFn: () => getAllStudents().then(r => r.data),
-    enabled: user?.role !== 'faculty' && user?.role !== 'admin' && user?.role !== 'super_admin',
-  });
-
   const submitDeadlineMut = useMutation({
     mutationFn: (id) => submitDeadline(id),
     onSuccess: () => {
@@ -101,19 +93,7 @@ export default function Students() {
 
   const deadlines = deadlinesData?.data || [];
   const roster = batchData?.data || [];
-  const batchMates = (batchMatesData?.data || []).filter(student => student._id !== user?._id);
   const totalStudents = roster.length;
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [batchFilter, setBatchFilter] = useState('');
-  const filteredBatchMates = batchMates.filter((mate) => {
-    const q = searchQuery.trim().toLowerCase();
-    const matchSearch = !q || mate.name?.toLowerCase().includes(q) || mate.rollNumber?.toLowerCase().includes(q);
-    const matchBatch = !batchFilter || mate.batch === batchFilter;
-    return matchSearch && matchBatch;
-  });
-
-  const uniqueBatches = Array.from(new Set(batchMates.map((m) => m.batch).filter(Boolean))).sort((a, b) => String(b).localeCompare(String(a)));
 
   const TABS = ['attendance', 'deadlines', 'routine', 'announcements', 'password'];
 
@@ -172,56 +152,8 @@ export default function Students() {
         </div>
       </div>
 
-      {!batchMatesLoading && user?.role !== 'faculty' && user?.role !== 'admin' && user?.role !== 'super_admin' && (
-        <div className="mb-10  rounded-[24px] border-divider-soft bg-surface-pearl p-6 shadow-sm">
-          <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-ink-muted-80">Campus Directory</p>
-              <h2 className="font-display text-[28px] font-semibold tracking-[-0.03em] text-ink">Students & CRs</h2>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="font-sans text-[12px] font-semibold text-ink-muted-80">{filteredBatchMates.length + 1} people</span>
-              <select
-                value={batchFilter}
-                onChange={(e) => setBatchFilter(e.target.value)}
-                className="bg-canvas border border-divider-soft rounded-xl px-3 py-2 text-[13px] font-sans text-ink focus:outline-none focus:border-primary/40 transition-colors"
-              >
-                <option value="">All Batches</option>
-                {uniqueBatches.map((batch) => (
-                  <option key={batch} value={batch}>{batch}</option>
-                ))}
-              </select>
-              <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by name or roll..."
-                  className="w-full md:w-64 bg-canvas border border-divider-soft rounded-xl pl-9 pr-4 py-2 text-[14px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary/40 transition-colors"
-                />
-              </div>
-            </div>
-          </div>
-
-          {filteredBatchMates.length === 0 ? (
-            <div className="py-12 text-center">
-              <p className="font-sans text-[15px] text-ink-muted-80">
-                {searchQuery || batchFilter ? 'No students match your filters.' : 'No other students have joined yet.'}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filteredBatchMates.map((mate) => (
-                <BatchMateCard key={mate._id} mate={mate} onClick={() => navigate(`/profile/${mate._id}`)} />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
       {/* ── Tabs (Pill style) ── */}
-      <div className="flex gap-2 mb-10 overflow-x-auto p-1 bg-surface-pearl border border-divider-soft rounded-[999px] w-max max-w-full">
+      <div className="flex gap-2 mb-10 overflow-x-auto p-1 bg-white border border-divider-soft rounded-[999px] w-max max-w-full">
         {TABS.map(t => (
           <button key={t} onClick={() => setActiveTab(t)}
             className={`font-sans text-[14px] font-bold uppercase tracking-[0.04em] px-6 py-3 flex-none rounded-[999px] transition-all whitespace-nowrap ${
@@ -249,7 +181,7 @@ export default function Students() {
               {/* Overall & Subject Breakdown Cards */}
               <div className="grid gap-6 md:grid-cols-12">
                 {/* Overall Score Card */}
-                <div className={`md:col-span-4 border border-divider-soft bg-surface-pearl rounded-2xl p-6 shadow-sm flex flex-col justify-between ${
+                <div className={`md:col-span-4 border border-divider-soft bg-white rounded-2xl p-6 shadow-sm flex flex-col justify-between ${
                   overall.lowAttendance ? 'border-amber-500/40 bg-amber-500/5' : ''
                 }`}>
                   <div>
@@ -285,7 +217,7 @@ export default function Students() {
                 </div>
 
                 {/* Per-Subject Breakdown Grid */}
-                <div className="p-6 border shadow-sm md:col-span-8 border-divider-soft bg-surface-pearl rounded-2xl">
+                <div className="p-6 border shadow-sm md:col-span-8 border-divider-soft bg-white rounded-2xl">
                   <h3 className="font-display text-[18px] font-bold text-ink mb-4">Subject-Wise Breakdown</h3>
                   {perSubject.length === 0 ? (
                     <p className="font-sans text-[14px] text-ink-muted-80 py-8 text-center">No subject lecture records yet.</p>
@@ -322,7 +254,7 @@ export default function Students() {
               </div>
 
               {/* Past Lectures History Table */}
-              <div className="p-6 border shadow-sm border-divider-soft bg-surface-pearl rounded-2xl">
+              <div className="p-6 border shadow-sm border-divider-soft bg-white rounded-2xl">
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h3 className="font-display text-[20px] font-bold text-ink">Past Lectures History</h3>
@@ -393,7 +325,7 @@ export default function Students() {
           </div>
           
           {deadlinesLoading ? <div className="space-y-4 animate-pulse"><div className="h-40 bg-black/5 rounded-2xl"></div></div> : deadlines.length === 0 ? (
-            <div className="py-16 text-center border border-divider-soft rounded-[24px] bg-surface-pearl">
+            <div className="py-16 text-center border border-divider-soft rounded-[24px] bg-white">
               <p className="text-ink-muted-80 font-sans text-[16px] font-[450]">No upcoming deadlines.</p>
             </div>
           ) : (
@@ -509,7 +441,7 @@ export default function Students() {
           {routineLoading ? (
              <div className="space-y-4 animate-pulse"><div className="h-40 bg-black/5 rounded-2xl"></div></div>
           ) : routineData?.data?.length > 0 ? (
-            <table className="w-full min-w-[600px] border-collapse text-[14px] font-sans border border-divider-soft rounded-[20px] bg-surface-pearl">
+            <table className="w-full min-w-[600px] border-collapse text-[14px] font-sans border border-divider-soft rounded-[20px] bg-white">
               <thead>
                 <tr className="border-b border-divider-soft bg-canvas">
                   <th className="w-32 px-4 py-4 font-bold text-left text-ink-muted-80">Time</th>
@@ -532,7 +464,7 @@ export default function Students() {
               </tbody>
             </table>
           ) : (
-            <div className="py-16 text-center border border-divider-soft rounded-[24px] bg-surface-pearl">
+            <div className="py-16 text-center border border-divider-soft rounded-[24px] bg-white">
               <p className="text-ink-muted-80 font-sans text-[16px] font-[450]">No class routine published yet.</p>
             </div>
           )}
@@ -549,7 +481,7 @@ export default function Students() {
           ) : announcementsData?.data?.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2">
               {announcementsData.data.map(a => (
-                <div key={a._id} className="bg-surface-pearl rounded-lg p-[24px] border border-divider-soft text-left hover:shadow-product transition-shadow duration-300">
+                <div key={a._id} className="bg-white rounded-lg p-[24px] border border-divider-soft text-left hover:shadow-product transition-shadow duration-300">
                   <div className="flex items-center justify-between gap-3 mb-2">
                     <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-pale-green text-deep-green border border-green-200">
                       {a.category || 'general'}
@@ -565,7 +497,7 @@ export default function Students() {
               ))}
             </div>
           ) : (
-            <p className="text-ink-muted-80 text-[17px] py-12 text-center font-sans border border-divider-soft rounded-lg bg-surface-pearl">No announcements yet.</p>
+            <p className="text-ink-muted-80 text-[17px] py-12 text-center font-sans border border-divider-soft rounded-lg bg-white">No announcements yet.</p>
           )}
         </div>
       )}
@@ -578,7 +510,7 @@ export default function Students() {
 
     {!otpSent ? (
       <div className="flex flex-col gap-5">
-        <div className="p-6 text-center border border-divider-soft rounded-2xl bg-surface-pearl">
+        <div className="p-6 text-center border border-divider-soft rounded-2xl bg-white">
           <div className="flex items-center justify-center mx-auto mb-4 rounded-full w-14 h-14 bg-soft-stone">
             <ShieldCheck size={24} className="text-body-muted" />
           </div>
@@ -615,7 +547,7 @@ export default function Students() {
       </div>
     ) : !otpVerified ? (
       <div className="flex flex-col gap-5">
-        <div className="p-6 border border-divider-soft rounded-2xl bg-surface-pearl">
+        <div className="p-6 border border-divider-soft rounded-2xl bg-white">
           <p className="font-sans text-[15px] font-normal text-ink mb-1">Enter OTP</p>
           <p className="font-sans text-[13px] text-slate mb-5">
             Enter the 6-digit code sent to your registered email
@@ -714,79 +646,6 @@ export default function Students() {
     )}
   </div>
 )}
-    </div>
-  );
-}
-
-const SOCIAL_PLATFORMS = [
-  { key: 'github', label: 'GitHub', color: '#333' },
-  { key: 'linkedin', label: 'LinkedIn', color: '#0A66C2' },
-  { key: 'instagram', label: 'Instagram', color: '#E4405F' },
-  { key: 'facebook', label: 'Facebook', color: '#1877F2' },
-  { key: 'twitter', label: 'X', color: '#000' },
-  { key: 'youtube', label: 'YouTube', color: '#FF0000' },
-  { key: 'website', label: 'Web', color: '#666' },
-];
-
-function BatchMateCard({ mate, onClick }) {
-  const socials = (mate.socialLinks || mate.profile?.socialLinks || {});
-  const activeSocials = SOCIAL_PLATFORMS.filter((p) => socials[p.key]);
-
-  return (
-    <div
-      onClick={onClick}
-      className="group relative flex flex-col items-center gap-3 p-5 transition-all border rounded-2xl border-divider-soft bg-canvas hover:border-ink/20 hover:shadow-lg cursor-pointer"
-    >
-      {/* Avatar */}
-      <div className="relative w-20 h-20 rounded-full overflow-hidden bg-ink/5 flex-shrink-0">
-        <ImageGuard className="w-full h-full">
-          {mate.photo ? (
-            <img src={mate.photo} alt={mate.name} className="object-cover w-full h-full" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="font-display text-[22px] font-bold text-ink-muted-48">
-                {(mate.name || 'S').split(' ').map(part => part[0]).slice(0, 2).join('').toUpperCase()}
-              </span>
-            </div>
-          )}
-        </ImageGuard>
-        {mate.role === 'cr' && (
-          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500 text-white whitespace-nowrap">
-            CR
-          </span>
-        )}
-      </div>
-
-      {/* Name & Roll */}
-      <div className="text-center min-w-0">
-        <p className="truncate font-sans text-[15px] font-semibold text-ink">{mate.name}</p>
-        <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-muted-80">{mate.rollNumber || 'Roll —'}</p>
-      </div>
-
-      {/* Social Icons Row — visible on hover */}
-      {activeSocials.length > 0 && (
-        <div className="flex items-center gap-1.5 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200">
-          {activeSocials.map((platform) => (
-            <a
-              key={platform.key}
-              href={socials[platform.key].startsWith('http') ? socials[platform.key] : `https://${platform.key}.com/${socials[platform.key]}`}
-              target="_blank"
-              rel="noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="w-7 h-7 flex items-center justify-center rounded-full text-white text-[10px] font-bold hover:scale-110 transition-transform"
-              style={{ backgroundColor: platform.color }}
-              title={platform.label}
-            >
-              {platform.label.charAt(0)}
-            </a>
-          ))}
-        </div>
-      )}
-
-      {/* Follow Button */}
-      <div className="mt-1" onClick={(e) => e.stopPropagation()}>
-        <FollowButton userId={mate._id} isFollowing={mate.isFollowing} followsMe={mate.followsMe} size="sm" showIcon={false} />
-      </div>
     </div>
   );
 }

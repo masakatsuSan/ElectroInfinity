@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getPublicProfile } from '../api/profile'
@@ -7,14 +7,16 @@ import { getProjects, createProject } from '../api/projects'
 import { updateMyProfile, getSuggestedUsers, setStatus as setStatusApi, clearStatus as clearStatusApi, getProfileViews } from '../api/profile'
 import { getAchievements, createAchievement, updateAchievement, deleteAchievement } from '../api/achievements'
 import { getGallery, createGalleryPhoto, updateGalleryPhoto, deleteGalleryPhoto } from '../api/gallery'
+import { getAllStudents } from '../api/students'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
 import ProfileHeader from '../components/ProfileHeader'
 import SocialLinkCard from '../components/SocialLinkCard'
 import GalleryLightbox from '../components/GalleryLightbox'
-import { ExternalLink, GitBranch, Users, Image as ImageIcon, Plus, Edit3, Save, X, Trophy, Sparkles, Eye, TrendingUp } from 'lucide-react'
+import BatchMateCard from '../components/BatchMateCard'
+import { ExternalLink, GitBranch, Users, Image as ImageIcon, Plus, Edit3, Save, X, Trophy, Sparkles, Eye, TrendingUp, Search } from 'lucide-react'
 
-const TABS = ['about', 'projects', 'achievements', 'gallery']
+const TABS = ['about', 'directory', 'projects', 'achievements', 'gallery']
 
 const socialPlatforms = [
   { key: 'github', label: 'GitHub' },
@@ -30,6 +32,7 @@ const socialPlatforms = [
 
 export default function Profile() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const { user: currentUser } = useAuth()
   const qc = useQueryClient()
   const [activeTab, setActiveTab] = useState('about')
@@ -51,6 +54,8 @@ export default function Profile() {
   const [showAchievementModal, setShowAchievementModal] = useState(false)
   const [showGalleryModal, setShowGalleryModal] = useState(false)
   const [editingGallery, setEditingGallery] = useState(null)
+  const [dirSearch, setDirSearch] = useState('')
+  const [dirBatch, setDirBatch] = useState('')
   const [editingAchievement, setEditingAchievement] = useState(null)
 
   const { data: profileData, isLoading: profileLoading } = useQuery({
@@ -86,6 +91,12 @@ export default function Profile() {
     queryKey: ['myGallery', id],
     queryFn: () => getGallery({ author: id, limit: 20 }).then((r) => r.data.data),
     enabled: activeTab === 'gallery',
+  })
+
+  const { data: directoryData, isLoading: directoryLoading } = useQuery({
+    queryKey: ['allStudentsForDirectory'],
+    queryFn: () => getAllStudents().then((r) => r.data),
+    enabled: activeTab === 'directory',
   })
 
   useEffect(() => {
@@ -307,7 +318,7 @@ export default function Profile() {
   const suggested = suggestedData?.slice(0, 5) || []
 
   return (
-    <div className="min-h-screen bg-canvas pt-24 md:pt-28">
+    <div className="min-h-screen bg-canvas pt-24 md:pt-28 overflow-x-hidden">
       <SEO
         title={`${profile.name} | Electro Infinity`}
         description={profile.bio || `Profile of ${profile.name} at Electro Infinity`}
@@ -323,7 +334,7 @@ export default function Profile() {
 
       <div className="max-w-[1280px] mx-auto px-4 md:px-12">
         {/* Tabs */}
-        <div className="flex gap-2 mt-8 mb-8 overflow-x-auto p-1 bg-surface-pearl border border-divider-soft rounded-[999px] w-max max-w-full">
+        <div className="flex gap-2 mt-8 mb-8 overflow-x-auto p-1 bg-white border border-divider-soft rounded-[999px] w-full">
           {TABS.map((tab) => (
             <motion.button
               key={tab}
@@ -335,7 +346,11 @@ export default function Profile() {
                   : 'text-[#696969] bg-transparent hover:text-ink hover:bg-canvas-parchment'
               }`}
             >
-              {tab}
+              {tab === 'about' ? 'About'
+                : tab === 'directory' ? 'Campus Directory'
+                : tab === 'projects' ? 'Projects'
+                : tab === 'achievements' ? 'Achievements'
+                : 'Gallery'}
             </motion.button>
           ))}
         </div>
@@ -349,10 +364,10 @@ export default function Profile() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.25 }}
-                className="grid gap-6 md:grid-cols-3"
+                className="grid gap-6 md:grid-cols-2"
               >
                 {/* About Card */}
-                <div className="md:col-span-2 p-6 md:p-8 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
+                <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-2xl shadow-sm">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="font-display text-[22px] font-bold text-ink">About</h2>
                     {isOwn && !editingAbout && (
@@ -540,11 +555,11 @@ export default function Profile() {
                   )}
                 </div>
 
-                {/* Right sidebar */}
-                <div className="space-y-6">
+              {/* Right sidebar */}
+              <div className="space-y-6 md:sticky md:top-28 md:self-start">
                   {/* Social Links */}
                   {socialPlatforms.some((p) => profile.socialLinks?.[p.key]) && (
-                    <div className="p-6 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
+                    <div className="p-6 border border-divider-soft bg-white rounded-2xl shadow-sm">
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="font-display text-[18px] font-bold text-ink">Social Links</h3>
                         {isOwn && !editingSocial && (
@@ -594,7 +609,7 @@ export default function Profile() {
 
                   {/* Badges */}
                   {profile.badges?.length > 0 && (
-                    <div className="p-6 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
+                    <div className="p-6 border border-divider-soft bg-white rounded-2xl shadow-sm">
                       <h3 className="font-display text-[18px] font-bold text-ink mb-4">Badges</h3>
                       <div className="flex flex-wrap gap-2">
                         {profile.badges.map((badge) => (
@@ -608,7 +623,7 @@ export default function Profile() {
 
                   {/* Profile Views (own profile only) */}
                   {isOwn && viewsData?.length > 0 && (
-                    <div className="p-6 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
+                    <div className="p-6 border border-divider-soft bg-white rounded-2xl shadow-sm">
                       <div className="flex items-center gap-2 mb-4">
                         <Eye size={18} className="text-slate" />
                         <h3 className="font-display text-[18px] font-bold text-ink">Recent Views</h3>
@@ -637,7 +652,7 @@ export default function Profile() {
 
                   {/* Similar Profiles */}
                   {!isOwn && suggested.length > 0 && (
-                    <div className="p-6 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
+                    <div className="p-6 border border-divider-soft bg-white rounded-2xl shadow-sm">
                       <div className="flex items-center gap-2 mb-4">
                         <Sparkles size={18} className="text-coral" />
                         <h3 className="font-display text-[18px] font-bold text-ink">Similar Profiles</h3>
@@ -665,7 +680,7 @@ export default function Profile() {
                   )}
 
                   {/* Network Stats */}
-                  <div className="p-6 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
+                  <div className="p-6 border border-divider-soft bg-white rounded-2xl shadow-sm">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="font-display text-[18px] font-bold text-ink">Network</h3>
                       <Users size={18} className="text-slate" />
@@ -688,6 +703,27 @@ export default function Profile() {
                     )}
                   </div>
                 </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'directory' && isOwn && (
+              <motion.div
+                key="directory"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.25 }}
+              >
+                <DirectoryPanel
+                  data={directoryData}
+                  loading={directoryLoading}
+                  search={dirSearch}
+                  setSearch={setDirSearch}
+                  batch={dirBatch}
+                  setBatch={setDirBatch}
+                  selfId={currentUser?._id}
+                  onOpenProfile={(uid) => navigate(`/profile/${uid}`)}
+                />
               </motion.div>
             )}
 
@@ -765,7 +801,7 @@ export default function Profile() {
                   )}
                 </div>
                 {galleryData?.data?.length === 0 ? (
-                  <div className="py-16 text-center border border-divider-soft rounded-2xl bg-surface-pearl">
+                  <div className="py-16 text-center border border-divider-soft rounded-2xl bg-white">
                     <ImageIcon size={32} className="mx-auto text-slate mb-3" />
                     <p className="font-sans text-[15px] text-ink-muted-80">No gallery images yet.</p>
                   </div>
@@ -855,7 +891,7 @@ export default function Profile() {
 function ProjectsList({ projects }) {
   if (projects.length === 0) {
     return (
-      <div className="py-16 text-center border border-divider-soft rounded-2xl bg-surface-pearl">
+      <div className="py-16 text-center border border-divider-soft rounded-2xl bg-white">
         <p className="font-sans text-[15px] text-ink-muted-80">No projects yet.</p>
       </div>
     )
@@ -954,7 +990,7 @@ function ProjectCard({ project }) {
 function AchievementsList({ achievements, isOwn, onEdit, onDelete }) {
   if (achievements.length === 0) {
     return (
-      <div className="py-16 text-center border border-divider-soft rounded-2xl bg-surface-pearl">
+      <div className="py-16 text-center border border-divider-soft rounded-2xl bg-white">
         <p className="font-sans text-[15px] text-ink-muted-80">No achievements yet.</p>
       </div>
     )
@@ -1058,19 +1094,19 @@ function ProjectSubmitModal({ onClose, onSubmit }) {
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5 flex-1">
           <div>
             <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Project Title *</label>
-            <input required value={form.title} onChange={set('title')} placeholder="e.g. Solar-Powered IoT Weather Station" className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+            <input required value={form.title} onChange={set('title')} placeholder="e.g. Solar-Powered IoT Weather Station" className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
             {errors.title && <p className="text-error text-[12px] mt-1">{errors.title}</p>}
           </div>
 
           <div>
             <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Description *</label>
-            <textarea required value={form.description} onChange={set('description')} placeholder="What does your project do?" rows={4} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary resize-none" />
+            <textarea required value={form.description} onChange={set('description')} placeholder="What does your project do?" rows={4} className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary resize-none" />
             {errors.description && <p className="text-error text-[12px] mt-1">{errors.description}</p>}
           </div>
 
           <div>
             <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Tech Stack *</label>
-            <input required value={form.techStack} onChange={set('techStack')} placeholder="e.g. React, Node.js, Arduino" className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+            <input required value={form.techStack} onChange={set('techStack')} placeholder="e.g. React, Node.js, Arduino" className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
             <p className="font-sans text-[11px] text-ink-muted-48 mt-1">Separate technologies with commas.</p>
             {errors.techStack && <p className="text-error text-[12px] mt-1">{errors.techStack}</p>}
           </div>
@@ -1078,11 +1114,11 @@ function ProjectSubmitModal({ onClose, onSubmit }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">GitHub Link</label>
-              <input type="url" value={form.githubLink} onChange={set('githubLink')} placeholder="https://github.com/username/repo" className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+              <input type="url" value={form.githubLink} onChange={set('githubLink')} placeholder="https://github.com/username/repo" className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
             </div>
             <div>
               <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Demo Link</label>
-              <input type="url" value={form.demoLink} onChange={set('demoLink')} placeholder="https://your-demo.vercel.app" className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+              <input type="url" value={form.demoLink} onChange={set('demoLink')} placeholder="https://your-demo.vercel.app" className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
             </div>
           </div>
 
@@ -1171,25 +1207,25 @@ function AchievementSubmitModal({ onClose, onSubmit, loading }) {
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5 flex-1">
           <div>
             <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Title *</label>
-            <input required value={form.title} onChange={set('title')} placeholder="e.g. Won First Place at Hackathon" className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+            <input required value={form.title} onChange={set('title')} placeholder="e.g. Won First Place at Hackathon" className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
             {errors.title && <p className="text-error text-[12px] mt-1">{errors.title}</p>}
           </div>
 
           <div>
             <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Description *</label>
-            <textarea required value={form.description} onChange={set('description')} placeholder="Describe your achievement..." rows={4} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary resize-none" />
+            <textarea required value={form.description} onChange={set('description')} placeholder="Describe your achievement..." rows={4} className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary resize-none" />
             {errors.description && <p className="text-error text-[12px] mt-1">{errors.description}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Date *</label>
-              <input type="date" required value={form.date} onChange={set('date')} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+              <input type="date" required value={form.date} onChange={set('date')} className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
               {errors.date && <p className="text-error text-[12px] mt-1">{errors.date}</p>}
             </div>
             <div>
               <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Category</label>
-              <select value={form.category} onChange={set('category')} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary">
+              <select value={form.category} onChange={set('category')} className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary">
                 <option value="student">Student</option>
                 <option value="faculty">Faculty</option>
                 <option value="awards">Award</option>
@@ -1291,25 +1327,25 @@ function AchievementEditModal({ achievement, onClose, onSubmit, loading }) {
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5 flex-1">
           <div>
             <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Title *</label>
-            <input required value={form.title} onChange={set('title')} placeholder="e.g. Won First Place at Hackathon" className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+            <input required value={form.title} onChange={set('title')} placeholder="e.g. Won First Place at Hackathon" className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
             {errors.title && <p className="text-error text-[12px] mt-1">{errors.title}</p>}
           </div>
 
           <div>
             <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Description *</label>
-            <textarea required value={form.description} onChange={set('description')} placeholder="Describe your achievement..." rows={4} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary resize-none" />
+            <textarea required value={form.description} onChange={set('description')} placeholder="Describe your achievement..." rows={4} className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary resize-none" />
             {errors.description && <p className="text-error text-[12px] mt-1">{errors.description}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Date *</label>
-              <input type="datetime-local" required value={form.date} onChange={set('date')} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+              <input type="datetime-local" required value={form.date} onChange={set('date')} className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
               {errors.date && <p className="text-error text-[12px] mt-1">{errors.date}</p>}
             </div>
             <div>
               <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Category</label>
-              <select value={form.category} onChange={set('category')} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary">
+              <select value={form.category} onChange={set('category')} className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary">
                 <option value="student">Student</option>
                 <option value="faculty">Faculty</option>
                 <option value="awards">Award</option>
@@ -1406,14 +1442,14 @@ function GallerySubmitModal({ onClose, onSubmit, loading, initialData }) {
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5 flex-1">
           <div>
             <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Title *</label>
-            <input required value={form.title} onChange={set('title')} placeholder="e.g. Lab Workshop 2024" className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+            <input required value={form.title} onChange={set('title')} placeholder="e.g. Lab Workshop 2024" className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
             {errors.title && <p className="text-error text-[12px] mt-1">{errors.title}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Category</label>
-              <select value={form.category} onChange={set('category')} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary">
+              <select value={form.category} onChange={set('category')} className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary">
                 <option value="campus">Campus</option>
                 <option value="event">Event</option>
                 <option value="lab">Lab</option>
@@ -1422,7 +1458,7 @@ function GallerySubmitModal({ onClose, onSubmit, loading, initialData }) {
             </div>
             <div>
               <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Date</label>
-              <input type="datetime-local" value={form.date} onChange={set('date')} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+              <input type="datetime-local" value={form.date} onChange={set('date')} className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
             </div>
           </div>
 
@@ -1444,6 +1480,77 @@ function GallerySubmitModal({ onClose, onSubmit, loading, initialData }) {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  )
+}
+
+function DirectoryPanel({ data, loading, search, setSearch, batch, setBatch, selfId, onOpenProfile }) {
+  const students = (data?.data || []).filter((s) => s._id !== selfId)
+  const batches = Array.from(new Set(students.map((s) => s.batch).filter(Boolean))).sort((a, b) => String(b).localeCompare(String(a)))
+  const q = search.trim().toLowerCase()
+  const filtered = students.filter((s) => {
+    const matchSearch = !q || s.name?.toLowerCase().includes(q) || s.rollNumber?.toLowerCase().includes(q)
+    const matchBatch = !batch || s.batch === batch
+    return matchSearch && matchBatch
+  })
+
+  return (
+    <div>
+      <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-ink-muted-80">Campus Directory</p>
+          <h2 className="font-display text-[28px] font-semibold tracking-[-0.03em] text-ink">Students &amp; CRs</h2>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="font-sans text-[12px] font-semibold text-ink-muted-80">{filtered.length + 1} people</span>
+          <select
+            value={batch}
+            onChange={(e) => setBatch(e.target.value)}
+            className="bg-canvas border border-divider-soft rounded-xl px-3 py-2 text-[13px] font-sans text-ink focus:outline-none focus:border-primary/40 transition-colors"
+          >
+            <option value="">All Batches</option>
+            {batches.map((b) => (
+              <option key={b} value={b}>{b}</option>
+            ))}
+          </select>
+          <div className="relative">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name or roll..."
+              className="w-full md:w-64 bg-canvas border border-divider-soft rounded-xl pl-9 pr-4 py-2 text-[14px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary/40 transition-colors"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="p-6 rounded-2xl border border-divider-soft bg-white shadow-sm">
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="p-5 border border-divider-soft rounded-2xl bg-canvas animate-pulse">
+                <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-soft-stone" />
+                <div className="h-3 mx-auto mb-2 rounded bg-soft-stone w-28" />
+                <div className="h-2 mx-auto rounded bg-soft-stone w-16" />
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-12 text-center">
+            <p className="font-sans text-[15px] text-ink-muted-80">
+              {search || batch ? 'No students match your filters.' : 'No other students have joined yet.'}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {filtered.map((mate) => (
+              <BatchMateCard key={mate._id} mate={mate} onClick={() => onOpenProfile(mate._id)} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -41,6 +41,9 @@ export default function Gallery() {
       qc.invalidateQueries({ queryKey: ['gallery'] })
       setShowUpload(false)
     },
+    onError: (err) => {
+      alert(err.response?.data?.error || err.message || 'Upload failed')
+    },
   })
 
   useEffect(() => {
@@ -74,7 +77,7 @@ export default function Gallery() {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div className="flex gap-2 overflow-x-auto pb-2 border-b border-hairline">
+          <div className="flex gap-2 overflow-x-auto pb-2 border-b border-hairline w-full sm:w-auto">
             {CATEGORIES.map((c) => (
               <button
                 key={c}
@@ -262,13 +265,13 @@ function UploadModal({ onClose, onSubmit, loading }) {
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5 flex-1">
           <div>
             <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Title *</label>
-            <input required value={form.title} onChange={set('title')} placeholder="e.g. Lab Workshop 2024" className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+            <input required value={form.title} onChange={set('title')} placeholder="e.g. Lab Workshop 2024" className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Category</label>
-              <select value={form.category} onChange={set('category')} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary">
+              <select value={form.category} onChange={set('category')} className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary">
                 <option value="campus">Campus</option>
                 <option value="event">Event</option>
                 <option value="lab">Lab</option>
@@ -277,7 +280,7 @@ function UploadModal({ onClose, onSubmit, loading }) {
             </div>
             <div>
               <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Date</label>
-              <input type="date" value={form.date} onChange={set('date')} className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
+              <input type="date" value={form.date} onChange={set('date')} className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary" />
             </div>
           </div>
 

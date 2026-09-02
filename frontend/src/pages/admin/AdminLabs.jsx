@@ -1,9 +1,9 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getLabs, createLab, updateLab, deleteLab } from '../../api/labs'
 import { Check, X } from 'lucide-react'
 
-const BLANK = { name: '', icon: '🧪', desc: '', equip: '' }
+const BLANK = { name: '', icon: '??', desc: '', equip: '' }
 
 export default function AdminLabs() {
   const qc = useQueryClient()
@@ -46,7 +46,7 @@ export default function AdminLabs() {
     setEditing(l)
     setForm({
       name: l.name || '',
-      icon: l.icon || '🧪',
+      icon: l.icon || '??',
       desc: l.desc || '',
       equip: (l.equip || []).join(', ')
     })
@@ -74,7 +74,7 @@ export default function AdminLabs() {
 
     const fd = new FormData()
     fd.append('name', form.name.trim())
-    fd.append('icon', form.icon || '🧪')
+    fd.append('icon', form.icon || '??')
     fd.append('desc', form.desc.trim())
     fd.append('equip', form.equip ? form.equip.split(',').map(s => s.trim()).filter(Boolean).join(',') : '')
     if (file) fd.append('image', file)
@@ -95,7 +95,7 @@ export default function AdminLabs() {
       </div>
 
       {showForm && (
-        <div className="border border-divider-soft bg-surface-pearl p-6 mb-8 rounded-xl shadow-sm">
+        <div className="border border-divider-soft bg-white p-6 mb-8 rounded-xl shadow-sm">
           <h2 className="font-display font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Laboratory' : 'New Laboratory'}</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <div>
@@ -132,28 +132,28 @@ export default function AdminLabs() {
                 </div>
               )}
               {editing && !file && preview && (
-                <p className="font-sans text-[12px] text-ink-muted-80 mt-2">Existing image retained — upload a new file to replace.</p>
+                <p className="font-sans text-[12px] text-ink-muted-80 mt-2">Existing image retained � upload a new file to replace.</p>
               )}
             </div>
           </div>
           {error && <p className="font-sans text-red-500 text-[14px] font-medium mt-4">{error}</p>}
           <button onClick={handleSave} disabled={saveMut.isPending || !form.name} className="button-primary mt-6">
-            {saveMut.isPending ? 'Saving…' : (editing ? 'Update Lab' : 'Add Lab')}
+            {saveMut.isPending ? 'Saving�' : (editing ? 'Update Lab' : 'Add Lab')}
           </button>
         </div>
       )}
 
-      {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading laboratories…</p>
+      {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading laboratories�</p>
         : labs.length === 0 ? <p className="font-sans text-ink-muted-80 text-[15px]">No labs added yet. Add one above.</p>
         : (
-          <div className="border border-divider-soft bg-surface-pearl rounded-xl overflow-hidden shadow-sm divide-y divide-hairline">
+          <div className="border border-divider-soft bg-white rounded-xl overflow-hidden shadow-sm divide-y divide-hairline">
             {labs.map(l => (
               <div key={l._id} className="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 hover:bg-canvas-parchment transition-colors">
                 {l.image ? (
                   <img src={l.image} alt={l.name} className="w-14 h-14 rounded-22px object-cover border border-hairline flex-shrink-0 shadow-sm" />
                 ) : (
                   <div className="w-14 h-14 rounded-22px bg-soft-stone flex items-center justify-center text-[24px] border border-hairline flex-shrink-0 shadow-sm">
-                    {l.icon || <span>🧪</span>}
+                    {l.icon || <span>??</span>}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">

@@ -142,7 +142,7 @@ export default function Network() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-8 overflow-x-auto p-1 bg-surface-pearl border border-divider-soft rounded-[999px] w-max max-w-full">
+        <div className="flex gap-2 mb-8 overflow-x-auto p-1 bg-white border border-divider-soft rounded-[999px] w-max max-w-full">
           {['all', 'students', 'faculty'].map((tab) => (
             <button
               key={tab}

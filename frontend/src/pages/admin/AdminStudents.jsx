@@ -18,7 +18,7 @@ export default function AdminStudents() {
         {[['add','Add Students'],['directory','Directory']].map(([id,label]) => (
           <button key={id} onClick={() => setTab(id)}
             className={`font-sans text-[14px] font-medium capitalize px-4 py-2 flex-none border-b-2 transition-colors rounded-t-md ${
-              tab===id ? 'text-ink border-primary bg-surface-pearl' : 'text-ink-muted-80 border-transparent hover:text-ink hover:bg-surface-pearl/50'
+              tab===id ? 'text-ink border-primary bg-white' : 'text-ink-muted-80 border-transparent hover:text-ink hover:bg-white/50'
             }`}>
             {label}
           </button>
@@ -97,7 +97,7 @@ function AddTab({ qc }) {
         {[['single','Add Single'],['csv','Bulk CSV Import']].map(([id,label]) => (
           <button key={id} onClick={() => { setMode(id); setMsg(''); setError('') }}
             className={`font-sans text-[13px] font-medium uppercase tracking-widest px-4 py-2 rounded-lg border transition-colors ${
-              mode===id ? 'border-primary text-primary bg-primary/10' : 'border-divider-soft text-ink-muted-80 hover:text-ink hover:bg-surface-pearl'
+              mode===id ? 'border-primary text-primary bg-primary/10' : 'border-divider-soft text-ink-muted-80 hover:text-ink hover:bg-white'
             }`}>
             {label}
           </button>
@@ -105,7 +105,7 @@ function AddTab({ qc }) {
       </div>
 
       {mode === 'single' && (
-        <div className="border border-divider-soft bg-surface-pearl p-6 rounded-xl shadow-sm">
+        <div className="border border-divider-soft bg-white p-6 rounded-xl shadow-sm">
           <p className="text-[14px] font-sans text-ink-muted-80 mb-6">
             Add one student at a time. They'll get an account with no password — they activate it themselves at <span className="text-primary font-medium">/activate</span>
           </p>
@@ -150,7 +150,7 @@ function AddTab({ qc }) {
       )}
 
       {mode === 'csv' && (
-        <div className="border border-divider-soft bg-surface-pearl p-6 rounded-xl shadow-sm">
+        <div className="border border-divider-soft bg-white p-6 rounded-xl shadow-sm">
           <p className="text-[14px] font-sans text-ink-muted-80 mb-4">
             Upload a CSV file to add a whole batch at once.
           </p>
@@ -174,7 +174,7 @@ function AddTab({ qc }) {
               <p className="text-[14px] font-sans text-ink-muted-80 mb-3">{csvRows.length} students ready to import:</p>
               <div className="border border-divider-soft rounded-lg max-h-64 overflow-y-auto bg-canvas">
                 {csvRows.map((r, i) => (
-                  <div key={i} className="flex gap-4 px-4 py-3 border-b border-divider-soft last:border-b-0 text-[14px] hover:bg-surface-pearl">
+                  <div key={i} className="flex gap-4 px-4 py-3 border-b border-divider-soft last:border-b-0 text-[14px] hover:bg-white">
                     <span className="font-sans font-semibold text-primary w-20 flex-shrink-0">{r.rollNumber}</span>
                     <span className="flex-1 truncate text-ink">{r.name || '(No name)'}</span>
                     <span className="font-sans text-[12px] font-medium text-ink-muted-80">{r.batch}</span>
@@ -222,7 +222,7 @@ function DirectoryTab({ qc }) {
         {['', ...['2023-2027','2024-2028','2025-2029','2026-2030']].map(b => (
           <button key={b} onClick={() => setBatch(b)}
             className={`font-sans text-[13px] font-medium uppercase tracking-widest px-4 py-2 rounded-lg border transition-colors ${
-              batch===b ? 'border-primary text-primary bg-primary/10' : 'border-divider-soft text-ink-muted-80 hover:text-ink hover:bg-surface-pearl'
+              batch===b ? 'border-primary text-primary bg-primary/10' : 'border-divider-soft text-ink-muted-80 hover:text-ink hover:bg-white'
             }`}>
             {b || 'All Batches'}
           </button>
@@ -233,7 +233,7 @@ function DirectoryTab({ qc }) {
       : students.length === 0 ? (
         <p className="font-sans text-[15px] text-ink-muted-80">No students found. Add some in the Add Students tab.</p>
       ) : (
-        <div className="border border-divider-soft bg-surface-pearl rounded-xl overflow-hidden shadow-sm">
+        <div className="border border-divider-soft bg-white rounded-xl overflow-hidden shadow-sm">
           {students.map(s => (
             <div key={s._id} className="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
               <div className="flex-1 min-w-0">

@@ -71,7 +71,7 @@ export default function AdminRooms() {
       </div>
 
       {showForm && (
-        <div className="border border-divider-soft bg-surface-pearl p-6 mb-8 rounded-xl shadow-sm">
+        <div className="border border-divider-soft bg-white p-6 mb-8 rounded-xl shadow-sm">
           <h2 className="font-display font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Room' : 'New Room'}</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <div>
@@ -119,7 +119,7 @@ export default function AdminRooms() {
         : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {rooms.map(room => (
-              <div key={room._id} className="border border-divider-soft bg-surface-pearl rounded-xl p-5 shadow-sm hover:border-primary/30 transition-colors">
+              <div key={room._id} className="border border-divider-soft bg-white rounded-xl p-5 shadow-sm hover:border-primary/30 transition-colors">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg" style={{ backgroundColor: room.color }}>

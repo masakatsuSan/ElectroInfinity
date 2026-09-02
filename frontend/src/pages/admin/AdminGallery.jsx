@@ -1,4 +1,4 @@
-ï»¿import { useState } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getGallery, createGalleryPhoto, updateGalleryPhoto, deleteGalleryPhoto } from '../../api/gallery'
 import { Check } from 'lucide-react'
@@ -72,7 +72,7 @@ export default function AdminGallery() {
       </div>
 
       {showForm && (
-        <div className="border border-divider-soft bg-surface-pearl p-6 mb-8 rounded-xl shadow-sm">
+        <div className="border border-divider-soft bg-white p-6 mb-8 rounded-xl shadow-sm">
           <h2 className="font-display font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Moment' : 'Add Gallery Moment'}</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <div className="sm:col-span-2">
@@ -94,19 +94,19 @@ export default function AdminGallery() {
               <input type="file" accept="image/*" onChange={e => setFile(e.target.files[0])}
                 className="mt-1 font-sans text-[14px] text-ink-muted-80 file:mr-4 file:bg-canvas-parchment file:text-ink file:border file:border-divider-soft file:rounded-lg file:px-4 file:py-2 file:cursor-pointer" />
               {editing && !file && form.imageUrl && (
-                <p className="font-sans text-[12px] text-ink-muted-80 mt-2">Existing image retained (current URL) â€” upload a new file to replace.</p>
+                <p className="font-sans text-[12px] text-ink-muted-80 mt-2">Existing image retained (current URL) — upload a new file to replace.</p>
               )}
             </div>
             {file &&             <p className="font-sans text-[13px] font-medium text-green-500 mt-3"><Check size={14} /> {file.name} ({(file.size / 1024).toFixed(0)} KB)</p>}
           </div>
           {error && <p className="font-sans text-red-500 text-[14px] font-medium mt-4">{error}</p>}
           <button onClick={handleSave} disabled={saveMut.isPending || (!file && !form.imageUrl) || !form.title} className="button-primary mt-6">
-            {saveMut.isPending ? 'Savingâ€¦' : (editing ? 'Update Moment' : 'Add Moment')}
+            {saveMut.isPending ? 'Saving…' : (editing ? 'Update Moment' : 'Add Moment')}
           </button>
         </div>
       )}
 
-      {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading galleryâ€¦</p>
+      {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading gallery…</p>
         : photos.length === 0 ? <p className="font-sans text-ink-muted-80 text-[15px]">No moments yet. Add one above.</p>
         : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

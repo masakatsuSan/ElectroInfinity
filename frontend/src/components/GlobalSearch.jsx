@@ -170,7 +170,7 @@ export default function GlobalSearch({ onClose }) {
             className="flex-1 bg-transparent text-ink text-[15px] outline-none placeholder:text-ink-muted-48"
           />
           <button onClick={onClose}
-            className="font-mono text-[10px] uppercase tracking-wider text-ink-muted-48 hover:text-ink border border-divider-soft px-2 py-1 flex-shrink-0 rounded bg-surface-pearl">
+            className="font-mono text-[10px] uppercase tracking-wider text-ink-muted-48 hover:text-ink border border-divider-soft px-2 py-1 flex-shrink-0 rounded bg-white">
             ESC
           </button>
         </div>
@@ -188,14 +188,14 @@ export default function GlobalSearch({ onClose }) {
             {loading ? (
               <div className="flex flex-col gap-2 py-2">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="h-9 bg-surface-pearl rounded animate-pulse border border-divider-soft" />
+                  <div key={i} className="h-9 bg-white rounded animate-pulse border border-divider-soft" />
                 ))}
               </div>
             ) : (
               <div className="flex flex-col">
                 {displayItems.map((r, i) => (
                   <div key={i} onClick={() => go(r.to)}
-                    className="flex items-center gap-3 py-3 border-b border-divider-soft last:border-b-0 text-left hover:bg-surface-pearl -mx-5 px-5 transition-colors group cursor-pointer">
+                    className="flex items-center gap-3 py-3 border-b border-divider-soft last:border-b-0 text-left hover:bg-white -mx-5 px-5 transition-colors group cursor-pointer">
                     {r.avatar ? (
                       <img src={r.avatar} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                     ) : (

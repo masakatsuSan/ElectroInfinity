@@ -186,7 +186,7 @@ export default function EditProfile() {
         </div>
 
          {/* Tabs */}
-         <div className="flex gap-2 mb-8 overflow-x-auto p-1 bg-surface-pearl border border-divider-soft rounded-[999px] w-max max-w-full">
+         <div className="flex gap-2 mb-8 overflow-x-auto p-1 bg-white border border-divider-soft rounded-[999px] w-max max-w-full">
           {TABS.map((tab) => (
             <button
               key={tab.id}
@@ -206,7 +206,7 @@ export default function EditProfile() {
         <div className="grid gap-6 md:grid-cols-3">
           <div className="md:col-span-2 space-y-6">
             {activeTab === 'general' && (
-              <div className="p-6 md:p-8 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm space-y-6">
+              <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-2xl shadow-sm space-y-6">
                 <h2 className="font-display text-[22px] font-bold text-ink">General Information</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
@@ -268,7 +268,7 @@ export default function EditProfile() {
             )}
 
             {activeTab === 'about' && (
-              <div className="p-6 md:p-8 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm space-y-6">
+              <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-2xl shadow-sm space-y-6">
                 <h2 className="font-display text-[22px] font-bold text-ink">About</h2>
                 <div>
                   <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Bio</label>
@@ -306,7 +306,7 @@ export default function EditProfile() {
             )}
 
             {activeTab === 'skills' && (
-              <div className="p-6 md:p-8 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm space-y-6">
+              <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-2xl shadow-sm space-y-6">
                 <h2 className="font-display text-[22px] font-bold text-ink">Skills, Interests & Languages</h2>
                 <div>
                   <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Skills</label>
@@ -340,7 +340,7 @@ export default function EditProfile() {
             )}
 
             {activeTab === 'social' && (
-              <div className="p-6 md:p-8 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm space-y-6">
+              <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-2xl shadow-sm space-y-6">
                 <h2 className="font-display text-[22px] font-bold text-ink">Social Links</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {socialPlatforms.map((platform) => (
@@ -359,7 +359,7 @@ export default function EditProfile() {
             )}
 
             {activeTab === 'privacy' && (
-              <div className="p-6 md:p-8 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm space-y-6">
+              <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-2xl shadow-sm space-y-6">
                 <h2 className="font-display text-[22px] font-bold text-ink">Privacy Settings</h2>
                 <div>
                   <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-2">Profile Visibility</label>
@@ -391,7 +391,7 @@ export default function EditProfile() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Save Button */}
-            <div className="p-6 border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm">
+            <div className="p-6 border border-divider-soft bg-white rounded-2xl shadow-sm">
               <button
                 onClick={handleSave}
                 disabled={saving}

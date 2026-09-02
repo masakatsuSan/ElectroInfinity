@@ -12,7 +12,7 @@ const typeConfig = {
 export default function ActivityTimeline({ activities }) {
   if (!activities || activities.length === 0) {
     return (
-      <div className="py-12 text-center border border-divider-soft rounded-2xl bg-surface-pearl">
+      <div className="py-12 text-center border border-divider-soft rounded-2xl bg-white">
         <p className="font-sans text-[15px] text-ink-muted-80">No activity yet.</p>
       </div>
     )
@@ -27,7 +27,7 @@ export default function ActivityTimeline({ activities }) {
         return (
           <div
             key={activity._id}
-            className="flex gap-4 p-5 border border-divider-soft bg-surface-pearl rounded-2xl hover:shadow-sm transition-shadow"
+            className="flex gap-4 p-5 border border-divider-soft bg-white rounded-2xl hover:shadow-sm transition-shadow"
           >
             <div className={`w-10 h-10 rounded-full ${config.bg} flex items-center justify-center flex-shrink-0`}>
               <Icon size={18} className={config.color} />

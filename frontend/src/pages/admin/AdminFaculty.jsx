@@ -1,4 +1,4 @@
-ï»¿import { useState } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getFaculty, createFaculty, updateFaculty, deleteFaculty } from '../../api/faculty'
 
@@ -60,7 +60,7 @@ export default function AdminFaculty() {
       </div>
 
       {showForm && (
-        <div className="border border-divider-soft bg-surface-pearl p-6 mb-8 rounded-xl shadow-sm">
+        <div className="border border-divider-soft bg-white p-6 mb-8 rounded-xl shadow-sm">
           <h2 className="font-display font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Faculty' : 'New Faculty Member'}</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <div className="sm:col-span-2">
@@ -96,15 +96,15 @@ export default function AdminFaculty() {
           </div>
           {error && <p className="font-sans text-red-500 text-[14px] font-medium mt-4">{error}</p>}
           <button onClick={handleSave} disabled={saveMut.isPending || !form.name} className="button-primary mt-6">
-            {saveMut.isPending ? 'Savingâ€¦' : (editing ? 'Update Faculty' : 'Add Faculty')}
+            {saveMut.isPending ? 'Saving…' : (editing ? 'Update Faculty' : 'Add Faculty')}
           </button>
         </div>
       )}
 
-      {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading facultyâ€¦</p>
+      {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading faculty…</p>
         : faculty.length === 0 ? <p className="font-sans text-ink-muted-80 text-[15px]">No faculty profiles yet. Add one above.</p>
         : (
-          <div className="border border-divider-soft bg-surface-pearl rounded-xl overflow-hidden shadow-sm">
+          <div className="border border-divider-soft bg-white rounded-xl overflow-hidden shadow-sm">
             {faculty.map(f => (
               <div key={f._id} className="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
                 <div className="w-12 h-12 rounded-22px bg-soft-stone flex items-center justify-center flex-shrink-0 overflow-hidden border border-hairline shadow-sm">

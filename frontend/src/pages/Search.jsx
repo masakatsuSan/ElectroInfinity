@@ -99,7 +99,7 @@ export default function SearchPage() {
             value={query}
             onChange={(e) => { setQuery(e.target.value); setPage(1) }}
             placeholder="Search by name, username, department, batch…"
-            className="w-full bg-surface-pearl border border-divider-soft rounded-2xl pl-12 pr-24 py-4 text-[15px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary/40 transition-colors shadow-sm"
+            className="w-full bg-white border border-divider-soft rounded-2xl pl-12 pr-24 py-4 text-[15px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary/40 transition-colors shadow-sm"
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
             {query && (
@@ -131,7 +131,7 @@ export default function SearchPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-surface-pearl border border-divider-soft rounded-2xl p-5 mb-8 shadow-sm overflow-hidden"
+            className="bg-white border border-divider-soft rounded-2xl p-5 mb-8 shadow-sm overflow-hidden"
           >
             <div className="flex flex-wrap gap-4">
               <div className="flex-1 min-w-[180px]">

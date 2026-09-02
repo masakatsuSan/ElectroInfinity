@@ -3,7 +3,7 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GlobalSearch from './GlobalSearch';
 import NotificationBell from './NotificationBell';
-import { LayoutGrid, School, Contact, MessagesSquare, QrCode, BarChart3, CalendarClock, ScanQrCode, Search, ChevronDown, ChevronRight, Power, Menu, X, Megaphone, Zap, Camera, BookOpen, FlaskConical, Briefcase, Rocket, Image, UserCheck, FolderOpen, GraduationCap, Beaker, FileText } from 'lucide-react'
+import { LayoutGrid, School, Contact, MessagesSquare, QrCode, BarChart3, CalendarClock, ScanQrCode, Search, ChevronDown, ChevronRight, Power, Menu, X, Megaphone, Zap, Camera, BookOpen, FlaskConical, Briefcase, Rocket, Image, UserCheck, FolderOpen, GraduationCap, Beaker, FileText, Download } from 'lucide-react'
 
 const NAV_GROUPS = [
   {
@@ -44,6 +44,8 @@ export default function Navbar({ onForumFlip }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(null);
+  const [installPromptEvent, setInstallPromptEvent] = useState(null);
+  const [appInstalled, setAppInstalled] = useState(false);
   const profileRef = useRef(null);
   const dropdownRefs = useRef({});
   const userRole = String(user?.role ?? '').trim().toLowerCase();
@@ -85,6 +87,33 @@ export default function Navbar({ onForumFlip }) {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // Capture PWA install prompt
+  useEffect(() => {
+    const onBeforeInstall = (e) => {
+      e.preventDefault();
+      setInstallPromptEvent(e);
+    };
+    const onAppInstalled = () => {
+      setAppInstalled(true);
+      setInstallPromptEvent(null);
+    };
+    window.addEventListener('beforeinstallprompt', onBeforeInstall);
+    window.addEventListener('appinstalled', onAppInstalled);
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+      setAppInstalled(true);
+    }
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBeforeInstall);
+      window.removeEventListener('appinstalled', onAppInstalled);
+    };
+  }, []);
+
+  const isIosDevice = () => {
+    if (typeof navigator === 'undefined') return false;
+    const ua = navigator.userAgent || '';
+    return /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  };
+
   // Close profile dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -105,6 +134,20 @@ export default function Navbar({ onForumFlip }) {
     setProfileOpen(false);
     logout();
     navigate('/login');
+  };
+
+  const handleInstallApp = async () => {
+    if (!installPromptEvent) return;
+    closeMenu();
+    try {
+      installPromptEvent.prompt();
+      const choice = await installPromptEvent.userChoice;
+      if (choice?.outcome === 'accepted') {
+        setInstallPromptEvent(null);
+      }
+    } catch (_) {
+      setInstallPromptEvent(null);
+    }
   };
 
   const navLinkClass = (isActive) =>
@@ -188,7 +231,7 @@ export default function Navbar({ onForumFlip }) {
   return (
     <>
       <nav className="fixed left-0 right-0 z-50 flex justify-center px-4 transition-all duration-200 pointer-events-none top-4">
-        <div className="w-full max-w-[1280px] rounded-full px-6 py-2.5 flex items-center justify-between pointer-events-auto bg-canvas/95 backdrop-blur-md border border-hairline shadow-card">
+        <div className="w-full max-w-[1280px] rounded-full px-6 py-2.5 flex items-center justify-between pointer-events-auto bg-white/95 backdrop-blur-md border border-hairline shadow-card">
           
           {/* Left: Brand Logo */}
           <div className="flex items-center gap-1">
@@ -317,7 +360,7 @@ export default function Navbar({ onForumFlip }) {
 
                 {/* Dropdown Menu */}
                 {profileOpen && (
-                  <div className="absolute right-0 z-50 p-2 mt-2 duration-150 border w-72 bg-canvas text-ink border-hairline rounded-2xl shadow-modal animate-in fade-in zoom-in-95">
+                  <div className="absolute right-0 z-50 p-2 mt-2 duration-150 border w-72 bg-white text-ink border-hairline rounded-2xl shadow-modal animate-in fade-in zoom-in-95">
                     {/* Header info */}
                     <div className="p-3 mb-2 bg-soft-stone rounded-xl">
                       <div className="flex items-center justify-between gap-2 mb-1">
@@ -471,9 +514,12 @@ export default function Navbar({ onForumFlip }) {
 
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-error hover:bg-red-50 transition-colors text-left font-medium"
+                        className="w-full flex items-center gap-2.5 p-3 mt-1 rounded-xl border border-error/20 bg-gradient-to-br from-error/5 to-white hover:from-error/10 hover:to-white transition-colors text-left"
                       >
-                        <Power size={16} /> Sign Out
+                        <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-error text-white flex-shrink-0">
+                          <Power size={15} strokeWidth={2} />
+                        </span>
+                        <span className="flex-1 font-sans text-[13px] font-semibold text-error">Sign Out</span>
                       </button>
                     </div>
                   </div>
@@ -528,93 +574,120 @@ export default function Navbar({ onForumFlip }) {
             </div>
           )}
 
-          <nav className="flex flex-col py-2 space-y-3">
+          <nav className="flex flex-col gap-6">
             {user && (
-              <div className="flex flex-col gap-2 mb-2">
-                <Link to={`/profile/${user._id}`} onClick={closeMenu} className="justify-center w-full button-secondary">
-                  <UserCheck size={16} /> My Profile
-                </Link>
+              <div className="p-4 bg-white border border-divider-soft rounded-2xl">
+                <h3 className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-80 mb-3">Quick Actions</h3>
+                <div className="flex flex-col gap-2">
+                  <Link to={`/profile/${user._id}`} onClick={closeMenu} className="button-secondary w-full justify-center">
+                    <UserCheck size={16} /> My Profile
+                  </Link>
+                  {(user.role === 'faculty') && (
+                    <>
+                      <Link to="/faculty/dashboard" onClick={closeMenu} className="button-secondary w-full justify-center">
+                        <Megaphone size={16} /> Faculty Dashboard
+                      </Link>
+                      <Link to="/attendance/faculty" onClick={closeMenu} className="button-primary w-full justify-center !bg-deep-green">
+                        <Zap size={16} /> Take Attendance
+                      </Link>
+                    </>
+                  )}
+                  {(user.role === 'cr' || user.role === 'admin') && (
+                    <Link to="/admin" onClick={closeMenu} className="justify-center w-full button-secondary">
+                      {user.role === 'admin' ? 'Admin Dashboard' : 'CR Panel'}
+                    </Link>
+                  )}
+                  {(user.role === 'student' || user.role === 'cr') && (
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <Link to="/scan-qr" onClick={closeMenu} className="button-primary justify-center !rounded-2xl !py-3 !px-3 text-[13px]">
+                        <ScanQrCode size={15} /> Scan Profile QR
+                      </Link>
+                      <Link to="/attendance/student" onClick={closeMenu} className="button-primary justify-center !rounded-2xl !py-3 !px-3 text-[13px]">
+                        <Camera size={15} /> Scan Class QR
+                      </Link>
+                      <Link to="/students" onClick={closeMenu} className="button-secondary justify-center col-span-2 !rounded-2xl">
+                        My Dashboard & Attendance
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
             {NAV_GROUPS.map(group => (
-              <div key={group.label} className="border-b border-hairline pb-2.5">
-                <h3 className="font-mono text-[15px] font-bold uppercase tracking-wider text-ink mb-2">{group.label}</h3>
-                <div className="flex flex-col gap-2">
-                  {group.items.map(item => (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      onClick={closeMenu}
-                      className={({ isActive }) =>
-                        `block rounded-xl px-3 py-2.5 font-display text-[14px] font-normal transition-colors ${
-                          isActive ? 'bg-soft-stone text-deep-green font-semibold' : 'text-body-muted hover:bg-soft-stone hover:text-ink'
-                        }`
-                      }
-                    >
-                      {item.label}
-                    </NavLink>
-                  ))}
+              <div key={group.label}>
+                <h3 className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-80 mb-2.5 px-1">{group.label}</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {group.items.map(item => {
+                    const Icon = item.icon;
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        onClick={closeMenu}
+                        className={({ isActive }) =>
+                          `flex items-center gap-2.5 px-3 py-3 rounded-xl border transition-all ${
+                            isActive
+                              ? 'bg-soft-stone border-divider-soft text-ink font-semibold'
+                              : 'bg-white border-transparent text-body-muted hover:border-divider-soft hover:text-ink'
+                          }`
+                        }
+                      >
+                        {Icon && <Icon size={18} strokeWidth={1.75} className="flex-shrink-0" />}
+                        <span className="font-sans text-[13px] font-medium truncate">{item.label}</span>
+                      </NavLink>
+                    );
+                  })}
                 </div>
               </div>
             ))}
-            
-            {STANDALONE_LINKS.map((l) => (
-              <NavLink
-                key={l.to}
-                to={l.to}
-                onClick={closeMenu}
-                className={({ isActive }) =>
-                  `font-display text-[20px] font-semibold border-b border-hairline pb-2.5 transition-colors ${
-                    isActive ? 'text-deep-green' : 'text-ink hover:text-deep-green'
-                  }`
-                }
-              >
-                {l.label}
-              </NavLink>
+
+            {STANDALONE_LINKS.map(l => (
+              <div key={l.to}>
+                <h3 className="font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-80 mb-2.5 px-1">More</h3>
+                <NavLink
+                  to={l.to}
+                  onClick={closeMenu}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2.5 px-3 py-3 rounded-xl border transition-all ${
+                      isActive
+                        ? 'bg-soft-stone border-divider-soft text-ink font-semibold'
+                        : 'bg-white border-transparent text-body-muted hover:border-divider-soft hover:text-ink'
+                    }`
+                  }
+                >
+                  <span className="font-sans text-[13px] font-medium">{l.label}</span>
+                </NavLink>
+              </div>
             ))}
 
-              <div className="pt-4 space-y-2">
-                {user ? (
-                  <div className="flex flex-col gap-2">
-                    {(user.role === 'faculty') && (
-                      <>
-                        <Link to="/faculty/dashboard" onClick={closeMenu} className="button-secondary w-full justify-center">
-                          <Megaphone size={16} /> Faculty Dashboard
-                        </Link>
-                        <Link to="/attendance/faculty" onClick={closeMenu} className="button-primary w-full justify-center !bg-deep-green">
-                          <Zap size={16} /> Take Attendance
-                        </Link>
-                      </>
-                    )}
-                    {(user.role === 'cr' || user.role === 'admin') && (
-                      <Link to="/admin" onClick={closeMenu} className="justify-center w-full button-secondary">
-                        {user.role === 'admin' ? 'Admin Dashboard' : 'CR Panel'}
-                      </Link>
-                    )}
-                    {(user.role === 'student' || user.role === 'cr') && (
-                      <>
-                        <Link to="/scan-qr" onClick={closeMenu} className="justify-center w-full button-primary">
-                          <ScanQrCode size={16} /> Scan Profile QR
-                        </Link>
-                        <Link to="/attendance/student" onClick={closeMenu} className="justify-center w-full button-primary">
-                          <Camera size={16} /> Scan Class QR
-                        </Link>
-                        <Link to="/students" onClick={closeMenu} className="justify-center w-full button-secondary">
-                          My Dashboard & Attendance
-                        </Link>
-                      </>
-                    )}
-                    <button onClick={() => { logout(); closeMenu() }} className="font-sans text-[15px] text-error font-semibold text-left py-2">
-                      Sign out
-                    </button>
-                  </div>
+            <button onClick={() => { logout(); closeMenu() }} className="w-full flex items-center gap-3 p-3 rounded-2xl border border-error/20 bg-gradient-to-br from-error/5 to-white hover:from-error/10 transition-colors text-left mt-2">
+              <span className="w-9 h-9 flex items-center justify-center rounded-xl bg-error text-white flex-shrink-0">
+                <Power size={17} strokeWidth={2} />
+              </span>
+              <span className="font-sans text-[15px] font-semibold text-error flex-1">Sign Out</span>
+            </button>
+
+            {!appInstalled && (installPromptEvent || isIosDevice()) && (
+              <div className="mt-2 p-3 rounded-2xl border border-hairline bg-gradient-to-br from-primary/10 to-canvas">
+                {installPromptEvent ? (
+                  <button
+                    onClick={handleInstallApp}
+                    className="w-full flex items-center justify-center gap-2.5 px-3 py-3 rounded-xl bg-primary text-white font-semibold hover:bg-primary/90 transition-colors"
+                  >
+                    <Download size={18} strokeWidth={1.75} />
+                    <span className="font-sans text-[14px]">Install App</span>
+                  </button>
                 ) : (
-                  <Link to="/login" onClick={closeMenu} className="justify-center w-full button-primary">
-                    Sign in
-                  </Link>
+                  <div className="text-[13px] font-sans text-body-muted leading-relaxed">
+                    <p className="font-display font-bold text-ink mb-1 flex items-center gap-2">
+                      <Download size={16} strokeWidth={1.75} /> Install App
+                    </p>
+                    <p>Tap the <span className="font-semibold">Share</span> button, then choose <span className="font-semibold">"Add to Home Screen"</span> to install Electro Infinity on your iPhone.</p>
+                  </div>
                 )}
               </div>
+            )}
           </nav>
         </div>
       </div>

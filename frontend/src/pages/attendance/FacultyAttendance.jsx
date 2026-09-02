@@ -421,7 +421,7 @@ export default function FacultyAttendance() {
   return (
     <div className="min-h-screen bg-canvas text-ink pt-[48px] pb-16">
       {/* ── Header ── */}
-      <header className="px-3 py-3 border-b shadow-sm sm:px-6 sm:py-5 border-divider-soft bg-surface-pearl">
+      <header className="px-3 py-3 border-b shadow-sm sm:px-6 sm:py-5 border-divider-soft bg-white">
         <div className="flex flex-col justify-between max-w-6xl gap-2 mx-auto sm:gap-4 sm:flex-row sm:items-center">
           <div>
             <div className="flex items-center gap-2">
@@ -465,7 +465,7 @@ export default function FacultyAttendance() {
               className={`font-sans text-[12px] sm:text-[14px] font-semibold px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap ${
                 tab === id
                   ? 'bg-ink text-canvas shadow-sm'
-                  : 'text-ink-muted-80 hover:text-ink hover:bg-surface-pearl'
+                  : 'text-ink-muted-80 hover:text-ink hover:bg-white'
               }`}
             >
               <span>{label}</span>
@@ -473,7 +473,7 @@ export default function FacultyAttendance() {
                 <span className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full ${
                   id === 'take' && session
                     ? 'bg-green-500 text-white animate-pulse'
-                    : tab === id ? 'bg-white/20 text-white' : 'bg-surface-pearl text-ink-muted-80 border border-divider-soft'
+                    : tab === id ? 'bg-white/20 text-white' : 'bg-white text-ink-muted-80 border border-divider-soft'
                 }`}>
                   {badge}
                 </span>
@@ -504,7 +504,7 @@ export default function FacultyAttendance() {
         {tab === 'take' && (
           <div>
             {!session ? (
-              <section className="max-w-2xl p-3 mx-auto border shadow-sm sm:p-6 border-divider-soft bg-surface-pearl rounded-2xl md:p-8">
+              <section className="max-w-2xl p-3 mx-auto border shadow-sm sm:p-6 border-divider-soft bg-white rounded-2xl md:p-8">
                 <div className="mb-4 sm:mb-6">
                   <h2 className="font-display text-[18px] sm:text-[22px] font-bold text-ink">Start Class Session</h2>
                   <p className="font-sans text-[12px] sm:text-[14px] text-ink-muted-80 mt-1">
@@ -607,7 +607,7 @@ export default function FacultyAttendance() {
               /* Active Session Live Console */
               <div className="grid gap-4 sm:gap-6 lg:grid-cols-12">
                 {/* QR Section */}
-                <section className="flex flex-col items-center p-3 text-center border shadow-sm sm:p-6 lg:col-span-5 border-divider-soft bg-surface-pearl rounded-2xl">
+                <section className="flex flex-col items-center p-3 text-center border shadow-sm sm:p-6 lg:col-span-5 border-divider-soft bg-white rounded-2xl">
                   <div className="flex flex-col items-start justify-between w-full gap-2 pb-2 mb-3 border-b sm:flex-row sm:items-center sm:pb-4 sm:mb-6 border-divider-soft">
                     <div className="text-left">
                       <span className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[12px] font-bold bg-green-500/10 text-green-600 border border-green-500/20 uppercase tracking-wider">
@@ -701,7 +701,7 @@ export default function FacultyAttendance() {
                 </section>
 
                 {/* Live Feed Section */}
-                <section className="flex flex-col p-3 border shadow-sm sm:p-6 lg:col-span-7 border-divider-soft bg-surface-pearl rounded-2xl">
+                <section className="flex flex-col p-3 border shadow-sm sm:p-6 lg:col-span-7 border-divider-soft bg-white rounded-2xl">
                   <div className="flex flex-col justify-between gap-2 pb-2 mb-3 border-b sm:pb-4 sm:mb-4 sm:flex-row sm:items-center border-divider-soft">
                     <div>
                       <h3 className="font-display text-[16px] sm:text-[20px] font-bold text-ink">Live Attendance Roster</h3>
@@ -793,7 +793,7 @@ export default function FacultyAttendance() {
                 </section>
 
                 {/* Live Classroom 3D Map
-                <section className="flex flex-col p-3 border shadow-sm sm:p-6 lg:col-span-12 border-divider-soft bg-surface-pearl rounded-2xl">
+                <section className="flex flex-col p-3 border shadow-sm sm:p-6 lg:col-span-12 border-divider-soft bg-white rounded-2xl">
                   <div className="flex flex-col justify-between gap-2 pb-3 mb-3 border-b sm:py-3 sm:flex-row sm:items-center border-divider-soft">
                     <div>
                       <h3 className="font-display text-[16px] sm:text-[20px] font-bold text-ink">Live GPS Tracking Map</h3>
@@ -855,7 +855,7 @@ export default function FacultyAttendance() {
 
                 {/* ── TAB: Classroom Presence (2D map + roster) ── */}
         {tab === 'presence' && (
-          <section className="p-3 space-y-4 border shadow-sm sm:p-6 sm:space-y-6 border-divider-soft bg-surface-pearl rounded-2xl">
+          <section className="p-3 space-y-4 border shadow-sm sm:p-6 sm:space-y-6 border-divider-soft bg-white rounded-2xl">
             {!session ? (
               <div className="py-12 text-center text-ink-muted-80">
                 <p className="font-sans text-[16px] font-medium">No active session.</p>
@@ -891,7 +891,7 @@ export default function FacultyAttendance() {
 
         {/* ── TAB 2: My Classes & Records ── */}
         {tab === 'records' && (
-          <section className="p-3 space-y-4 border shadow-sm sm:p-6 sm:space-y-6 border-divider-soft bg-surface-pearl rounded-2xl">
+          <section className="p-3 space-y-4 border shadow-sm sm:p-6 sm:space-y-6 border-divider-soft bg-white rounded-2xl">
             <div className="flex flex-col justify-between gap-2 pb-3 border-b sm:gap-3 sm:pb-4 sm:flex-row sm:items-center border-divider-soft">
               <div>
                 <h2 className="font-display text-[18px] sm:text-[22px] font-bold text-ink">My Class Records</h2>
@@ -999,7 +999,7 @@ export default function FacultyAttendance() {
               </div>
               <button
                 onClick={() => { setSelectedRosterSession(null); setRosterData(null) }}
-                className="flex items-center justify-center flex-shrink-0 w-8 h-8 transition-colors border rounded-full bg-surface-pearl border-divider-soft hover:bg-divider-soft"
+                className="flex items-center justify-center flex-shrink-0 w-8 h-8 transition-colors border rounded-full bg-white border-divider-soft hover:bg-divider-soft"
               >
                 <X size={14} />
               </button>

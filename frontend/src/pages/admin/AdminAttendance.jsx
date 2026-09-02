@@ -49,8 +49,8 @@ export default function AdminAttendance() {
             onClick={() => setTab(id)}
             className={`font-sans text-[14px] font-medium px-5 py-2.5 rounded-t-lg border-b-2 transition-colors ${
               tab === id
-                ? 'text-ink border-primary bg-surface-pearl font-semibold'
-                : 'text-ink-muted-80 border-transparent hover:text-ink hover:bg-surface-pearl/50'
+                ? 'text-ink border-primary bg-white font-semibold'
+                : 'text-ink-muted-80 border-transparent hover:text-ink hover:bg-white/50'
             }`}
           >
             {label}
@@ -203,7 +203,7 @@ function FacultyManagementTab() {
       {isLoading ? (
         <p className="text-ink-muted-80 font-sans">Loading faculty accounts…</p>
       ) : facultyList.length === 0 ? (
-        <div className="py-16 text-center border border-divider-soft rounded-2xl bg-surface-pearl">
+        <div className="py-16 text-center border border-divider-soft rounded-2xl bg-white">
           <p className="font-sans text-[16px] text-ink-muted-80 font-medium">No faculty accounts created yet.</p>
           <button onClick={openCreateModal} className="button-primary text-[14px] mt-4">
             + Add First Faculty
@@ -214,8 +214,8 @@ function FacultyManagementTab() {
           {facultyList.map(fac => (
             <div
               key={fac._id}
-              className={`border border-divider-soft bg-surface-pearl rounded-2xl p-5 shadow-sm flex flex-col justify-between transition-all ${
-                fac.isActive === false ? 'opacity-60 bg-surface-pearl/50' : ''
+              className={`border border-divider-soft bg-white rounded-2xl p-5 shadow-sm flex flex-col justify-between transition-all ${
+                fac.isActive === false ? 'opacity-60 bg-white/50' : ''
               }`}
             >
               <div>
@@ -299,7 +299,7 @@ function FacultyManagementTab() {
               </div>
               <button
                 onClick={() => setModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-surface-pearl border border-divider-soft flex items-center justify-center hover:bg-divider-soft"
+                className="w-8 h-8 rounded-full bg-white border border-divider-soft flex items-center justify-center hover:bg-divider-soft"
               >
                           <X size={14} />
               </button>
@@ -319,7 +319,7 @@ function FacultyManagementTab() {
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="e.g. Dr. A. K. Sharma"
-                  className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
+                  className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -331,7 +331,7 @@ function FacultyManagementTab() {
                   value={form.email}
                   onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                   placeholder="faculty@agemc.edu"
-                  className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
+                  className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -345,7 +345,7 @@ function FacultyManagementTab() {
                   value={form.password}
                   onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                   placeholder={editingFaculty ? '••••••••' : 'Set login password'}
-                  className="w-full bg-surface-pearl border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
+                  className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -367,7 +367,7 @@ function FacultyManagementTab() {
 
                 <div className="space-y-3">
                   {form.teachingAssignments.map((row, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-surface-pearl p-3 rounded-xl border border-divider-soft">
+                    <div key={idx} className="flex items-center gap-2 bg-white p-3 rounded-xl border border-divider-soft">
                       {/* Batch */}
                       <select
                         value={row.batch}
@@ -466,7 +466,7 @@ function SubjectsManagementTab() {
     <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-12">
         {/* Form */}
-        <div className="lg:col-span-5 border border-divider-soft bg-surface-pearl rounded-2xl p-6 shadow-sm">
+        <div className="lg:col-span-5 border border-divider-soft bg-white rounded-2xl p-6 shadow-sm">
           <h3 className="font-display text-[18px] font-bold text-ink mb-4">Add New Subject</h3>
           <form
             onSubmit={(e) => {
@@ -537,7 +537,7 @@ function SubjectsManagementTab() {
         </div>
 
         {/* List */}
-        <div className="lg:col-span-7 border border-divider-soft bg-surface-pearl rounded-2xl p-6 shadow-sm">
+        <div className="lg:col-span-7 border border-divider-soft bg-white rounded-2xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-display text-[18px] font-bold text-ink">Configured Subjects</h3>
             <select
@@ -596,7 +596,7 @@ function StatsTab() {
   })
 
   return (
-    <div className="border border-divider-soft bg-surface-pearl rounded-2xl shadow-sm p-6 space-y-6">
+    <div className="border border-divider-soft bg-white rounded-2xl shadow-sm p-6 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4 pb-4 border-b border-divider-soft">
         <div>
           <h2 className="font-display text-[20px] font-bold text-ink">Batch Attendance Performance</h2>

@@ -88,7 +88,7 @@ export default function AdminCalendar() {
       </div>
 
       {showForm && (
-        <div className="border border-divider-soft bg-surface-pearl p-6 mb-8 rounded-xl shadow-sm">
+        <div className="border border-divider-soft bg-white p-6 mb-8 rounded-xl shadow-sm">
           <h2 className="font-display font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Entry' : 'New Calendar Entry'}</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <div className="sm:col-span-2">
@@ -127,7 +127,7 @@ export default function AdminCalendar() {
       {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading calendar…</p>
         : entries.length === 0 ? <p className="font-sans text-ink-muted-80 text-[15px]">No calendar entries. Create one above.</p>
         : (
-          <div className="border border-divider-soft bg-surface-pearl rounded-xl overflow-hidden shadow-sm">
+          <div className="border border-divider-soft bg-white rounded-xl overflow-hidden shadow-sm">
             {entries.map(e => (
               <div key={e._id} className="flex items-start gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
                 <span className={`font-mono text-[11px] font-bold uppercase px-2.5 py-1 rounded-md border flex-shrink-0 ${TYPE_COLORS[e.type] || TYPE_COLORS.other}`}>
