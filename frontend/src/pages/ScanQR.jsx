@@ -16,10 +16,44 @@ export default function ScanQR() {
   const [cameraDevices, setCameraDevices] = useState([])
   const [currentCameraId, setCurrentCameraId] = useState(null)
   const [scannerEpoch, setScannerEpoch] = useState(0)
+  const [initializing, setInitializing] = useState(true)
 
   useEffect(() => {
     return () => {
       stopScanner()
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const bootScanner = async () => {
+      try {
+        const devices = await Html5Qrcode.getCameras()
+        if (cancelled) return
+
+        if (devices && devices.length) {
+          setCameraDevices(devices)
+          const defaultCamera = devices.find((d) => d.kind === 'environment')?.id || devices[0]?.id
+          setCurrentCameraId(defaultCamera)
+          await startScanner(defaultCamera)
+        } else {
+          setError('No camera found. Please ensure your device has a camera.')
+          setInitializing(false)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error(err)
+          setError('Unable to access camera. Please grant camera permission and try again.')
+          setInitializing(false)
+        }
+      }
+    }
+
+    bootScanner()
+
+    return () => {
+      cancelled = true
     }
   }, [])
 
@@ -37,6 +71,7 @@ export default function ScanQR() {
     setError('')
     setSuccess(null)
     setScanning(true)
+    setInitializing(false)
 
     try {
       if (!scannerInstance.current) {
@@ -83,16 +118,22 @@ export default function ScanQR() {
   }
 
   const handleStartScan = async () => {
+    setInitializing(true)
+    setError('')
     try {
       const devices = await Html5Qrcode.getCameras()
       if (devices && devices.length) {
         setCameraDevices(devices)
         const defaultCamera = devices.find((d) => d.kind === 'environment')?.id || devices[0]?.id
         setCurrentCameraId(defaultCamera)
-        startScanner(defaultCamera)
+        await startScanner(defaultCamera)
+      } else {
+        setError('No camera found. Please ensure your device has a camera.')
+        setInitializing(false)
       }
     } catch (err) {
-      setError('No camera found. Please ensure your device has a camera.')
+      setError('Unable to access camera. Please grant camera permission and try again.')
+      setInitializing(false)
     }
   }
 
@@ -121,7 +162,14 @@ export default function ScanQR() {
           <div className="border border-divider-soft bg-white rounded-2xl shadow-sm overflow-hidden">
             {/* Scanner Area */}
             <div className="relative bg-black aspect-[4/3] flex items-center justify-center">
-              {!scanning && !success && (
+              {initializing && !scanning && !success && (
+                <div className="text-center p-8">
+                  <div className="w-10 h-10 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4" />
+                  <p className="text-white/60 text-[14px] font-sans">Starting camera…</p>
+                </div>
+              )}
+
+              {!initializing && !scanning && !success && (
                 <div className="text-center p-8">
                   <Camera size={48} className="text-white/40 mx-auto mb-4" />
                   <p className="text-white/60 text-[14px] font-sans mb-6">
@@ -214,7 +262,7 @@ export default function ScanQR() {
               </li>
               <li className="flex gap-2">
                 <span className="font-mono font-bold text-primary">2.</span>
-                Tap <strong>Start Scanning</strong> and allow camera access.
+                Allow camera access when prompted. Scanning starts automatically.
               </li>
               <li className="flex gap-2">
                 <span className="font-mono font-bold text-primary">3.</span>

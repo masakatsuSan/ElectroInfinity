@@ -46,6 +46,8 @@ export default function Navbar({ onForumFlip }) {
   const [dropdownOpen, setDropdownOpen] = useState(null);
   const [installPromptEvent, setInstallPromptEvent] = useState(null);
   const [appInstalled, setAppInstalled] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
+  const [installDismissed, setInstallDismissed] = useState(false);
   const profileRef = useRef(null);
   const dropdownRefs = useRef({});
   const userRole = String(user?.role ?? '').trim().toLowerCase();
@@ -102,6 +104,12 @@ export default function Navbar({ onForumFlip }) {
     if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
       setAppInstalled(true);
     }
+    setIsAndroid(isAndroidDevice());
+    try {
+      if (localStorage.getItem('ei_install_dismissed') === '1') {
+        setInstallDismissed(true);
+      }
+    } catch (_) {}
     return () => {
       window.removeEventListener('beforeinstallprompt', onBeforeInstall);
       window.removeEventListener('appinstalled', onAppInstalled);
@@ -112,6 +120,12 @@ export default function Navbar({ onForumFlip }) {
     if (typeof navigator === 'undefined') return false;
     const ua = navigator.userAgent || '';
     return /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  };
+
+  const isAndroidDevice = () => {
+    if (typeof navigator === 'undefined') return false;
+    const ua = navigator.userAgent || '';
+    return /Android/i.test(ua);
   };
 
   // Close profile dropdown when clicking outside
@@ -139,6 +153,7 @@ export default function Navbar({ onForumFlip }) {
   const handleInstallApp = async () => {
     if (!installPromptEvent) return;
     closeMenu();
+    setProfileOpen(false);
     try {
       installPromptEvent.prompt();
       const choice = await installPromptEvent.userChoice;
@@ -149,6 +164,13 @@ export default function Navbar({ onForumFlip }) {
       setInstallPromptEvent(null);
     }
   };
+
+  const dismissInstallBar = () => {
+    setInstallDismissed(true);
+    try { localStorage.setItem('ei_install_dismissed', '1') } catch (_) {}
+  };
+
+  const showFloatingInstallBar = !appInstalled && !installDismissed && isAndroid && !installPromptEvent;
 
   const navLinkClass = (isActive) =>
     `block px-3 py-2 rounded-lg text-[14px] font-sans font-medium transition-colors ${
@@ -512,6 +534,30 @@ export default function Navbar({ onForumFlip }) {
 
                       <div className="h-px my-1 bg-hairline"></div>
 
+                      {/* PWA Install (works on Android, iOS shows hint) */}
+                      {!appInstalled && (installPromptEvent || isIosDevice()) && (
+                        <div className="mx-1 my-1">
+                          {installPromptEvent ? (
+                            <button
+                              onClick={handleInstallApp}
+                              className="w-full flex items-center gap-2.5 p-3 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-white hover:from-primary/10 transition-colors text-left"
+                            >
+                              <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white flex-shrink-0">
+                                <Download size={15} strokeWidth={2} />
+                              </span>
+                              <span className="flex-1 font-sans text-[13px] font-semibold text-ink">Install App</span>
+                            </button>
+                          ) : (
+                            <div className="p-3 rounded-xl border border-hairline bg-gradient-to-br from-primary/5 to-white text-[12px] font-sans text-ink-muted-80 leading-relaxed">
+                              <p className="font-display font-bold text-ink mb-1 flex items-center gap-2 text-[13px]">
+                                <Download size={14} strokeWidth={2} /> Install App
+                              </p>
+                              <p>Tap the <span className="font-semibold">Share</span> button, then <span className="font-semibold">"Add to Home Screen"</span>.</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-2.5 p-3 mt-1 rounded-xl border border-error/20 bg-gradient-to-br from-error/5 to-white hover:from-error/10 hover:to-white transition-colors text-left"
@@ -661,12 +707,21 @@ export default function Navbar({ onForumFlip }) {
               </div>
             ))}
 
-            <button onClick={() => { logout(); closeMenu() }} className="w-full flex items-center gap-3 p-3 rounded-2xl border border-error/20 bg-gradient-to-br from-error/5 to-white hover:from-error/10 transition-colors text-left mt-2">
-              <span className="w-9 h-9 flex items-center justify-center rounded-xl bg-error text-white flex-shrink-0">
-                <Power size={17} strokeWidth={2} />
-              </span>
-              <span className="font-sans text-[15px] font-semibold text-error flex-1">Sign Out</span>
-            </button>
+            {user ? (
+              <button onClick={() => { logout(); closeMenu() }} className="w-full flex items-center gap-3 p-3 rounded-2xl border border-error/20 bg-gradient-to-br from-error/5 to-white hover:from-error/10 transition-colors text-left mt-2">
+                <span className="w-9 h-9 flex items-center justify-center rounded-xl bg-error text-white flex-shrink-0">
+                  <Power size={17} strokeWidth={2} />
+                </span>
+                <span className="font-sans text-[15px] font-semibold text-error flex-1">Sign Out</span>
+              </button>
+            ) : (
+              <Link to="/login" onClick={closeMenu} className="w-full flex items-center gap-3 p-3 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 to-white hover:from-primary/20 transition-colors text-left mt-2">
+                <span className="w-9 h-9 flex items-center justify-center rounded-xl bg-primary text-white flex-shrink-0">
+                  <Power size={17} strokeWidth={2} />
+                </span>
+                <span className="font-sans text-[15px] font-semibold text-primary flex-1">Sign In</span>
+              </Link>
+            )}
 
             {!appInstalled && (installPromptEvent || isIosDevice()) && (
               <div className="mt-2 p-3 rounded-2xl border border-hairline bg-gradient-to-br from-primary/10 to-canvas">
@@ -693,6 +748,28 @@ export default function Navbar({ onForumFlip }) {
       </div>
 
       {searchOpen && <GlobalSearch onClose={() => setSearchOpen(false)} />}
+
+      {/* Persistent Android install hint — shown when no native prompt is available yet */}
+      {showFloatingInstallBar && (
+        <div className="fixed bottom-4 left-4 right-4 z-40 md:hidden">
+          <div className="flex items-center gap-3 p-3 pr-2 rounded-2xl border border-hairline bg-white shadow-modal">
+            <span className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-white flex-shrink-0">
+              <Download size={18} strokeWidth={2} />
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="font-display font-bold text-[13px] text-ink leading-tight">Install Electro Infinity</p>
+              <p className="font-sans text-[11px] text-ink-muted-80 leading-tight">Tap ⋮ menu → "Add to Home Screen" or "Install App"</p>
+            </div>
+            <button
+              onClick={dismissInstallBar}
+              aria-label="Dismiss install hint"
+              className="w-8 h-8 flex items-center justify-center rounded-full text-ink-muted-80 hover:bg-soft-stone transition-colors flex-shrink-0"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
