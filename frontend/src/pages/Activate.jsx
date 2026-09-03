@@ -55,7 +55,7 @@ export default function Activate() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-canvas text-ink py-28">
-      <div className="w-full max-w-md bg-canvas border border-hairline rounded-2xl p-8 sm:p-10 shadow-card">
+      <div className="w-full max-w-md bg-white border border-hairline rounded-2xl p-8 sm:p-10 shadow-card">
 
         {/* Step indicator */}
         <div className="flex items-center gap-3 mb-8 justify-center">

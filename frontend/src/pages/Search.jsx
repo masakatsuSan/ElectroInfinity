@@ -203,7 +203,7 @@ export default function SearchPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
                   onClick={() => navigate(`/profile/${user._id}`)}
-                  className="border border-divider-soft bg-canvas rounded-2xl p-5 shadow-card hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
+                   className="border border-divider-soft bg-white rounded-2xl p-5 shadow-card hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
                 >
                   <div className="w-12 h-12 rounded-full bg-soft-stone flex items-center justify-center overflow-hidden flex-shrink-0 relative">
                     {user.photo ? (
@@ -275,7 +275,7 @@ export default function SearchPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
                   onClick={() => navigate(`/profile/${user._id}`)}
-                  className="border border-divider-soft bg-canvas rounded-2xl p-5 shadow-card hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
+                   className="border border-divider-soft bg-white rounded-2xl p-5 shadow-card hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
                 >
                   <div className="w-12 h-12 rounded-full bg-soft-stone flex items-center justify-center overflow-hidden flex-shrink-0">
                     {user.photo ? (
@@ -353,7 +353,7 @@ export default function SearchPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.04 }}
                         onClick={() => navigate(`/profile/${user._id}`)}
-                        className="border border-divider-soft bg-canvas rounded-2xl p-6 shadow-card hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
+                         className="border border-divider-soft bg-white rounded-2xl p-6 shadow-card hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
                       >
                         <div className="w-14 h-14 rounded-full bg-soft-stone flex items-center justify-center overflow-hidden flex-shrink-0">
                           {user.photo ? (
@@ -422,7 +422,7 @@ export default function SearchPage() {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="border border-hairline bg-soft-stone rounded-2xl p-16 text-center"
+                   className="border border-hairline bg-white rounded-2xl p-16 text-center"
                 >
                   <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-slate block mb-2">
                     No Students Found
@@ -441,7 +441,7 @@ export default function SearchPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="border border-hairline bg-soft-stone rounded-2xl p-16 text-center"
+             className="border border-hairline bg-white rounded-2xl p-16 text-center"
           >
             <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-slate block mb-2">
               Start Searching

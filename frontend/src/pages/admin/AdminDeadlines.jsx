@@ -62,7 +62,7 @@ export default function AdminDeadlines() {
                 <div className="h-4 w-full max-w-md bg-soft-stone rounded mb-3" />
                 <div className="h-4 w-32 bg-soft-stone rounded" />
               </div>
-              <div className="md:w-[250px] flex-shrink-0 bg-canvas rounded-2xl p-5 border border-divider-soft">
+                <div className="md:w-[250px] flex-shrink-0 bg-white rounded-2xl p-5 border border-divider-soft">
                 <div className="flex items-end justify-between mb-2">
                   <div className="h-4 w-20 bg-soft-stone rounded" />
                   <div className="h-4 w-16 bg-soft-stone rounded" />
@@ -113,7 +113,7 @@ export default function AdminDeadlines() {
                 </div>
 
                 {/* CR Progress View */}
-                <div className="md:w-[250px] flex-shrink-0 bg-canvas rounded-2xl p-5 border border-divider-soft shadow-inner">
+                  <div className="md:w-[250px] flex-shrink-0 bg-white rounded-2xl p-5 border border-divider-soft shadow-inner">
                   <div className="flex items-end justify-between mb-2">
                     <span className="font-sans text-[13px] font-bold text-ink uppercase tracking-wider">Progress</span>
                     <span className="font-sans text-[16px] font-medium text-ink">{submitCount} / {totalStudents}</span>
@@ -145,7 +145,7 @@ export default function AdminDeadlines() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-canvas border border-divider-soft w-full max-w-lg rounded-[24px] overflow-hidden">
+          <div className="bg-white border border-divider-soft w-full max-w-lg rounded-[24px] overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-divider-soft">
               <h3 className="font-display text-[22px] font-semibold text-ink">Post New Deadline</h3>
               <button onClick={() => setShowModal(false)} className="text-ink-muted-80 hover:text-ink"><X size={16} /></button>

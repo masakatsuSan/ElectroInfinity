@@ -5,6 +5,7 @@ import { GitBranch, ExternalLink, Heart, Code2, Plus, Search, X } from 'lucide-r
 import { getProjects, likeProject, createProject } from '../api/projects'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
+import PendingTeasersStrip from '../components/PendingTeasersStrip'
 
 export default function Projects() {
   const { user } = useAuth()
@@ -102,6 +103,16 @@ export default function Projects() {
           </div>
         </div>
 
+        {/* Pending Teasers Strip — visible to all visitors */}
+        {data && !myProjects && (
+          <PendingTeasersStrip
+            title="Recent Projects Awaiting Approval"
+            sources={{ projects: data }}
+            compact
+            currentUser={user}
+          />
+        )}
+
         {/* Loading */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -147,7 +158,7 @@ function ProjectCard({ project, liked, onLike, liking }) {
 
   return (
     <Link to={`/projects/${project._id}`} className="block h-full">
-      <div className="border border-hairline bg-canvas rounded-2xl p-6 shadow-card hover:border-slate/30 transition-all flex flex-col h-full">
+       <div className="border border-hairline bg-white rounded-2xl p-6 shadow-card hover:border-slate/30 transition-all flex flex-col h-full">
         <div className="flex-1">
           <div className="flex items-start justify-between gap-3 mb-3">
             <h3 className="font-display text-[20px] font-bold text-ink leading-snug">
@@ -177,9 +188,22 @@ function ProjectCard({ project, liked, onLike, liking }) {
             </div>
           )}
 
-          <p className="font-mono text-[12px] text-slate mb-4">
-            by {authorName}
-          </p>
+          <div className="flex items-center gap-2.5">
+            <div className="relative w-7 h-7 rounded-full overflow-hidden bg-ink/5 border border-hairline shrink-0">
+              {project.author?.photo ? (
+                <img src={project.author.photo} alt={authorName} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="font-display text-[10px] font-bold text-ink-muted-80">
+                    {authorName.split(' ').filter(Boolean).map(p => p[0]).slice(0, 2).join('').toUpperCase() || 'S'}
+                  </span>
+                </div>
+              )}
+            </div>
+            <span className="font-mono text-[12px] text-slate">
+              by <span className="font-semibold text-ink">{authorName}</span>
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-hairline">

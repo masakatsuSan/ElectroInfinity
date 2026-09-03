@@ -21,7 +21,7 @@ export default function Placements() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-16">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="border border-hairline bg-soft-stone rounded-2xl p-8 text-center animate-pulse">
+              <div key={i} className="border border-hairline bg-white rounded-2xl p-8 text-center animate-pulse">
                 <div className="h-12 w-16 bg-soft-stone/60 rounded mx-auto mb-2" />
                 <div className="h-3 w-20 bg-soft-stone/60 rounded mx-auto" />
               </div>
@@ -30,7 +30,7 @@ export default function Placements() {
           <div className="mb-16">
             <div className="h-4 w-28 bg-soft-stone rounded animate-pulse mb-2" />
             <div className="h-7 w-48 bg-soft-stone rounded animate-pulse mb-6" />
-            <div className="border border-hairline bg-canvas rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
+    <div className="border border-hairline bg-white rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="p-5 md:p-6 flex items-center justify-between gap-4 animate-pulse">
                   <div className="flex items-center gap-4">
@@ -81,7 +81,7 @@ export default function Placements() {
         {STATS.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-16">
             {STATS.map(s => (
-              <div key={s.l} className="border border-hairline bg-soft-stone rounded-2xl p-8 text-center shadow-card">
+              <div key={s.l} className="border border-hairline bg-white rounded-2xl p-8 text-center shadow-card">
                 <div className="font-display font-bold text-[44px] text-ink leading-none mb-2">{s.n}</div>
                 <div className="font-mono text-[11px] uppercase tracking-wider text-slate font-semibold">{s.l}</div>
               </div>
@@ -96,7 +96,7 @@ export default function Placements() {
           </span>
           <h2 className="font-display text-[26px] font-bold text-ink mb-6">Partner Companies</h2>
 
-          <div className="border border-hairline bg-canvas rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
+          <div className="border border-hairline bg-white rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
             {RECRUITERS.length > 0 ? (
               RECRUITERS.map(r => (
                 <div key={r.name} className="p-5 md:p-6 flex items-center justify-between gap-4 hover:bg-soft-stone/30 transition-colors">
@@ -130,7 +130,7 @@ export default function Placements() {
 
             <div className="grid md:grid-cols-2 gap-6">
               {INTERNSHIPS.map(i => (
-                <div key={i.title} className="border border-hairline bg-canvas rounded-2xl p-6 shadow-card flex flex-col justify-between">
+                <div key={i.title} className="border border-hairline bg-white rounded-2xl p-6 shadow-card flex flex-col justify-between">
                   <div>
                     <h3 className="font-display text-[18px] font-bold text-ink mb-1">{i.title}</h3>
                     <p className="font-sans text-[14px] text-body-muted mb-4">{i.company}</p>
@@ -157,7 +157,7 @@ export default function Placements() {
 
             <div className="grid md:grid-cols-2 gap-6">
               {ALUMNI.map(a => (
-                <div key={a.name} className="border border-hairline bg-canvas rounded-2xl p-6 shadow-card flex gap-4">
+                <div key={a.name} className="border border-hairline bg-white rounded-2xl p-6 shadow-card flex gap-4">
                   <div className="w-12 h-12 rounded-full bg-soft-stone border border-hairline flex items-center justify-center font-display font-bold text-ink text-[14px] flex-shrink-0">
                     {a.initials}
                   </div>

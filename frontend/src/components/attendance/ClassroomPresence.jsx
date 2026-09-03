@@ -129,7 +129,7 @@ export default function ClassroomPresence({ positions = [], session = null, show
 // ── Summary counter ──
 function Summary({ nearbyCount, total }) {
   return (
-    <div className="rounded-2xl border border-hairline bg-canvas p-6 shadow-card">
+    <div className="rounded-2xl border border-hairline bg-white p-6 shadow-card">
       <p className="font-display text-[32px] font-bold">
         <span className="text-green-600">{nearbyCount}</span>
         {total > 0 && ` of ${total}`}

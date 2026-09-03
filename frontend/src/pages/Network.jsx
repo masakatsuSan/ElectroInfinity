@@ -178,7 +178,7 @@ export default function Network() {
             ))}
           </div>
         ) : (
-          <div className="border border-hairline bg-soft-stone rounded-2xl p-16 text-center">
+           <div className="border border-hairline bg-white rounded-2xl p-16 text-center">
             <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-slate block mb-2">
               No Results
             </span>
@@ -203,7 +203,7 @@ function PeerCard({ user, onUpdate }) {
 
   return (
     <Link to={`/profile/${user._id}`} className="block">
-      <div className="border border-divider-soft bg-canvas rounded-2xl p-6 shadow-card hover:shadow-md transition-shadow flex items-center gap-4 group">
+       <div className="border border-divider-soft bg-white rounded-2xl p-6 shadow-card hover:shadow-md transition-shadow flex items-center gap-4 group">
         <div className="w-14 h-14 rounded-full bg-soft-stone flex items-center justify-center overflow-hidden flex-shrink-0">
           {user.photo ? (
             <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />

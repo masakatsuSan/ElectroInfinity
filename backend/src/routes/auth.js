@@ -121,25 +121,196 @@ router.post('/activate', async (req, res) => {
   }
 })
 
-// ── POST /api/auth/forgot-password ───────────────────────────────────────
-// Student enters their roll number — OTP sent to their Gmail
-// Body: { rollNumber }
-router.post('/forgot-password', async (req, res) => {
+// ── POST /api/auth/faculty/activate ────────────────────────────────────────
+// Faculty sets password for the first time using institutional email + activation token
+// Body: { email, password, activationToken }
+router.post('/faculty/activate', async (req, res) => {
   try {
-    const { rollNumber } = req.body
-    if (!rollNumber) return res.status(400).json({ success: false, error: 'Roll number required' })
+    const { email, password, activationToken } = req.body
 
-    const user = await User.findOne({ rollNumber: rollNumber.toUpperCase(), role: { $in: ['student', 'cr'] } })
+    if (!email || !password || !activationToken) {
+      return res.status(400).json({ success: false, error: 'Email, password, and activation token required' })
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' })
+    }
+
+    // Verify activation token
+    let decoded
+    try {
+      decoded = jwt.verify(activationToken, process.env.JWT_SECRET)
+    } catch {
+      return res.status(400).json({ success: false, error: 'Activation link expired. Request a new OTP.' })
+    }
+
+    if (decoded.purpose !== 'faculty_activation') {
+      return res.status(400).json({ success: false, error: 'Invalid activation token' })
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase(), role: 'faculty' })
+
+    if (!user) return res.status(404).json({ success: false, error: 'No faculty account found with this email' })
+    if (user.isVerified) {
+      return res.status(400).json({ success: false, error: 'Account already activated. Go to Login.' })
+    }
+
+    // Verify token belongs to this user
+    if (decoded.id !== user._id.toString()) {
+      return res.status(400).json({ success: false, error: 'Invalid activation token' })
+    }
+
+    user.password    = password
+    user.isVerified  = true
+    user.isActivated = true
+    await user.save()
+
+    const token = signToken(user._id)
+    user.password = undefined
+
+    res.json({ success: true, message: 'Account activated!', token, user })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── GET /api/auth/check-faculty/:email ─────────────────────────────────────
+// Step 1 of faculty activation — check email exists, send OTP, return masked email
+router.get('/check-faculty/:email', async (req, res) => {
+  try {
+    const user = await User.findOne({
+      email: req.params.email.toLowerCase(),
+      role: 'faculty',
+    })
 
     if (!user) {
-      return res.status(404).json({ success: false, error: 'Roll number not found' })
-    }
-    if (!user.isVerified) {
-      return res.status(400).json({
+      return res.status(404).json({
         success: false,
-        error: 'Account not activated yet. Go to Activate Account instead.',
+        error: 'No faculty account found with this email. Contact your HOD.',
       })
     }
+
+    if (user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        error: 'Account already activated. Go to Login.',
+      })
+    }
+
+    // Generate OTP — valid for 10 minutes
+    const otp = generateOTP()
+    user.otp       = otp
+    user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000)
+    await user.save()
+
+    // Send OTP email
+    await sendEmail({
+      to: user.email,
+      subject: 'Electro Infinity — Faculty Activation OTP',
+      html: `
+        <div style="font-family:monospace; max-width:480px; margin:0 auto; padding:32px; background:#07060E; color:#F0EFF8; border:1px solid rgba(255,255,255,0.1);">
+          <h2 style="font-family:serif; font-size:22px; margin:0 0 8px;">Faculty Activation</h2>
+          <p style="opacity:0.6; font-size:14px; margin:0 0 24px;">Electro Infinity · EE Club, AGEMC</p>
+
+          <p style="font-size:14px; margin:0 0 16px;">Hi ${user.name},</p>
+          <p style="font-size:14px; opacity:0.8; margin:0 0 24px;">
+            Use this OTP to activate your faculty account:
+          </p>
+
+          <div style="background:rgba(102,87,245,0.15); border:1px solid rgba(102,87,245,0.4); padding:20px; text-align:center; margin:0 0 24px;">
+            <span style="font-size:36px; letter-spacing:12px; font-weight:bold; color:#9D90FA;">${otp}</span>
+          </div>
+
+          <p style="font-size:13px; opacity:0.5; margin:0 0 8px;">⏱ This OTP expires in 10 minutes.</p>
+          <p style="font-size:13px; opacity:0.5; margin:0;">If you didn't request this, ignore this email.</p>
+        </div>
+      `,
+    })
+
+    const maskedEmail = user.email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
+
+    res.json({ success: true, name: user.name, maskedEmail })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /api/auth/faculty/verify-otp ──────────────────────────────────────
+// Step 2 of faculty activation — verify OTP, return short-lived activation token
+// Body: { email, otp }
+router.post('/faculty/verify-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body
+
+    if (!email || !otp) {
+      return res.status(400).json({ success: false, error: 'Email and OTP required' })
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase(), role: 'faculty' })
+
+    if (!user) return res.status(404).json({ success: false, error: 'Faculty account not found' })
+
+    // Check OTP matches
+    if (!user.otp || user.otp !== otp.trim()) {
+      return res.status(400).json({ success: false, error: 'Wrong OTP. Check your email.' })
+    }
+
+    // Check OTP hasn't expired
+    if (!user.otpExpiry || new Date() > user.otpExpiry) {
+      user.otp = ''; user.otpExpiry = null
+      await user.save()
+      return res.status(400).json({ success: false, error: 'OTP expired. Request a new one.' })
+    }
+
+    // OTP verified — give a short-lived activation token (5 min)
+    const activationToken = jwt.sign(
+      { id: user._id, purpose: 'faculty_activation' },
+      process.env.JWT_SECRET,
+      { expiresIn: '5m' }
+    )
+
+    // Clear OTP so it can't be reused
+    user.otp = ''; user.otpExpiry = null
+    await user.save()
+
+    res.json({ success: true, activationToken })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /api/auth/forgot-password ───────────────────────────────────────
+// Accepts either rollNumber (student/cr) or email (faculty/admin)
+// Body: { rollNumber? , email? }
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { rollNumber, email } = req.body
+
+    if (!rollNumber && !email) {
+      return res.status(400).json({ success: false, error: 'Roll number or email required' })
+    }
+
+    let user
+
+    if (rollNumber) {
+      user = await User.findOne({ rollNumber: rollNumber.toUpperCase(), role: { $in: ['student', 'cr'] } })
+
+      if (!user) {
+        return res.status(404).json({ success: false, error: 'Roll number not found' })
+      }
+      if (!user.isVerified) {
+        return res.status(400).json({
+          success: false,
+          error: 'Account not activated yet. Go to Activate Account.',
+        })
+      }
+    } else if (email) {
+      user = await User.findOne({ email: email.toLowerCase() })
+
+      if (!user) {
+        return res.status(404).json({ success: false, error: 'No account found with this email' })
+      }
+    }
+
     if (!user.email) {
       return res.status(400).json({
         success: false,
@@ -150,7 +321,7 @@ router.post('/forgot-password', async (req, res) => {
     // Generate OTP — valid for 10 minutes
     const otp = generateOTP()
     user.otp       = otp
-    user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000)  // 10 minutes from now
+    user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000)
     await user.save()
 
     // Send OTP email
@@ -192,19 +363,28 @@ router.post('/forgot-password', async (req, res) => {
 })
 
 // ── POST /api/auth/verify-otp ─────────────────────────────────────────────
-// Check OTP is correct and not expired — returns a short-lived reset token
-// Body: { rollNumber, otp }
+// Accepts either rollNumber (student/cr) or email (faculty/admin)
+// Body: { rollNumber? , email? , otp }
 router.post('/verify-otp', async (req, res) => {
   try {
-    const { rollNumber, otp } = req.body
+    const { rollNumber, email, otp } = req.body
 
-    if (!rollNumber || !otp) {
-      return res.status(400).json({ success: false, error: 'Roll number and OTP required' })
+    if (!rollNumber && !email) {
+      return res.status(400).json({ success: false, error: 'Roll number or email required' })
+    }
+    if (!otp) {
+      return res.status(400).json({ success: false, error: 'OTP required' })
     }
 
-    const user = await User.findOne({ rollNumber: rollNumber.toUpperCase(), role: { $in: ['student', 'cr'] } })
+    let user
 
-    if (!user) return res.status(404).json({ success: false, error: 'Roll number not found' })
+    if (rollNumber) {
+      user = await User.findOne({ rollNumber: rollNumber.toUpperCase(), role: { $in: ['student', 'cr'] } })
+    } else if (email) {
+      user = await User.findOne({ email: email.toLowerCase() })
+    }
+
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
 
     // Check OTP matches
     if (!user.otp || user.otp !== otp.trim()) {

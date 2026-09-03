@@ -73,3 +73,6 @@ export const getTrendingUsers = () =>
 
 export const getSuggestedUsers = () =>
   api.get('/profile/suggested')
+
+export const getMyUploads = () =>
+  api.get('/profile/me/uploads')

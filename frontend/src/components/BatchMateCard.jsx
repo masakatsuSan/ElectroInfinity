@@ -1,4 +1,4 @@
-import ImageGuard from './ImageGuard'
+import AvatarGuard from './AvatarGuard'
 import FollowButton from './FollowButton'
 
 const SOCIAL_PLATFORMS = [
@@ -22,7 +22,7 @@ export default function BatchMateCard({ mate, onClick }) {
     >
       {/* Avatar */}
       <div className="relative w-20 h-20 rounded-full overflow-hidden bg-ink/5 flex-shrink-0">
-        <ImageGuard className="w-full h-full">
+        <AvatarGuard className="w-full h-full">
           {mate.photo ? (
             <img src={mate.photo} alt={mate.name} className="object-cover w-full h-full" />
           ) : (
@@ -32,7 +32,7 @@ export default function BatchMateCard({ mate, onClick }) {
               </span>
             </div>
           )}
-        </ImageGuard>
+        </AvatarGuard>
         {mate.role === 'cr' && (
           <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500 text-white whitespace-nowrap">
             CR

@@ -178,7 +178,7 @@ export default function AdminCourses() {
               <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-2">Modules</label>
               <div className="space-y-4">
                 {form.modules.map((mod, i) => (
-                  <div key={i} className="border border-divider-soft rounded-xl p-4 bg-canvas">
+                   <div key={i} className="border border-divider-soft rounded-xl p-4 bg-white">
                     <div className="flex gap-2 mb-2">
                       <input value={mod.title} onChange={e => updateModule(i, 'title', e.target.value)} className="input flex-1" placeholder="Module title" />
                       <button type="button" onClick={() => removeModule(i)} className="text-red-500 text-sm">Remove</button>

@@ -58,7 +58,7 @@ export default function AdminDashboard() {
       {/* Stats grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {stats.map(s => (
-          <Link key={s.label} to={s.to} className="group border border-hairline bg-canvas rounded-2xl p-6 hover:border-action-blue/40 hover:shadow-card transition-all">
+            <Link key={s.label} to={s.to} className="group border border-hairline bg-white rounded-2xl p-6 hover:border-action-blue/40 hover:shadow-card transition-all">
             <div className="flex items-center justify-between mb-3">
               <span className="font-mono text-[11px] uppercase tracking-wider text-slate font-medium">
                 {s.badge}
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
         {communityStats.map(s => {
           const Icon = s.icon
           return (
-            <Link key={s.label} to={s.to} className="group border border-hairline bg-canvas rounded-2xl p-6 hover:border-action-blue/40 hover:shadow-card transition-all">
+          <Link key={s.label} to={s.to} className="group border border-hairline bg-white rounded-2xl p-6 hover:border-action-blue/40 hover:shadow-card transition-all">
               <div className="flex items-center gap-2 mb-2">
                 <Icon size={16} className="text-body-muted" />
                 <span className="font-mono text-[11px] uppercase tracking-wider text-slate font-medium">
@@ -98,7 +98,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick Action Band */}
-      <div className="border border-hairline bg-soft-stone rounded-2xl p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="border border-hairline bg-white rounded-2xl p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-bold block mb-1">
             Attendance & Role Management
@@ -114,7 +114,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Latest announcements (Research-table style) */}
-      <div className="border border-hairline bg-canvas rounded-2xl p-6 shadow-card space-y-4">
+      <div className="border border-hairline bg-white rounded-2xl p-6 shadow-card space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-hairline">
           <h3 className="font-display text-[20px] font-bold text-ink">Latest Announcements</h3>
           <Link to="/admin/announcements" className="button-pill-outline text-[13px]">

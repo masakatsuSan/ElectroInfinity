@@ -323,7 +323,7 @@ export default function Forum() {
               {!showCreate ? (
                 <button
                   onClick={() => setShowCreate(true)}
-                  className="w-full bg-canvas border border-hairline rounded-xl p-3 flex items-center gap-3 hover:border-slate/30 transition-colors text-left"
+                   className="w-full bg-white border border-hairline rounded-xl p-3 flex items-center gap-3 hover:border-slate/30 transition-colors text-left"
                 >
                   <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
                     {user?.name?.charAt(0)?.toUpperCase()}
@@ -331,7 +331,7 @@ export default function Forum() {
                   <span className="text-body-muted text-[14px]">Create a post...</span>
                 </button>
               ) : (
-                <form onSubmit={handleCreate} className="bg-canvas border border-hairline rounded-xl p-4 space-y-4">
+                <form onSubmit={handleCreate} className="bg-white border border-hairline rounded-xl p-4 space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="font-display font-bold text-[16px] text-ink">Create Post</h3>
                     <button type="button" onClick={() => setShowCreate(false)} className="p-1 text-body-muted hover:text-ink rounded-lg hover:bg-soft-stone transition-colors">
@@ -467,7 +467,7 @@ export default function Forum() {
             {loading ? (
               <div className="space-y-3">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="bg-canvas border border-hairline rounded-xl p-4 animate-pulse">
+                  <div key={i} className="bg-white border border-hairline rounded-xl p-4 animate-pulse">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-6 h-6 rounded-full bg-soft-stone" />
                       <div className="h-3 w-24 bg-soft-stone rounded" />
@@ -485,7 +485,7 @@ export default function Forum() {
                 ))}
               </div>
             ) : posts.length === 0 ? (
-              <div className="text-center py-20 bg-canvas border border-hairline rounded-xl">
+              <div className="text-center py-20 bg-white border border-hairline rounded-xl">
                 <div className="inline-flex w-12 h-12 bg-soft-stone rounded-full items-center justify-center mb-3">
                   <MessageCircle size={24} className="text-body-muted" />
                 </div>
@@ -544,7 +544,7 @@ export default function Forum() {
           <aside className="hidden lg:block w-72 flex-shrink-0">
             <div className="sticky top-24 space-y-6">
               {selectedRoomData && (
-                <div className="bg-canvas border border-hairline rounded-xl p-5">
+                <div className="bg-white border border-hairline rounded-xl p-5">
                   <div className="flex items-center gap-3 mb-3">
                     <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: selectedRoomData.color }}>
                       {selectedRoomData.icon === 'Hash' ? <Hash size={16} /> : selectedRoomData.icon?.charAt(0)?.toUpperCase() || '#'}
@@ -560,7 +560,7 @@ export default function Forum() {
                 </div>
               )}
 
-              <div className="bg-canvas border border-hairline rounded-xl p-5">
+              <div className="bg-white border border-hairline rounded-xl p-5">
                 <h3 className="font-display font-bold text-[16px] text-ink mb-3">Community Stats</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-[13px]">
@@ -642,7 +642,7 @@ function PostCard({
   }, [post.comments])
 
   return (
-    <div className="bg-canvas border border-hairline rounded-xl p-4 hover:border-slate/30 transition-colors">
+    <div className="bg-white border border-hairline rounded-xl p-4 hover:border-slate/30 transition-colors">
       {/* Author & Meta */}
       <div className="flex items-center gap-2 mb-2 text-[13px] text-body-muted">
         <button

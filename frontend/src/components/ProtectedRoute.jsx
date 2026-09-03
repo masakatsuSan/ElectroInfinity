@@ -2,7 +2,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { SkeletonDashboard } from '../components/Skeleton'
 
-export default function ProtectedRoute({ children, role }) {
+export default function ProtectedRoute({ children, role, loginPath = '/login' }) {
   const { user, loading } = useAuth()
 
   if (loading) {
@@ -34,7 +34,7 @@ export default function ProtectedRoute({ children, role }) {
               You need to be logged in with your student ID to access this page. Please sign in to continue.
             </p>
             <div className="flex gap-3">
-              <a href="/login" className="button-primary">
+              <a href={loginPath} className="button-primary">
                 Sign In with Student ID
               </a>
               <a href="/" className="button-secondary">

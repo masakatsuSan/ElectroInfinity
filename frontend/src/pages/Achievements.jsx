@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import { getAchievements } from '../api/achievements'
 import { Skeleton } from '../components/Skeleton'
 import ImageGuard from '../components/ImageGuard'
+import PendingTeasersStrip from '../components/PendingTeasersStrip'
+import { useAuth } from '../context/AuthContext'
 
 function AchCard({ item, badgeText }) {
   return (
@@ -72,6 +74,7 @@ function SkeletonSection() {
 }
 
 export default function Achievements() {
+  const { user } = useAuth()
   const { data, isLoading } = useQuery({
     queryKey: ['achievements'],
     queryFn: () => getAchievements().then(r => r.data),
@@ -120,6 +123,13 @@ export default function Achievements() {
             Celebrating the outstanding accomplishments of our students, faculty, and the electrical engineering department.
           </p>
         </div>
+
+        <PendingTeasersStrip
+          title="Recent Achievements Awaiting Approval"
+          sources={{ achievements: data }}
+          compact
+          currentUser={user}
+        />
 
         <div className="mb-20">
           <div className="flex items-center gap-4 mb-8">

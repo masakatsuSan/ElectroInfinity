@@ -48,7 +48,7 @@ export default function Contact() {
 
           {/* Left: Contact Info */}
           <div className="lg:col-span-5 space-y-8">
-            <div className="border border-hairline bg-soft-stone rounded-2xl p-8 space-y-6">
+            <div className="border border-hairline bg-white rounded-2xl p-8 space-y-6">
               <div>
                 <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate block mb-1">
                   Campus Address
@@ -98,7 +98,7 @@ export default function Contact() {
           </div>
 
           {/* Right: Form Card */}
-          <div className="lg:col-span-7 border border-hairline bg-canvas rounded-2xl p-8 md:p-10 shadow-card">
+          <div className="lg:col-span-7 border border-hairline bg-white rounded-2xl p-8 md:p-10 shadow-card">
             <h2 className="font-display text-[24px] font-bold text-ink mb-2">Send a Message</h2>
             <p className="font-sans text-[14px] text-body-muted mb-8">
               We respond to inquiries and collaboration proposals within 2 business days.

@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { Mail } from 'lucide-react'
 import { getFaculty } from '../api/faculty'
 import SEO from '../components/SEO'
-import ImageGuard from '../components/ImageGuard'
 import { SkeletonFaculty, SkeletonAvatar, SkeletonButton } from '../components/Skeleton'
 
 export default function Faculty() {
@@ -35,7 +34,7 @@ export default function Faculty() {
         </div>
 
         {/* Directory (Rule-separated research layout) */}
-        <div className="border border-hairline bg-canvas rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
+        <div className="border border-hairline bg-white rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
           {isLoading ? (
             Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
@@ -76,13 +75,11 @@ function FacultyRow({ faculty: f }) {
       <div className="flex items-center gap-5 min-w-0">
         {/* Avatar */}
         <div className="w-16 h-16 rounded-22px bg-soft-stone flex items-center justify-center flex-shrink-0 overflow-hidden border border-hairline shadow-sm">
-          <ImageGuard className="w-full h-full">
-            {f.photo ? (
-              <img src={f.photo} alt={f.name} className="w-full h-full object-cover" />
-            ) : (
-              <span className="font-display font-bold text-[20px] text-ink">{initials}</span>
-            )}
-          </ImageGuard>
+          {f.photo ? (
+            <img src={f.photo} alt={f.name} className="w-full h-full object-cover" />
+          ) : (
+            <span className="font-display font-bold text-[20px] text-ink">{initials}</span>
+          )}
         </div>
 
         {/* Info */}

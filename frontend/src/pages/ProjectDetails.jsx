@@ -94,9 +94,29 @@ export default function ProjectDetails() {
             </div>
           )}
 
-          <p className="font-mono text-[13px] text-slate mb-8">
-            by {authorName}
-          </p>
+          <div className="flex items-center gap-3">
+            <div className="relative w-8 h-8 rounded-full overflow-hidden bg-ink/5 border border-hairline shrink-0">
+              {project.author?.photo ? (
+                <img src={project.author.photo} alt={authorName} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="font-display text-[11px] font-bold text-ink-muted-80">
+                    {authorName.split(' ').filter(Boolean).map(p => p[0]).slice(0, 2).join('').toUpperCase() || 'S'}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col">
+              <span className="font-mono text-[13px] text-slate">
+                by <span className="font-semibold text-ink">{authorName}</span>
+              </span>
+              {project.author?.rollNumber && (
+                <span className="font-mono text-[10px] uppercase tracking-wider text-ink-muted-48">
+                  {project.author.rollNumber}
+                </span>
+              )}
+            </div>
+          </div>
 
           {images.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">

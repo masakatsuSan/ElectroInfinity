@@ -53,7 +53,7 @@ export default function Register() {
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-md text-center bg-canvas border border-hairline rounded-2xl p-10 shadow-card"
+          className="w-full max-w-md text-center bg-white border border-hairline rounded-2xl p-10 shadow-card"
         >
           <div className="w-14 h-14 rounded-full bg-pale-green border border-green-200 flex items-center justify-center mx-auto mb-6">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#003c33" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -81,7 +81,7 @@ export default function Register() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-md bg-canvas border border-hairline rounded-2xl p-8 sm:p-10 shadow-card"
+        className="w-full max-w-md bg-white border border-hairline rounded-2xl p-8 sm:p-10 shadow-card"
       >
         {/* Header */}
         <div className="mb-8">

@@ -12,5 +12,8 @@ export const createAchievement = (data) =>
 export const updateAchievement = (id, data) =>
   api.put(`/achievements/${id}`, data)
 
+export const patchAchievement = (id, data) =>
+  api.patch(`/achievements/${id}`, data)
+
 export const deleteAchievement = (id) =>
   api.delete(`/achievements/${id}`)

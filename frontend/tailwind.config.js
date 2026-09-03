@@ -27,7 +27,7 @@ export default {
         // Borders & Dividers
         'hairline': '#d9d9dd',
         'border-light': '#e5e7eb',
-        'card-border': '#f2f2f2',
+        'card-border': '#E2E2E2',
         'divider-soft': '#e5e7eb',
 
         // Text Muted
@@ -84,7 +84,7 @@ export default {
         'section': '80px',
       },
       boxShadow: {
-        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02)',
+        'card': '0 2px 8px rgba(0, 0, 0, 0.04)',
         'modal': '0 20px 40px -15px rgba(0, 0, 0, 0.15)',
       },
     },

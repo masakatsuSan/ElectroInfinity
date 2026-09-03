@@ -229,7 +229,7 @@ function ResourceCard({ resource: r }) {
   })
 
   return (
-    <div className="flex flex-col justify-between p-6 transition-colors border border-hairline bg-canvas rounded-2xl shadow-card hover:bg-soft-stone/30 group">
+    <div className="flex flex-col justify-between p-6 transition-colors border border-hairline bg-white rounded-2xl shadow-card hover:bg-soft-stone/30 group">
       <div>
         <div className="flex items-center justify-between gap-2 mb-3">
           <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-pale-blue text-action-blue border border-blue-200">
@@ -278,7 +278,7 @@ function YTLectureCard({ lecture: l }) {
   const youtubeUrl = `https://www.youtube.com/watch?v=${l.youtubeVideoId}`
 
   return (
-    <div className="flex flex-col overflow-hidden transition-colors border border-hairline bg-canvas rounded-2xl shadow-card hover:bg-soft-stone/30 group">
+    <div className="flex flex-col overflow-hidden transition-colors border border-hairline bg-white rounded-2xl shadow-card hover:bg-soft-stone/30 group">
       <div className="relative overflow-hidden aspect-video bg-soft-stone">
         <img
           src={thumbnail}

@@ -1,9 +1,47 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GlobalSearch from './GlobalSearch';
 import NotificationBell from './NotificationBell';
 import { LayoutGrid, School, Contact, MessagesSquare, QrCode, BarChart3, CalendarClock, ScanQrCode, Search, ChevronDown, ChevronRight, Power, Menu, X, Megaphone, Zap, Camera, BookOpen, FlaskConical, Briefcase, Rocket, Image, UserCheck, FolderOpen, GraduationCap, Beaker, FileText, Download } from 'lucide-react'
+
+const HIDDEN_ROUTES = [
+  '/admin',
+  '/forum',
+  '/attendance/faculty',
+  '/login',
+  '/faculty/login',
+  '/faculty/activate',
+  '/activate',
+  '/forgot-password',
+]
+
+const isHiddenRoute = (pathname) => {
+  if (HIDDEN_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}/`))) {
+    return true
+  }
+  return false
+}
+
+export default function Navbar({ onForumFlip }) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation()
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(null);
+  const [installPromptEvent, setInstallPromptEvent] = useState(null);
+  const [appInstalled, setAppInstalled] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
+  const [installDismissed, setInstallDismissed] = useState(false);
+  const profileRef = useRef(null);
+  const dropdownRefs = useRef({});
+  const userRole = String(user?.role ?? '').trim().toLowerCase();
+
+  if (isHiddenRoute(location.pathname)) {
+    return null
+  }
 
 const NAV_GROUPS = [
   {
@@ -34,38 +72,16 @@ const NAV_GROUPS = [
 ];
 
 const STANDALONE_LINKS = [
-  { to: '/contact', label: 'Contact' },
+  { to: '/contact', label: 'Contact' }
 ]
 
-export default function Navbar({ onForumFlip }) {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(null);
-  const [installPromptEvent, setInstallPromptEvent] = useState(null);
-  const [appInstalled, setAppInstalled] = useState(false);
-  const [isAndroid, setIsAndroid] = useState(false);
-  const [installDismissed, setInstallDismissed] = useState(false);
-  const profileRef = useRef(null);
-  const dropdownRefs = useRef({});
-  const userRole = String(user?.role ?? '').trim().toLowerCase();
-
   useEffect(() => {
-    if (menuOpen || profileOpen || dropdownOpen) {
+    if (menuOpen) {
       const scrollY = window.scrollY
       document.body.style.position = 'fixed'
       document.body.style.top = `-${scrollY}px`
       document.body.style.overflow = 'hidden'
       document.body.style.width = '100%'
-    } else {
-      const scrollY = parseInt(document.body.style.top || '0', 10)
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.overflow = ''
-      document.body.style.width = ''
-      window.scrollTo(0, scrollY)
     }
     return () => {
       const scrollY = parseInt(document.body.style.top || '0', 10)
@@ -73,9 +89,11 @@ export default function Navbar({ onForumFlip }) {
       document.body.style.top = ''
       document.body.style.overflow = ''
       document.body.style.width = ''
-      window.scrollTo(0, scrollY)
+      if (menuOpen) {
+        window.scrollTo(0, scrollY)
+      }
     }
-  }, [menuOpen, profileOpen, dropdownOpen])
+  }, [menuOpen])
 
   // Open search with Cmd/Ctrl+K
   useEffect(() => {
@@ -259,9 +277,9 @@ export default function Navbar({ onForumFlip }) {
           <div className="flex items-center gap-1">
             <Link to="/" className="flex items-center gap-2" onClick={closeMenu}>
               <div className="flex items-center gap-2">
-                <span className="font-display font-bold text-[18px] tracking-tight text-ink">
-                  Electro Infinity
-                </span>
+                 <span className="font-display font-bold text-[18px] tracking-tight text-ink" style={{ fontFamily: '"Instagram Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+                   Electro Infinity
+                 </span>
               </div>
             </Link>
           </div>
@@ -273,61 +291,67 @@ export default function Navbar({ onForumFlip }) {
                 key={group.label}
                 ref={el => dropdownRefs.current[group.label] = el}
                 className="relative py-2"
-                onMouseEnter={() => setDropdownOpen(group.label)}
-                onMouseLeave={() => setDropdownOpen(null)}
               >
                 <button
                   onClick={() => setDropdownOpen(dropdownOpen === group.label ? null : group.label)}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[14px] font-sans font-bold transition-colors ${
+                  className={`relative flex items-center gap-1 px-3 py-1.5 rounded-full text-[14px] font-sans font-bold transition-colors duration-200 ${
                     dropdownOpen === group.label
-                      ? 'text-ink bg-soft-stone'
-                      : 'text-body-muted hover:text-ink hover:bg-soft-stone/60'
+                      ? 'text-ink'
+                      : 'text-body-muted hover:text-ink'
                   }`}
                 >
-                  {group.label}
-                  <ChevronDown size={14} className={`transition-transform duration-200 ${dropdownOpen === group.label ? 'rotate-180' : ''}`} />
+                  <span
+                    aria-hidden
+                    className={`absolute inset-0 rounded-full bg-soft-stone transition-all duration-300 ease-out -z-10 ${
+                      dropdownOpen === group.label
+                        ? 'opacity-100 scale-100'
+                        : 'opacity-0 scale-95'
+                    }`}
+                  />
+                  <span className="relative z-10">{group.label}</span>
+                  <ChevronDown size={14} className={`relative z-10 transition-transform duration-300 ${dropdownOpen === group.label ? 'rotate-180' : ''}`} />
                 </button>
                 
-                {dropdownOpen === group.label && (
-                   <div 
-                     className="absolute top-full left-1/2 -translate-x-1/2 w-[620px] bg-white border border-hairline rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.12)] py-2 z-50"
-                     onMouseEnter={() => setDropdownOpen(group.label)}
-                     onMouseLeave={() => setDropdownOpen(null)}
-                   >
-                    <div className="flex gap-2 p-2">
-                      <div className="flex-1">
-                        {group.items.map(item => (
-                          <NavLink
-                            key={item.to}
-                            to={item.to}
-                            onClick={(e) => {
-                              if (item.flip && user && typeof onForumFlip === 'function') {
-                                e.preventDefault()
-                                const el = e.currentTarget
-                                const rect = el.getBoundingClientRect()
-                                const borderRadius = getComputedStyle(el).borderRadius
-                                setDropdownOpen(null)
-                                onForumFlip({ rect, borderRadius })
-                              } else {
-                                setDropdownOpen(null)
-                              }
-                            }}
-                            className={({ isActive }) => `group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${dropdownItemClass(isActive)}`}
-                          >
-                            <span className={iconTileClass(item.to === '/courses' || item.to === '/forum')}>
-                              {item.icon && <item.icon size={18} strokeWidth={1.75} />}
-                            </span>
-                            <span className="flex-1">
-                              <span className="block text-[14px] font-normal">{item.label}</span>
-                            </span>
-                            <ChevronRight size={14} className="text-slate opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
-                          </NavLink>
-                        ))}
-                      </div>
-                      {featuredCard(group)}
-                    </div>
-                  </div>
-                )}
+                 <div
+                   className={`absolute top-full left-1/2 -translate-x-1/2 w-[620px] bg-white border border-hairline rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.12)] py-1.5 z-50 origin-top transition-all duration-200 ease-out ${
+                     dropdownOpen === group.label
+                       ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
+                       : 'opacity-0 -translate-y-2 scale-[0.98] pointer-events-none'
+                   }`}
+                 >
+                   <div className="flex gap-1.5 p-1.5">
+                     <div className="flex-1">
+                       {group.items.map(item => (
+                         <NavLink
+                           key={item.to}
+                           to={item.to}
+                           onClick={(e) => {
+                             if (item.flip && user && typeof onForumFlip === 'function') {
+                               e.preventDefault()
+                               const el = e.currentTarget
+                               const rect = el.getBoundingClientRect()
+                               const borderRadius = getComputedStyle(el).borderRadius
+                               setDropdownOpen(null)
+                               onForumFlip({ rect, borderRadius })
+                             } else {
+                               setDropdownOpen(null)
+                             }
+                           }}
+                           className={({ isActive }) => `group flex items-center gap-3 px-2.5 py-2 rounded-xl transition-all duration-200 ${dropdownItemClass(isActive)}`}
+                         >
+                           <span className={iconTileClass(item.to === '/courses' || item.to === '/forum')}>
+                             {item.icon && <item.icon size={18} strokeWidth={1.75} />}
+                           </span>
+                           <span className="flex-1">
+                             <span className="block text-[14px] font-normal">{item.label}</span>
+                           </span>
+                           <ChevronRight size={14} className="text-slate opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+                         </NavLink>
+                       ))}
+                     </div>
+                     {featuredCard(group)}
+                   </div>
+                 </div>
               </div>
             ))}
 

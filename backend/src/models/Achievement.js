@@ -14,6 +14,7 @@ const achievementSchema = new mongoose.Schema(
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     isApproved: { type: Boolean, default: false },
     approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    approvedAt: { type: Date, default: null },
     rejectionReason: { type: String, default: '' },
   },
   { timestamps: true }

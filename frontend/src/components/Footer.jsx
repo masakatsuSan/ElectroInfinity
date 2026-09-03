@@ -1,8 +1,31 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
 
+const HIDDEN_ROUTES = [
+  '/admin',
+  '/forum',
+  '/attendance',
+  '/login',
+  '/faculty/login',
+  '/faculty/activate',
+  '/activate',
+  '/forgot-password',
+]
+
+const isHiddenRoute = (pathname) => {
+  if (HIDDEN_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}/`))) {
+    return true
+  }
+  return false
+}
+
 export default function Footer() {
+  const location = useLocation()
+
+  if (isHiddenRoute(location.pathname)) {
+    return null
+  }
   return (
     <footer className="bg-[#17171c] text-white pt-20 pb-28 border-t border-hairline/20">
       <div className="w-full max-w-[1280px] mx-auto px-6 md:px-12">

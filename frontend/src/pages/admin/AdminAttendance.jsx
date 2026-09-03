@@ -287,7 +287,7 @@ function FacultyManagementTab() {
       {/* ── Modal: Create / Edit Faculty ── */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-canvas text-ink border border-divider-soft rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+           <div className="bg-white text-ink border border-divider-soft rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-divider-soft flex items-center justify-between">
               <div>
                 <h3 className="font-display text-[22px] font-bold">
@@ -558,7 +558,7 @@ function SubjectsManagementTab() {
           ) : (
             <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
               {subjects.map(s => (
-                <div key={s._id} className="flex items-center justify-between p-3.5 bg-canvas rounded-xl border border-divider-soft">
+                 <div key={s._id} className="flex items-center justify-between p-3.5 bg-white rounded-xl border border-divider-soft">
                   <div>
                     <span className="font-mono text-primary font-bold text-[13px]">{s.code}</span>
                     <p className="font-semibold text-[14px] text-ink">{s.name}</p>

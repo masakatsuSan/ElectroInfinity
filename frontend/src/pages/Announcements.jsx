@@ -57,7 +57,7 @@ function SkeletonGrid() {
   return (
     <div className="space-y-4">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="bg-canvas border border-hairline rounded-xl p-5 animate-pulse">
+        <div key={i} className="bg-white border border-hairline rounded-xl p-5 animate-pulse">
           <div className="flex items-center gap-2 mb-3">
             <div className="h-3 w-24 bg-soft-stone rounded" />
             <div className="h-3 w-12 bg-soft-stone rounded" />
@@ -109,7 +109,7 @@ function AnnouncementCard({ ann, onClick }) {
           onClick()
         }
       }}
-      className={`group cursor-pointer bg-canvas border border-hairline rounded-xl p-5 transition-all duration-200 hover:border-slate/40 hover:shadow-card focus:outline-none focus:ring-1 focus:ring-primary ${
+      className={`group cursor-pointer bg-white border border-hairline rounded-xl p-5 transition-all duration-200 hover:border-slate/40 hover:shadow-card focus:outline-none focus:ring-1 focus:ring-primary ${
         isPinned ? 'border-l-4 border-l-coral' : ''
       }`}
     >
@@ -193,7 +193,7 @@ function AnnouncementDetail({ detail, loading, error, user, onClose }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl max-h-[85vh] bg-canvas border border-hairline rounded-2xl shadow-modal flex flex-col overflow-hidden"
+        className="w-full max-w-2xl max-h-[85vh] bg-white border border-hairline rounded-2xl shadow-modal flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {loading ? (

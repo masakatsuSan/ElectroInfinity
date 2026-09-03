@@ -914,7 +914,7 @@ export default function FacultyAttendance() {
                 Loading session records…
               </div>
             ) : myClasses.length === 0 ? (
-              <div className="py-16 text-center border border-divider-soft rounded-xl bg-canvas">
+              <div className="py-16 text-center border border-divider-soft rounded-xl bg-white">
                 <p className="font-sans text-[16px] text-ink-muted-80 font-medium">No sessions conducted yet.</p>
                 <p className="font-sans text-[13px] text-ink-muted-48 mt-1">Start a class session in the Take Attendance tab.</p>
               </div>
@@ -923,7 +923,7 @@ export default function FacultyAttendance() {
                 {myClasses.map((s) => (
                   <div
                     key={s._id}
-                    className="flex flex-col justify-between p-5 transition-all border shadow-sm border-divider-soft bg-canvas rounded-xl hover:border-primary/50"
+                     className="flex flex-col justify-between p-5 transition-all border shadow-sm border-divider-soft bg-white rounded-xl hover:border-primary/50"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
@@ -986,7 +986,7 @@ export default function FacultyAttendance() {
       {/* ── Modal: Full Session Roster ── */}
       {selectedRosterSession && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-canvas text-ink border border-divider-soft rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white text-ink border border-divider-soft rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-divider-soft">
               <div className="flex-1">

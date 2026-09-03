@@ -5,7 +5,7 @@ import api from '../api/axios'
 
 function SkeletonCard() {
   return (
-    <div className="bg-canvas border border-hairline rounded-xl p-5 animate-pulse">
+    <div className="bg-white border border-hairline rounded-xl p-5 animate-pulse">
       <div className="h-3 w-20 bg-soft-stone rounded mb-3" />
       <div className="h-5 w-full bg-soft-stone rounded mb-2" />
       <div className="h-3 w-32 bg-soft-stone rounded" />
@@ -15,7 +15,7 @@ function SkeletonCard() {
 
 function StatSkeleton() {
   return (
-    <div className="bg-canvas border border-hairline rounded-xl p-6 animate-pulse">
+    <div className="bg-white border border-hairline rounded-xl p-6 animate-pulse">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 bg-soft-stone rounded-lg" />
         <div className="h-3 w-24 bg-soft-stone rounded" />
@@ -128,7 +128,7 @@ export default function Dashboard() {
             items={recentAnnouncements}
             emptyMessage="No announcements yet."
             renderItem={(a) => (
-              <div key={a._id} className="bg-canvas border border-hairline rounded-xl p-4 hover:border-slate/30 transition-colors">
+              <div key={a._id} className="bg-white border border-hairline rounded-xl p-4 hover:border-slate/30 transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-[15px] font-bold text-ink leading-snug line-clamp-1">{a.title}</h3>
                   {a.category && (
@@ -150,7 +150,7 @@ export default function Dashboard() {
             items={recentPosts}
             emptyMessage="No discussions yet. Start the conversation!"
             renderItem={(p) => (
-              <div key={p._id} className="bg-canvas border border-hairline rounded-xl p-4 hover:border-slate/30 transition-colors">
+              <div key={p._id} className="bg-white border border-hairline rounded-xl p-4 hover:border-slate/30 transition-colors">
                 <h3 className="text-[15px] font-bold text-ink leading-snug line-clamp-1 mb-2">{p.title}</h3>
                 <div className="flex items-center gap-3 text-[13px] text-body-muted">
                   <span className="truncate">
@@ -178,7 +178,7 @@ export default function Dashboard() {
 
 function StatCard({ icon: Icon, label, count, accent }) {
   return (
-    <div className="bg-canvas border border-hairline rounded-xl p-6">
+    <div className="bg-white border border-hairline rounded-xl p-6">
       <div className="flex items-center gap-3 mb-3">
         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${accent}`}>
           <Icon size={20} strokeWidth={1.75} />
@@ -192,7 +192,7 @@ function StatCard({ icon: Icon, label, count, accent }) {
 
 function Section({ title, icon: Icon, items, emptyMessage, renderItem }) {
   return (
-    <div className="bg-canvas border border-hairline rounded-xl">
+    <div className="bg-white border border-hairline rounded-xl">
       <div className="flex items-center gap-2 px-5 pt-5 pb-3">
         <Icon size={16} strokeWidth={1.75} className="text-body-muted" />
         <h2 className="text-[13px] font-bold uppercase tracking-wider text-body-muted">{title}</h2>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getPublicProfile } from '../api/profile'
@@ -14,9 +14,10 @@ import ProfileHeader from '../components/ProfileHeader'
 import SocialLinkCard from '../components/SocialLinkCard'
 import GalleryLightbox from '../components/GalleryLightbox'
 import BatchMateCard from '../components/BatchMateCard'
+import MyUploadsSection from '../components/MyUploadsSection'
 import { ExternalLink, GitBranch, Users, Image as ImageIcon, Plus, Edit3, Save, X, Trophy, Sparkles, Eye, TrendingUp, Search } from 'lucide-react'
 
-const TABS = ['about', 'directory', 'projects', 'achievements', 'gallery']
+const TABS = ['about', 'directory', 'projects', 'achievements', 'gallery', 'uploads']
 
 const socialPlatforms = [
   { key: 'github', label: 'GitHub' },
@@ -33,9 +34,13 @@ const socialPlatforms = [
 export default function Profile() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { user: currentUser } = useAuth()
   const qc = useQueryClient()
-  const [activeTab, setActiveTab] = useState('about')
+  const [activeTab, setActiveTab] = useState(() => {
+    const t = searchParams.get('tab')
+    return TABS.includes(t) ? t : 'about'
+  })
   const [profile, setProfile] = useState(null)
   const [lightboxImages, setLightboxImages] = useState([])
   const [lightboxIndex, setLightboxIndex] = useState(0)
@@ -335,10 +340,16 @@ export default function Profile() {
       <div className="max-w-[1280px] mx-auto px-4 md:px-12">
         {/* Tabs */}
         <div className="flex gap-2 mt-8 mb-8 overflow-x-auto p-1 bg-white border border-divider-soft rounded-[999px] w-full">
-          {TABS.map((tab) => (
+          {TABS.filter(tab => isOwn || (tab !== 'directory' && tab !== 'uploads')).map((tab) => (
             <motion.button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab)
+                const next = new URLSearchParams(searchParams)
+                if (tab === 'about') next.delete('tab')
+                else next.set('tab', tab)
+                setSearchParams(next, { replace: true })
+              }}
               whileTap={{ scale: 0.97 }}
               className={`font-sans text-[13px] font-bold uppercase tracking-[0.04em] px-5 py-2.5 rounded-[999px] transition-all whitespace-nowrap ${
                 activeTab === tab
@@ -350,6 +361,7 @@ export default function Profile() {
                 : tab === 'directory' ? 'Campus Directory'
                 : tab === 'projects' ? 'Projects'
                 : tab === 'achievements' ? 'Achievements'
+                : tab === 'uploads' ? 'My Uploads'
                 : 'Gallery'}
             </motion.button>
           ))}
@@ -822,6 +834,18 @@ export default function Profile() {
                 )}
               </motion.div>
             )}
+
+            {activeTab === 'uploads' && isOwn && (
+              <motion.div
+                key="uploads"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.25 }}
+              >
+                <MyUploadsSection enabled={isOwn} />
+              </motion.div>
+            )}
           </AnimatePresence>
         </div>
 
@@ -931,7 +955,7 @@ function ProjectsList({ projects }) {
 function ProjectCard({ project }) {
   return (
     <Link to={`/projects/${project._id}`} className="block h-full">
-      <div className="border border-divider-soft bg-canvas rounded-2xl overflow-hidden shadow-card hover:border-slate/30 hover:shadow-md transition-all flex flex-col h-full">
+       <div className="border border-divider-soft bg-white rounded-2xl overflow-hidden shadow-card hover:border-slate/30 hover:shadow-md transition-all flex flex-col h-full">
         {project.thumbnail ? (
           <img src={project.thumbnail} alt={project.title} className="w-full h-32 object-cover" />
         ) : project.images?.[0] ? (
@@ -999,7 +1023,7 @@ function AchievementsList({ achievements, isOwn, onEdit, onDelete }) {
   return (
     <div className="grid gap-6 md:grid-cols-2">
       {achievements.map((achievement) => (
-        <div key={achievement._id} className="border border-divider-soft bg-canvas rounded-2xl overflow-hidden shadow-card hover:shadow-md transition-shadow">
+         <div key={achievement._id} className="border border-divider-soft bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-md transition-shadow">
           {achievement.image && (
             <img src={achievement.image} alt={achievement.title} className="w-full h-48 object-cover" />
           )}

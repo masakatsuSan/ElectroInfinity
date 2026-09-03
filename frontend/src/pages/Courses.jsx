@@ -72,8 +72,8 @@ export default function Courses() {
         {isLoading ? (
           <SkeletonGrid />
         ) : (
-          <div className="border border-hairline bg-canvas rounded-2xl overflow-hidden shadow-card">
-            <div className="p-6 bg-soft-stone border-b border-hairline flex items-center justify-between">
+          <div className="border border-hairline bg-white rounded-2xl overflow-hidden shadow-card">
+            <div className="p-6 bg-white border-b border-hairline flex items-center justify-between">
               <h2 className="font-display text-[20px] font-bold text-ink">
                 Semester {selectedSem} Course List
               </h2>
@@ -125,7 +125,7 @@ export default function Courses() {
 
 function SkeletonGrid() {
   return (
-    <div className="border border-hairline bg-canvas rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
+    <div className="border border-hairline bg-white rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="p-5 md:p-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">

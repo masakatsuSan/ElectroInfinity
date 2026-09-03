@@ -4,6 +4,7 @@ import { getGallery, createGalleryPhoto } from '../api/gallery'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
 import ImageGuard from '../components/ImageGuard'
+import PendingTeasersStrip from '../components/PendingTeasersStrip'
 import { Plus, X, Upload } from 'lucide-react'
 
 const CATEGORIES = ['All', 'Workshops', 'Events', 'Lab', 'Campus']
@@ -31,6 +32,7 @@ export default function Gallery() {
       ? p.category.charAt(0).toUpperCase() + p.category.slice(1)
       : 'Campus',
     isApproved: p.isApproved,
+    uploadedBy: p.uploadedBy,
   }))
 
   const filtered = GALLERY.filter(g => active === 'All' || g.category === active)
@@ -118,6 +120,16 @@ export default function Gallery() {
           </div>
         </div>
 
+        {/* Pending Teasers Strip — visible to all visitors */}
+        {data && (
+          <PendingTeasersStrip
+            title="Recent Photos Awaiting Approval"
+            sources={{ gallery: data }}
+            compact
+            currentUser={user}
+          />
+        )}
+
         {/* Grid */}
         {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -128,33 +140,74 @@ export default function Gallery() {
         ) : filtered.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((img, i) => (
-              <button
-                key={i}
-                onClick={() => setSelectedIndex(i)}
-                className="aspect-video relative overflow-hidden group rounded-22px border border-hairline shadow-card block w-full text-left"
-              >
-                <ImageGuard className="w-full h-full">
-                  <img
-                    src={img.url}
-                    alt={img.label}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </ImageGuard>
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4">
-                  <p className="font-sans text-[13px] font-semibold text-white">
-                    {img.label}
-                  </p>
-                </div>
-                {!img.isApproved && (
-                  <div className="absolute top-3 right-3 bg-coral text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md">
-                    Pending
+              <div key={i} className="flex flex-col">
+                {user ? (
+                  <button
+                    onClick={() => setSelectedIndex(i)}
+                    className="aspect-video relative overflow-hidden group rounded-22px border border-hairline shadow-card block w-full text-left"
+                  >
+                    <ImageGuard className="w-full h-full">
+                      <img
+                        src={img.url}
+                        alt={img.label}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </ImageGuard>
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4">
+                      <p className="font-sans text-[13px] font-semibold text-white">
+                        {img.label}
+                      </p>
+                    </div>
+                    {!img.isApproved && (
+                      <div className="absolute top-3 right-3 bg-coral text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md">
+                        Pending
+                      </div>
+                    )}
+                  </button>
+                ) : (
+                  <div className="aspect-video relative overflow-hidden rounded-22px border border-hairline bg-soft-stone/40">
+                    <ImageGuard className="w-full h-full">
+                      <img
+                        src={img.url}
+                        alt={img.label}
+                        className="w-full h-full object-cover transition-transform duration-300"
+                      />
+                    </ImageGuard>
+                    <div className="absolute inset-0 bg-black/30 flex items-end p-4">
+                      <p className="font-sans text-[13px] font-semibold text-white">
+                        {img.label}
+                      </p>
+                    </div>
+                    {!img.isApproved && (
+                      <div className="absolute top-3 right-3 bg-coral text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md">
+                        Pending
+                      </div>
+                    )}
                   </div>
                 )}
-              </button>
+                {img.uploadedBy && (
+                  <div className="flex items-center gap-2 mt-2 px-1">
+                    <div className="relative w-6 h-6 rounded-full overflow-hidden bg-ink/5 border border-hairline shrink-0">
+                      {img.uploadedBy.photo ? (
+                        <img src={img.uploadedBy.photo} alt={img.uploadedBy.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="font-display text-[9px] font-bold text-ink-muted-80">
+                            {(img.uploadedBy.name || 'S').split(' ').filter(Boolean).map(p => p[0]).slice(0, 2).join('').toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <span className="font-sans text-[12px] text-body-muted truncate">
+                      {img.uploadedBy.name || 'Unknown'}
+                    </span>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         ) : (
-          <div className="border border-hairline bg-soft-stone rounded-2xl p-16 text-center">
+          <div className="border border-hairline bg-white rounded-2xl p-16 text-center">
             <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-slate block mb-2">
               No Photos
             </span>
@@ -200,6 +253,24 @@ export default function Gallery() {
               alt={filtered[selectedIndex].label}
               className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
             />
+            {filtered[selectedIndex].uploadedBy && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full">
+                <div className="relative w-6 h-6 rounded-full overflow-hidden bg-white/20 shrink-0">
+                  {filtered[selectedIndex].uploadedBy.photo ? (
+                    <img src={filtered[selectedIndex].uploadedBy.photo} alt={filtered[selectedIndex].uploadedBy.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="font-display text-[9px] font-bold text-white">
+                        {(filtered[selectedIndex].uploadedBy.name || 'S').split(' ').filter(Boolean).map(p => p[0]).slice(0, 2).join('').toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <span className="font-sans text-[13px] font-medium">
+                  {filtered[selectedIndex].uploadedBy.name || 'Unknown'}
+                </span>
+              </div>
+            )}
           </div>
         )}
 
@@ -249,7 +320,7 @@ function UploadModal({ onClose, onSubmit, loading }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-canvas text-ink border border-divider-soft rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div className="bg-white text-ink border border-divider-soft rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         <div className="p-6 border-b border-divider-soft flex items-center justify-between">
           <div>
             <h3 className="font-display text-[22px] font-bold">Upload Photo</h3>

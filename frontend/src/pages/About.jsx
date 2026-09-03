@@ -55,7 +55,7 @@ export default function About() {
           {HIGHLIGHTS.map(h => (
             <div
               key={h.label}
-              className="bg-soft-stone border border-hairline rounded-2xl p-8 shadow-card flex flex-col justify-between"
+              className="bg-white border border-hairline rounded-2xl p-8 shadow-card flex flex-col justify-between"
             >
               <div>
                 <div className="font-display font-bold text-[48px] leading-none text-ink mb-3">
@@ -81,7 +81,7 @@ export default function About() {
             {OBJECTIVES.map((o, i) => (
               <div
                 key={i}
-                className="border border-hairline bg-canvas rounded-2xl p-6 flex gap-4 items-start shadow-card hover:bg-soft-stone/30 transition-colors"
+                className="border border-hairline bg-white rounded-2xl p-6 flex gap-4 items-start shadow-card hover:bg-soft-stone/30 transition-colors"
               >
                 <span className="font-mono text-[13px] font-bold text-coral flex-shrink-0 pt-0.5">
                   0{i + 1}.
@@ -101,7 +101,7 @@ export default function About() {
             Our Journey
           </h2>
 
-          <div className="border border-hairline bg-canvas rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
+          <div className="border border-hairline bg-white rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
             {TIMELINE.map((t, i) => (
               <div key={i} className="p-6 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-soft-stone/20 transition-colors">
                 <span className="font-mono text-[14px] font-bold text-deep-green bg-pale-green px-3 py-1 rounded-md border border-green-200 w-20 text-center flex-shrink-0">
@@ -126,7 +126,7 @@ export default function About() {
             {ACHIEVEMENTS.map((a, i) => (
               <div
                 key={i}
-                className="border border-hairline bg-canvas rounded-2xl p-8 shadow-card flex flex-col justify-between"
+                className="border border-hairline bg-white rounded-2xl p-8 shadow-card flex flex-col justify-between"
               >
                 <div>
                   <span className="font-mono text-[12px] text-slate font-bold uppercase block mb-2">

@@ -67,11 +67,14 @@ import AdminCalendar from './pages/admin/AdminCalendar'
 import AdminAnnouncements from './pages/admin/AdminAnnouncements'
 import AdminAchievements from './pages/admin/AdminAchievements'
 import AdminYTLectures from './pages/admin/AdminYTLectures'
+import AdminLogin    from './pages/admin/AdminLogin'
 
-// Attendance pages
+// Faculty pages
+import FacultyDashboard   from './pages/faculty/FacultyDashboard'
 import FacultyAttendance from './pages/attendance/FacultyAttendance'
 import StudentAttendance from './pages/attendance/StudentAttendance'
-import FacultyDashboard   from './pages/faculty/FacultyDashboard'
+import FacultyLogin      from './pages/faculty/FacultyLogin'
+import FacultyActivate   from './pages/faculty/FacultyActivate'
 const NotFound = () => <OhmNo />
 // Motion settings for page transitions
 const pageVariants = {
@@ -147,9 +150,13 @@ export default function App() {
       <OrganicBlobs />
       <Routes>
         <Route path="/admin/*" element={null} />
+        <Route path="/faculty/dashboard" element={null} />
+        <Route path="/faculty/login" element={null} />
+        <Route path="/faculty/activate" element={null} />
         <Route path="/forum"   element={null} />
         <Route path="/attendance/faculty" element={null} />
         <Route path="/login" element={null} />
+        <Route path="/admin/login" element={null} />
         <Route path="/activate" element={null} />
         <Route path="/forgot-password" element={null} />
         <Route path="*" element={<Navbar onForumFlip={(data) => setForumFlip(data)} />} />
@@ -184,7 +191,10 @@ export default function App() {
 
             {/* â”€â”€ Auth â”€â”€ */}
             <Route path="/login"            element={<AnimatedRoute><Login /></AnimatedRoute>} />
+            <Route path="/admin/login"      element={<AnimatedRoute><AdminLogin /></AnimatedRoute>} />
+            <Route path="/faculty/login"    element={<AnimatedRoute><FacultyLogin /></AnimatedRoute>} />
             <Route path="/activate"         element={<AnimatedRoute><Activate /></AnimatedRoute>} />
+            <Route path="/faculty/activate" element={<AnimatedRoute><FacultyActivate /></AnimatedRoute>} />
             <Route path="/forgot-password"  element={<AnimatedRoute><ForgotPassword /></AnimatedRoute>} />
 
             {/* â”€â”€ Forum â”€â”€ */}
@@ -224,7 +234,7 @@ export default function App() {
                         {/* â”€â”€ Faculty â”€â”€ */}
             <Route path="/faculty/dashboard" element={
               <AnimatedRoute>
-                <ProtectedRoute role="faculty">
+                <ProtectedRoute role="faculty" loginPath="/faculty/login">
                   <FacultyDashboard />
                 </ProtectedRoute>
               </AnimatedRoute>
@@ -233,7 +243,7 @@ export default function App() {
             {/* â”€â”€ Attendance â”€â”€ */}
             <Route path="/attendance/faculty" element={
               <AnimatedRoute>
-                <ProtectedRoute role="faculty">
+                <ProtectedRoute role="faculty" loginPath="/faculty/login">
                   <FacultyAttendance />
                 </ProtectedRoute>
               </AnimatedRoute>
@@ -255,7 +265,7 @@ export default function App() {
             {/* â”€â”€ Admin â”€â”€ */}
             <Route path="/admin/*" element={
               <AnimatedRoute>
-                <ProtectedRoute role="cr, admin">
+                <ProtectedRoute role="cr, admin" loginPath="/admin/login">
                   <Routes>
                     <Route element={<AdminLayout />}>
                       <Route index             element={<AdminDashboard />} />
@@ -288,8 +298,11 @@ export default function App() {
 
       <Routes>
         <Route path="/admin/*" element={null} />
+        <Route path="/faculty/dashboard" element={null} />
+        <Route path="/faculty/login" element={null} />
+        <Route path="/faculty/activate" element={null} />
         <Route path="/forum"   element={null} />
-        <Route path="/attendance/*" element={null} />
+        <Route path="/attendance/faculty" element={null} />
         <Route path="*"        element={<Footer />} />
       </Routes>
 

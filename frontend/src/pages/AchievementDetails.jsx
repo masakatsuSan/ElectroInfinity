@@ -73,7 +73,7 @@ export default function AchievementDetails() {
 
         <div className="max-w-3xl">
           {image && (
-            <div className="rounded-2xl overflow-hidden border border-hairline mb-8 bg-canvas">
+            <div className="rounded-2xl overflow-hidden border border-hairline mb-8 bg-white">
               <ImageGuard className="w-full">
                 <img
                   src={image}

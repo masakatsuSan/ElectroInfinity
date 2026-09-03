@@ -4,6 +4,8 @@ const User = require('../models/User')
 const Activity = require('../models/Activity')
 const Badge = require('../models/Badge')
 const Project = require('../models/Project')
+const Gallery = require('../models/Gallery')
+const Achievement = require('../models/Achievement')
 const ForumPost = require('../models/ForumPost')
 const Resource = require('../models/Resource')
 const { protect, guard, optionalAuth } = require('../middleware/auth')
@@ -226,6 +228,93 @@ router.get('/me/completeness', protect, async (req, res) => {
 })
 
 const QRCode = require('qrcode')
+
+// ── GET /api/profile/me/uploads ──────────────────────────────────────────
+// Returns the authenticated user's uploads across Gallery, Achievements,
+// Projects with status (pending / approved / rejected) and rejection reason.
+router.get('/me/uploads', protect, async (req, res) => {
+  try {
+    const userId = req.user._id
+
+    const [gallery, achievements, projects] = await Promise.all([
+      Gallery.find({ uploadedBy: userId }).sort({ createdAt: -1 }),
+      Achievement.find({ author: userId }).sort({ createdAt: -1 }),
+      Project.find({ author: userId }).sort({ createdAt: -1 }),
+    ])
+
+    const mapStatus = (item) => {
+      if (item.isApproved) return 'approved'
+      if (item.rejectionReason) return 'rejected'
+      return 'pending'
+    }
+
+    const galleryItems = gallery.map((g) => ({
+      _id: g._id,
+      kind: 'gallery',
+      title: g.title,
+      category: g.category,
+      createdAt: g.createdAt,
+      updatedAt: g.updatedAt,
+      date: g.date,
+      status: mapStatus(g),
+      isApproved: g.isApproved,
+      approvedBy: g.approvedBy,
+      approvedAt: g.approvedAt,
+      rejectionReason: g.rejectionReason || '',
+      thumb: g.imageUrl || '',
+      meta: {},
+    }))
+
+    const achievementItems = achievements.map((a) => ({
+      _id: a._id,
+      kind: 'achievement',
+      title: a.title,
+      category: a.category,
+      createdAt: a.createdAt,
+      updatedAt: a.updatedAt,
+      date: a.date,
+      status: mapStatus(a),
+      isApproved: a.isApproved,
+      approvedBy: a.approvedBy,
+      approvedAt: a.approvedAt,
+      rejectionReason: a.rejectionReason || '',
+      thumb: a.image || '',
+      meta: { description: a.description },
+    }))
+
+    const projectItems = projects.map((p) => ({
+      _id: p._id,
+      kind: 'project',
+      title: p.title,
+      category: 'project',
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+      date: p.createdAt,
+      status: mapStatus(p),
+      isApproved: p.isApproved,
+      approvedBy: p.approvedBy,
+      approvedAt: p.approvedAt,
+      rejectionReason: p.rejectionReason || '',
+      thumb: p.thumbnail || (p.images && p.images[0]) || '',
+      meta: { techStack: p.techStack || [] },
+    }))
+
+    const all = [...galleryItems, ...achievementItems, ...projectItems].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    )
+
+    const summary = {
+      total: all.length,
+      pending: all.filter((i) => i.status === 'pending').length,
+      approved: all.filter((i) => i.status === 'approved').length,
+      rejected: all.filter((i) => i.status === 'rejected').length,
+    }
+
+    res.json({ success: true, data: all, summary })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
 
 // ── GET /api/profile/search ───────────────────────────────────────────────
 // Enhanced search with filters, pagination, and fuzzy matching

@@ -7,7 +7,9 @@ export default function ForgotPassword() {
   const navigate = useNavigate()
 
   const [step,       setStep]       = useState(1)
+  const [tab,       setTab]       = useState('student')
   const [rollNumber, setRollNumber] = useState('')
+  const [email,     setEmail]     = useState('')
   const [maskedEmail,setMaskedEmail]= useState('')
   const [otp,        setOtp]        = useState('')
   const [resetToken, setResetToken] = useState('')
@@ -18,14 +20,20 @@ export default function ForgotPassword() {
   const [resending,  setResending]  = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
 
+  const identifier = tab === 'student' ? rollNumber : email
+
   // ── Step 1: send OTP ──────────────────────────────────────────────────
   const handleSendOtp = async (e) => {
     e.preventDefault()
-    if (!rollNumber.trim()) return setError('Enter your roll number')
+    if (!identifier.trim()) return setError(tab === 'student' ? 'Enter your roll number' : 'Enter your institutional email')
     setResendSuccess(false); setError(''); setLoading(true)
 
     try {
-      const res = await forgotPassword({ rollNumber: rollNumber.trim().toUpperCase() })
+      const payload = tab === 'student'
+        ? { rollNumber: identifier.trim().toUpperCase() }
+        : { email: identifier.trim().toLowerCase() }
+
+      const res = await forgotPassword(payload)
       setMaskedEmail(res.data.maskedEmail)
       setStep(2)
     } catch (err) {
@@ -39,7 +47,11 @@ export default function ForgotPassword() {
   const handleResend = async () => {
     setResending(true); setError('')
     try {
-      const res = await forgotPassword({ rollNumber: rollNumber.trim().toUpperCase() })
+      const payload = tab === 'student'
+        ? { rollNumber: identifier.trim().toUpperCase() }
+        : { email: identifier.trim().toLowerCase() }
+
+      const res = await forgotPassword(payload)
       setMaskedEmail(res.data.maskedEmail)
       setOtp('')
       setResendSuccess(true); setError('New OTP sent to email')
@@ -57,7 +69,11 @@ export default function ForgotPassword() {
     setResendSuccess(false); setError(''); setLoading(true)
 
     try {
-      const res = await verifyOtp({ rollNumber: rollNumber.trim().toUpperCase(), otp: otp.trim() })
+      const payload = tab === 'student'
+        ? { rollNumber: identifier.trim().toUpperCase(), otp: otp.trim() }
+        : { email: identifier.trim().toLowerCase(), otp: otp.trim() }
+
+      const res = await verifyOtp(payload)
       setResetToken(res.data.resetToken)
       setStep(3)
     } catch (err) {
@@ -91,7 +107,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-canvas text-ink py-28">
-      <div className="w-full max-w-md bg-canvas border border-hairline rounded-2xl p-8 sm:p-10 shadow-card">
+      <div className="w-full max-w-md bg-white border border-hairline rounded-2xl p-8 sm:p-10 shadow-card">
 
         {/* Step indicator */}
         <div className="flex items-center gap-3 mb-8 justify-center">
@@ -119,20 +135,60 @@ export default function ForgotPassword() {
         {/* ── STEP 1 ── */}
         {step === 1 && (
           <form onSubmit={handleSendOtp} className="flex flex-col gap-5">
+            {/* Tab switcher */}
+            <div className="flex p-1 rounded-full bg-soft-stone border border-hairline">
+              <button
+                type="button"
+                onClick={() => { setTab('student'); setError('') }}
+                className={`flex-1 py-2 rounded-full text-[13px] font-sans font-medium transition-all ${
+                  tab === 'student'
+                    ? 'bg-primary text-white font-semibold shadow-sm'
+                    : 'text-body-muted hover:text-ink'
+                }`}
+              >
+                Student
+              </button>
+              <button
+                type="button"
+                onClick={() => { setTab('faculty'); setError('') }}
+                className={`flex-1 py-2 rounded-full text-[13px] font-sans font-medium transition-all ${
+                  tab === 'faculty'
+                    ? 'bg-primary text-white font-semibold shadow-sm'
+                    : 'text-body-muted hover:text-ink'
+                }`}
+              >
+                Faculty
+              </button>
+            </div>
+
             <p className="font-sans text-[14px] text-body-muted text-center">
-              Enter your roll number. We'll send a 6-digit one-time password to your registered email.
+              {tab === 'student'
+                ? 'Enter your roll number. We\'ll send a 6-digit one-time password to your registered email.'
+                : 'Enter your institutional email. We\'ll send a 6-digit one-time password to reset your password.'}
             </p>
+
             <div>
               <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1.5 block">
-                Roll Number
+                {tab === 'student' ? 'Roll Number' : 'Institutional Email'}
               </label>
-              <input
-                required autoFocus
-                value={rollNumber}
-                onChange={e => setRollNumber(e.target.value.toUpperCase())}
-                className="input uppercase font-mono"
-                placeholder="e.g. EE24001"
-              />
+              {tab === 'student' ? (
+                <input
+                  required autoFocus
+                  value={rollNumber}
+                  onChange={e => setRollNumber(e.target.value.toUpperCase())}
+                  className="input uppercase font-mono"
+                  placeholder="e.g. EE24001"
+                />
+              ) : (
+                <input
+                  required autoFocus
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className="input"
+                  placeholder="faculty@agemc.edu"
+                />
+              )}
             </div>
             {error && <p className="text-[13px] font-medium text-error bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-center">{error}</p>}
             <button type="submit" disabled={loading} className="button-primary w-full py-3.5 mt-2">
@@ -179,7 +235,7 @@ export default function ForgotPassword() {
 
             <div className="flex justify-between items-center text-[13px] font-sans pt-2">
                <button type="button" onClick={() => { setStep(1); setResendSuccess(false); setError('') }} className="text-body-muted hover:text-ink">
-                ← Wrong roll number?
+                ← Wrong {tab}?
               </button>
               <button type="button" onClick={handleResend} disabled={resending} className="text-action-blue font-semibold hover:underline">
                 {resending ? 'Sending…' : 'Resend OTP'}

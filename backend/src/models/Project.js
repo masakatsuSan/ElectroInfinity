@@ -14,6 +14,7 @@ const projectSchema = new mongoose.Schema(
     likes:       [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
     isApproved:  { type: Boolean, default: false },
     approvedBy:  { type: mongoose.Schema.ObjectId, ref: 'User', default: null },
+    approvedAt:  { type: Date, default: null },
     rejectionReason: { type: String, trim: true, maxlength: [500], default: '' }
   },
   { timestamps: true }

@@ -34,7 +34,7 @@ export default function Laboratory() {
         </div>
 
         {/* Labs rule-separated cards */}
-        <div className="border border-hairline bg-canvas rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
+        <div className="border border-hairline bg-white rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
           {isLoading ? (
             Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="flex flex-col sm:flex-row gap-6 p-6 md:p-8 animate-pulse">
