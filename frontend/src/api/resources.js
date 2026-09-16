@@ -6,11 +6,11 @@ export const getResources = (params) =>
 
 // Stream a resource inline for preview (no direct Cloudinary URL exposed)
 export const getPreviewUrl = (id) =>
-  `${import.meta.env.VITE_API_URL || ''}/api/resources/${id}/preview`
+  `${import.meta.env.VITE_API_URL || '/api'}/resources/${id}/preview`
 
 // Download a resource (increments count, streams as attachment)
 export const downloadResource = (id) =>
-  `${import.meta.env.VITE_API_URL || ''}/api/resources/${id}/download`
+  `${import.meta.env.VITE_API_URL || '/api'}/resources/${id}/download`
 
 // Upload a new resource — sends as FormData (has a file attached)
 export const uploadResource = (formData) =>
