@@ -56,8 +56,6 @@ const seedUsers = async () => {
       email: 'faculty@gmail.com',
       password: password,
       role: 'faculty',
-      assignedBatches: ['2027', '2024-2028'],
-      assignedCourses: ['ECT', 'EM-II'],
       isVerified: true,
     });
 

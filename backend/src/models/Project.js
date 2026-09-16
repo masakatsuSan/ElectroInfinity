@@ -12,8 +12,8 @@ const projectSchema = new mongoose.Schema(
     thumbnail:   { type: String, default: '' },
     pinned:      { type: Boolean, default: false },
     likes:       [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
-    isApproved:  { type: Boolean, default: false },
-    approvedBy:  { type: mongoose.Schema.ObjectId, ref: 'User', default: null },
+    isApproved:  { type: Boolean, default: true },
+    approvedBy:  { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     approvedAt:  { type: Date, default: null },
     rejectionReason: { type: String, trim: true, maxlength: [500], default: '' }
   },

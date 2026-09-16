@@ -1,11 +1,16 @@
 import api from './axios'
 
-// Step 1 of activation — check roll number exists + not yet activated
+// Step 1 of activation — check roll number exists, send OTP to registered email
 export const checkRoll = (rollNumber) =>
   api.get(`/auth/check-roll/${rollNumber}`)
 
-// Step 2 of activation — set password for first time
-// { rollNumber, password }
+// Step 2 of activation — verify OTP, get short-lived activation token
+// { rollNumber, otp }
+export const verifyActivationOtp = (data) =>
+  api.post('/auth/verify-activation-otp', data)
+
+// Step 3 of activation — set password for first time using rollNumber + activation token
+// { rollNumber, password, activationToken }
 export const activateAccount = (data) =>
   api.post('/auth/activate', data)
 

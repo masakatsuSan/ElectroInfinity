@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { Search, UserPlus, UserCheck, UserRound, SlidersHorizontal, X, TrendingUp, Sparkles } from 'lucide-react'
+import { Search, SlidersHorizontal, X, TrendingUp, Sparkles } from 'lucide-react'
 import { searchUsers, getTrendingUsers, getSuggestedUsers } from '../api/profile'
 import { useAuth } from '../context/AuthContext'
-import FollowButton from '../components/FollowButton'
+import FriendActionButton from '../components/FriendActionButton'
 import SEO from '../components/SEO'
 
 const ITEMS_PER_PAGE = 12
@@ -74,16 +74,16 @@ export default function SearchPage() {
   const showSearchResults = debouncedQuery.length >= 1 || Object.values(filters).some(Boolean)
 
   return (
-    <div className="min-h-screen bg-canvas pt-28 pb-20">
+    <div className="min-h-screen bg-[#ffffff] pt-28 pb-20">
       <SEO title="Discover & Connect | Electro Infinity" description="Find and connect with students, seniors, and faculty." />
 
       <div className="max-w-[1280px] mx-auto px-4 md:px-12">
         {/* Header */}
         <div className="max-w-3xl mb-10">
-          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-medium block mb-2">
             Discover & Connect
           </span>
-          <h1 className="font-display text-[40px] md:text-[56px] font-normal tracking-tight text-ink mb-4">
+          <h1 className="font-sans text-[40px] md:text-[56px] font-normal tracking-tight text-ink mb-4">
             Find People
           </h1>
           <p className="font-sans text-[17px] text-body-muted leading-relaxed">
@@ -99,7 +99,7 @@ export default function SearchPage() {
             value={query}
             onChange={(e) => { setQuery(e.target.value); setPage(1) }}
             placeholder="Search by name, username, department, batch…"
-            className="w-full bg-white border border-divider-soft rounded-2xl pl-12 pr-24 py-4 text-[15px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary/40 transition-colors shadow-sm"
+            className="w-full bg-white border border-divider-soft rounded-[10px] pl-12 pr-24 py-4 text-[15px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary/40 transition-colors shadow-sm"
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
             {query && (
@@ -113,7 +113,7 @@ export default function SearchPage() {
             )}
             <button
               onClick={() => setShowFilters((s) => !s)}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-colors ${
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-medium transition-colors ${
                 showFilters || Object.values(filters).some(Boolean)
                   ? 'bg-ink text-canvas'
                   : 'bg-soft-stone text-ink hover:bg-soft-stone/80'
@@ -131,25 +131,25 @@ export default function SearchPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-white border border-divider-soft rounded-2xl p-5 mb-8 shadow-sm overflow-hidden"
+            className="bg-white border border-divider-soft rounded-[10px] p-5 mb-8 shadow-sm overflow-hidden"
           >
             <div className="flex flex-wrap gap-4">
               <div className="flex-1 min-w-[180px]">
-                <label className="block font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-1.5">Department</label>
+                <label className="block font-mono text-[11px] font-medium uppercase tracking-wider text-ink-muted-48 mb-1.5">Department</label>
                 <input
                   type="text"
                   value={filters.department}
                   onChange={(e) => updateFilter('department', e.target.value)}
                   placeholder="e.g. Electrical Engineering"
-                  className="w-full bg-canvas border border-divider-soft rounded-xl px-4 py-2.5 text-[14px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary/40 transition-colors"
+                  className="w-full bg-[#ffffff] border border-divider-soft rounded-md px-4 py-2.5 text-[14px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary/40 transition-colors"
                 />
               </div>
               <div className="flex-1 min-w-[140px]">
-                <label className="block font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-1.5">Semester</label>
+                <label className="block font-mono text-[11px] font-medium uppercase tracking-wider text-ink-muted-48 mb-1.5">Semester</label>
                 <select
                   value={filters.semester}
                   onChange={(e) => updateFilter('semester', e.target.value)}
-                  className="w-full bg-canvas border border-divider-soft rounded-xl px-4 py-2.5 text-[14px] font-sans text-ink focus:outline-none focus:border-primary/40 transition-colors"
+                  className="w-full bg-[#ffffff] border border-divider-soft rounded-md px-4 py-2.5 text-[14px] font-sans text-ink focus:outline-none focus:border-primary/40 transition-colors"
                 >
                   <option value="">Any</option>
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
@@ -158,21 +158,21 @@ export default function SearchPage() {
                 </select>
               </div>
               <div className="flex-1 min-w-[140px]">
-                <label className="block font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-1.5">Batch</label>
+                <label className="block font-mono text-[11px] font-medium uppercase tracking-wider text-ink-muted-48 mb-1.5">Batch</label>
                 <input
                   type="text"
                   value={filters.batch}
                   onChange={(e) => updateFilter('batch', e.target.value)}
                   placeholder="e.g. 2027"
-                  className="w-full bg-canvas border border-divider-soft rounded-xl px-4 py-2.5 text-[14px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary/40 transition-colors"
+                  className="w-full bg-[#ffffff] border border-divider-soft rounded-md px-4 py-2.5 text-[14px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary/40 transition-colors"
                 />
               </div>
               <div className="flex-1 min-w-[140px]">
-                <label className="block font-mono text-[11px] font-bold uppercase tracking-wider text-ink-muted-48 mb-1.5">Role</label>
+                <label className="block font-mono text-[11px] font-medium uppercase tracking-wider text-ink-muted-48 mb-1.5">Role</label>
                 <select
                   value={filters.role}
                   onChange={(e) => updateFilter('role', e.target.value)}
-                  className="w-full bg-canvas border border-divider-soft rounded-xl px-4 py-2.5 text-[14px] font-sans text-ink focus:outline-none focus:border-primary/40 transition-colors"
+                  className="w-full bg-[#ffffff] border border-divider-soft rounded-md px-4 py-2.5 text-[14px] font-sans text-ink focus:outline-none focus:border-primary/40 transition-colors"
                 >
                   <option value="">Everyone</option>
                   <option value="student">Students</option>
@@ -193,7 +193,7 @@ export default function SearchPage() {
           >
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp size={18} className="text-coral" />
-              <h3 className="font-display text-[20px] font-bold text-ink">Trending Now</h3>
+              <h3 className="font-sans text-[20px] font-medium text-ink">Trending Now</h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {trending.map((user, idx) => (
@@ -203,22 +203,22 @@ export default function SearchPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
                   onClick={() => navigate(`/profile/${user._id}`)}
-                   className="border border-divider-soft bg-white rounded-2xl p-5 shadow-card hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
+                   className="border border-divider-soft bg-white rounded-[10px] p-5 shadow-card hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
                 >
                   <div className="w-12 h-12 rounded-full bg-soft-stone flex items-center justify-center overflow-hidden flex-shrink-0 relative">
                     {user.photo ? (
                       <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="font-display font-bold text-[18px] text-ink-muted-48">
+                      <span className="font-sans font-medium text-[18px] text-ink-muted-48">
                         {user.name?.charAt(0)}
                       </span>
                     )}
-                    <span className="absolute -top-1 -left-1 w-5 h-5 bg-coral text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -left-1 w-5 h-5 bg-coral text-white text-[10px] font-medium rounded-full flex items-center justify-center">
                       {idx + 1}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-display text-[16px] font-bold text-ink group-hover:text-primary transition-colors truncate">
+                    <p className="font-sans text-[16px] font-medium text-ink group-hover:text-primary transition-colors truncate">
                       {user.name}
                     </p>
                     <p className="font-mono text-[12px] text-slate truncate">
@@ -230,20 +230,19 @@ export default function SearchPage() {
                       )}
                     </div>
                   </div>
-                  <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                    <FollowButton
-                      userId={user._id}
-                      isFollowing={user.isFollowing}
-                      followsMe={user.followsMe}
-                      onUpdate={(updates) => {
-                        const idx = results.findIndex((r) => r._id === user._id)
-                        if (idx !== -1) {
-                          results[idx] = { ...results[idx], ...updates }
-                        }
-                      }}
-                      size="sm"
-                    />
-                  </div>
+                     <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                       <FriendActionButton
+                         userId={user._id}
+                         friendStatus={user.friendStatus}
+                         onUpdate={(updates) => {
+                           const idx = results.findIndex((r) => r._id === user._id)
+                           if (idx !== -1) {
+                             results[idx] = { ...results[idx], ...updates }
+                           }
+                         }}
+                         size="sm"
+                       />
+                     </div>
                 </motion.div>
               ))}
               {trending.length === 0 && (
@@ -265,7 +264,7 @@ export default function SearchPage() {
           >
             <div className="flex items-center gap-2 mb-4">
               <Sparkles size={18} className="text-action-blue" />
-              <h3 className="font-display text-[20px] font-bold text-ink">People You May Know</h3>
+              <h3 className="font-sans text-[20px] font-medium text-ink">People You May Know</h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {suggested.map((user, idx) => (
@@ -275,19 +274,19 @@ export default function SearchPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
                   onClick={() => navigate(`/profile/${user._id}`)}
-                   className="border border-divider-soft bg-white rounded-2xl p-5 shadow-card hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
+                   className="border border-divider-soft bg-white rounded-[10px] p-5 shadow-card hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
                 >
                   <div className="w-12 h-12 rounded-full bg-soft-stone flex items-center justify-center overflow-hidden flex-shrink-0">
                     {user.photo ? (
                       <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="font-display font-bold text-[18px] text-ink-muted-48">
+                      <span className="font-sans font-medium text-[18px] text-ink-muted-48">
                         {user.name?.charAt(0)}
                       </span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-display text-[16px] font-bold text-ink group-hover:text-primary transition-colors truncate">
+                    <p className="font-sans text-[16px] font-medium text-ink group-hover:text-primary transition-colors truncate">
                       {user.name}
                     </p>
                     <p className="font-mono text-[12px] text-slate truncate">
@@ -302,20 +301,19 @@ export default function SearchPage() {
                       )}
                     </div>
                   </div>
-                  <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                    <FollowButton
-                      userId={user._id}
-                      isFollowing={user.isFollowing}
-                      followsMe={user.followsMe}
-                      onUpdate={(updates) => {
-                        const idx = results.findIndex((r) => r._id === user._id)
-                        if (idx !== -1) {
-                          results[idx] = { ...results[idx], ...updates }
-                        }
-                      }}
-                      size="sm"
-                    />
-                  </div>
+                     <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                       <FriendActionButton
+                         userId={user._id}
+                         friendStatus={user.friendStatus}
+                         onUpdate={(updates) => {
+                           const idx = results.findIndex((r) => r._id === user._id)
+                           if (idx !== -1) {
+                             results[idx] = { ...results[idx], ...updates }
+                           }
+                         }}
+                         size="sm"
+                       />
+                     </div>
                 </motion.div>
               ))}
             </div>
@@ -333,7 +331,7 @@ export default function SearchPage() {
               {isLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="border border-hairline bg-soft-stone/40 rounded-2xl h-[160px] animate-pulse" />
+                    <div key={i} className="border border-hairline bg-soft-stone/40 rounded-[10px] h-[160px] animate-pulse" />
                   ))}
                 </div>
               ) : results.length > 0 ? (
@@ -353,19 +351,19 @@ export default function SearchPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.04 }}
                         onClick={() => navigate(`/profile/${user._id}`)}
-                         className="border border-divider-soft bg-white rounded-2xl p-6 shadow-card hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
+                         className="border border-divider-soft bg-white rounded-[10px] p-6 shadow-card hover:shadow-md transition-all cursor-pointer flex items-center gap-4 group"
                       >
                         <div className="w-14 h-14 rounded-full bg-soft-stone flex items-center justify-center overflow-hidden flex-shrink-0">
                           {user.photo ? (
                             <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
                           ) : (
-                            <span className="font-display font-bold text-[18px] text-ink-muted-48">
+                            <span className="font-sans font-medium text-[18px] text-ink-muted-48">
                               {user.name?.charAt(0)}
                             </span>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-display text-[16px] font-bold text-ink group-hover:text-primary transition-colors truncate">
+                          <p className="font-sans text-[16px] font-medium text-ink group-hover:text-primary transition-colors truncate">
                             {user.name}
                           </p>
                           <p className="font-mono text-[12px] text-slate truncate">
@@ -387,20 +385,19 @@ export default function SearchPage() {
                             )}
                           </div>
                         </div>
-                        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                          <FollowButton
-                            userId={user._id}
-                            isFollowing={user.isFollowing}
-                            followsMe={user.followsMe}
-                            onUpdate={(updates) => {
-                              const idx = results.findIndex((r) => r._id === user._id)
-                              if (idx !== -1) {
-                                results[idx] = { ...results[idx], ...updates }
-                              }
-                            }}
-                            size="sm"
-                          />
-                        </div>
+                  <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <FriendActionButton
+                      userId={user._id}
+                      friendStatus={user.friendStatus}
+                      onUpdate={(updates) => {
+                        const idx = results.findIndex((r) => r._id === user._id)
+                        if (idx !== -1) {
+                          results[idx] = { ...results[idx], ...updates }
+                        }
+                      }}
+                      size="sm"
+                    />
+                  </div>
                       </motion.div>
                     ))}
                   </div>
@@ -411,7 +408,7 @@ export default function SearchPage() {
                       <button
                         onClick={() => setPage((p) => p + 1)}
                         disabled={isFetching}
-                        className="inline-flex items-center gap-2 bg-ink text-canvas px-6 py-3 rounded-full text-[14px] font-semibold hover:bg-ink/90 transition-colors disabled:opacity-50 shadow-sm"
+                        className="inline-flex items-center gap-2 bg-ink text-canvas px-6 py-3 rounded-full text-[14px] font-medium hover:bg-ink/90 transition-colors disabled:opacity-50 shadow-sm"
                       >
                         {isFetching ? 'Loading…' : 'Load More'}
                       </button>
@@ -422,9 +419,9 @@ export default function SearchPage() {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                   className="border border-hairline bg-white rounded-2xl p-16 text-center"
+                   className="border border-hairline bg-white rounded-[10px] p-16 text-center"
                 >
-                  <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-slate block mb-2">
+                  <span className="font-mono text-[12px] font-medium uppercase tracking-wider text-slate block mb-2">
                     No Students Found
                   </span>
                   <p className="font-sans text-[15px] text-body-muted max-w-md mx-auto">
@@ -441,9 +438,9 @@ export default function SearchPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-             className="border border-hairline bg-white rounded-2xl p-16 text-center"
+             className="border border-hairline bg-white rounded-[10px] p-16 text-center"
           >
-            <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-slate block mb-2">
+            <span className="font-mono text-[12px] font-medium uppercase tracking-wider text-slate block mb-2">
               Start Searching
             </span>
             <p className="font-sans text-[15px] text-body-muted max-w-md mx-auto">

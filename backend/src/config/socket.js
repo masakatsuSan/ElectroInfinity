@@ -41,14 +41,6 @@ function initSocket(server) {
       }
     })
 
-    socket.on('join-session', (sessionId) => {
-      if (sessionId) socket.join(`session:${sessionId}`)
-    })
-
-    socket.on('leave-session', (sessionId) => {
-      if (sessionId) socket.leave(`session:${sessionId}`)
-    })
-
     socket.on('disconnect', () => {
       // Socket.io auto-leaves rooms on disconnect
     })

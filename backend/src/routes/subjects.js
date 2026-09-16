@@ -75,7 +75,7 @@ async function autoSeedDefaults() {
     const ops = DEFAULT_SUBJECTS.map((s) => ({
       updateOne: {
         filter: { code: s.code, batch: s.batch, section: s.section || '' },
-        update: { '': s },
+        update: { $set: s },
         upsert: true,
       },
     }))
@@ -100,7 +100,7 @@ router.get('/', optionalAuth, async (req, res) => {
     if (batch) filter.batch = batch
     if (semester) filter.semester = Number(semester)
     if (section) {
-      filter[''] = [{ section: '' }, { section }, { section: { '': false } }]
+      filter['$or'] = [{ section: '' }, { section }, { section: { $exists: false } }]
     }
     if (!isCourseStaff(req.user)) {
       filter.status = 'approved'

@@ -1,13 +1,13 @@
 export default function ProfileCompleteness({ percentage, missing, onEdit }) {
-  const color = percentage >= 80 ? 'bg-green-500' : percentage >= 50 ? 'bg-amber-500' : 'bg-red-500'
+  const color = percentage >= 80 ? 'bg-green-600' : percentage >= 50 ? 'bg-orange-400' : 'bg-[#1877F2]'
 
   return (
-    <div className="p-6 border border-divider-soft bg-white rounded-2xl shadow-sm">
+    <div className="border border-hairline bg-white p-6 rounded-xl shadow">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-display text-[18px] font-bold text-ink">Profile Completeness</h3>
-        <span className="font-mono text-[14px] font-bold text-ink">{percentage}%</span>
+        <h3 className="font-display text-[18px] font-bold text-gray-900">Profile Completeness</h3>
+        <span className="font-sans text-[14px] font-medium text-gray-700">{percentage}%</span>
       </div>
-      <div className="w-full h-3 bg-divider-soft rounded-full overflow-hidden mb-4">
+      <div className="mb-4 h-3 w-full overflow-hidden rounded-full bg-gray-200">
         <div
           className={`h-full rounded-full transition-all duration-500 ${color}`}
           style={{ width: `${percentage}%` }}
@@ -15,18 +15,18 @@ export default function ProfileCompleteness({ percentage, missing, onEdit }) {
       </div>
       {missing.length > 0 && (
         <>
-          <p className="font-sans text-[13px] text-ink-muted-80 mb-3">Missing:</p>
+          <p className="font-sans text-[13px] text-gray-500 mb-3">Missing:</p>
           <ul className="space-y-1.5 mb-4">
             {missing.map((item) => (
-              <li key={item} className="font-sans text-[13px] text-ink-muted-80 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              <li key={item} className="font-sans text-[13px] text-gray-500 flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
                 {item}
               </li>
             ))}
           </ul>
           <button
             onClick={onEdit}
-            className="inline-flex items-center gap-2 bg-ink text-canvas px-4 py-2 rounded-full text-[13px] font-semibold hover:bg-ink/90 transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#1877F2] text-white rounded-full text-[13px] font-medium hover:bg-[#166FE2] transition-colors"
           >
             Complete Profile
           </button>

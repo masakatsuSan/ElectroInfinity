@@ -19,15 +19,6 @@ export const uploadProfilePhoto = (formData) =>
 export const getProfileCompleteness = () =>
   api.get('/profile/me/completeness')
 
-export const toggleFollow = (userId) =>
-  api.post(`/profile/${userId}/follow`)
-
-export const getFollowers = (userId) =>
-  api.get(`/profile/${userId}/followers`)
-
-export const getFollowing = (userId) =>
-  api.get(`/profile/${userId}/following`)
-
 export const searchUsers = (query, filters = {}) => {
   const params = { q: query, ...filters }
   return api.get('/profile/search', { params })
@@ -53,6 +44,9 @@ export const getCollegeNetwork = (query = '') => {
 export const getProfileViews = () =>
   api.get('/profile/me/views')
 
+export const recordProfileView = (userId) =>
+  api.post(`/profile/${userId}/view`)
+
 export const setStatus = (text) =>
   api.post('/profile/me/status', { text })
 
@@ -76,3 +70,21 @@ export const getSuggestedUsers = () =>
 
 export const getMyUploads = () =>
   api.get('/profile/me/uploads')
+
+export const sendFriendRequest = (recipientId) =>
+  api.post('/friends/request', { recipientId })
+
+export const acceptFriendRequest = (senderId) =>
+  api.post(`/friends/${senderId}/accept`)
+
+export const rejectFriendRequest = (senderId) =>
+  api.post(`/friends/${senderId}/reject`)
+
+export const removeFriend = (userId) =>
+  api.delete(`/friends/${userId}/remove`)
+
+export const getFriendList = (userId) =>
+  api.get(`/friends/${userId}/list`)
+
+export const getFriendRequests = (status = 'pending') =>
+  api.get(`/friends/requests?status=${status}`)

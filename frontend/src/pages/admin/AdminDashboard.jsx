@@ -4,7 +4,7 @@ import { getAnnouncements } from '../../api/announcements'
 import { getStudents } from '../../api/students'
 import { getResources } from '../../api/resources'
 import { getDeadlines } from '../../api/deadlines'
-import { getAdminFaculty } from '../../api/attendance'
+import { getFaculty } from '../../api/faculty'
 import { Hash, Code2, Megaphone, MessageCircle } from 'lucide-react'
 import api from '../../api/axios'
 
@@ -13,7 +13,7 @@ export default function AdminDashboard() {
   const { data: sData } = useQuery({ queryKey: ['students'],  queryFn: () => getStudents().then(r => r.data) })
   const { data: rData } = useQuery({ queryKey: ['resources'], queryFn: () => getResources().then(r => r.data) })
   const { data: dData } = useQuery({ queryKey: ['deadlines'], queryFn: () => getDeadlines().then(r => r.data) })
-  const { data: fData } = useQuery({ queryKey: ['admin-faculty'], queryFn: () => getAdminFaculty().then(r => r.data) })
+  const { data: fData } = useQuery({ queryKey: ['faculty'], queryFn: () => getFaculty().then(r => r.data) })
   const { data: adminStats } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: () => api.get('/admin/stats').then(r => r.data),
@@ -21,7 +21,7 @@ export default function AdminDashboard() {
   })
 
   const stats = [
-    { label: 'Faculty',       count: fData?.data?.length ?? '—', to: '/admin/attendance',    badge: 'Active System' },
+    { label: 'Faculty',       count: fData?.data?.length ?? '—', to: '/admin/faculty',   badge: 'Active System' },
     { label: 'Students',      count: sData?.data?.length ?? '—', to: '/admin/students',      badge: 'Roster' },
     { label: 'Announcements', count: aData?.total ?? '—',        to: '/admin/announcements', badge: 'Official' },
     { label: 'Deadlines',     count: dData?.data?.length ?? '—', to: '/admin/deadlines',     badge: 'Tasks' },
@@ -47,12 +47,12 @@ export default function AdminDashboard() {
             Enterprise Command Center
           </span>
         </div>
-        <h1 className="font-display font-bold text-[36px] tracking-tight text-ink">
+        <h1 className="font-[Inter,system-ui,sans-serif] font-medium text-[36px] tracking-tight text-ink">
           Department Overview
         </h1>
-        <p className="font-sans text-[15px] text-body-muted mt-1">
-          Monitor batch attendance sessions, students, faculty assignments, and department assets.
-        </p>
+          <p className="font-[Inter,system-ui,sans-serif] text-[15px] text-body-muted mt-1">
+            Monitor students, faculty, department assets, and community engagement.
+          </p>
       </div>
 
       {/* Stats grid */}
@@ -64,10 +64,10 @@ export default function AdminDashboard() {
                 {s.badge}
               </span>
             </div>
-            <div className="font-display font-bold text-[28px] leading-none text-ink group-hover:text-action-blue transition-colors">
+            <div className="font-[Inter,system-ui,sans-serif] font-medium text-[28px] leading-none text-ink group-hover:text-action-blue transition-colors">
               {s.count}
             </div>
-            <div className="font-sans text-[13px] font-semibold text-body-muted mt-3 pt-2 border-t border-hairline">
+            <div className="font-[Inter,system-ui,sans-serif] text-[13px] font-semibold text-body-muted mt-3 pt-2 border-t border-hairline">
               {s.label}
             </div>
           </Link>
@@ -86,10 +86,10 @@ export default function AdminDashboard() {
                   {s.badge}
                 </span>
               </div>
-              <div className="font-display font-bold text-[28px] leading-none text-ink group-hover:text-action-blue transition-colors">
+              <div className="font-[Inter,system-ui,sans-serif] font-medium text-[28px] leading-none text-ink group-hover:text-action-blue transition-colors">
                 {s.count}
               </div>
-              <div className="font-sans text-[13px] font-semibold text-body-muted mt-3 pt-2 border-t border-hairline">
+              <div className="font-[Inter,system-ui,sans-serif] text-[13px] font-semibold text-body-muted mt-3 pt-2 border-t border-hairline">
                 {s.label}
               </div>
             </Link>
@@ -100,23 +100,23 @@ export default function AdminDashboard() {
       {/* Quick Action Band */}
       <div className="border border-hairline bg-white rounded-2xl p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-bold block mb-1">
-            Attendance & Role Management
+          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-medium block mb-1">
+            Faculty Management
           </span>
-          <h2 className="font-display text-[22px] font-bold text-ink">Faculty & Live Attendance Console</h2>
-          <p className="font-sans text-[14px] text-body-muted mt-0.5">
-            Configure faculty accounts, assign subjects per batch, and inspect live GPS classroom sessions.
+          <h2 className="font-[Inter,system-ui,sans-serif] text-[22px] font-medium text-ink">Faculty Directory & Console</h2>
+          <p className="font-[Inter,system-ui,sans-serif] text-[14px] text-body-muted mt-0.5">
+            Configure faculty accounts and manage department resources.
           </p>
         </div>
-        <Link to="/admin/attendance" className="button-primary whitespace-nowrap !py-2.5 !px-5">
-          Manage Attendance →
+        <Link to="/admin/faculty" className="button-primary whitespace-nowrap !py-2.5 !px-5">
+          Manage Faculty →
         </Link>
       </div>
 
       {/* Latest announcements (Research-table style) */}
       <div className="border border-hairline bg-white rounded-2xl p-6 shadow-card space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-hairline">
-          <h3 className="font-display text-[20px] font-bold text-ink">Latest Announcements</h3>
+          <h3 className="font-[Inter,system-ui,sans-serif] text-[20px] font-medium text-ink">Latest Announcements</h3>
           <Link to="/admin/announcements" className="button-pill-outline text-[13px]">
             View All →
           </Link>
@@ -127,23 +127,23 @@ export default function AdminDashboard() {
             {recentAnnouncements.map(a => (
               <div key={a._id} className="py-4 flex items-center justify-between gap-4 hover:bg-soft-stone/30 transition-colors px-2 rounded-lg">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-pale-green text-deep-green border border-green-200 flex-shrink-0">
+                  <span className="font-mono text-[11px] font-medium uppercase tracking-wider px-2.5 py-1 rounded-md bg-pale-green text-deep-green border border-green-200 flex-shrink-0">
                     {a.category || 'General'}
                   </span>
-                  <span className="font-sans text-[14px] font-medium text-ink truncate">{a.title}</span>
+                  <span className="font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink truncate">{a.title}</span>
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
                   {a.targetAudience === 'batch' && a.batchId && (
-                    <span className="font-mono text-[10px] font-bold uppercase bg-ink text-white px-2 py-0.5 rounded-full">
+                    <span className="font-mono text-[10px] font-medium uppercase bg-ink text-white px-2 py-0.5 rounded-full">
                       {a.batchId}
                     </span>
                   )}
                   {a.isPinned && (
-                    <span className="font-mono text-[10px] font-bold uppercase bg-ink text-white px-2 py-0.5 rounded-full">
+                    <span className="font-mono text-[10px] font-medium uppercase bg-ink text-white px-2 py-0.5 rounded-full">
                       Pinned
                     </span>
                   )}
-                  <span className="font-sans text-[12px] text-slate">
+                  <span className="font-[Inter,system-ui,sans-serif] text-[12px] text-slate">
                     {new Date(a.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                   </span>
                 </div>

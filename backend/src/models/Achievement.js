@@ -12,7 +12,7 @@ const achievementSchema = new mongoose.Schema(
     category: { type: String, enum: ['student', 'faculty', 'awards'], default: 'student' },
     students: [{ type: String, trim: true }],
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    isApproved: { type: Boolean, default: false },
+    isApproved: { type: Boolean, default: true },
     approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     approvedAt: { type: Date, default: null },
     rejectionReason: { type: String, default: '' },

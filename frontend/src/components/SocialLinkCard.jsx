@@ -12,32 +12,66 @@ const platformConfig = {
   blog:      { label: 'Blog',      icon: 'book-open', color: '#666' },
 }
 
-export default function SocialLinkCard({ platform, username, url }) {
-  const config = platformConfig[platform]
-  if (!config || !username) return null
+function detectPlatformFromUrl(url) {
+  if (!url) return null
+  const lower = url.toLowerCase()
 
-  const href = url || `https://${platform}.com/${username}`
+  if (lower.includes('github.com')) return 'github'
+  if (lower.includes('linkedin.com') || lower.includes('linkedin.in')) return 'linkedin'
+  if (lower.includes('instagram.com')) return 'instagram'
+  if (lower.includes('facebook.com') || lower.includes('fb.com')) return 'facebook'
+  if (lower.includes('twitter.com') || lower.includes('x.com')) return 'twitter'
+  if (lower.includes('discord.com') || lower.includes('discord.gg')) return 'discord'
+  if (lower.includes('youtube.com') || lower.includes('youtu.be')) return 'youtube'
+  if (lower.includes('blog.') || lower.includes('/blog')) return 'blog'
+
+  return null
+}
+
+export default function SocialLinkCard({ platform, username, url }) {
+  const displayUrl = url || username
+  const detectedPlatform = detectPlatformFromUrl(displayUrl)
+  const activePlatform = detectedPlatform || platform
+  const config = platformConfig[activePlatform]
+
+  if (!config || !displayUrl) return null
+
+  const href = displayUrl.startsWith('http') ? displayUrl : `https://${displayUrl}`
+
+  let displayText
+  try {
+    if (displayUrl.startsWith('http')) {
+      const urlObj = new URL(displayUrl)
+      displayText = urlObj.hostname + urlObj.pathname
+    } else {
+      displayText = `@${displayUrl}`
+    }
+  } catch {
+    displayText = displayUrl
+  }
 
   return (
     <a
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="flex items-center justify-between p-4 border border-divider-soft bg-canvas rounded-2xl hover:border-slate/30 hover:shadow-sm transition-all group"
+      className="flex items-center justify-between p-4 border border-hairline bg-white rounded-xl group hover:bg-[#1877F2]/5 transition-colors"
     >
       <div className="flex items-center gap-3">
         <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-[12px] uppercase"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-white font-medium text-[12px] uppercase"
           style={{ backgroundColor: config.color }}
         >
           {config.label.charAt(0)}
         </div>
         <div>
-          <p className="font-sans text-[14px] font-semibold text-ink">{config.label}</p>
-          <p className="font-mono text-[12px] text-slate">@{username}</p>
+          <p className="font-sans text-[14px] font-medium text-ink">{config.label}</p>
+          <p className="font-sans text-[12px] text-gray-500 truncate max-w-[180px]">
+            {displayText}
+          </p>
         </div>
       </div>
-      <ExternalLink size={16} className="text-slate group-hover:text-ink transition-colors" />
+      <ExternalLink size={16} className="text-gray-400 group-hover:text-[#1877F2] transition-colors" />
     </a>
   )
 }

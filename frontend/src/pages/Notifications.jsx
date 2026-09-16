@@ -6,6 +6,8 @@ import SEO from '../components/SEO'
 const TYPE_ICONS = {
   follow: UserPlus,
   follow_back: UserCheck,
+  friend_request: UserPlus,
+  friend_accepted: UserCheck,
   forum_comment: MessageSquare,
   forum_reply: Reply,
   forum_upvote: ThumbsUp,
@@ -20,7 +22,6 @@ const TYPE_ICONS = {
   gallery_photo: Image,
   resource_uploaded: Upload,
   achievement: Trophy,
-  attendance_session: Zap,
 }
 
 const FILTERS = [
@@ -46,12 +47,12 @@ export default function Notifications() {
     : notifications
 
   return (
-    <div className="min-h-screen bg-canvas text-ink pt-28 pb-24">
+    <div className="min-h-screen bg-[#ffffff] text-ink pt-28 pb-24">
       <SEO title="Notifications | Electro Infinity" description="Your notifications" path="/notifications" />
       <div className="max-w-[720px] mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="font-display text-[32px] md:text-[40px] font-normal tracking-tight text-ink">
+            <h1 className="font-sans text-[32px] md:text-[40px] font-normal tracking-tight text-ink">
               Notifications
             </h1>
             {unreadCount > 0 && (
@@ -63,7 +64,7 @@ export default function Notifications() {
           {unreadCount > 0 && (
             <button
               onClick={markAllRead}
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-soft-stone text-[13px] font-medium text-ink hover:bg-soft-stone/80 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 rounded-md bg-soft-stone text-[13px] font-medium text-ink hover:bg-soft-stone/80 transition-colors"
             >
               <CheckCheck size={14} />
               Mark all read
@@ -76,7 +77,7 @@ export default function Notifications() {
             <button
               key={filter.key}
               onClick={() => setActiveFilter(filter.key)}
-              className={`px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors ${
+              className={`px-4 py-1.5 rounded-md text-[13px] font-medium transition-colors ${
                 activeFilter === filter.key
                   ? 'bg-ink text-canvas'
                   : 'bg-soft-stone text-body-muted hover:text-ink'
@@ -94,8 +95,8 @@ export default function Notifications() {
           {loading && notifications.length === 0 ? (
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex gap-3 p-4 rounded-xl border border-hairline animate-pulse">
-                  <div className="w-10 h-10 rounded-full bg-soft-stone" />
+                <div key={i} className="flex gap-3 p-4 rounded-md border border-hairline animate-pulse">
+                  <div className="w-10 h-10 rounded-md bg-soft-stone" />
                   <div className="flex-1 space-y-2">
                     <div className="h-3.5 w-3/4 bg-soft-stone rounded" />
                     <div className="h-3 w-1/2 bg-soft-stone rounded" />
@@ -104,8 +105,8 @@ export default function Notifications() {
               ))}
             </div>
           ) : filteredNotifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center border border-hairline border-dashed rounded-2xl bg-soft-stone/20">
-              <div className="w-14 h-14 rounded-full bg-soft-stone flex items-center justify-center mb-4">
+            <div className="flex flex-col items-center justify-center py-16 text-center border border-hairline border-dashed rounded-[10px] bg-soft-stone/20">
+              <div className="w-14 h-14 rounded-md bg-soft-stone flex items-center justify-center mb-4">
                 <Bell size={24} className="text-body-muted" />
               </div>
               <p className="font-sans text-[16px] text-body-muted">
@@ -118,7 +119,7 @@ export default function Notifications() {
               </p>
             </div>
           ) : (
-            <div className="border border-hairline rounded-2xl overflow-hidden divide-y divide-hairline">
+            <div className="border border-hairline rounded-[10px] overflow-hidden divide-y divide-hairline">
               {filteredNotifications.map((notification) => (
                 <NotificationCard
                   key={notification._id}
@@ -136,7 +137,7 @@ export default function Notifications() {
             <button
               onClick={loadMore}
               disabled={loading}
-              className="px-6 py-2.5 rounded-full border border-hairline text-[13px] font-medium text-body-muted hover:text-ink hover:border-slate transition-colors disabled:opacity-50"
+              className="px-6 py-2.5 rounded-md border border-hairline text-[13px] font-medium text-body-muted hover:text-ink hover:border-slate transition-colors disabled:opacity-50"
             >
               {loading ? 'Loading...' : 'Load more'}
             </button>
@@ -159,9 +160,9 @@ function NotificationCard({ notification, onMarkRead, onDelete }) {
     >
       <div className="flex-shrink-0">
         {actor?.photo ? (
-          <img src={actor.photo} alt="" className="w-10 h-10 rounded-full object-cover border border-hairline" />
+          <img src={actor.photo} alt="" className="w-10 h-10 rounded-md object-cover border border-hairline" />
         ) : (
-          <div className="w-10 h-10 rounded-full bg-soft-stone flex items-center justify-center">
+          <div className="w-10 h-10 rounded-md bg-soft-stone flex items-center justify-center">
             <IconComponent size={18} className="text-slate" />
           </div>
         )}
@@ -170,7 +171,7 @@ function NotificationCard({ notification, onMarkRead, onDelete }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className={`text-[14px] leading-snug ${!notification.isRead ? 'font-semibold text-ink' : 'text-body-muted'}`}>
+            <p className={`text-[14px] leading-snug ${!notification.isRead ? 'font-medium text-ink' : 'text-body-muted'}`}>
               {notification.title}
             </p>
             {notification.message && (
@@ -179,7 +180,7 @@ function NotificationCard({ notification, onMarkRead, onDelete }) {
             <p className="text-[12px] text-slate mt-1">{notification.timeAgo || 'Just now'}</p>
           </div>
           {!notification.isRead && (
-            <span className="w-2.5 h-2.5 rounded-full bg-action-blue flex-shrink-0 mt-1.5" />
+            <span className="w-2.5 h-2.5 rounded-md bg-action-blue flex-shrink-0 mt-1.5" />
           )}
         </div>
 

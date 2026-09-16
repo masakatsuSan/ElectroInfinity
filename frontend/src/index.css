@@ -1,30 +1,44 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --color-primary: #17171c;
-    --color-cohere-black: #000000;
-    --color-ink: #212121;
-    --color-deep-green: #003c33;
-    --color-dark-navy: #071829;
-    --color-canvas: #F9F6F0;
-    --color-soft-stone: #eeece7;
-    --color-pale-green: #edfce9;
-    --color-pale-blue: #f1f5ff;
-    --color-hairline: #d9d9dd;
-    --color-border-light: #e5e7eb;
-    --color-card-border: #f2f2f2;
-    --color-muted: #93939f;
-    --color-slate: #75758a;
-    --color-body-muted: #616161;
-    --color-action-blue: #1863dc;
-    --color-focus-blue: #4c6ee6;
-    --color-coral: #ff7759;
-    --color-coral-soft: #ffad9b;
-    --color-form-focus: #9b60aa;
-    --color-error: #b30000;
+    --color-primary: #181d26;
+    --color-primary-active: #0d1218;
+    --color-ink: #181d26;
+    --color-body: #333840;
+    --color-muted: #41454d;
+    --color-hairline: #dddddd;
+    --color-border-strong: #9297a0;
+    --color-canvas: #ffffff;
+    --color-canvas-alt: #f0f2f5;
+    --color-surface-soft: #f8fafc;
+    --color-surface-strong: #e0e2e6;
+    --color-surface-dark: #181d26;
+    --color-surface-dark-elevated: #1d1f25;
+    --color-signature-coral: #aa2d00;
+    --color-signature-forest: #0a2e0e;
+    --color-signature-cream: #f5e9d4;
+    --color-signature-peach: #fcab79;
+    --color-signature-mint: #a8d8c4;
+    --color-signature-yellow: #f4d35e;
+    --color-signature-mustard: #d9a441;
+    --color-on-primary: #ffffff;
+    --color-on-dark: #ffffff;
+    --color-link: #1b61c9;
+    --color-link-active: #1a3866;
+    --color-info: #254fad;
+    --color-info-border: #458fff;
+    --color-success: #006400;
+    --color-success-border: #39bf45;
+    --color-pricing-ink: #1d1f25;
+    --color-facebook-primary: #1877F2;
+    --color-facebook-primary-hover: #166FE2;
+    --color-facebook-secondary: #E44523;
+    --color-facebook-tertiary: #F0F2F5;
+    --color-facebook-border: #D8DADF;
+    --color-facebook-focus: #E3F2FD;
   }
 
   * {
@@ -35,417 +49,652 @@
   html, body {
     background-color: var(--color-canvas);
     color: var(--color-ink);
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-    touch-action: manipulation;
-  }
-
-  html::-webkit-scrollbar,
-  body::-webkit-scrollbar {
-    display: none;
-  }
-
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-    overscroll-behavior: contain;
-  }
-
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  @media (max-width: 768px) {
-    .overflow-y-auto,
-    .overflow-x-auto {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    .overflow-y-auto::-webkit-scrollbar,
-    .overflow-x-auto::-webkit-scrollbar {
-      display: none;
-    }
-  }
-
-  body {
-    font-family: 'Inter', 'Unica77 Cohere Web', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: "Haas Groot Disp", "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 400;
-    line-height: 1.5;
+    line-height: 1.25;
     letter-spacing: 0;
   }
 
+  @media (max-width: 768px) {
+    html, body {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      overflow-x: hidden;
+    }
+    html::-webkit-scrollbar, body::-webkit-scrollbar {
+      display: none;
+    }
+    #root, main, [data-scroll-container] {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    #root::-webkit-scrollbar, main::-webkit-scrollbar, [data-scroll-container]::-webkit-scrollbar {
+      display: none;
+    }
+    * {
+      -ms-overflow-style: none !important;
+      scrollbar-width: none !important;
+    }
+    *::-webkit-scrollbar {
+      display: none !important;
+    }
+  }
+
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', 'CohereText', 'Inter', sans-serif;
+    font-family: "Haas Groot Disp", "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     color: var(--color-ink);
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  p {
+    font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--color-body);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.25;
+    letter-spacing: 0;
+  }
+
+  a {
+    color: var(--color-link);
+    text-decoration: none;
+    transition: color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+  a:hover {
+    color: var(--color-link-active);
+  }
+
+  ::selection {
+    background-color: var(--color-surface-dark);
+    color: var(--color-on-primary);
   }
 }
 
 @layer components {
-  /* ── BUTTONS ── */
-  /* Near-black or white pill CTA. Uses 14px Unica77, 12px 24px padding, 32px pill radius */
+  /* ── Buttons ─────────────────────────────────────────────────── */
   .button-primary {
-    background-color: #17171c;
-    color: #ffffff;
-    padding: 12px 24px;
-    border-radius: 32px;
-    font-family: 'Inter', 'Unica77 Cohere Web', sans-serif;
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-weight: 500;
-    font-size: 14px;
-    line-height: 1.71;
+    font-size: 16px;
+    line-height: 1.4;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.22s cubic-bezier(0.25, 0.1, 0.25, 1), transform 0.1s cubic-bezier(0.25, 0.1, 0.25, 1);
     border: 1px solid transparent;
     cursor: pointer;
     text-decoration: none;
+    box-shadow: 0 1px 2px rgba(24, 29, 38, 0.06);
+    -webkit-tap-highlight-color: transparent;
   }
-  .button-primary:hover {
-    background-color: #000000;
-    transform: translateY(-0.5px);
+  .button-primary:hover, .button-primary:focus {
+    background-color: var(--color-primary-active);
+    box-shadow: 0 2px 4px rgba(24, 29, 38, 0.1);
+  }
+  .button-primary:active {
+    background-color: var(--color-primary-active);
+    box-shadow: none;
+    transform: scale(0.98);
   }
   .button-primary:disabled {
-    background-color: #e5e7eb;
-    color: #93939f;
+    background-color: var(--color-hairline);
+    color: var(--color-muted);
     cursor: not-allowed;
-    transform: none;
+    box-shadow: none;
   }
 
-  /* Text-only action link, underlined or rule-aligned */
   .button-secondary {
-    background-color: transparent;
-    color: #212121;
-    padding: 8px 16px;
-    border-radius: 32px;
-    font-family: 'Inter', 'Unica77 Cohere Web', sans-serif;
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-weight: 500;
-    font-size: 14px;
-    border: 1px solid #d9d9dd;
+    font-size: 16px;
+    line-height: 1.4;
+    border: 1px solid var(--color-hairline);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.22s cubic-bezier(0.25, 0.1, 0.25, 1);
+    cursor: pointer;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .button-secondary:hover, .button-secondary:focus {
+    background-color: var(--color-surface-soft);
+    border-color: var(--color-ink);
+  }
+  .button-secondary:active {
+    background-color: var(--color-surface-soft);
+    border-color: var(--color-ink);
+    transform: scale(0.98);
+  }
+  .button-secondary:disabled {
+    background-color: var(--color-canvas);
+    color: var(--color-border-strong);
+    border-color: var(--color-border-strong);
+    cursor: not-allowed;
+  }
+
+  .button-secondary-on-dark {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.4;
+    border: 1px solid var(--color-hairline);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.22s cubic-bezier(0.25, 0.1, 0.25, 1);
+    cursor: pointer;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .button-pricing-pill {
+    background-color: var(--color-canvas);
+    color: var(--color-pricing-ink);
+    padding: 12px 24px;
+    border-radius: 9999px;
+    font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.4;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1), transform 0.1s cubic-bezier(0.25, 0.1, 0.25, 1);
+    cursor: pointer;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .button-pricing-pill:active {
+    transform: scale(0.97);
+  }
+
+  .button-legal {
+    background-color: var(--color-link);
+    color: var(--color-on-primary);
+    padding: 12px 10px;
+    border-radius: 2px;
+    font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 600;
+    font-size: 13.12px;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     cursor: pointer;
     text-decoration: none;
   }
-  .button-secondary:hover {
-    background-color: #eeece7;
-    border-color: #212121;
-  }
 
-  /* Outlined pill control with transparent fill, 1px dark border, and 30px radius */
-  .button-pill-outline {
-    background-color: transparent;
-    color: #17171c;
-    border: 1px solid #d9d9dd;
-    padding: 6px 14px;
-    border-radius: 30px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 13px;
+  .button-icon-circular {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    border: 1px solid var(--color-hairline);
+    border-radius: 9999px;
+    width: 40px;
+    height: 40px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s ease;
     cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.25, 0.1, 0.25, 1);
+    -webkit-tap-highlight-color: transparent;
   }
-  .button-pill-outline:hover {
-    border-color: #17171c;
-    background-color: #ffffff;
+  .button-icon-circular:hover {
+    background-color: var(--color-surface-soft);
+    border-color: var(--color-ink);
   }
-  .button-pill-outline.active {
-    background-color: #17171c;
-    color: #ffffff;
-    border-color: #17171c;
+  .button-icon-circular:active {
+    transform: scale(0.92);
   }
 
-  /* Secondary pill variant */
-  .button-secondary-pill {
+  .text-link {
     background-color: transparent;
-    color: #212121;
-    border: 1px solid #d9d9dd;
-    padding: 8px 18px;
-    border-radius: 30px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 13px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.15s ease;
-    cursor: pointer;
+    color: var(--color-link);
+    font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.25;
+    text-decoration: none;
   }
-  .button-secondary-pill:hover {
-    background-color: #eeece7;
-    border-color: #17171c;
+  .text-link:hover {
+    text-decoration: underline;
+    color: var(--color-link-active);
   }
 
-  .button-dark-utility {
-    background-color: #ffffff;
-    color: #17171c;
-    border: 1px solid #d9d9dd;
-    padding: 6px 14px;
-    border-radius: 32px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 13px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s ease;
-  }
-  .button-dark-utility:hover {
-    background-color: #eeece7;
-    border-color: #17171c;
+  /* ── Navigation ──────────────────────────────────────────────── */
+  .top-nav {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.25;
+    height: 64px;
+    border-bottom: 1px solid var(--color-hairline);
   }
 
-  /* ── CARDS & SURFACES ── */
-  .card {
-    background-color: #ffffff;
-    border-radius: 16px;
-    padding: 24px;
-    border: 1px solid #f2f2f2;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  /* ── Hero & Bands ────────────────────────────────────────────── */
+  .hero-band {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    padding: 96px 48px;
   }
 
-  .product-card {
-    background-color: #eeece7;
-    color: #212121;
-    border-radius: 8px;
+  /* ── Signature Cards ────────────────────────────────────────── */
+  .signature-coral-card {
+    background-color: var(--color-signature-coral);
+    color: var(--color-on-primary);
+    border-radius: 12px;
+    padding: 48px;
+  }
+
+  .signature-forest-card {
+    background-color: var(--color-signature-forest);
+    color: var(--color-on-primary);
+    border-radius: 12px;
+    padding: 48px;
+  }
+
+  .hero-card-dark {
+    background-color: var(--color-surface-dark);
+    color: var(--color-on-dark);
+    border-radius: 12px;
+    padding: 48px;
+  }
+
+  .feature-card-tabbed {
+    background-color: var(--color-surface-soft);
+    color: var(--color-ink);
+    border-radius: 12px;
     padding: 32px;
   }
 
-  .agent-console-card {
-    background-color: #17171c;
-    color: #ffffff;
-    border-radius: 8px;
+  .cream-callout-card {
+    background-color: var(--color-signature-cream);
+    color: var(--color-ink);
+    border-radius: 10px;
     padding: 24px;
   }
 
-  .dark-feature-band {
-    background-color: #003c33;
-    color: #ffffff;
-    border-radius: 22px;
-    padding: 80px 32px;
-  }
-
-  .blog-filter-chip {
-    background-color: transparent;
-    color: #ff7759;
-    border: 1px solid #ff7759;
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .blog-filter-chip.active {
-    background-color: #ff7759;
-    color: #17171c;
-  }
-
-  /* ── INPUTS & FORMS ── */
-  .input {
-    background-color: #ffffff;
-    border: 1px solid #d9d9dd;
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-size: 15px;
-    font-family: 'Inter', sans-serif;
-    color: #212121;
-    width: 100%;
-    outline: none;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  }
-  .input:focus {
-    border-color: #9b60aa;
-    box-shadow: 0 0 0 1px #9b60aa;
-  }
-  .input:disabled {
-    background-color: #eeece7;
-    color: #93939f;
-  }
-
-  .qr-scanner-shell {
-    position: relative;
-    min-height: 360px;
-    max-height: 480px;
-    width: 100%;
-    height: 100%;
-    background: #000000;
-  }
-
-  .qr-scanner-shell > * {
-    box-sizing: border-box;
-  }
-
-  .qr-scanner-shell video {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    background: #000000;
-  }
-
-  .qr-scanner-shell select,
-  .qr-scanner-shell button,
-  .qr-scanner-shell .html5-qrcode-button,
-  .qr-scanner-shell .html5-qrcode-select {
-    color: #111827;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 14px;
-    padding: 10px 14px;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.3;
-    cursor: pointer;
-    outline: none;
-    box-shadow: 0 8px 16px rgba(17, 24, 39, 0.16);
-    transition: all 0.15s ease;
-  }
-
-  .qr-scanner-shell button:hover,
-  .qr-scanner-shell select:hover,
-  .qr-scanner-shell .html5-qrcode-button:hover,
-  .qr-scanner-shell .html5-qrcode-select:hover {
-    background: #ffffff;
-    border-color: rgba(17, 24, 39, 0.2);
-    transform: translateY(-1px);
-  }
-
-  .qr-scanner-shell .html5-qrcode-button,
-  .qr-scanner-shell button {
-    min-height: 42px;
-  }
-
-  .qr-scanner-shell .html5-qrcode-select {
-    min-width: 180px;
-  }
-
-  .qr-scanner-shell .html5-qrcode-camera-select,
-  .qr-scanner-shell .html5-qrcode-camera-switch,
-  .qr-scanner-shell .html5-qrcode-button {
-    position: relative;
-    z-index: 20;
-  }
-
-  .qr-scanner-shell [role='button'],
-  .qr-scanner-shell button,
-  .qr-scanner-shell select {
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
-  /* Programmatic Html5Qrcode viewport — video fills the box; all controls live outside */
-  .qr-video-viewport #qr-reader {
-    width: 100%;
-    height: 100%;
-  }
-
-  .qr-video-viewport #qr-reader video {
-    display: block;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover;
-    background: #000000;
-  }
-
-  /* ── TABLES ── */
-  .research-table {
-    width: 100%;
-    background-color: #ffffff;
-    color: #212121;
-    border-collapse: collapse;
-  }
-  .research-table th {
-    font-family: 'JetBrains Mono', 'CohereMono', monospace;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.28px;
-    color: #75758a;
-    padding: 12px 16px;
-    border-bottom: 1px solid #d9d9dd;
-  }
-  .research-table td {
+  .demo-grid-card {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    border-radius: 10px;
     padding: 16px;
-    border-bottom: 1px solid #d9d9dd;
-    font-size: 15px;
+    border: 1px solid var(--color-hairline);
   }
 
-  /* ── LABELS & CHIPS ── */
-  .mono-label {
-    font-family: 'JetBrains Mono', 'CohereMono', monospace;
-    font-size: 13px;
-    line-height: 1.4;
-    letter-spacing: 0.28px;
-    text-transform: uppercase;
+  .demo-grid-card-peach {
+    background-color: var(--color-signature-peach);
   }
 
+  .demo-grid-card-mint {
+    background-color: var(--color-signature-mint);
+  }
+
+  .demo-grid-card-yellow {
+    background-color: var(--color-signature-yellow);
+  }
+
+  .demo-grid-card-mustard {
+    background-color: var(--color-signature-mustard);
+  }
+
+  .logo-strip {
+    background-color: var(--color-canvas);
+    color: var(--color-muted);
+    padding: 32px;
+  }
+
+  .article-card {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid var(--color-hairline);
+  }
+
+  .topic-filter-rail {
+    background-color: var(--color-canvas);
+    color: var(--color-body);
+    width: 240px;
+    border-right: 1px solid var(--color-hairline);
+  }
+
+  /* ── Inputs & Forms ─────────────────────────────────────────── */
+  .text-input {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    border: 1px solid var(--color-hairline);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.25;
+    width: 100%;
+    height: 44px;
+    outline: none;
+    transition: border-color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.22s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+  .text-input:focus {
+    border-color: var(--color-info-border);
+    box-shadow: 0 0 0 2px var(--color-info-border);
+  }
+  .text-input:disabled {
+    background-color: var(--color-surface-soft);
+    color: var(--color-muted);
+  }
+
+  .pricing-tier-card {
+    background-color: var(--color-canvas);
+    color: var(--color-pricing-ink);
+    border-radius: 10px;
+    padding: 32px;
+    border: 1px solid var(--color-hairline);
+  }
+
+  .pricing-tier-card-featured {
+    background-color: var(--color-surface-soft);
+    color: var(--color-pricing-ink);
+    border-radius: 10px;
+    padding: 32px;
+    border: 1px solid var(--color-hairline);
+  }
+
+  .pricing-comparison-row {
+    background-color: var(--color-canvas);
+    color: var(--color-body);
+    padding: 12px;
+    border-bottom: 1px solid var(--color-hairline);
+  }
+
+  .cta-band-light {
+    background-color: var(--color-surface-strong);
+    color: var(--color-ink);
+    border-radius: 12px;
+    padding: 48px;
+  }
+
+  /* ── Footer ─────────────────────────────────────────────────── */
+  .footer {
+    background-color: var(--color-canvas);
+    color: var(--color-body);
+    padding: 64px 48px;
+    border-top: 1px solid var(--color-hairline);
+  }
+
+  /* ── Layout Utilities ───────────────────────────────────────── */
   .container {
     max-width: 1280px;
-    padding: 0 24px;
+    padding: 0 48px;
     margin: 0 auto;
+  }
+
+  .section-padding {
+    padding-top: 96px;
+    padding-bottom: 96px;
+  }
+
+  .card {
+    background-color: var(--color-canvas);
+    border-radius: 10px;
+    padding: 24px;
+    border: 1px solid var(--color-hairline);
+    transition: box-shadow 0.22s cubic-bezier(0.25, 0.1, 0.25, 1), transform 0.22s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+
+  .input {
+    background-color: var(--color-canvas);
+    border: 1px solid var(--color-hairline);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-ink);
+    width: 100%;
+    outline: none;
+    transition: border-color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.22s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+  .input:focus {
+    border-color: var(--color-info-border);
+    box-shadow: 0 0 0 2px var(--color-info-border);
+  }
+  .input:disabled {
+    background-color: var(--color-surface-soft);
+    color: var(--color-muted);
+  }
+
+  /* ── Table ──────────────────────────────────────────────────── */
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    color: var(--color-body);
+  }
+  .table thead {
+    border-bottom: 1px solid var(--color-hairline);
+  }
+  .table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--color-muted);
+    letter-spacing: 0.16px;
+    text-transform: uppercase;
+  }
+  .table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-hairline);
+    color: var(--color-body);
+  }
+  .table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .table tbody tr:hover td {
+    background-color: var(--color-surface-soft);
   }
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 
-  .classroom-3d-label {
-    color: #ffffff;
-    background: rgba(8, 14, 22, 0.88);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 8px;
-    padding: 3px 9px;
-    font-family: 'Inter', sans-serif;
-    font-size: 11px;
-    line-height: 1.3;
-    text-align: center;
-    white-space: nowrap;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
-  }
-  .classroom-3d-label .name {
-    font-weight: 600;
-  }
-  .classroom-3d-label .roll {
-    color: rgba(255, 255, 255, 0.72);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-  }
-    .classroom-3d-label.podium {
-    border-color: rgba(56, 189, 248, 0.5);
-    color: #bae6fd;
-  }
+/* ── Typography Scale ─────────────────────────────────────────── */
+.display-xl {
+  font-family: "Haas Groot Disp", "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: 0;
+}
 
-  /* ── Classroom Presence (2D) pulse halo for the faculty marker ── */
-  @keyframes teacher-pulse {
-    0% {
-      r: 5;
-      opacity: 0.55;
-      stroke-width: 2;
-    }
-    65% {
-      r: 16;
-      opacity: 0;
-      stroke-width: 1.5;
-    }
-    100% {
-      r: 5;
-      opacity: 0;
-      stroke-width: 1.5;
-    }
+.display-lg {
+  font-family: "Haas Groot Disp", "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.display-md {
+  font-family: "Haas Groot Disp", "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.title-lg {
+  font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: 0.12px;
+}
+
+.title-md {
+  font-family: "Haas Groot Disp", "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+.title-sm {
+  font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.label-md {
+  font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.button-text {
+  font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.body-md {
+  font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.caption {
+  font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.16px;
+}
+
+.legal {
+  font-family: "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13.12px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.pricing-display {
+  font-family: "Inter Display", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 44.8px;
+  font-weight: 475;
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+.pricing-section {
+  font-family: "Inter Display", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 28px;
+  font-weight: 475;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.pricing-card-title {
+  font-family: "Inter Display", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 475;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+/* ── Page Header ─────────────────────────────────────────────── */
+.page-header {
+  padding-top: 96px;
+  padding-bottom: 48px;
+}
+
+.page-header-sm {
+  padding-top: 64px;
+  padding-bottom: 32px;
+}
+
+/* ── Animations ──────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.fade-in {
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.fade-in-scale {
+  animation: fadeInScale 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-  .teacher-pulse {
-    animation: teacher-pulse 2.4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
-    stroke: #06c167;
+  .animate-in, .fade-in, .fade-in-scale {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
+}
+
+/* ── Smooth Motion Utilities ──────────────────────────────────── */
+.ease-smooth {
+  transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.ease-smooth-out {
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}

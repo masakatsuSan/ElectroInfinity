@@ -12,8 +12,6 @@
       skills: u.profile?.skills || [],
       interests: u.profile?.interests || [],
       socialLinks: u.profile?.socialLinks || {},
-      followers: u.followers?.length || 0,
-      following: u.following?.length || 0,
-      isFollowing: viewerId ? u.followers?.some(id => id.toString() === viewerId.toString()) : false,
-      followsMe: viewerId ? u.following?.some(id => id.toString() === viewerId.toString()) : false,
+      friends: u.friends?.length || 0,
+      friendStatus: viewerId ? (u.friends || []).some(id => id.toString() === viewerId.toString()) ? 'friends' : 'none' : 'none',
     }))

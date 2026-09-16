@@ -20,17 +20,13 @@ function visibilityClauses(user) {
   } else if (user.role === 'admin' || user.role === 'super_admin') {
     // Admins manage everything — no audience restriction
   } else if (user.role === 'faculty') {
-    // Faculty see global posts, batches they teach, and their own posts
-    const taught = [
-      ...(user.assignedBatches || []),
-      ...(user.teachingAssignments || []).map(a => a.batch),
-    ].filter(Boolean);
+    // Faculty see global posts, posts targeted at their own batch, and their own posts
     clauses.push({
       $or: [
         { targetAudience: 'all' },
         { targetAudience: { $exists: false } },
         { postedBy: user._id },
-        { batchId: { $in: taught } },
+        { targetAudience: 'batch', batchId: user.batch },
       ],
     });
   } else {
@@ -305,12 +301,8 @@ router.get('/:id', optionalAuth, async (req, res) => {
       const ownBatch = announcement.targetAudience === 'batch' && announcement.batchId === req.user.batch;
       let allowed = isGlobal || ownBatch;
       if (!allowed && req.user.role === 'faculty') {
-        const taught = [
-          ...(req.user.assignedBatches || []),
-          ...(req.user.teachingAssignments || []).map(a => a.batch),
-        ].filter(Boolean);
         const authorId = announcement.postedBy && announcement.postedBy._id ? announcement.postedBy._id : announcement.postedBy;
-        allowed = String(authorId) === String(req.user._id) || taught.includes(announcement.batchId);
+        allowed = String(authorId) === String(req.user._id);
       }
       if (!allowed) {
         return res.status(403).json({ success: false, error: 'You are not allowed to view this announcement' });

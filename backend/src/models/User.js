@@ -23,16 +23,12 @@ const userSchema = new mongoose.Schema(
       default: 'student',
     },
 
-    // Faculty-only: batches/courses/subjects they may run attendance for
-    assignedBatches:      { type: [String], default: [] },
-    assignedCourses:      { type: [String], default: [] },
-    teachingAssignments:  [
-      {
-        batch:   { type: String, default: '' },
-        section: { type: String, default: '' },
-        subject: { type: String, default: '' },
-      }
-    ],
+     role: {
+      type:    String,
+      enum:    ['student', 'cr', 'admin', 'super_admin', 'faculty'],
+      default: 'student',
+    },
+
     isActive:             { type: Boolean, default: true },
 
     photo: { type: String, default: '' },
@@ -82,8 +78,7 @@ const userSchema = new mongoose.Schema(
     otpExpiry: { type: Date,    default: null },
 
     badges:    [{ type: String }],
-    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     collegeEmail:  { type: String, default: '' },
     personalEmail: { type: String, default: '' },
     phone:         { type: String, default: '' },

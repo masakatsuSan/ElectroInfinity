@@ -17,27 +17,27 @@ export default function GalleryLightbox({ images, initialIndex = 0, onClose }) {
   if (!images || images.length === 0) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center p-4" onClick={onClose}>
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
+        className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-colors z-10"
       >
-        <X size={28} />
+        <X size={24} />
       </button>
 
       {images.length > 1 && (
         <>
           <button
             onClick={(e) => { e.stopPropagation(); setIndex((i) => (i > 0 ? i - 1 : images.length - 1)) }}
-            className="absolute left-4 text-white/80 hover:text-white transition-colors"
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-20 flex items-center justify-center rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-colors"
           >
-            <ChevronLeft size={32} />
+            <ChevronLeft size={28} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); setIndex((i) => (i < images.length - 1 ? i + 1 : 0)) }}
-            className="absolute right-4 text-white/80 hover:text-white transition-colors"
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-20 flex items-center justify-center rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-colors"
           >
-            <ChevronRight size={32} />
+            <ChevronRight size={28} />
           </button>
         </>
       )}
@@ -48,7 +48,7 @@ export default function GalleryLightbox({ images, initialIndex = 0, onClose }) {
           alt={`Gallery ${index + 1}`}
           className="max-w-full max-h-[85vh] object-contain rounded-lg"
         />
-        <div className="text-center mt-3 text-white/60 font-mono text-[12px]">
+        <div className="mt-3 text-center font-sans text-[14px] text-gray-300">
           {index + 1} / {images.length}
         </div>
       </div>

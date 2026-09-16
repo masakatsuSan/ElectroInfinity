@@ -24,7 +24,7 @@ export default function BackButton({ fallback = '/', className = '' }) {
   return (
     <button
       onClick={goBack}
-      className={`flex items-center justify-center w-9 h-9 rounded-full hover:bg-soft-stone text-body-muted hover:text-ink transition-colors -ml-2 ${className}`}
+      className={`button-icon-circular ${className}`}
       aria-label="Go back"
       type="button"
     >

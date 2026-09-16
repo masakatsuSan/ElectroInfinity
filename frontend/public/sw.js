@@ -1,4 +1,4 @@
-const CACHE_NAME = 'electro-infinity-v1';
+const CACHE_NAME = 'electro-infinity-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
 import { ChevronDown, Play } from 'lucide-react'
-import { getResources, getDownloadUrl } from '../api/resources'
+import { getResources, downloadResource } from '../api/resources'
 import { getSubjects } from '../api/subjects'
 import { getYTLectures } from '../api/ytLectures'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
+import ResourcePreviewDrawer from '../components/ResourcePreviewDrawer'
+import UploaderInfo from '../components/UploaderInfo'
 
 const TABS = [
   { id: 'notes',        label: 'Study Materials',  type: 'notes' },
@@ -22,8 +23,8 @@ export default function Resources() {
   const [activeTab, setActiveTab] = useState(TABS[0])
   const [semesterFilter, setSemesterFilter] = useState('')
   const [subjectFilter, setSubjectFilter] = useState('')
+  const [previewResource, setPreviewResource] = useState(null)
   const { user } = useAuth()
-  const navigate = useNavigate()
 
   const isYTLectures = activeTab.type === 'yt_lectures'
 
@@ -59,7 +60,7 @@ export default function Resources() {
   const data = isYTLectures ? ytData?.data : resData?.data
 
   return (
-    <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
+    <div className="min-h-screen bg-white text-ink pt-36 pb-28">
       <SEO
         title="Resources & Bulletins | Electro Infinity"
         description="Study materials, PYQs, assignments, lab manuals, and YouTube lectures for Electro Infinity members."
@@ -67,20 +68,18 @@ export default function Resources() {
       />
 
       <div className="max-w-[1280px] mx-auto px-6 md:px-12">
-        {/* Header */}
         <div className="max-w-3xl mb-12">
-          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-signature-coral font-medium block mb-2">
             Academic Vault
           </span>
           <h1 className="font-display text-[40px] md:text-[56px] font-normal tracking-tight text-ink mb-4">
             Resources & Bulletins
           </h1>
-          <p className="font-sans text-[17px] text-body-muted leading-relaxed">
+          <p className="font-sans text-[17px] text-body leading-relaxed">
             Curated repository of previous year questions, class notes, laboratory manuals, and official departmental announcements.
           </p>
         </div>
 
-        {/* Tab selector pills */}
         <div className="flex gap-2 pb-4 mb-10 overflow-x-auto border-b border-hairline">
           {TABS.map(tab => (
             <button
@@ -90,20 +89,18 @@ export default function Resources() {
                 setSemesterFilter('')
                 setSubjectFilter('')
               }}
-              className={`font-sans text-[14px] font-semibold px-5 py-2 rounded-full transition-all whitespace-nowrap ${
-                activeTab.id === tab.id
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'bg-soft-stone text-body-muted hover:text-ink'
-              }`}
+              className={'font-sans text-[14px] font-medium px-5 py-2 rounded-full transition-all whitespace-nowrap ' +
+                (activeTab.id === tab.id
+                  ? 'bg-primary text-white'
+                  : 'bg-soft-stone text-muted hover:text-ink')}
             >
               {tab.label}
             </button>
           ))}
         </div>
 
-        {/* Semester filter */}
         <div className="flex flex-wrap items-center gap-3 mb-6">
-          <label className="font-sans text-[13px] font-medium text-ink-muted-80">Filter by Semester:</label>
+          <label className="font-sans text-[13px] font-medium text-muted">Filter by Semester:</label>
           <FilterSelect
             value={semesterFilter}
             onChange={setSemesterFilter}
@@ -112,9 +109,8 @@ export default function Resources() {
           />
         </div>
 
-        {/* Subject filter */}
         <div className="flex flex-wrap items-center gap-3 mb-6">
-          <label className="font-sans text-[13px] font-medium text-ink-muted-80">Filter by Subject:</label>
+          <label className="font-sans text-[13px] font-medium text-muted">Filter by Subject:</label>
           <FilterSelect
             value={subjectFilter}
             onChange={setSubjectFilter}
@@ -129,8 +125,7 @@ export default function Resources() {
           />
         </div>
 
-        {/* Content */}
-        <div key={activeTab.id} className="duration-200 animate-in fade-in">
+        <div key={activeTab.id} className="animate-in">
           {isLoading ? (
             <SkeletonGrid />
           ) : (
@@ -139,18 +134,34 @@ export default function Resources() {
                 ? data.map(item =>
                     isYTLectures
                       ? <YTLectureCard key={item._id} lecture={item} />
-                      : <ResourceCard key={item._id} resource={item} />
+                      : <ResourceCard
+                          key={item._id}
+                          resource={item}
+                          onView={setPreviewResource}
+                          onDownload={(resource) => {
+                            const link = document.createElement('a')
+                            link.href = downloadResource(resource._id)
+                            link.download = resource.fileName || 'download'
+                            document.body.appendChild(link)
+                            link.click()
+                            document.body.removeChild(link)
+                          }}
+                        />
                   )
                 : <Empty label={activeTab.label.toLowerCase()} user={user} />}
             </div>
           )}
         </div>
+
+        <ResourcePreviewDrawer
+          resource={previewResource}
+          onClose={() => setPreviewResource(null)}
+        />
       </div>
     </div>
   )
 }
 
-/* ── Custom Filter Select ────────────────────────────────────────── */
 function FilterSelect({ value, onChange, options, placeholder }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -182,36 +193,33 @@ function FilterSelect({ value, onChange, options, placeholder }) {
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className={`
-          flex items-center gap-2 rounded-xl border px-4 py-2.5 text-[14px] font-sans
-          transition-all duration-150 cursor-pointer select-none
-          ${open
-            ? 'border-primary ring-1 ring-primary bg-soft-stone/40'
-            : 'border-hairline bg-canvas text-ink hover:border-ink/30 hover:shadow-sm'
-          }
-        `}
+        className={'flex items-center gap-2 rounded-lg border px-4 py-2.5 text-[14px] font-sans transition-all duration-150 cursor-pointer select-none ' +
+          (open
+            ? 'border-primary bg-soft-stone/40'
+            : 'border-hairline bg-white text-ink hover:border-ink/30 hover:shadow-sm')}
+        style={{ transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }}
       >
-        <span className={!value ? 'text-body-muted' : 'text-ink'}>{selected?.label || placeholder}</span>
+        <span className={!value ? 'text-muted' : 'text-ink'}>{selected?.label || placeholder}</span>
         <ChevronDown
           size={16}
-          className={`text-slate transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={'text-muted transition-transform duration-200 ' + (open ? 'rotate-180' : '')}
+          style={{ transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }}
         />
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-2 w-full min-w-[220px] bg-white border border-hairline rounded-xl shadow-lg py-1.5 animate-in fade-in duration-150 origin-top">
+        <div className="absolute z-50 mt-2 w-full min-w-[220px] bg-white border border-hairline rounded-lg shadow-lg py-1.5 animate-in fade-in duration-150 origin-top"
+          style={{ animationTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
           {options.map(option => (
             <button
               key={option.value}
               type="button"
               onClick={() => handleSelect(option)}
-              className={`
-                w-full text-left px-4 py-2 text-[14px] font-sans transition-colors
-                ${option.value === value
+              className={'w-full text-left px-4 py-2 text-[14px] font-sans transition-colors ' +
+                (option.value === value
                   ? 'bg-primary text-white'
-                  : 'text-ink hover:bg-soft-stone'
-                }
-              `}
+                  : 'text-ink hover:bg-soft-stone')}
+              style={{ transitionDuration: '0.22s', transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }}
             >
               {option.label}
             </button>
@@ -222,63 +230,82 @@ function FilterSelect({ value, onChange, options, placeholder }) {
   )
 }
 
-/* ── Resource Card ────────────────────────────────────────────────── */
-function ResourceCard({ resource: r }) {
+function ResourceCard({ resource: r, onView, onDownload }) {
   const date = new Date(r.createdAt).toLocaleDateString('en-IN', {
     day: '2-digit', month: 'short', year: 'numeric',
   })
 
   return (
-    <div className="flex flex-col justify-between p-6 transition-colors border border-hairline bg-white rounded-2xl shadow-card hover:bg-soft-stone/30 group">
+    <div className="flex flex-col justify-between p-6 transition-colors border border-hairline bg-white rounded-lg hover:bg-soft-stone/30 group">
       <div>
         <div className="flex items-center justify-between gap-2 mb-3">
-          <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-pale-blue text-action-blue border border-blue-200">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-soft-stone text-ink border border-hairline">
             {r.type?.replace('_', ' ') || 'Resource'}
           </span>
           {r.semester && (
-            <span className="font-mono text-[11px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-soft-stone text-ink">
+            <span className="font-mono text-[11px] font-medium uppercase px-2.5 py-0.5 rounded-full bg-soft-stone text-ink">
               Sem {r.semester}
             </span>
           )}
         </div>
 
-        <h3 className="font-sans text-[16px] font-semibold text-ink leading-snug group-hover:text-action-blue transition-colors">
+        <h3 className="font-sans text-[16px] font-medium text-ink leading-snug group-hover:text-link transition-colors">
           {r.title}
         </h3>
         {r.subject && (
-          <p className="font-sans text-[13px] text-body-muted mt-1.5">{r.subject}</p>
+          <p className="font-sans text-[13px] text-muted mt-1.5">{r.subject}</p>
         )}
+        <UploaderInfo user={r.uploadedBy} size="w-6 h-6" />
       </div>
 
       <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-hairline text-[12px]">
-        <a
-          href={r.fileUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="button-primary !py-1 !px-3 !text-[12px] !bg-soft-stone !text-ink border border-hairline hover:bg-hairline"
-        >
-          View
-        </a>
-        <a
-          href={getDownloadUrl(r._id)}
-          target="_blank"
-          rel="noreferrer"
-          className="button-primary !py-1 !px-3 !text-[12px] !bg-primary text-white"
-        >
-          Download ↓
-        </a>
+        {onView ? (
+          <button
+            type="button"
+            onClick={() => onView(r)}
+            className="button-primary !py-1 !px-3 !text-[12px] !bg-soft-stone !text-ink border border-hairline hover:bg-hairline"
+          >
+            View
+          </button>
+        ) : (
+          <a
+            href={r.fileUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="button-primary !py-1 !px-3 !text-[12px] !bg-soft-stone !text-ink border border-hairline hover:bg-hairline"
+          >
+            View
+          </a>
+        )}
+        {onDownload ? (
+          <button
+            type="button"
+            onClick={() => onDownload(r)}
+            className="button-primary !py-1 !px-3 !text-[12px] !bg-primary text-white"
+          >
+            Download ↓
+          </button>
+        ) : (
+          <a
+            href={downloadResource(r._id)}
+            target="_blank"
+            rel="noreferrer"
+            className="button-primary !py-1 !px-3 !text-[12px] !bg-primary text-white"
+          >
+            Download ↓
+          </a>
+        )}
       </div>
     </div>
   )
 }
 
-/* ── YT Lecture Card ──────────────────────────────────────────────── */
 function YTLectureCard({ lecture: l }) {
   const thumbnail = l.thumbnail || `https://img.youtube.com/vi/${l.youtubeVideoId}/maxresdefault.jpg`
   const youtubeUrl = `https://www.youtube.com/watch?v=${l.youtubeVideoId}`
 
   return (
-    <div className="flex flex-col overflow-hidden transition-colors border border-hairline bg-white rounded-2xl shadow-card hover:bg-soft-stone/30 group">
+    <div className="flex flex-col overflow-hidden transition-colors border border-hairline bg-white rounded-lg hover:bg-soft-stone/30 group">
       <div className="relative overflow-hidden aspect-video bg-soft-stone">
         <img
           src={thumbnail}
@@ -288,7 +315,7 @@ function YTLectureCard({ lecture: l }) {
             e.target.src = `https://img.youtube.com/vi/${l.youtubeVideoId}/hqdefault.jpg`
           }}
         />
-        <span className="absolute top-3 left-3 font-mono text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-ink/80 text-white">
+        <span className="absolute top-3 left-3 font-mono text-[11px] font-medium uppercase tracking-wider px-2.5 py-1 rounded-md bg-ink/80 text-white">
           Lec {l.lectureNumber}
         </span>
         <a
@@ -304,17 +331,18 @@ function YTLectureCard({ lecture: l }) {
       </div>
 
       <div className="flex flex-col flex-1 p-5">
-        <h3 className="font-sans text-[15px] font-semibold text-ink leading-snug line-clamp-2">
+        <h3 className="font-sans text-[15px] font-medium text-ink leading-snug line-clamp-2">
           {l.title}
         </h3>
+        <UploaderInfo user={l.uploadedBy} size="w-6 h-6" />
         <div className="flex flex-wrap items-center gap-2 mt-3">
           {l.semester && (
-            <span className="font-mono text-[11px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-soft-stone text-ink">
+            <span className="font-mono text-[11px] font-medium uppercase px-2.5 py-0.5 rounded-full bg-soft-stone text-ink">
               Sem {l.semester}
             </span>
           )}
           {l.subject && (
-            <span className="font-sans text-[12px] text-body-muted">{l.subject}</span>
+            <span className="font-sans text-[12px] text-muted">{l.subject}</span>
           )}
         </div>
       </div>
@@ -322,25 +350,23 @@ function YTLectureCard({ lecture: l }) {
   )
 }
 
-/* ── Skeleton ───────────────────────────────────────────────────── */
 function SkeletonGrid() {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="border border-hairline bg-soft-stone/40 rounded-2xl h-[160px] animate-pulse" />
+        <div key={i} className="border border-hairline bg-soft-stone/40 rounded-lg h-[160px] animate-pulse" />
       ))}
     </div>
   )
 }
 
-/* ── Empty state ────────────────────────────────────────────────── */
 function Empty({ label, user }) {
   return (
-    <div className="py-16 text-center border col-span-full border-hairline bg-soft-stone rounded-2xl">
-      <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-slate block mb-2">
+    <div className="py-16 text-center border col-span-full border-hairline bg-soft-stone rounded-lg">
+      <span className="font-mono text-[12px] font-medium uppercase tracking-wider text-muted block mb-2">
         No Content Available
       </span>
-      <p className="font-sans text-[16px] text-body-muted">
+      <p className="font-sans text-[16px] text-body">
         No {label} uploaded yet.
         {user ? ' Ask your CR or Faculty to add content.' : ' Sign in to view batch-specific content.'}
       </p>

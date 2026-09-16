@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 export const Button = ({ children, variant = 'dark', onClick, className = '', ...props }) => {
-  const baseClass = variant === 'dark' ? 'button-ghost-on-dark' : 'button-ghost-on-light';
+  const baseClass = variant === 'dark' ? 'button-primary' : 'button-secondary';
   
   return (
     <button 

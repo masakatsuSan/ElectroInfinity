@@ -5,7 +5,7 @@ const activitySchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     type: {
       type: String,
-      enum: ['project_shared', 'resource_uploaded', 'forum_post', 'badge_earned', 'achievement_completed', 'profile_updated'],
+      enum: ['project_shared', 'resource_uploaded', 'forum_post', 'badge_earned', 'achievement_completed', 'profile_updated', 'profile_view'],
       default: 'profile_updated',
     },
     title: { type: String, default: '' },

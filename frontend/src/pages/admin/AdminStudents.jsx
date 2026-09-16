@@ -12,12 +12,12 @@ export default function AdminStudents() {
 
   return (
     <div>
-      <h1 className="font-display font-semibold text-[28px] tracking-tight text-ink mb-8">Students</h1>
+      <h1 className="font-[Inter,system-ui,sans-serif] font-semibold text-[28px] tracking-tight text-ink mb-8">Students</h1>
 
       <div className="flex gap-2 border-b border-divider-soft mb-8 overflow-x-auto pb-1">
         {[['add','Add Students'],['directory','Directory']].map(([id,label]) => (
           <button key={id} onClick={() => setTab(id)}
-            className={`font-sans text-[14px] font-medium capitalize px-4 py-2 flex-none border-b-2 transition-colors rounded-t-md ${
+            className={`font-[Inter,system-ui,sans-serif] text-[14px] font-medium capitalize px-4 py-2 flex-none border-b-2 transition-colors rounded-t-md ${
               tab===id ? 'text-ink border-primary bg-white' : 'text-ink-muted-80 border-transparent hover:text-ink hover:bg-white/50'
             }`}>
             {label}
@@ -96,7 +96,7 @@ function AddTab({ qc }) {
       <div className="flex gap-2 mb-8">
         {[['single','Add Single'],['csv','Bulk CSV Import']].map(([id,label]) => (
           <button key={id} onClick={() => { setMode(id); setMsg(''); setError('') }}
-            className={`font-sans text-[13px] font-medium uppercase tracking-widest px-4 py-2 rounded-lg border transition-colors ${
+            className={`font-[Inter,system-ui,sans-serif] text-[13px] font-medium uppercase tracking-widest px-4 py-2 rounded-lg border transition-colors ${
               mode===id ? 'border-primary text-primary bg-primary/10' : 'border-divider-soft text-ink-muted-80 hover:text-ink hover:bg-white'
             }`}>
             {label}
@@ -106,42 +106,42 @@ function AddTab({ qc }) {
 
       {mode === 'single' && (
         <div className="border border-divider-soft bg-white p-6 rounded-xl shadow-sm">
-          <p className="text-[14px] font-sans text-ink-muted-80 mb-6">
+          <p className="text-[14px] font-[Inter,system-ui,sans-serif] text-ink-muted-80 mb-6">
             Add one student at a time. They'll get an account with no password — they activate it themselves at <span className="text-primary font-medium">/activate</span>
           </p>
           <div className="grid sm:grid-cols-2 gap-5">
             <div className="sm:col-span-2">
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Full Name *</label>
-              <input value={form.name} onChange={set('name')} className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="Student full name" />
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Full Name *</label>
+              <input value={form.name} onChange={set('name')} className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="Student full name" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Roll Number * (unique)</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Roll Number * (unique)</label>
               <input value={form.rollNumber} onChange={e => setForm(f=>({...f,rollNumber:e.target.value.toUpperCase()}))}
-                className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary uppercase" placeholder="e.g. EE24001" />
+                className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary uppercase" placeholder="e.g. EE24001" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Registration No.</label>
-              <input value={form.regNumber} onChange={set('regNumber')} className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="e.g. REG24001" />
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Registration No.</label>
+              <input value={form.regNumber} onChange={set('regNumber')} className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="e.g. REG24001" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Email</label>
-              <input type="email" value={form.email} onChange={set('email')} className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="student@agemc.edu" />
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Email</label>
+              <input type="email" value={form.email} onChange={set('email')} className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="student@agemc.edu" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Batch</label>
-              <select value={form.batch} onChange={set('batch')} className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Batch</label>
+              <select value={form.batch} onChange={set('batch')} className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 {BATCHES.map(b => <option key={b} value={b}>{b}</option>)}
               </select>
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Current Semester</label>
-              <select value={form.semester} onChange={set('semester')} className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Current Semester</label>
+              <select value={form.semester} onChange={set('semester')} className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 {[1,2,3,4,5,6,7,8].map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
           </div>
-          {error && <p className="font-sans text-[14px] font-medium text-red-500 mt-4">{error}</p>}
-          {msg   && <p className="font-sans text-[14px] font-medium text-green-500 mt-4">{msg}</p>}
+          {error && <p className="font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-red-500 mt-4">{error}</p>}
+          {msg   && <p className="font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-green-500 mt-4">{msg}</p>}
           <button onClick={() => addMut.mutate()} disabled={!form.name||!form.rollNumber||addMut.isPending}
             className="button-primary mt-6">
             {addMut.isPending ? 'Adding…' : 'Add Student'}
@@ -151,10 +151,10 @@ function AddTab({ qc }) {
 
       {mode === 'csv' && (
         <div className="border border-divider-soft bg-white p-6 rounded-xl shadow-sm">
-          <p className="text-[14px] font-sans text-ink-muted-80 mb-4">
+          <p className="text-[14px] font-[Inter,system-ui,sans-serif] text-ink-muted-80 mb-4">
             Upload a CSV file to add a whole batch at once.
           </p>
-          <div className="border border-divider-soft bg-canvas p-5 font-mono text-[13px] text-ink-muted-80 mb-6 rounded-lg">
+          <div className="border border-divider-soft bg-[#fff] p-5 font-mono text-[13px] text-ink-muted-80 mb-6 rounded-lg">
             <p className="text-primary mb-2 font-semibold">CSV format (header row optional):</p>
             <p className="text-green-500 mb-1">Minimum (from Google Form / WhatsApp):</p>
             <p className="text-ink">rollno,gmail</p>
@@ -171,18 +171,18 @@ function AddTab({ qc }) {
 
           {csvRows.length > 0 && (
             <div className="mt-6">
-              <p className="text-[14px] font-sans text-ink-muted-80 mb-3">{csvRows.length} students ready to import:</p>
-              <div className="border border-divider-soft rounded-lg max-h-64 overflow-y-auto bg-canvas">
+              <p className="text-[14px] font-[Inter,system-ui,sans-serif] text-ink-muted-80 mb-3">{csvRows.length} students ready to import:</p>
+              <div className="border border-divider-soft rounded-lg max-h-64 overflow-y-auto bg-[#fff]">
                 {csvRows.map((r, i) => (
                   <div key={i} className="flex gap-4 px-4 py-3 border-b border-divider-soft last:border-b-0 text-[14px] hover:bg-white">
-                    <span className="font-sans font-semibold text-primary w-20 flex-shrink-0">{r.rollNumber}</span>
+                    <span className="font-[Inter,system-ui,sans-serif] font-semibold text-primary w-20 flex-shrink-0">{r.rollNumber}</span>
                     <span className="flex-1 truncate text-ink">{r.name || '(No name)'}</span>
-                    <span className="font-sans text-[12px] font-medium text-ink-muted-80">{r.batch}</span>
+                    <span className="font-[Inter,system-ui,sans-serif] text-[12px] font-medium text-ink-muted-80">{r.batch}</span>
                   </div>
                 ))}
               </div>
-              {error && <p className="font-sans text-[14px] font-medium text-red-500 mt-4">{error}</p>}
-              {msg   && <p className="font-sans text-[14px] font-medium text-green-500 mt-4">{msg}</p>}
+              {error && <p className="font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-red-500 mt-4">{error}</p>}
+              {msg   && <p className="font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-green-500 mt-4">{msg}</p>}
               <button onClick={() => bulkMut.mutate()} disabled={bulkMut.isPending}
                 className="button-primary mt-4">
                 {bulkMut.isPending ? 'Importing…' : `Import ${csvRows.length} Students`}
@@ -221,7 +221,7 @@ function DirectoryTab({ qc }) {
       <div className="flex gap-2 mb-6 flex-wrap">
         {['', ...['2023-2027','2024-2028','2025-2029','2026-2030']].map(b => (
           <button key={b} onClick={() => setBatch(b)}
-            className={`font-sans text-[13px] font-medium uppercase tracking-widest px-4 py-2 rounded-lg border transition-colors ${
+            className={`font-[Inter,system-ui,sans-serif] text-[13px] font-medium uppercase tracking-widest px-4 py-2 rounded-lg border transition-colors ${
               batch===b ? 'border-primary text-primary bg-primary/10' : 'border-divider-soft text-ink-muted-80 hover:text-ink hover:bg-white'
             }`}>
             {b || 'All Batches'}
@@ -229,21 +229,21 @@ function DirectoryTab({ qc }) {
         ))}
       </div>
 
-      {isLoading ? <p className="font-sans text-[15px] text-ink-muted-80">Loading…</p>
+      {isLoading ? <p className="font-[Inter,system-ui,sans-serif] text-[15px] text-ink-muted-80">Loading…</p>
       : students.length === 0 ? (
-        <p className="font-sans text-[15px] text-ink-muted-80">No students found. Add some in the Add Students tab.</p>
+        <p className="font-[Inter,system-ui,sans-serif] text-[15px] text-ink-muted-80">No students found. Add some in the Add Students tab.</p>
       ) : (
         <div className="border border-divider-soft bg-white rounded-xl overflow-hidden shadow-sm">
           {students.map(s => (
-            <div key={s._id} className="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
+            <div key={s._id} className="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft last:border-b-0 hover:bg-[#fff]-parchment transition-colors">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-[15px] font-medium text-ink">{s.name || '(No name)'}</p>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${s.role === 'cr' ? 'bg-coral/15 text-coral border border-coral/20' : 'bg-slate-100 text-slate-700 border border-slate-200'}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-widest ${s.role === 'cr' ? 'bg-coral/15 text-coral border border-coral/20' : 'bg-slate-100 text-slate-700 border border-slate-200'}`}>
                     {s.role === 'cr' ? 'CR' : 'Student'}
                   </span>
                 </div>
-                <p className="font-sans text-[13px] font-medium text-ink-muted-80 mt-1 flex items-center gap-2 flex-wrap">
+                <p className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-ink-muted-80 mt-1 flex items-center gap-2 flex-wrap">
                   <span className="text-primary font-semibold tracking-wider">{s.rollNumber}</span>
                   {s.email && <span className="opacity-50">·</span>}
                   {s.email && <span>{s.email}</span>}
@@ -265,7 +265,7 @@ function DirectoryTab({ qc }) {
                     }
                   }}
                   disabled={roleMut.isPending}
-                  className={`font-sans text-[12px] font-medium px-3 py-1.5 rounded-md transition-colors ${
+                  className={`font-[Inter,system-ui,sans-serif] text-[12px] font-medium px-3 py-1.5 rounded-md transition-colors ${
                     s.role === 'cr'
                       ? 'text-slate-700 bg-slate-100 hover:bg-slate-200'
                       : 'text-amber-700 bg-amber-100 hover:bg-amber-200'
@@ -275,7 +275,7 @@ function DirectoryTab({ qc }) {
                 </button>
 
                 <button onClick={() => { if (window.confirm(`Remove ${s.name}?`)) delMut.mutate(s._id) }}
-                  className="font-sans text-[13px] font-medium text-red-500/70 hover:text-red-500 transition-colors bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-md flex-shrink-0">Remove</button>
+                  className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-red-500/70 hover:text-red-500 transition-colors bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-md flex-shrink-0">Remove</button>
               </div>
             </div>
           ))}

@@ -3,10 +3,11 @@ const router = express.Router();
 const ForumPost = require('../models/ForumPost');
 const ForumComment = require('../models/ForumComment');
 const CommunityRoom = require('../models/CommunityRoom');
-const User = require('../models/User');
-const { protect, guard } = require('../middleware/auth');
-const { createActivity } = require('../utils/activity');
-const { createNotification, createNotificationBulk } = require('../utils/notification');
+const User = require('../models/User')
+const FriendRequest = require('../models/FriendRequest')
+const { protect, guard } = require('../middleware/auth')
+const { createActivity } = require('../utils/activity')
+const { createNotification, createNotificationBulk } = require('../utils/notification')
 
 // @route   GET /api/forum/rooms
 // @desc    Get all community rooms
@@ -100,13 +101,13 @@ router.get('/', protect, async (req, res) => {
       .sort(sortOption)
       .skip(skip)
       .limit(parseInt(limit))
-      .populate('author', 'name role photo rollNumber batch semester followers following')
+      .populate('author', 'name role photo rollNumber batch semester friends')
       .populate('room', 'name icon color isPopular')
       .populate({
         path: 'comments',
         populate: {
           path: 'author',
-          select: 'name role photo rollNumber batch semester followers following'
+          select: 'name role photo rollNumber batch semester friends'
         }
       });
 
@@ -132,16 +133,14 @@ router.get('/', protect, async (req, res) => {
       const enrichedPosts = posts.map(post => {
         const enrichedAuthor = post.author ? {
           ...post.author.toObject(),
-          isFollowing: post.author.followers?.some(id => id.toString() === viewerId.toString()) || false,
-          followsMe: post.author.following?.some(id => id.toString() === viewerId.toString()) || false,
+          friendStatus: (post.author.friends || []).some(id => id.toString() === viewerId.toString()) ? 'friends' : 'none',
           postCount: postCountMap[post.author._id.toString()] || 0,
         } : null;
 
         const enrichedComments = (post.comments || []).map(comment => {
           const enrichedCommentAuthor = comment.author ? {
             ...comment.author.toObject(),
-            isFollowing: comment.author.followers?.some(id => id.toString() === viewerId.toString()) || false,
-            followsMe: comment.author.following?.some(id => id.toString() === viewerId.toString()) || false,
+            friendStatus: (comment.author.friends || []).some(id => id.toString() === viewerId.toString()) ? 'friends' : 'none',
             postCount: postCountMap[comment.author._id.toString()] || 0,
           } : null;
           return { ...comment.toObject(), author: enrichedCommentAuthor };
@@ -179,13 +178,13 @@ router.get('/', protect, async (req, res) => {
 router.get('/:id', protect, async (req, res) => {
   try {
     const post = await ForumPost.findById(req.params.id)
-      .populate('author', 'name role photo rollNumber batch semester followers following')
+      .populate('author', 'name role photo rollNumber batch semester friends')
       .populate('room', 'name icon color isPopular')
       .populate({
         path: 'comments',
         populate: {
           path: 'author',
-          select: 'name role photo rollNumber batch semester followers following'
+          select: 'name role photo rollNumber batch semester friends'
         }
       });
 
@@ -210,16 +209,14 @@ router.get('/:id', protect, async (req, res) => {
 
       const enrichedAuthor = post.author ? {
         ...post.author.toObject(),
-        isFollowing: post.author.followers?.some(id => id.toString() === viewerId.toString()) || false,
-        followsMe: post.author.following?.some(id => id.toString() === viewerId.toString()) || false,
+        friendStatus: (post.author.friends || []).some(id => id.toString() === viewerId.toString()) ? 'friends' : 'none',
         postCount: postCountMap[post.author._id.toString()] || 0,
       } : null;
 
       const enrichedComments = (post.comments || []).map(comment => {
         const enrichedCommentAuthor = comment.author ? {
           ...comment.author.toObject(),
-          isFollowing: comment.author.followers?.some(id => id.toString() === viewerId.toString()) || false,
-          followsMe: comment.author.following?.some(id => id.toString() === viewerId.toString()) || false,
+          friendStatus: (comment.author.friends || []).some(id => id.toString() === viewerId.toString()) ? 'friends' : 'none',
           postCount: postCountMap[comment.author._id.toString()] || 0,
         } : null;
         return { ...comment.toObject(), author: enrichedCommentAuthor };

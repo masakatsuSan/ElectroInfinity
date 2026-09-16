@@ -136,7 +136,7 @@ export default function AdminCourses() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <h1 className="font-display font-semibold text-[28px] tracking-tight text-ink">Courses &amp; Subjects</h1>
+        <h1 className="font-[Inter,system-ui,sans-serif] font-semibold text-[28px] tracking-tight text-ink">Courses &amp; Subjects</h1>
         <button onClick={openCreate} className="button-primary !px-5 !py-2.5">
           {editing ? 'Edit Form' : '+ New Course'}
         </button>
@@ -144,38 +144,38 @@ export default function AdminCourses() {
 
       {showForm && (
         <div className="border border-divider-soft bg-white p-6 mb-8 rounded-xl shadow-sm">
-          <h2 className="font-display font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Course' : 'New Course'}</h2>
+          <h2 className="font-[Inter,system-ui,sans-serif] font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Course' : 'New Course'}</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Name *</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Name *</label>
               <input value={form.name} onChange={set('name')} className="input w-full" placeholder="e.g. Electric Circuit Theory" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Code *</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Code *</label>
               <input value={form.code} onChange={set('code')} className="input w-full" placeholder="e.g. PC-EE 301" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Semester</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Semester</label>
               <input type="number" min={1} max={8} value={form.semester} onChange={set('semester')} className="input w-full" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Credits</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Credits</label>
               <input type="number" min={0} value={form.credits} onChange={set('credits')} className="input w-full" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">L (Lecture)</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">L (Lecture)</label>
               <input type="number" min={0} value={form.l} onChange={set('l')} className="input w-full" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">T (Tutorial)</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">T (Tutorial)</label>
               <input type="number" min={0} value={form.t} onChange={set('t')} className="input w-full" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">P (Practical)</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">P (Practical)</label>
               <input type="number" min={0} value={form.p} onChange={set('p')} className="input w-full" />
             </div>
             <div className="sm:col-span-2">
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-2">Modules</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-2">Modules</label>
               <div className="space-y-4">
                 {form.modules.map((mod, i) => (
                    <div key={i} className="border border-divider-soft rounded-xl p-4 bg-white">
@@ -202,11 +202,11 @@ export default function AdminCourses() {
               </div>
             </div>
             <div className="sm:col-span-2">
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Detailed Syllabus</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Detailed Syllabus</label>
               <textarea rows={4} value={form.syllabus} onChange={e => setForm({...form, syllabus: e.target.value})} className="input w-full resize-none" placeholder="Enter detailed syllabus content..." />
             </div>
             <div className="sm:col-span-2">
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Reference Books</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Reference Books</label>
               <div className="space-y-2">
                 {form.referenceBooks.map((book, i) => (
                   <div key={i} className="flex gap-2">
@@ -218,7 +218,7 @@ export default function AdminCourses() {
               </div>
             </div>
             <div className="sm:col-span-2">
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Course Objectives</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Course Objectives</label>
               <div className="space-y-2">
                 {form.objectives.map((obj, i) => (
                   <div key={i} className="flex gap-2">
@@ -230,7 +230,7 @@ export default function AdminCourses() {
               </div>
             </div>
           </div>
-          {error && <p className="font-sans text-red-500 text-[14px] font-medium mt-4">{error}</p>}
+          {error && <p className="font-[Inter,system-ui,sans-serif] text-red-500 text-[14px] font-medium mt-4">{error}</p>}
           <div className="flex gap-3 mt-6">
             <button onClick={handleSave} disabled={createMut.isPending || updateMut.isPending || !form.name || !form.code} className="button-primary">
               {createMut.isPending || updateMut.isPending ? 'Saving…' : (editing ? 'Update Course' : 'Create Course')}
@@ -240,30 +240,30 @@ export default function AdminCourses() {
         </div>
       )}
 
-      {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading courses…</p>
-        : semesters.length === 0 ? <p className="font-sans text-ink-muted-80 text-[15px]">No courses found. Create one above.</p>
+      {isLoading ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">Loading courses…</p>
+        : semesters.length === 0 ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">No courses found. Create one above.</p>
         : semesters.map(sem => (
           <div key={sem} className="border border-divider-soft bg-white rounded-xl overflow-hidden shadow-sm mb-6">
-            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft font-display font-bold text-[18px] text-ink">Semester {sem}</div>
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft font-[Inter,system-ui,sans-serif] font-medium text-[18px] text-ink">Semester {sem}</div>
             <div className="divide-y divide-hairline">
               {bySem[sem].map(s => (
-                  <div key={s._id} className="flex items-center gap-4 px-4 sm:px-6 py-2 sm:py-3 hover:bg-canvas-parchment transition-colors">
-                  <span className="font-mono text-[11px] font-bold uppercase px-2.5 py-1 rounded-md bg-soft-stone text-ink border border-hairline flex-shrink-0">{s.code}</span>
+                  <div key={s._id} className="flex items-center gap-4 px-4 sm:px-6 py-2 sm:py-3 hover:bg-[#fff]-parchment transition-colors">
+                  <span className="font-mono text-[11px] font-medium uppercase px-2.5 py-1 rounded-md bg-soft-stone text-ink border border-hairline flex-shrink-0">{s.code}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-[15px] font-medium text-ink truncate">{s.name}</p>
-                    <p className="font-sans text-[12px] text-ink-muted-80 mt-0.5">
+                    <p className="font-[Inter,system-ui,sans-serif] text-[12px] text-ink-muted-80 mt-0.5">
                       {s.credits !== undefined && s.credits + ' credits'}
                     </p>
                   </div>
-                  <span className={'font-mono text-[11px] font-bold uppercase ' + (STATUS_COLORS[s.status] || 'text-slate')}>{s.status || 'pending'}</span>
+                  <span className={'font-mono text-[11px] font-medium uppercase ' + (STATUS_COLORS[s.status] || 'text-slate')}>{s.status || 'pending'}</span>
                   {isAdmin && s.status === 'pending' && (
                     <button onClick={() => approveMut.mutate(s._id)} disabled={approveMut.isPending}
-                      className="font-sans text-[12px] font-medium text-deep-green bg-pale-green hover:bg-green-100 transition-colors px-3 py-1.5 rounded-md">Approve</button>
+                      className="font-[Inter,system-ui,sans-serif] text-[12px] font-medium text-deep-green bg-pale-green hover:bg-green-100 transition-colors px-3 py-1.5 rounded-md">Approve</button>
                   )}
                   <div className="flex gap-1 flex-shrink-0">
-                    <button onClick={() => openEdit(s)} className="font-sans text-[13px] font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors px-3 py-1.5 rounded-md">Edit</button>
+                    <button onClick={() => openEdit(s)} className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors px-3 py-1.5 rounded-md">Edit</button>
                     <button onClick={() => { if (window.confirm('Delete ' + s.code + '?')) deleteMut.mutate(s._id) }}
-                      className="font-sans text-[13px] font-medium text-red-500/70 hover:text-red-500 transition-colors bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-md">Delete</button>
+                      className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-red-500/70 hover:text-red-500 transition-colors bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-md">Delete</button>
                   </div>
                 </div>
               ))}

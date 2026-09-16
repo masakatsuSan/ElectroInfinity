@@ -88,7 +88,7 @@ export default function AdminRoutines() {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="font-display font-semibold text-[28px] tracking-tight text-ink">Class Routine</h1>
+        <h1 className="font-[Inter,system-ui,sans-serif] font-semibold text-[28px] tracking-tight text-ink">Class Routine</h1>
         {isEditing ? (
           <div className="flex gap-3">
             <button onClick={() => { setSchedule(routineData?.data?.length > 0 ? routineData.data : [...DEFAULT_SCHEDULE]); setIsEditing(false); }} className="button-secondary">Cancel</button>
@@ -104,26 +104,26 @@ export default function AdminRoutines() {
       </div>
 
       <div className="overflow-x-auto border border-divider-soft rounded-[20px] bg-white">
-        <table className="w-full min-w-[600px] border-collapse text-[14px] font-sans">
+        <table className="w-full min-w-[600px] border-collapse text-[14px] font-[Inter,system-ui,sans-serif]">
           <thead>
-            <tr className="border-b border-divider-soft bg-canvas">
-              <th className="font-bold text-ink-muted-80 text-left py-4 px-4 sm:px-6 w-40">Time</th>
+            <tr className="border-b border-divider-soft bg-[#fff]">
+              <th className="font-medium text-ink-muted-80 text-left py-4 px-4 sm:px-6 w-40">Time</th>
               {['Mon','Tue','Wed','Thu','Fri'].map(d => (
-                <th key={d} className="font-bold text-ink-muted-80 text-center py-4 px-2">{d}</th>
+                <th key={d} className="font-medium text-ink-muted-80 text-center py-4 px-2">{d}</th>
               ))}
               {isEditing && <th className="py-4 px-2"></th>}
             </tr>
           </thead>
           <tbody>
             {schedule.map((row, i) => (
-              <tr key={i} className="border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
+              <tr key={i} className="border-b border-divider-soft last:border-b-0 hover:bg-[#fff]-parchment transition-colors">
                 <td className="py-3 px-4">
                   {isEditing ? (
-                    <input 
-                      type="text" 
-                      value={row.time} 
+                    <input
+                      type="text"
+                      value={row.time}
                       onChange={e => handleCellChange(i, 'time', e.target.value)}
-                      className="w-full bg-canvas border border-divider-soft text-ink px-3 py-1.5 rounded-md focus:outline-none focus:border-primary" 
+                      className="w-full bg-[#fff] border border-divider-soft text-ink px-3 py-1.5 rounded-md focus:outline-none focus:border-primary"
                     />
                   ) : (
                     <span className="font-semibold text-ink pl-2">{row.time}</span>
@@ -132,11 +132,11 @@ export default function AdminRoutines() {
                 {['mon','tue','wed','thu','fri'].map(day => (
                   <td key={day} className="py-3 px-2">
                     {isEditing ? (
-                      <input 
-                        type="text" 
-                        value={row[day]} 
+                      <input
+                        type="text"
+                        value={row[day]}
                         onChange={e => handleCellChange(i, day, e.target.value)}
-                        className="w-full text-center bg-canvas border border-divider-soft text-ink px-2 py-1.5 rounded-md focus:outline-none focus:border-primary" 
+                        className="w-full text-center bg-[#fff] border border-divider-soft text-ink px-2 py-1.5 rounded-md focus:outline-none focus:border-primary"
                       />
                     ) : (
                       <div className="text-center text-ink-muted-80 font-medium">
@@ -147,7 +147,7 @@ export default function AdminRoutines() {
                 ))}
                 {isEditing && (
                   <td className="py-3 px-4 text-center">
-                    <button onClick={() => removeRow(i)} className="text-red-500 hover:text-red-700 bg-red-500/10 px-2 py-1 rounded-md text-[12px] font-bold">                    <X size={14} /></button>
+                    <button onClick={() => removeRow(i)} className="text-red-500 hover:text-red-700 bg-red-500/10 px-2 py-1 rounded-md text-[12px] font-medium">                    <X size={14} /></button>
                   </td>
                 )}
               </tr>
@@ -158,7 +158,7 @@ export default function AdminRoutines() {
       
       {isEditing && (
         <div className="mt-4 flex justify-center">
-          <button onClick={addRow} className="font-sans text-[13px] font-bold text-primary hover:text-ink bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-lg transition-colors">
+          <button onClick={addRow} className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-primary hover:text-ink bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-lg transition-colors">
             + Add Timeslot
           </button>
         </div>

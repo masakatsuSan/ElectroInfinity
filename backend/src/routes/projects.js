@@ -6,7 +6,6 @@ const User = require('../models/User');
 const { protect, guard, optionalAuth } = require('../middleware/auth');
 const { createActivity } = require('../utils/activity');
 const { createNotification, createNotificationBulk } = require('../utils/notification');
-const { canApprove } = require('../utils/canApprove');
 
 const TEASER_LIMIT = 6;
 
@@ -19,8 +18,6 @@ function buildProjectTeaser(p) {
     techStack: p.techStack || [],
     createdAt: p.createdAt,
     date: p.createdAt,
-    isApproved: false,
-    isPendingTeaser: true,
     author: p.author && typeof p.author === 'object'
       ? {
           _id: p.author._id,
@@ -36,40 +33,19 @@ function buildProjectTeaser(p) {
 }
 
 // @route   GET /api/projects
-// @desc    Approved projects (public). Pending teasers always attached.
-//          Admin/faculty see all. ?teasers=true returns teasers only.
+// @desc    Public projects. Admin/faculty see all.
 router.get('/', optionalAuth, async (req, res) => {
   try {
-    const { techStack, author, page = 1, limit = 20, teasers } = req.query;
+    const { techStack, author, page = 1, limit = 20 } = req.query;
     const user = req.user;
-
-    if (teasers === 'true') {
-      const recent = await Project.find({ isApproved: false })
-        .sort({ createdAt: -1 })
-        .limit(TEASER_LIMIT)
-        .populate('author', 'name photo rollNumber batch role profile.profileVisibility');
-      return res.json({
-        success: true,
-        data: [],
-        pendingTeasers: recent.map(buildProjectTeaser),
-      });
-    }
 
     const query = {};
     const isStaff = user && (user.role === 'admin' || user.role === 'super_admin' || user.role === 'faculty');
-    const isCr = user && user.role === 'cr';
 
     if (isStaff) {
       if (author) query.author = author;
-    } else if (isCr) {
-      if (author) {
-        query.author = author;
-        if (author !== user._id.toString()) query.isApproved = true;
-      } else {
-        query.$or = [{ isApproved: true }, { author: user._id }];
-      }
     } else if (user && author && author === user._id.toString()) {
-      query.$or = [{ isApproved: true }, { author: user._id }];
+      query.author = user._id;
     } else {
       query.isApproved = true;
       if (author) query.author = author;
@@ -88,15 +64,6 @@ router.get('/', optionalAuth, async (req, res) => {
 
     const total = await Project.countDocuments(query);
 
-    let pendingTeasers = [];
-    if (!isStaff && !author) {
-      const recentPending = await Project.find({ isApproved: false })
-        .sort({ createdAt: -1 })
-        .limit(TEASER_LIMIT)
-        .populate('author', 'name photo rollNumber batch role profile.profileVisibility');
-      pendingTeasers = recentPending.map(buildProjectTeaser);
-    }
-
     res.json({
       success: true,
       count: projects.length,
@@ -104,7 +71,6 @@ router.get('/', optionalAuth, async (req, res) => {
       page: parseInt(page),
       totalPages: Math.ceil(total / parseInt(limit)),
       data: projects,
-      pendingTeasers,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -121,15 +87,6 @@ router.get('/:id', optionalAuth, async (req, res) => {
       return res.status(404).json({ success: false, error: 'Project not found' });
     }
 
-    if (!project.isApproved) {
-      const user = req.user;
-      const isAuthor = user && project.author && project.author._id.toString() === user._id.toString();
-      const allowed = isAuthor || canApprove(user, project.author);
-      if (!allowed) {
-        return res.json({ success: true, data: buildProjectTeaser(project) });
-      }
-    }
-
     res.json({ success: true, data: project });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -137,21 +94,12 @@ router.get('/:id', optionalAuth, async (req, res) => {
 });
 
 // @route   GET /api/projects/:id/image/:idx
-// @desc    Stream a project image with privacy guard for pending items.
+// @desc    Stream a project image.
 router.get('/:id/image/:idx', optionalAuth, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
       .populate('author', 'batch role _id');
     if (!project) return res.status(404).json({ success: false, error: 'Project not found' });
-
-    if (!project.isApproved) {
-      const user = req.user;
-      const isAuthor = user && project.author && project.author._id.toString() === user._id.toString();
-      const allowed = isAuthor || canApprove(user, project.author);
-      if (!allowed) {
-        return res.status(403).json({ success: false, error: 'Project not approved yet' });
-      }
-    }
 
     const idx = parseInt(req.params.idx, 10) || 0;
     let url = '';
@@ -177,7 +125,7 @@ router.get('/:id/image/:idx', optionalAuth, async (req, res) => {
     }
     res.setHeader('Content-Type', response.headers['content-type'] || 'application/octet-stream');
     if (response.headers['content-length']) res.setHeader('Content-Length', response.headers['content-length']);
-    res.setHeader('Cache-Control', project.isApproved ? 'public, max-age=3600' : 'private, no-store');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
     response.data.on('error', () => { try { res.end() } catch (_) {} });
     req.on('close', () => { try { response.data.destroy() } catch (_) {} });
     response.data.pipe(res);
@@ -190,7 +138,6 @@ router.get('/:id/image/:idx', optionalAuth, async (req, res) => {
 router.post('/', protect, guard('student', 'cr', 'faculty', 'admin', 'super_admin'), async (req, res) => {
   try {
     req.body.author = req.user.id;
-    req.body.isApproved = false;
 
     const project = await Project.create(req.body);
     await createActivity(
@@ -227,7 +174,7 @@ router.post('/', protect, guard('student', 'cr', 'faculty', 'admin', 'super_admi
 });
 
 // @route   PATCH /api/projects/:id
-// @desc    Approve/update a project. Admin/super_admin OR same-batch CR can approve.
+// @desc    Update a project. Admin/super_admin can update any. Author can update own.
 router.patch('/:id', protect, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
@@ -236,62 +183,18 @@ router.patch('/:id', protect, async (req, res) => {
       return res.status(404).json({ success: false, error: 'Project not found' });
     }
 
-    const isApprover = canApprove(req.user, project.author);
-    if (!isApprover) {
-      return res.status(403).json({ success: false, error: 'Not authorized to approve or modify this project' });
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
+    const isAuthor = project.author && project.author._id.toString() === req.user.id.toString();
+    if (!isAdmin && !isAuthor) {
+      return res.status(403).json({ success: false, error: 'Not authorized to modify this project' });
     }
 
-    const wantsStatusChange = req.body.isApproved !== undefined;
-    if (wantsStatusChange) {
-      if (req.body.isApproved === true) {
-        project.isApproved = true;
-        project.approvedBy = req.user.id;
-        project.approvedAt = new Date();
-        project.rejectionReason = '';
-      } else {
-        project.isApproved = false;
-        project.approvedBy = null;
-        project.approvedAt = null;
-        project.rejectionReason = req.body.rejectionReason || '';
-      }
-    }
-
-    const allowedFields = ['title', 'description', 'techStack', 'githubLink', 'demoLink', 'images', 'thumbnail', 'pinned', 'rejectionReason'];
+    const allowedFields = ['title', 'description', 'techStack', 'githubLink', 'demoLink', 'images', 'thumbnail', 'pinned'];
     allowedFields.forEach((f) => {
       if (req.body[f] !== undefined) project[f] = req.body[f];
     });
 
     await project.save();
-
-    const io = req.app.get('io');
-    const ownerId = project.author?._id || project.author;
-    if (wantsStatusChange && ownerId && ownerId.toString() !== req.user.id.toString()) {
-      if (req.body.isApproved === true) {
-        await createNotification({
-          recipient: ownerId,
-          actor: req.user.id,
-          type: 'project_approved',
-          title: 'Your project has been approved!',
-          message: project.title,
-          link: `/projects/${project._id}`,
-          entityId: project._id,
-          entityType: 'Project',
-          io,
-        });
-      } else {
-        await createNotification({
-          recipient: ownerId,
-          actor: req.user.id,
-          type: 'project_rejected',
-          title: 'Your project was not approved',
-          message: project.rejectionReason || project.title,
-          link: `/profile/${req.user.id}?tab=uploads`,
-          entityId: project._id,
-          entityType: 'Project',
-          io,
-        });
-      }
-    }
 
     res.json({ success: true, data: project });
   } catch (error) {
@@ -327,10 +230,6 @@ router.post('/:id/like', protect, async (req, res) => {
     const project = await Project.findById(req.params.id);
     if (!project) {
       return res.status(404).json({ success: false, error: 'Project not found' });
-    }
-
-    if (!project.isApproved) {
-      return res.status(403).json({ success: false, error: 'Project not approved yet' });
     }
 
     const likeIndex = project.likes.indexOf(req.user.id);

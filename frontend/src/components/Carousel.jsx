@@ -19,10 +19,11 @@ export default function Carousel({ slides, interval = 4000 }) {
   if (!slides.length) return null
 
   return (
-    <div className="relative w-full h-full overflow-hidden rounded-none md:rounded-3xl">
+    <div className="relative w-full h-full overflow-hidden rounded-lg">
       {/* Slides */}
       <div
         className="flex transition-transform duration-700 ease-in-out h-full"
+        style={{ transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }}
         style={{ transform: `translateX(-${index * 100}%)` }}
       >
         {slides.map((slide, i) => (
@@ -32,20 +33,20 @@ export default function Carousel({ slides, interval = 4000 }) {
             style={{ backgroundImage: `url(${slide.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
           >
             {/* Bottom fade for text readability */}
-            <div className="absolute inset-x-0 bottom-0 h-32 md:h-48 bg-gradient-to-t from-white/90 via-white/40 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-32 md:h-48 bg-white/90" />
 
             {/* Border frame */}
-            <div className="absolute inset-4 md:inset-8 border border-black/30 rounded-2xl md:rounded-3xl pointer-events-none" />
+            <div className="absolute inset-4 md:inset-8 border border-hairline rounded-lg pointer-events-none" />
 
             {/* Slide content */}
             <div className="absolute bottom-8 md:bottom-12 left-6 md:left-10 right-6 md:right-10 text-ink">
-              <p className="font-mono text-[11px] uppercase tracking-wider text-ink/70 mb-2">
+              <p className="font-sans text-[11px] font-medium uppercase tracking-wide text-muted mb-2">
                 {slide.tag}
               </p>
-              <h3 className="font-display text-[20px] md:text-[28px] font-bold leading-tight mb-2">
+              <h3 className="font-display text-[20px] md:text-[28px] font-normal leading-tight mb-2">
                 {slide.title}
               </h3>
-              <p className="font-sans text-[13px] md:text-[15px] text-ink/80 leading-relaxed">
+              <p className="font-sans text-[13px] md:text-[15px] text-body leading-relaxed">
                 {slide.subtitle}
               </p>
             </div>
@@ -58,14 +59,16 @@ export default function Carousel({ slides, interval = 4000 }) {
       <button
         type="button"
         onClick={prev}
-        className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white flex items-center justify-center hover:bg-white/30 transition-colors"
+        className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white border border-hairline text-ink flex items-center justify-center transition-colors"
+        style={{ transitionDuration: '0.22s', transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }}
       >
         ‹
       </button>
       <button
         type="button"
         onClick={next}
-        className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white flex items-center justify-center hover:bg-white/30 transition-colors"
+        className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white border border-hairline text-ink flex items-center justify-center transition-colors"
+        style={{ transitionDuration: '0.22s', transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }}
       >
         ›
       </button>
@@ -78,8 +81,9 @@ export default function Carousel({ slides, interval = 4000 }) {
             type="button"
             onClick={() => setIndex(i)}
             className={`h-1.5 rounded-full transition-all ${
-              i === index ? 'w-6 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/60'
+              i === index ? 'w-6 bg-ink' : 'w-1.5 bg-surface-strong'
             }`}
+            style={{ transitionDuration: '0.25s', transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
           />
         ))}
       </div>

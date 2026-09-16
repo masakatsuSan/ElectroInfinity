@@ -31,33 +31,60 @@ export default function OhmNo() {
           <path d="M10 22h4" />
         </motion.svg>
 
-        <motion.circle
-          cx="4"
-          cy="4"
-          r="1.5"
-          fill="currentColor"
+        <motion.svg
+          width="140"
+          height="140"
+          viewBox="0 0 140 140"
+          fill="none"
           className="absolute top-0 left-0 text-red-500"
-          animate={{ scale: [0, 1.5, 0], opacity: [0, 1, 0] }}
-          transition={{ repeat: Infinity, duration: 1.5, delay: 0.2 }}
-        />
-        <motion.circle
-          cx="20"
-          cy="8"
-          r="1"
-          fill="currentColor"
+          animate={{ y: [0, -10, 0], rotate: [0, 2, -2, 0] }}
+          transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+        >
+          <motion.circle
+            cx="4"
+            cy="4"
+            r="1.5"
+            fill="currentColor"
+            animate={{ scale: [0, 1.5, 0], opacity: [0, 1, 0] }}
+            transition={{ repeat: Infinity, duration: 1.5, delay: 0.2 }}
+          />
+        </motion.svg>
+        <motion.svg
+          width="140"
+          height="140"
+          viewBox="0 0 140 140"
+          fill="none"
           className="absolute right-0 text-yellow-500 top-4"
-          animate={{ scale: [0, 1.5, 0], opacity: [0, 1, 0] }}
-          transition={{ repeat: Infinity, duration: 2, delay: 0.5 }}
-        />
-        <motion.circle
-          cx="18"
-          cy="20"
-          r="2"
-          fill="currentColor"
+          animate={{ y: [0, -10, 0], rotate: [0, 2, -2, 0] }}
+          transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+        >
+          <motion.circle
+            cx="20"
+            cy="8"
+            r="1"
+            fill="currentColor"
+            animate={{ scale: [0, 1.5, 0], opacity: [0, 1, 0] }}
+            transition={{ repeat: Infinity, duration: 2, delay: 0.5 }}
+          />
+        </motion.svg>
+        <motion.svg
+          width="140"
+          height="140"
+          viewBox="0 0 140 140"
+          fill="none"
           className="absolute bottom-0 text-primary right-2"
-          animate={{ scale: [0, 1.5, 0], opacity: [0, 1, 0] }}
-          transition={{ repeat: Infinity, duration: 1.8, delay: 0.8 }}
-        />
+          animate={{ y: [0, -10, 0], rotate: [0, 2, -2, 0] }}
+          transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+        >
+          <motion.circle
+            cx="18"
+            cy="20"
+            r="2"
+            fill="currentColor"
+            animate={{ scale: [0, 1.5, 0], opacity: [0, 1, 0] }}
+            transition={{ repeat: Infinity, duration: 1.8, delay: 0.8 }}
+          />
+        </motion.svg>
       </motion.div>
 
       <h1 className="font-display text-[56px] leading-none tracking-tight mb-6 text-ink">

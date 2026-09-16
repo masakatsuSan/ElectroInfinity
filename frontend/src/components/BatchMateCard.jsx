@@ -1,5 +1,6 @@
 import AvatarGuard from './AvatarGuard'
-import FollowButton from './FollowButton'
+import FriendActionButton from './FriendActionButton'
+import { User } from 'lucide-react'
 
 const SOCIAL_PLATFORMS = [
   { key: 'github', label: 'GitHub', color: '#333' },
@@ -15,40 +16,42 @@ export default function BatchMateCard({ mate, onClick }) {
   const socials = (mate.socialLinks || mate.profile?.socialLinks || {});
   const activeSocials = SOCIAL_PLATFORMS.filter((p) => socials[p.key]);
 
+  const displayName = mate.name || `${mate.rollNumber || 'S'}`
+  const initials = mate.name
+    ? mate.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+    : mate.rollNumber?.substring(0, 2).toUpperCase() || 'S'
+
   return (
     <div
       onClick={onClick}
-      className="group relative flex flex-col items-center gap-3 p-5 transition-all border rounded-2xl border-divider-soft bg-white hover:border-ink/20 hover:shadow-lg cursor-pointer"
+      className="group relative flex flex-col items-center gap-3 p-4 transition-all border rounded-xl border-hairline bg-white hover:shadow-md cursor-pointer"
     >
-      {/* Avatar */}
-      <div className="relative w-20 h-20 rounded-full overflow-hidden bg-ink/5 flex-shrink-0">
+      <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
         <AvatarGuard className="w-full h-full">
           {mate.photo ? (
             <img src={mate.photo} alt={mate.name} className="object-cover w-full h-full" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <span className="font-display text-[22px] font-bold text-ink-muted-48">
-                {(mate.name || 'S').split(' ').map(part => part[0]).slice(0, 2).join('').toUpperCase()}
+              <span className="font-display text-[22px] font-bold text-gray-500">
+                {initials}
               </span>
             </div>
           )}
         </AvatarGuard>
         {mate.role === 'cr' && (
-          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500 text-white whitespace-nowrap">
+          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500 text-white">
             CR
           </span>
         )}
       </div>
 
-      {/* Name & Roll */}
       <div className="text-center min-w-0">
-        <p className="truncate font-sans text-[15px] font-semibold text-ink">{mate.name}</p>
-        <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-ink-muted-80">{mate.rollNumber || 'Roll —'}</p>
+        <p className="truncate font-sans text-[15px] font-semibold text-gray-900">{displayName}</p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-gray-500">{mate.rollNumber || 'Roll —'}</p>
       </div>
 
-      {/* Social Icons Row — visible on hover */}
       {activeSocials.length > 0 && (
-        <div className="flex items-center gap-1.5 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200">
+        <div className="flex items-center gap-1.5 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all" style={{ transitionDuration: '0.25s', transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
           {activeSocials.map((platform) => (
             <a
               key={platform.key}
@@ -66,10 +69,9 @@ export default function BatchMateCard({ mate, onClick }) {
         </div>
       )}
 
-      {/* Follow Button */}
       <div className="mt-1" onClick={(e) => e.stopPropagation()}>
-        <FollowButton userId={mate._id} isFollowing={mate.isFollowing} followsMe={mate.followsMe} size="sm" showIcon={false} />
+        <FriendActionButton userId={mate._id} friendStatus={mate.friendStatus} size="sm" showIcon={false} />
       </div>
     </div>
-  );
+  )
 }

@@ -28,6 +28,15 @@ const SORT_OPTIONS = [
   { key: 'popular', label: 'Popular' },
 ]
 
+const EDITORIAL_FONT = {
+  fontFamily: '"Haas Groot Disp", Haas, Inter, system-ui, sans-serif',
+}
+
+const EDITORIAL_DISPLAY_FONT = {
+  ...EDITORIAL_FONT,
+  fontWeight: 400,
+}
+
 export default function Forum() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -192,10 +201,7 @@ export default function Forum() {
       if (post.author?._id === targetUserId) {
         const enrichedAuthor = post.author ? {
           ...post.author,
-          isFollowing: updates.isFollowing ?? post.author.isFollowing,
-          followsMe: updates.followsMe ?? post.author.followsMe,
-          followers: updates.followers ?? post.author.followers,
-          following: updates.following ?? post.author.following,
+          friendStatus: updates.friendStatus ?? post.author.friendStatus,
         } : null
         return { ...post, author: enrichedAuthor }
       }
@@ -242,12 +248,12 @@ export default function Forum() {
   }
 
   return (
-    <div className="min-h-screen bg-canvas text-ink">
-      <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <BackButton />
-            <h1 className="font-display font-bold text-[24px] text-ink">Discussion Forum</h1>
+    <div className="min-h-screen bg-[#ffffff] text-[#181d26]" style={EDITORIAL_FONT}>
+      <div className="mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8 xl:px-12 py-12 md:py-24">
+        <div className="mb-10 md:mb-16 flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <BackButton className="text-[#41454d]" />
+            <h1 className="text-[32px] leading-[1.2] md:text-[40px] text-[#181d26]" style={EDITORIAL_DISPLAY_FONT}>Discussion Forum</h1>
           </div>
           {user && (
             <button
@@ -256,24 +262,24 @@ export default function Forum() {
                 localStorage.removeItem('ei_user')
                 window.location.href = '/login'
               }}
-              className="flex items-center gap-2 px-4 py-2 text-[13px] font-sans font-medium text-error hover:bg-red-50 rounded-full transition-colors"
+              className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg border border-[#dddddd] bg-[#ffffff] px-4 py-2 text-[13px] font-medium text-[#333840] transition-colors hover:bg-[#f8fafc]"
             >
               <Power size={14} /> Sign Out
             </button>
           )}
         </div>
-        <div className="flex gap-6">
+        <div className="flex gap-6 lg:gap-8 xl:gap-12">
           
           {/* Left Sidebar — Rooms */}
-          <aside className="hidden md:block w-64 flex-shrink-0">
-            <div className="sticky top-24 space-y-6">
-              <div>
-                <h2 className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate mb-3 px-3">Rooms</h2>
+          <aside className="hidden md:block w-[224px] flex-shrink-0 xl:w-[240px]">
+            <div className="sticky top-24 space-y-8">
+              <div className="rounded-lg border border-[#dddddd] bg-[#ffffff] p-4">
+                <h2 className="mb-4 px-2 text-[11px] font-medium uppercase tracking-[0.16px] text-[#41454d]">Rooms</h2>
                 <nav className="space-y-1">
                   <button
                     onClick={() => setSelectedRoom(null)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[14px] font-medium transition-colors ${
-                      !selectedRoom ? 'bg-soft-stone text-ink font-semibold' : 'text-body-muted hover:text-ink hover:bg-soft-stone/60'
+                    className={`w-full flex items-center gap-3 rounded-sm px-3 py-2 text-left text-[14px] font-normal transition-colors ${
+                      !selectedRoom ? 'bg-[#f8fafc] text-[#181d26]' : 'text-[#41454d] hover:bg-[#f8fafc] hover:text-[#181d26]'
                     }`}
                   >
                     <Home size={18} strokeWidth={1.75} />
@@ -283,16 +289,16 @@ export default function Forum() {
                     <button
                       key={room._id}
                       onClick={() => setSelectedRoom(room._id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[14px] font-medium transition-colors ${
-                        selectedRoom === room._id ? 'bg-soft-stone text-ink font-semibold' : 'text-body-muted hover:text-ink hover:bg-soft-stone/60'
+                      className={`w-full flex items-center gap-3 rounded-sm px-3 py-2 text-left text-[14px] font-normal transition-colors ${
+                        selectedRoom === room._id ? 'bg-[#f8fafc] text-[#181d26]' : 'text-[#41454d] hover:bg-[#f8fafc] hover:text-[#181d26]'
                       }`}
                     >
-                      <span className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0" style={{ backgroundColor: room.color }}>
+                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-sm text-[10px] font-medium text-white" style={{ backgroundColor: room.color }}>
                         {room.icon === 'Hash' ? <Hash size={12} /> : room.icon?.charAt(0)?.toUpperCase() || '#'}
                       </span>
                       <span className="truncate">{room.name}</span>
                       {room.isPopular && (
-                        <span className="ml-auto text-[10px] font-bold uppercase tracking-wider text-coral">Hot</span>
+                        <span className="ml-auto text-[10px] font-medium uppercase tracking-[0.16px] text-[#aa2d00]">Hot</span>
                       )}
                     </button>
                   ))}
@@ -305,11 +311,11 @@ export default function Forum() {
           <main className="flex-1 min-w-0 max-w-[680px]">
             
             {/* Mobile Room Selector */}
-            <div className="md:hidden mb-4">
+            <div className="mb-6 md:hidden">
               <select
                 value={selectedRoom || ''}
                 onChange={(e) => setSelectedRoom(e.target.value || null)}
-                className="w-full bg-canvas border border-hairline rounded-xl px-4 py-2.5 text-[14px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                className="h-11 w-full rounded-sm border border-[#dddddd] bg-[#ffffff] px-4 text-[14px] font-normal text-[#181d26] outline-none focus:border-[#458fff] focus:ring-2 focus:ring-[#458fff]/20"
               >
                 <option value="">All Rooms</option>
                 {rooms.map(room => (
@@ -319,22 +325,22 @@ export default function Forum() {
             </div>
 
             {/* Create Post Bar */}
-            <div className="mb-4">
+            <div className="mb-8">
               {!showCreate ? (
                 <button
                   onClick={() => setShowCreate(true)}
-                   className="w-full bg-white border border-hairline rounded-xl p-3 flex items-center gap-3 hover:border-slate/30 transition-colors text-left"
+                   className="flex w-full items-center gap-3 rounded-md border border-[#dddddd] bg-[#ffffff] p-4 text-left transition-colors hover:border-[#9297a0]"
                 >
-                  <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#181d26] text-[14px] font-medium text-white">
                     {user?.name?.charAt(0)?.toUpperCase()}
                   </div>
-                  <span className="text-body-muted text-[14px]">Create a post...</span>
+                  <span className="text-[14px] font-normal text-[#333840]">Create a post...</span>
                 </button>
               ) : (
-                <form onSubmit={handleCreate} className="bg-white border border-hairline rounded-xl p-4 space-y-4">
+                <form onSubmit={handleCreate} className="rounded-lg border border-[#dddddd] bg-[#ffffff] p-5 space-y-4 md:p-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-display font-bold text-[16px] text-ink">Create Post</h3>
-                    <button type="button" onClick={() => setShowCreate(false)} className="p-1 text-body-muted hover:text-ink rounded-lg hover:bg-soft-stone transition-colors">
+                    <h3 className="text-[20px] leading-[1.5] text-[#181d26]" style={EDITORIAL_DISPLAY_FONT}>Create Post</h3>
+                    <button type="button" onClick={() => setShowCreate(false)} className="flex h-9 w-9 items-center justify-center rounded-full border border-[#dddddd] bg-[#ffffff] text-[#41454d] transition-colors hover:border-[#9297a0]">
                       <X size={18} />
                     </button>
                   </div>
@@ -343,7 +349,7 @@ export default function Forum() {
                   <select
                     value={createRoom}
                     onChange={(e) => setCreateRoom(e.target.value)}
-                    className="w-full bg-soft-stone border border-hairline rounded-lg px-3 py-2 text-[14px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="h-11 w-full rounded-sm border border-[#dddddd] bg-[#ffffff] px-4 text-[14px] font-normal text-[#181d26] outline-none focus:border-[#458fff] focus:ring-2 focus:ring-[#458fff]/20"
                   >
                     <option value="">Select a room</option>
                     {rooms.map(room => (
@@ -352,7 +358,7 @@ export default function Forum() {
                   </select>
 
                   {/* Post Type Tabs */}
-                  <div className="flex gap-1 bg-soft-stone rounded-lg p-1">
+                  <div className="flex gap-1 rounded-sm bg-[#f8fafc] p-1">
                     {POST_TYPES.map(pt => {
                       const Icon = pt.icon
                       return (
@@ -360,8 +366,8 @@ export default function Forum() {
                           key={pt.key}
                           type="button"
                           onClick={() => setCreateType(pt.key)}
-                          className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[13px] font-medium transition-colors ${
-                            createType === pt.key ? 'bg-canvas text-ink shadow-sm' : 'text-body-muted hover:text-ink'
+                          className={`flex-1 flex items-center justify-center gap-1.5 rounded-sm py-2 text-[13px] font-medium transition-colors ${
+                            createType === pt.key ? 'border border-[#dddddd] bg-[#ffffff] text-[#181d26]' : 'text-[#41454d] hover:text-[#181d26]'
                           }`}
                         >
                           <Icon size={14} strokeWidth={1.75} />
@@ -376,7 +382,7 @@ export default function Forum() {
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="Title"
-                    className="w-full bg-soft-stone border border-hairline rounded-lg px-3 py-2 text-[15px] font-bold text-ink placeholder:text-body-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="h-11 w-full rounded-sm border border-[#dddddd] bg-[#ffffff] px-4 text-[16px] font-normal text-[#181d26] placeholder:text-[#41454d] outline-none focus:border-[#458fff] focus:ring-2 focus:ring-[#458fff]/20"
                   />
 
                   {createType === 'text' && (
@@ -385,7 +391,7 @@ export default function Forum() {
                       value={formData.content}
                       onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                       placeholder="What's on your mind?"
-                      className="w-full bg-soft-stone border border-hairline rounded-lg px-3 py-2 text-[14px] text-ink placeholder:text-body-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none"
+                      className="min-h-[112px] w-full rounded-sm border border-[#dddddd] bg-[#ffffff] px-4 py-3 text-[14px] font-normal leading-[1.5] text-[#181d26] placeholder:text-[#41454d] outline-none focus:border-[#458fff] focus:ring-2 focus:ring-[#458fff]/20 resize-none"
                     />
                   )}
 
@@ -395,7 +401,7 @@ export default function Forum() {
                       value={formData.linkUrl}
                       onChange={(e) => setFormData({ ...formData, linkUrl: e.target.value })}
                       placeholder="https://example.com"
-                      className="w-full bg-soft-stone border border-hairline rounded-lg px-3 py-2 text-[14px] text-ink placeholder:text-body-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      className="h-11 w-full rounded-sm border border-[#dddddd] bg-[#ffffff] px-4 text-[14px] font-normal text-[#181d26] placeholder:text-[#41454d] outline-none focus:border-[#458fff] focus:ring-2 focus:ring-[#458fff]/20"
                     />
                   )}
 
@@ -412,14 +418,14 @@ export default function Forum() {
                             setFormData({ ...formData, pollOptions: newOpts })
                           }}
                           placeholder={`Option ${i + 1}`}
-                          className="w-full bg-soft-stone border border-hairline rounded-lg px-3 py-2 text-[14px] text-ink placeholder:text-body-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                          className="h-11 w-full rounded-sm border border-[#dddddd] bg-[#ffffff] px-4 text-[14px] font-normal text-[#181d26] placeholder:text-[#41454d] outline-none focus:border-[#458fff] focus:ring-2 focus:ring-[#458fff]/20"
                         />
                       ))}
                       {formData.pollOptions.length < 6 && (
                         <button
                           type="button"
                           onClick={() => setFormData({ ...formData, pollOptions: [...formData.pollOptions, ''] })}
-                          className="text-[13px] font-medium text-primary hover:underline"
+                          className="text-[14px] font-medium text-[#1b61c9] hover:underline"
                         >
                           + Add option
                         </button>
@@ -428,13 +434,13 @@ export default function Forum() {
                   )}
 
                   <div className="flex justify-end gap-2 pt-2">
-                    <button type="button" onClick={() => setShowCreate(false)} className="px-4 py-2 text-[14px] font-medium text-body-muted hover:text-ink transition-colors">
+                    <button type="button" onClick={() => setShowCreate(false)} className="rounded-lg border border-[#dddddd] bg-[#ffffff] px-4 py-2 text-[14px] font-medium text-[#333840] transition-colors hover:bg-[#f8fafc]">
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={!createRoom || !formData.title.trim()}
-                      className="px-5 py-2 bg-primary text-white rounded-full text-[14px] font-bold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="rounded-lg bg-[#181d26] px-5 py-2 text-[14px] font-medium text-white transition-colors hover:bg-[#0d1218] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Post
                     </button>
@@ -444,17 +450,17 @@ export default function Forum() {
             </div>
 
             {/* Sort Bar */}
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="font-display font-bold text-[20px] text-ink">
+            <div className="mb-6 flex items-end justify-between gap-4 border-b border-[#dddddd] pb-4">
+              <h1 className="text-[24px] leading-[1.35] text-[#181d26]" style={EDITORIAL_DISPLAY_FONT}>
                 {selectedRoomData ? selectedRoomData.name : 'All Posts'}
               </h1>
-              <div className="flex items-center gap-1 bg-soft-stone rounded-lg p-0.5">
+              <div className="flex items-center gap-1 rounded-sm border border-[#dddddd] bg-[#ffffff] p-1">
                 {SORT_OPTIONS.map(opt => (
                   <button
                     key={opt.key}
                     onClick={() => setSort(opt.key)}
-                    className={`px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors ${
-                      sort === opt.key ? 'bg-canvas text-ink shadow-sm' : 'text-body-muted hover:text-ink'
+                    className={`rounded-sm px-3 py-1.5 text-[13px] font-medium transition-colors ${
+                      sort === opt.key ? 'bg-[#181d26] text-white' : 'text-[#41454d] hover:text-[#181d26]'
                     }`}
                   >
                     {opt.label}
@@ -465,34 +471,34 @@ export default function Forum() {
 
             {/* Posts Feed */}
             {loading ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="bg-white border border-hairline rounded-xl p-4 animate-pulse">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-6 h-6 rounded-full bg-soft-stone" />
-                      <div className="h-3 w-24 bg-soft-stone rounded" />
-                      <div className="h-3 w-16 bg-soft-stone rounded" />
+                  <div key={i} className="animate-pulse rounded-lg border border-[#dddddd] bg-[#ffffff] p-5">
+                    <div className="mb-4 flex items-center gap-2">
+                      <div className="h-7 w-7 rounded-full bg-[#e0e2e6]" />
+                      <div className="h-3 w-24 rounded bg-[#e0e2e6]" />
+                      <div className="h-3 w-16 rounded bg-[#e0e2e6]" />
                     </div>
-                    <div className="h-5 w-full bg-soft-stone rounded mb-2" />
-                    <div className="h-4 w-full bg-soft-stone rounded mb-1.5" />
-                    <div className="h-4 w-3/4 bg-soft-stone rounded mb-3" />
+                    <div className="mb-2 h-5 w-full rounded bg-[#e0e2e6]" />
+                    <div className="mb-1.5 h-4 w-full rounded bg-[#e0e2e6]" />
+                    <div className="mb-4 h-4 w-3/4 rounded bg-[#e0e2e6]" />
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-20 bg-soft-stone rounded-full" />
-                      <div className="h-8 w-24 bg-soft-stone rounded-full" />
-                      <div className="h-8 w-16 bg-soft-stone rounded-full" />
+                      <div className="h-9 w-20 rounded-sm bg-[#e0e2e6]" />
+                      <div className="h-9 w-24 rounded-sm bg-[#e0e2e6]" />
+                      <div className="h-9 w-16 rounded-sm bg-[#e0e2e6]" />
                     </div>
                   </div>
                 ))}
               </div>
             ) : posts.length === 0 ? (
-              <div className="text-center py-20 bg-white border border-hairline rounded-xl">
-                <div className="inline-flex w-12 h-12 bg-soft-stone rounded-full items-center justify-center mb-3">
-                  <MessageCircle size={24} className="text-body-muted" />
+              <div className="rounded-lg border border-[#dddddd] bg-[#f8fafc] py-16 px-6 text-center">
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#e0e2e6]">
+                  <MessageCircle size={24} className="text-[#41454d]" />
                 </div>
-                <p className="text-body-muted text-[14px]">No posts yet. Start the conversation!</p>
+                <p className="text-[14px] font-normal text-[#41454d]">No posts yet. Start the conversation!</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {posts.map(post => (
                   <PostCard
                     key={post._id}
@@ -518,25 +524,25 @@ export default function Forum() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-6">
-                <button
-                  onClick={() => { setPage(p => p - 1); fetchPosts(page - 1) }}
-                  disabled={page === 1}
-                  className="px-4 py-2 bg-canvas border border-hairline rounded-lg text-[13px] font-medium text-ink hover:bg-soft-stone transition-colors disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <span className="text-[13px] text-body-muted">
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  onClick={() => { setPage(p => p + 1); fetchPosts(page + 1) }}
-                  disabled={page === totalPages}
-                  className="px-4 py-2 bg-canvas border border-hairline rounded-lg text-[13px] font-medium text-ink hover:bg-soft-stone transition-colors disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
+            <div className="mt-8 flex items-center justify-center gap-2">
+              <button
+                onClick={() => { setPage(p => p - 1); fetchPosts(page - 1) }}
+                disabled={page === 1}
+                className="h-10 rounded-sm border border-[#dddddd] bg-[#ffffff] px-4 text-[13px] font-medium text-[#181d26] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <span className="text-[13px] font-normal text-[#41454d]">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => { setPage(p => p + 1); fetchPosts(page + 1) }}
+                disabled={page === totalPages}
+                className="h-10 rounded-sm border border-[#dddddd] bg-[#ffffff] px-4 text-[13px] font-medium text-[#181d26] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
             )}
           </main>
 
@@ -544,36 +550,36 @@ export default function Forum() {
           <aside className="hidden lg:block w-72 flex-shrink-0">
             <div className="sticky top-24 space-y-6">
               {selectedRoomData && (
-                <div className="bg-white border border-hairline rounded-xl p-5">
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: selectedRoomData.color }}>
+                <div className="rounded-lg bg-[#181d26] p-5 text-white md:p-6">
+                  <div className="mb-4 flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-md text-white text-[16px] font-medium" style={{ backgroundColor: selectedRoomData.color }}>
                       {selectedRoomData.icon === 'Hash' ? <Hash size={16} /> : selectedRoomData.icon?.charAt(0)?.toUpperCase() || '#'}
                     </span>
-                    <div>
-                      <h3 className="font-display font-bold text-[16px] text-ink">{selectedRoomData.name}</h3>
-                      <p className="text-[12px] text-body-muted">{selectedRoomData.postCount || 0} posts</p>
+                    <div className="min-w-0">
+                      <h3 className="truncate text-[18px] leading-[1.4] text-white" style={EDITORIAL_DISPLAY_FONT}>{selectedRoomData.name}</h3>
+                      <p className="text-[12px] font-normal text-[#f8fafc]/80">{selectedRoomData.postCount || 0} posts</p>
                     </div>
                   </div>
-                  <p className="text-[13px] text-body-muted leading-relaxed">
+                  <p className="text-[14px] leading-[1.5] text-[#f8fafc]/80">
                     {selectedRoomData.description || 'No description'}
                   </p>
                 </div>
               )}
 
-              <div className="bg-white border border-hairline rounded-xl p-5">
-                <h3 className="font-display font-bold text-[16px] text-ink mb-3">Community Stats</h3>
+              <div className="rounded-lg border border-[#dddddd] bg-[#ffffff] p-5 md:p-6">
+                <h3 className="mb-4 text-[16px] leading-[1.4] text-[#181d26]" style={EDITORIAL_DISPLAY_FONT}>Community Stats</h3>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between text-[13px]">
-                    <span className="text-body-muted">Total Rooms</span>
-                    <span className="font-bold text-ink">{rooms.length}</span>
+                  <div className="flex items-center justify-between text-[13px] font-normal">
+                    <span className="text-[#41454d]">Total Rooms</span>
+                    <span className="font-medium text-[#181d26]">{rooms.length}</span>
                   </div>
-                  <div className="flex items-center justify-between text-[13px]">
-                    <span className="text-body-muted">Total Posts</span>
-                    <span className="font-bold text-ink">{posts.length > 0 ? '—' : '0'}</span>
+                  <div className="flex items-center justify-between text-[13px] font-normal">
+                    <span className="text-[#41454d]">Total Posts</span>
+                    <span className="font-medium text-[#181d26]">{posts.length > 0 ? '—' : '0'}</span>
                   </div>
-                  <div className="flex items-center gap-2 pt-3 border-t border-hairline">
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    <span className="text-[13px] font-medium text-body-muted">Community active</span>
+                  <div className="flex items-center gap-2 border-t border-[#dddddd] pt-3">
+                    <span className="h-2 w-2 rounded-full bg-[#0a2e0e]"></span>
+                    <span className="text-[13px] font-normal text-[#41454d]">Community active</span>
                   </div>
                 </div>
               </div>
@@ -642,29 +648,29 @@ function PostCard({
   }, [post.comments])
 
   return (
-    <div className="bg-white border border-hairline rounded-xl p-4 hover:border-slate/30 transition-colors">
+    <div className="rounded-md border border-[#dddddd] bg-[#ffffff] p-5 shadow-[0_1px_2px_rgba(24,29,38,0.04)] transition-colors hover:border-[#9297a0] md:p-6">
       {/* Author & Meta */}
-      <div className="flex items-center gap-2 mb-2 text-[13px] text-body-muted">
+      <div className="mb-3 flex items-center gap-2 text-[13px] font-normal text-[#41454d]">
         <button
           onClick={(e) => onUserClick?.(post.author, e)}
-          className="w-6 h-6 rounded-full overflow-hidden bg-soft-stone flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 hover:ring-2 hover:ring-primary/30 transition-all"
+          className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#dddddd] bg-[#f8fafc] text-[11px] font-medium text-[#41454d] transition-colors hover:border-[#9297a0]"
         >
           {post.author?.photo ? (
-            <img src={post.author.photo} alt={post.author.name} className="w-full h-full object-cover" />
+            <img src={post.author.photo} alt={post.author.name} className="h-full w-full object-cover" />
           ) : (
             post.author?.name?.charAt(0)?.toUpperCase()
           )}
         </button>
         <button
           onClick={(e) => onUserClick?.(post.author, e)}
-          className="font-bold text-ink hover:underline transition-colors"
+          className="font-medium text-[#181d26] hover:underline"
         >
           {post.author?.name}
         </button>
-        <span className="text-slate">·</span>
+        <span className="text-[#dddddd]">·</span>
         <span>{formatTimeAgo(post.createdAt)}</span>
         {post.isPinned && (
-          <span className="flex items-center gap-1 text-[11px] font-bold text-coral uppercase tracking-wide">
+          <span className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.16px] text-[#aa2d00]">
             <Pin size={12} /> Pinned
           </span>
         )}
@@ -672,15 +678,15 @@ function PostCard({
 
       {/* Post Type Badge */}
       {post.postType && post.postType !== 'text' && (
-        <div className="flex items-center gap-1.5 mb-2">
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-body-muted bg-soft-stone px-2 py-0.5 rounded-md">
+        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 rounded-sm bg-[#f8fafc] px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.16px] text-[#41454d]">
             {post.postType === 'image' && <Image size={12} />}
             {post.postType === 'poll' && <BarChart3 size={12} />}
             {post.postType === 'link' && <Link2 size={12} />}
             {post.postType}
           </span>
           {post.room && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-body-muted bg-soft-stone px-2 py-0.5 rounded-md">
+            <span className="inline-flex items-center gap-1 rounded-sm bg-[#f8fafc] px-2.5 py-1 text-[11px] font-medium text-[#41454d]">
               <Hash size={12} />
               {post.room.name}
             </span>
@@ -689,10 +695,10 @@ function PostCard({
       )}
 
       {/* Post Body */}
-      <h2 className="text-[16px] font-bold text-ink mb-1 leading-snug">
+      <h2 className="mb-1 text-[18px] font-medium leading-[1.4] text-[#181d26]" style={EDITORIAL_DISPLAY_FONT}>
         {post.title}
       </h2>
-      <div className="text-[14px] text-body-muted leading-relaxed mb-3 whitespace-pre-wrap break-words">
+      <div className="mb-4 text-[14px] font-normal leading-[1.5] text-[#333840] whitespace-pre-wrap break-words">
         {post.content}
       </div>
 
@@ -702,7 +708,7 @@ function PostCard({
           href={post.linkUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-[13px] font-medium text-primary hover:underline mb-3"
+          className="mb-3 inline-flex items-center gap-2 text-[13px] font-medium text-[#1b61c9] hover:underline"
           onClick={(e) => e.stopPropagation()}
         >
           <Link2 size={14} />
@@ -712,7 +718,7 @@ function PostCard({
 
       {/* Poll */}
       {post.postType === 'poll' && post.pollOptions?.length > 0 && (
-        <div className="space-y-2 mb-3">
+        <div className="mb-4 space-y-2">
           {post.pollOptions.map((opt, i) => (
             <button
               key={i}
@@ -727,11 +733,11 @@ function PostCard({
                   console.error(err)
                 }
               }}
-              className="w-full text-left bg-soft-stone border border-hairline rounded-lg px-3 py-2 text-[14px] text-ink hover:border-primary/30 transition-colors"
+              className="w-full rounded-sm border border-[#dddddd] bg-[#ffffff] px-3 py-2 text-left text-[14px] font-normal text-[#181d26] transition-colors hover:border-[#9297a0]"
             >
               <div className="flex items-center justify-between">
                 <span>{opt.text}</span>
-                <span className="text-[12px] font-bold text-body-muted">{opt.votes || 0} votes</span>
+                <span className="text-[12px] font-medium text-[#41454d]">{opt.votes || 0} votes</span>
               </div>
             </button>
           ))}
@@ -739,22 +745,22 @@ function PostCard({
       )}
 
       {/* Action Bar */}
-      <div className="flex items-center gap-1">
+      <div className="mt-5 flex flex-wrap items-center gap-2">
         {/* Vote Pill */}
-        <div className="flex items-center bg-soft-stone rounded-full overflow-hidden border border-hairline">
+        <div className="flex items-center overflow-hidden rounded-sm border border-[#dddddd] bg-[#f8fafc]">
           <button
             onClick={() => onUpvote(post._id)}
-            className={`p-1.5 px-2 transition-colors ${userVote === 'up' ? 'text-orange-500 bg-orange-500/10' : 'text-body-muted hover:text-orange-500'}`}
+            className={`px-2.5 py-1.5 transition-colors ${userVote === 'up' ? 'bg-[#aa2d00]/10 text-[#aa2d00]' : 'text-[#41454d] hover:text-[#aa2d00]'}`}
             aria-label="Upvote"
           >
             <ArrowBigUp size={18} strokeWidth={1.75} />
           </button>
-          <span className={`px-1 text-[13px] font-bold min-w-[24px] text-center ${userVote ? 'text-ink' : 'text-body-muted'}`}>
+          <span className={`min-w-[24px] px-1 text-center text-[13px] font-medium ${userVote ? 'text-[#181d26]' : 'text-[#41454d]'}`}>
             {(post.upvotes?.length || 0) - (post.downvotes?.length || 0)}
           </span>
           <button
             onClick={() => onDownvote(post._id)}
-            className={`p-1.5 px-2 transition-colors ${userVote === 'down' ? 'text-blue-500 bg-blue-500/10' : 'text-body-muted hover:text-blue-500'}`}
+            className={`px-2.5 py-1.5 transition-colors ${userVote === 'down' ? 'bg-[#0a2e0e]/10 text-[#0a2e0e]' : 'text-[#41454d] hover:text-[#0a2e0e]'}`}
             aria-label="Downvote"
           >
             <ArrowBigDown size={18} strokeWidth={1.75} />
@@ -764,8 +770,8 @@ function PostCard({
         {/* Comments */}
         <button
           onClick={onToggleComments}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors border border-hairline ${
-            openComments ? 'bg-soft-stone text-ink' : 'text-body-muted hover:text-ink hover:bg-soft-stone/60'
+          className={`flex items-center gap-1.5 rounded-sm border border-[#dddddd] px-3 py-1.5 text-[13px] font-medium transition-colors ${
+            openComments ? 'border-[#9297a0] bg-[#f8fafc] text-[#181d26]' : 'bg-[#ffffff] text-[#41454d] hover:bg-[#f8fafc] hover:text-[#181d26]'
           }`}
         >
           <MessageCircle size={16} strokeWidth={1.75} />
@@ -774,7 +780,7 @@ function PostCard({
 
         {/* Share */}
         <button
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium text-body-muted hover:text-ink hover:bg-soft-stone/60 transition-colors border border-hairline"
+          className="flex items-center gap-1.5 rounded-sm border border-[#dddddd] bg-[#ffffff] px-3 py-1.5 text-[13px] font-medium text-[#41454d] transition-colors hover:bg-[#f8fafc] hover:text-[#181d26]"
           aria-label="Share"
         >
           <Share2 size={16} strokeWidth={1.75} />
@@ -784,24 +790,24 @@ function PostCard({
 
       {/* Comments Section */}
       {openComments && (
-        <div className="mt-4 pt-4 border-t border-hairline space-y-4">
+        <div className="mt-5 space-y-5 border-t border-[#dddddd] pt-5">
           {/* Comment Input */}
           <form onSubmit={(e) => handleLocalSubmit(e)} className="flex gap-3">
-            <div className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0">
+            <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#181d26] text-[12px] font-medium text-white">
               {user?.name?.charAt(0)?.toUpperCase()}
             </div>
-            <div className="flex-1 flex gap-2">
+            <div className="flex flex-1 gap-2">
               <input
                 type="text"
                 value={localDraft}
                 onChange={(e) => { setLocalDraft(e.target.value); handleCommentDraft(post._id, e.target.value) }}
                 placeholder="Add a comment..."
-                className="flex-1 bg-soft-stone border border-hairline rounded-lg px-3 py-2 text-[14px] text-ink placeholder:text-body-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                className="h-11 flex-1 rounded-sm border border-[#dddddd] bg-[#ffffff] px-4 text-[14px] font-normal text-[#181d26] placeholder:text-[#41454d] outline-none focus:border-[#458fff] focus:ring-2 focus:ring-[#458fff]/20"
               />
               <button
                 type="submit"
                 disabled={!localDraft.trim()}
-                className="px-4 py-2 bg-primary text-white rounded-lg text-[13px] font-bold hover:bg-primary/90 transition-colors disabled:opacity-50"
+                className="h-11 rounded-lg bg-[#181d26] px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#0d1218] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Comment
               </button>
@@ -809,44 +815,44 @@ function PostCard({
           </form>
 
           {/* Comments List */}
-          <div className="space-y-4 pl-2">
+          <div className="space-y-5 pl-1">
             {topLevelComments.length === 0 && (
-              <p className="text-[13px] text-body-muted italic">No comments yet.</p>
+              <p className="text-[13px] font-normal italic text-[#41454d]">No comments yet.</p>
             )}
             {topLevelComments.map(comment => (
               <div key={comment._id} className="flex gap-3">
                 <button
                   onClick={(e) => onUserClick?.(comment.author, e)}
-                  className="w-7 h-7 rounded-full overflow-hidden bg-soft-stone flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0 hover:ring-2 hover:ring-primary/30 transition-all"
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#dddddd] bg-[#f8fafc] text-[11px] font-medium text-[#41454d] transition-colors hover:border-[#9297a0]"
                 >
                   {comment.author?.photo ? (
-                    <img src={comment.author.photo} alt={comment.author.name} className="w-full h-full object-cover" />
+                    <img src={comment.author.photo} alt={comment.author.name} className="h-full w-full object-cover" />
                   ) : (
                     comment.author?.name?.charAt(0)?.toUpperCase()
                   )}
                 </button>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-0.5 flex items-center gap-2">
                     <button
                       onClick={(e) => onUserClick?.(comment.author, e)}
-                      className="font-semibold text-[13px] text-ink hover:underline transition-colors"
+                      className="text-[13px] font-medium text-[#181d26] hover:underline"
                     >
                       {comment.author?.name}
                     </button>
-                    <span className="text-[11px] text-body-muted">{formatTimeAgo(comment.createdAt)}</span>
+                    <span className="text-[11px] font-normal text-[#41454d]">{formatTimeAgo(comment.createdAt)}</span>
                   </div>
-                  <p className="text-[14px] text-body-muted break-words">{comment.content}</p>
-                  <div className="flex items-center gap-3 mt-1.5">
+                  <p className="text-[14px] font-normal leading-[1.5] text-[#333840] break-words">{comment.content}</p>
+                  <div className="mt-1.5 flex items-center gap-3">
                     <button
                       onClick={() => onUpvoteComment(comment._id)}
-                      className="flex items-center gap-1 text-[12px] text-body-muted hover:text-orange-500 transition-colors"
+                      className="flex items-center gap-1 text-[12px] font-normal text-[#41454d] transition-colors hover:text-[#aa2d00]"
                     >
                       <ArrowBigUp size={14} strokeWidth={1.75} />
                       {comment.upvotes?.length || 0}
                     </button>
                     <button
                       onClick={() => setReplyingTo(replyingTo === comment._id ? null : comment._id)}
-                      className="text-[12px] font-medium text-body-muted hover:text-ink transition-colors"
+                      className="text-[12px] font-medium text-[#41454d] transition-colors hover:text-[#181d26]"
                     >
                       Reply
                     </button>
@@ -854,19 +860,19 @@ function PostCard({
 
                   {/* Reply Input */}
                   {replyingTo === comment._id && (
-                    <form onSubmit={(e) => handleReplySubmit(e, comment._id)} className="flex gap-2 mt-2">
+                    <form onSubmit={(e) => handleReplySubmit(e, comment._id)} className="mt-2 flex gap-2">
                       <input
                         type="text"
                         value={replyDraft}
                         onChange={(e) => handleReplyDraft(e.target.value)}
                         placeholder="Reply..."
-                        className="flex-1 bg-soft-stone border border-hairline rounded-lg px-3 py-1.5 text-[13px] text-ink placeholder:text-body-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                        className="h-10 flex-1 rounded-sm border border-[#dddddd] bg-[#ffffff] px-3 py-1.5 text-[13px] font-normal text-[#181d26] placeholder:text-[#41454d] outline-none focus:border-[#458fff] focus:ring-2 focus:ring-[#458fff]/20"
                         autoFocus
                       />
                       <button
                         type="submit"
                         disabled={!replyDraft.trim()}
-                        className="px-3 py-1.5 bg-primary text-white rounded-lg text-[12px] font-bold hover:bg-primary/90 transition-colors disabled:opacity-50"
+                        className="h-10 rounded-lg bg-[#181d26] px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-[#0d1218] disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Reply
                       </button>
@@ -875,30 +881,30 @@ function PostCard({
 
                   {/* Nested Replies */}
                   {replyMap[comment._id]?.length > 0 && (
-                    <div className="mt-3 pl-4 border-l-2 border-hairline space-y-3">
+                    <div className="mt-3 space-y-3 border-l border-[#dddddd] pl-4">
                       {replyMap[comment._id].map(reply => (
                         <div key={reply._id} className="flex gap-2">
                           <button
                             onClick={(e) => onUserClick?.(reply.author, e)}
-                            className="w-6 h-6 rounded-full overflow-hidden bg-soft-stone flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 hover:ring-2 hover:ring-primary/30 transition-all"
+                            className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#dddddd] bg-[#f8fafc] text-[10px] font-medium text-[#41454d] transition-colors hover:border-[#9297a0]"
                           >
                             {reply.author?.photo ? (
-                              <img src={reply.author.photo} alt={reply.author.name} className="w-full h-full object-cover" />
+                              <img src={reply.author.photo} alt={reply.author.name} className="h-full w-full object-cover" />
                             ) : (
                               reply.author?.name?.charAt(0)?.toUpperCase()
                             )}
                           </button>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-0.5">
+                          <div className="min-w-0 flex-1">
+                            <div className="mb-0.5 flex items-center gap-2">
                               <button
                                 onClick={(e) => onUserClick?.(reply.author, e)}
-                                className="font-semibold text-[12px] text-ink hover:underline transition-colors"
+                                className="text-[12px] font-medium text-[#181d26] hover:underline"
                               >
                                 {reply.author?.name}
                               </button>
-                              <span className="text-[10px] text-body-muted">{formatTimeAgo(reply.createdAt)}</span>
+                              <span className="text-[10px] font-normal text-[#41454d]">{formatTimeAgo(reply.createdAt)}</span>
                             </div>
-                            <p className="text-[13px] text-body-muted break-words">{reply.content}</p>
+                            <p className="text-[13px] font-normal leading-[1.5] text-[#333840] break-words">{reply.content}</p>
                           </div>
                         </div>
                       ))}

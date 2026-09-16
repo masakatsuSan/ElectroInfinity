@@ -19,7 +19,6 @@ const TYPE_ICONS = {
   gallery_photo: '📷',
   resource_uploaded: '📤',
   achievement: '🏆',
-  attendance_session: '⚡',
 }
 
 export default function NotificationDropdown({ onClose }) {

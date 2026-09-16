@@ -38,7 +38,7 @@ export default function Courses() {
   const totalCredits = subjects.reduce((a, s) => a + (s.credits || 0), 0)
 
   return (
-    <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
+    <div className="min-h-screen bg-white text-ink pt-36 pb-28">
       <SEO
         title="Curriculum &amp; Courses | Electro Infinity"
         description="Semester-wise subjects under the MAKAUT-affiliated B.Tech Electrical Engineering curriculum."
@@ -46,13 +46,13 @@ export default function Courses() {
 
       <div className="max-w-[1280px] mx-auto px-6 md:px-12">
         <div className="max-w-3xl mb-12">
-          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-signature-coral font-medium block mb-2">
             Academic Curriculum
           </span>
           <h1 className="font-display text-[40px] md:text-[56px] font-normal tracking-tight text-ink mb-4">
             B.Tech Electrical Engineering
           </h1>
-          <p className="font-sans text-[17px] text-body-muted leading-relaxed">
+          <p className="font-sans text-[17px] text-body leading-relaxed">
             MAKAUT-affiliated 4-year degree roadmap spanning power systems, circuits, electronics, and lab practicums.
           </p>
         </div>
@@ -62,7 +62,7 @@ export default function Courses() {
             <button
               key={sem}
               onClick={() => setSelectedSem(sem)}
-              className={'font-sans text-[14px] font-semibold px-5 py-2 rounded-full transition-all whitespace-nowrap ' + (selectedSem === sem ? 'bg-primary text-white shadow-sm' : 'bg-soft-stone text-body-muted hover:text-ink')}
+              className={'font-sans text-[14px] font-medium px-5 py-2 rounded-full transition-all whitespace-nowrap ' + (selectedSem === sem ? 'bg-primary text-white' : 'bg-soft-stone text-muted hover:text-ink')}
             >
               Semester {sem}
             </button>
@@ -72,13 +72,13 @@ export default function Courses() {
         {isLoading ? (
           <SkeletonGrid />
         ) : (
-          <div className="border border-hairline bg-white rounded-2xl overflow-hidden shadow-card">
+          <div className="border border-hairline bg-white rounded-lg overflow-hidden">
             <div className="p-6 bg-white border-b border-hairline flex items-center justify-between">
-              <h2 className="font-display text-[20px] font-bold text-ink">
+              <h2 className="font-display text-[20px] font-medium text-ink">
                 Semester {selectedSem} Course List
               </h2>
-              <span className="font-mono text-[12px] text-slate">
-                {subjects.length} Subjects &middot; Total {totalCredits} Credits
+              <span className="font-mono text-[12px] text-muted">
+                {subjects.length} Subjects · Total {totalCredits} Credits
               </span>
             </div>
 
@@ -91,27 +91,27 @@ export default function Courses() {
                     className="p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-soft-stone/40 cursor-pointer transition-colors"
                   >
                     <div className="flex items-center gap-4 min-w-0">
-                      <span className="font-mono text-[12px] font-bold uppercase tracking-wider px-3 py-1 rounded-md bg-pale-blue text-action-blue border border-blue-200 flex-shrink-0">
+                      <span className="font-mono text-[12px] font-medium uppercase tracking-wider px-3 py-1 rounded-md bg-soft-stone text-ink border border-hairline flex-shrink-0">
                         {sub.code}
                       </span>
                       <div>
-                        <h3 className="font-sans text-[16px] font-semibold text-ink">{sub.name}</h3>
-                        <p className="font-sans text-[12px] text-body-muted">{typeLabel(sub.code)}</p>
+                        <h3 className="font-sans text-[16px] font-medium text-ink">{sub.name}</h3>
+                        <p className="font-sans text-[12px] text-muted">{typeLabel(sub.code)}</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-6 flex-shrink-0">
-                      <span className="font-mono text-[13px] font-semibold text-ink bg-soft-stone px-3 py-1 rounded-full">
+                      <span className="font-mono text-[13px] font-medium text-ink bg-soft-stone px-3 py-1 rounded-full">
                         {(sub.credits || 0)} {(sub.credits || 0) === 1 ? 'Credit' : 'Credits'}
                       </span>
-                      <span className="text-[13px] font-medium text-action-blue">
-                        Syllabus Details &rarr;
+                      <span className="text-[13px] font-medium text-link">
+                        Syllabus Details →
                       </span>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="p-12 text-center text-body-muted font-sans">
+                <div className="p-12 text-center text-muted font-sans">
                   No courses scheduled for this semester yet.
                 </div>
               )}
@@ -125,7 +125,7 @@ export default function Courses() {
 
 function SkeletonGrid() {
   return (
-    <div className="border border-hairline bg-white rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
+    <div className="border border-hairline bg-white rounded-lg overflow-hidden divide-y divide-hairline">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="p-5 md:p-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">

@@ -64,7 +64,7 @@ export default function AdminRooms() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <h1 className="font-display font-semibold text-[28px] tracking-tight text-ink">Rooms</h1>
+        <h1 className="font-[Inter,system-ui,sans-serif] font-semibold text-[28px] tracking-tight text-ink">Rooms</h1>
         <button onClick={openCreate} className="button-primary !px-5 !py-2.5">
           {editing ? 'Edit Form' : '+ New Room'}
         </button>
@@ -72,39 +72,39 @@ export default function AdminRooms() {
 
       {showForm && (
         <div className="border border-divider-soft bg-white p-6 mb-8 rounded-xl shadow-sm">
-          <h2 className="font-display font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Room' : 'New Room'}</h2>
+          <h2 className="font-[Inter,system-ui,sans-serif] font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Room' : 'New Room'}</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Name *</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Name *</label>
               <input value={form.name} onChange={set('name')} className="input w-full" placeholder="e.g. Electrical Machines" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Icon</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Icon</label>
               <input value={form.icon} onChange={set('icon')} className="input w-full" placeholder="e.g. zap" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Color</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Color</label>
               <div className="flex gap-2">
-                <input type="color" value={form.color} onChange={set('color')} className="h-10 w-14 rounded-md border border-divider-soft bg-canvas p-1 cursor-pointer" />
+                <input type="color" value={form.color} onChange={set('color')} className="h-10 w-14 rounded-md border border-divider-soft bg-[#fff] p-1 cursor-pointer" />
                 <input value={form.color} onChange={set('color')} className="input flex-1" placeholder="#4F46E5" />
               </div>
             </div>
             <div className="flex items-center gap-6 pt-6">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.isPopular} onChange={set('isPopular')} className="w-4 h-4 rounded border-divider-soft text-primary focus:ring-primary" />
-                <span className="font-sans text-[14px] font-medium text-ink">Popular</span>
+                <span className="font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink">Popular</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.isActive} onChange={set('isActive')} className="w-4 h-4 rounded border-divider-soft text-primary focus:ring-primary" />
-                <span className="font-sans text-[14px] font-medium text-ink">Active</span>
+                <span className="font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink">Active</span>
               </label>
             </div>
             <div className="sm:col-span-2">
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Description</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Description</label>
               <textarea rows={3} value={form.description} onChange={set('description')} className="input w-full resize-none" placeholder="Room description..." />
             </div>
           </div>
-          {error && <p className="font-sans text-red-500 text-[14px] font-medium mt-4">{error}</p>}
+          {error && <p className="font-[Inter,system-ui,sans-serif] text-red-500 text-[14px] font-medium mt-4">{error}</p>}
           <div className="flex gap-3 mt-6">
             <button onClick={handleSave} disabled={createMut.isPending || updateMut.isPending || !form.name} className="button-primary">
               {createMut.isPending || updateMut.isPending ? 'Saving…' : (editing ? 'Update Room' : 'Create Room')}
@@ -114,20 +114,20 @@ export default function AdminRooms() {
         </div>
       )}
 
-      {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading rooms…</p>
-        : rooms.length === 0 ? <p className="font-sans text-ink-muted-80 text-[15px]">No rooms found. Create one above.</p>
+      {isLoading ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">Loading rooms…</p>
+        : rooms.length === 0 ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">No rooms found. Create one above.</p>
         : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {rooms.map(room => (
               <div key={room._id} className="border border-divider-soft bg-white rounded-xl p-5 shadow-sm hover:border-primary/30 transition-colors">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg" style={{ backgroundColor: room.color }}>
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-medium text-lg" style={{ backgroundColor: room.color }}>
                       {room.icon ? <span className="text-xl">{room.icon}</span> : '#'}
                     </div>
                     <div>
                       <p className="text-[15px] font-semibold text-ink">{room.name}</p>
-                      <p className="font-sans text-[12px] text-ink-muted-80 capitalize">{room.isActive !== false ? 'Active' : 'Inactive'} {room.isPopular ? '· Popular' : ''}</p>
+                      <p className="font-[Inter,system-ui,sans-serif] text-[12px] text-ink-muted-80 capitalize">{room.isActive !== false ? 'Active' : 'Inactive'} {room.isPopular ? '· Popular' : ''}</p>
                     </div>
                   </div>
                   <div className="flex gap-1">
@@ -139,7 +139,7 @@ export default function AdminRooms() {
                     </button>
                   </div>
                 </div>
-                <p className="font-sans text-[14px] text-ink-muted-80 line-clamp-2 mb-4">{room.description || '—'}</p>
+                <p className="font-[Inter,system-ui,sans-serif] text-[14px] text-ink-muted-80 line-clamp-2 mb-4">{room.description || '—'}</p>
                 <div className="flex items-center gap-4 font-mono text-[11px] text-slate">
                   {typeof room.postCount === 'number' && <span className="flex items-center gap-1"><MessageSquare size={12} /> {room.postCount}</span>}
                   {typeof room.memberCount === 'number' && <span className="flex items-center gap-1"><Users size={12} /> {room.memberCount}</span>}

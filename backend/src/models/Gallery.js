@@ -11,7 +11,7 @@ const gallerySchema = new mongoose.Schema(
     date: { type: Date, default: Date.now },
 
     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    isApproved: { type: Boolean, default: false },
+    isApproved: { type: Boolean, default: true },
     approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     approvedAt: { type: Date, default: null },
     rejectionReason: { type: String, default: '' },

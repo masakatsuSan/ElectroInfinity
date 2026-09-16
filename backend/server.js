@@ -48,11 +48,10 @@ app.use('/api/labs',       require('./src/routes/labs'))
 app.use('/api/achievements',require('./src/routes/achievements'))
 app.use('/api/gallery',    require('./src/routes/gallery'))
 app.use('/api/yt-lectures',require('./src/routes/yt-lectures'))
+app.use('/api/friends', require('./src/routes/friends'))
 app.use('/api/profile',   require('./src/routes/profile'))
 app.use('/api/network',   require('./src/routes/network'))
 app.use('/api/notifications', require('./src/routes/notifications'))
-// Attendance & Subjects
-app.use('/api/attendance', require('./src/routes/attendance'))
 app.use('/api/subjects',   require('./src/routes/subjects'))
 
 app.get('/api/health', (req, res) =>

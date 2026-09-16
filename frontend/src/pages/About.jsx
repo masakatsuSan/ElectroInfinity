@@ -5,7 +5,7 @@ const TIMELINE = [
   { year: '2023', text: 'Club established by electrical engineering students and faculty mentors at AGEMC.' },
   { year: '2024', text: 'Conducted first hands-on Power Electronics & Hardware Automation workshops for undergraduates.' },
   { year: '2025', text: 'Partnered with department laboratories for guaranteed hardware testbed access.' },
-  { year: '2026', text: 'Launched Electro Infinity unified digital attendance and academic resource command center.' },
+  { year: '2026', text: 'Launched Electro Infinity unified academic resource and community command center.' },
 ]
 
 const OBJECTIVES = [
@@ -28,118 +28,124 @@ const ACHIEVEMENTS = [
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
+    <div className="min-h-screen bg-white text-ink">
       <SEO
         title="About Us | Electro Infinity"
         description="Learn more about Electro Infinity, the official Electrical Engineering Club of AGEMC."
         path="/about"
       />
 
-      <div className="max-w-[1280px] mx-auto px-6 md:px-12">
+      <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+        <section className="pt-24 md:pt-32 pb-24 md:pb-24">
+          <div className="max-w-3xl">
+            <span className="mb-3 block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral">
+              The Technical Society
+            </span>
+            <h1 className="mb-5 font-display text-[40px] font-normal leading-[1.15] text-ink md:text-[56px]">
+              About Electro Infinity
+            </h1>
+            <p className="max-w-2xl font-sans text-[18px] font-normal leading-[1.4] text-body">
+              The official student-led technical hub for Electrical Engineering at Alipurduar Government Engineering & Management College.
+            </p>
+          </div>
+        </section>
 
-        {/* ── HERO ── */}
-        <div className="max-w-3xl mb-16">
-          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
-            The Technical Society
-          </span>
-          <h1 className="font-display text-[40px] md:text-[56px] font-normal tracking-tight text-ink mb-4">
-            About Electro Infinity
-          </h1>
-          <p className="font-sans text-[18px] text-body-muted leading-relaxed">
-            The official student-led technical hub for Electrical Engineering at Alipurduar Government Engineering & Management College.
-          </p>
-        </div>
-
-        {/* ── HIGHLIGHTS (Soft stone cards) ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-20">
-          {HIGHLIGHTS.map(h => (
-            <div
-              key={h.label}
-              className="bg-white border border-hairline rounded-2xl p-8 shadow-card flex flex-col justify-between"
-            >
-              <div>
-                <div className="font-display font-bold text-[48px] leading-none text-ink mb-3">
-                  {h.stat}
+        <section className="py-24 md:py-24">
+          <div className="cream-callout-card grid gap-6 sm:grid-cols-3 md:gap-8">
+            {HIGHLIGHTS.map(h => (
+              <div
+                key={h.label}
+                className="flex min-h-[220px] flex-col justify-between border border-divider-soft bg-white p-8"
+              >
+                <div>
+                  <div className="mb-4 font-display text-[44px] font-normal leading-none text-ink">
+                    {h.stat}
+                  </div>
+                  <div className="mb-2 font-display text-[15px] font-medium text-ink">{h.label}</div>
                 </div>
-                <div className="font-sans text-[15px] font-bold text-ink mb-1">{h.label}</div>
+                <p className="font-sans text-[13px] font-normal leading-[1.4] text-body">{h.desc}</p>
               </div>
-              <p className="font-sans text-[13px] text-body-muted">{h.desc}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </section>
 
-        {/* ── OBJECTIVES & MISSION ── */}
-        <div className="mb-20">
-          <span className="font-mono text-[12px] uppercase tracking-wider text-deep-green font-semibold block mb-2">
-            Our Mission
-          </span>
-          <h2 className="font-display text-[32px] font-bold tracking-tight text-ink mb-8">
-            Core Objectives
-          </h2>
+        <section className="py-24 md:py-24">
+          <div className="mb-12 max-w-3xl">
+            <span className="mb-3 block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-forest">
+              Our Mission
+            </span>
+            <h2 className="mb-4 font-display text-[32px] font-normal leading-[1.2] text-ink md:text-[40px]">
+              Core Objectives
+            </h2>
+          </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             {OBJECTIVES.map((o, i) => (
               <div
                 key={i}
-                className="border border-hairline bg-white rounded-2xl p-6 flex gap-4 items-start shadow-card hover:bg-soft-stone/30 transition-colors"
+                className="border border-divider-soft bg-white p-8 flex gap-5 items-start hover:bg-surface-soft transition-colors"
               >
-                <span className="font-mono text-[13px] font-bold text-coral flex-shrink-0 pt-0.5">
+                <span className="font-mono text-[13px] font-medium text-signature-coral flex-shrink-0">
                   0{i + 1}.
                 </span>
-                <p className="font-sans text-[15px] text-ink font-medium leading-relaxed">{o}</p>
+                <p className="font-sans text-[15px] font-normal leading-[1.45] text-ink">{o}</p>
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* ── TIMELINE ── */}
-        <div className="mb-20">
-          <span className="font-mono text-[12px] uppercase tracking-wider text-slate font-semibold block mb-2">
-            History & Milestones
-          </span>
-          <h2 className="font-display text-[32px] font-bold tracking-tight text-ink mb-8">
-            Our Journey
-          </h2>
+        <section className="py-24 md:py-24">
+          <div className="mb-12 max-w-3xl">
+            <span className="mb-3 block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-muted">
+              History & Milestones
+            </span>
+            <h2 className="mb-4 font-display text-[32px] font-normal leading-[1.2] text-ink md:text-[40px]">
+              Our Journey
+            </h2>
+          </div>
 
-          <div className="border border-hairline bg-white rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
+          <div className="signature-forest-card overflow-hidden">
             {TIMELINE.map((t, i) => (
-              <div key={i} className="p-6 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-soft-stone/20 transition-colors">
-                <span className="font-mono text-[14px] font-bold text-deep-green bg-pale-green px-3 py-1 rounded-md border border-green-200 w-20 text-center flex-shrink-0">
+              <div key={i} className="flex flex-col gap-5 border-b border-white/20 p-6 last:border-b-0 sm:flex-row sm:items-center hover:bg-white/10 transition-colors md:p-8">
+                <span className="flex-shrink-0 rounded-sm border border-signature-cream bg-signature-cream px-3 py-1 text-center font-mono text-[14px] font-medium text-signature-forest w-20">
                   {t.year}
                 </span>
-                <p className="font-sans text-[15px] text-ink font-medium">{t.text}</p>
+                <p className="font-sans text-[15px] font-normal leading-[1.45] text-white">{t.text}</p>
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* ── ACHIEVEMENTS ── */}
-        <div>
-          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
-            Excellence
-          </span>
-          <h2 className="font-display text-[32px] font-bold tracking-tight text-ink mb-8">
-            Student Achievements
-          </h2>
+        <section className="py-24 md:py-24">
+          <div className="mb-12 max-w-3xl">
+            <span className="mb-3 block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral">
+              Excellence
+            </span>
+            <h2 className="mb-4 font-display text-[32px] font-normal leading-[1.2] text-ink md:text-[40px]">
+              Student Achievements
+            </h2>
+          </div>
 
-          <div className="grid sm:grid-cols-2 gap-6">
+          <div className="grid gap-6 md:grid-cols-2">
             {ACHIEVEMENTS.map((a, i) => (
               <div
                 key={i}
-                className="border border-hairline bg-white rounded-2xl p-8 shadow-card flex flex-col justify-between"
+                className={`rounded-sm p-8 md:p-10 ${i === 0 ? 'bg-signature-peach' : 'bg-signature-mint'}`}
               >
-                <div>
-                  <span className="font-mono text-[12px] text-slate font-bold uppercase block mb-2">
-                    {a.year} Milestone
-                  </span>
-                  <h3 className="font-display text-[20px] font-bold text-ink mb-2">{a.title}</h3>
-                  <p className="font-sans text-[14px] text-body-muted leading-relaxed">{a.desc}</p>
+                <div className="flex flex-col h-full justify-between gap-12">
+                  <div>
+                    <span className="mb-3 block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-ink">
+                      {a.year} Milestone
+                    </span>
+                    <h3 className="mb-3 font-display text-[20px] font-normal leading-[1.35] text-ink">{a.title}</h3>
+                    <p className="font-sans text-[14px] font-normal leading-[1.45] text-body">{a.desc}</p>
+                  </div>
+                  <span className="mt-8 block h-10 w-10 rounded-sm bg-ink" />
                 </div>
               </div>
             ))}
           </div>
-        </div>
-
+        </section>
       </div>
     </div>
   )

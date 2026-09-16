@@ -48,7 +48,7 @@ export default function AdminLogin() {
   if (user) return null
 
   return (
-    <div className="min-h-screen bg-canvas text-ink md:flex md:items-center md:justify-center md:py-10">
+    <div className="min-h-screen bg-[#fff] text-ink md:flex md:items-center md:justify-center md:py-10">
       <div className="w-full max-w-[900px] mx-auto md:grid md:grid-cols-2 bg-white md:rounded-3xl md:shadow-xl md:overflow-hidden md:border md:border-hairline">
 
         <div className="hidden md:flex flex-col justify-between p-12 bg-gradient-to-br from-primary via-ink to-primary text-white relative overflow-hidden">
@@ -57,17 +57,17 @@ export default function AdminLogin() {
 
           <div className="relative">
             <Link to="/" className="inline-block">
-              <span className="font-display font-bold text-[22px] tracking-tight" style={{ fontFamily: '"Instagram Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+              <span className="font-[Inter,system-ui,sans-serif] font-medium text-[22px] tracking-tight" style={{ fontFamily: '"Instagram Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
                 Electro Infinity
               </span>
             </Link>
           </div>
 
           <div className="relative">
-            <h2 className="font-display text-[34px] font-bold leading-tight mb-3 text-white">
+            <h2 className="font-[Inter,system-ui,sans-serif] text-[34px] font-medium leading-tight mb-3 text-white">
               Admin Console
             </h2>
-            <p className="font-sans text-[15px] text-white/80 leading-relaxed max-w-sm">
+            <p className="font-[Inter,system-ui,sans-serif] text-[15px] text-white/80 leading-relaxed max-w-sm">
               Sign in with your institutional email to manage the department hub
             </p>
           </div>
@@ -80,15 +80,15 @@ export default function AdminLogin() {
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="md:hidden mb-6">
-              <Link to="/" className="font-display font-bold text-[18px] tracking-tight" style={{ fontFamily: '"Instagram Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+              <Link to="/" className="font-[Inter,system-ui,sans-serif] font-medium text-[18px] tracking-tight" style={{ fontFamily: '"Instagram Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
                 Electro Infinity
               </Link>
             </div>
 
-            <h1 className="font-display text-[28px] md:text-[30px] font-bold tracking-tight text-ink">
+            <h1 className="font-[Inter,system-ui,sans-serif] text-[28px] md:text-[30px] font-medium tracking-tight text-ink">
               Admin sign in
             </h1>
-            <p className="font-sans text-[14px] text-body-muted mt-1">
+            <p className="font-[Inter,system-ui,sans-serif] text-[14px] text-body-muted mt-1">
               Use your institutional email to continue.
             </p>
 
@@ -151,7 +151,7 @@ export default function AdminLogin() {
               </button>
             </form>
 
-            <p className="text-[13px] font-sans text-body-muted text-center mt-8">
+            <p className="text-[13px] font-[Inter,system-ui,sans-serif] text-body-muted text-center mt-8">
               Faculty?{' '}
               <Link to="/faculty/login" className="text-action-blue hover:underline font-semibold">
                 Sign in here

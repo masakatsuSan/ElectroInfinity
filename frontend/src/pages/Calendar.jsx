@@ -171,7 +171,7 @@ export default function Calendar() {
                   />
 
                   {/* Entry card */}
-                  <div className="border border-hairline bg-white rounded-2xl p-5 md:p-6 shadow-card hover:shadow-lg transition-all">
+                  <div className="border border-hairline bg-white rounded-2xl p-5 md:p-6 shadow-sm hover:shadow-lg transition-all">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
                       <div className="flex items-center gap-3 flex-wrap">
                         <span

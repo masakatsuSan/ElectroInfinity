@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { UserPlus, UserCheck, UserRound, Clock } from 'lucide-react'
+import { Clock } from 'lucide-react'
 import { searchUsers, getProfileViews } from '../api/profile'
 import { useAuth } from '../context/AuthContext'
+import { motion, AnimatePresence } from 'framer-motion'
+import { OVERLAY_VARIANTS, OVERLAY_TRANSITION, EASE } from '../utils/motion'
+import FriendActionButton from './FriendActionButton'
 
 function useDebounce(value, delay = 350) {
   const [debounced, setDebounced] = useState(value)
@@ -17,7 +20,6 @@ export default function GlobalSearch({ onClose }) {
   const [query,   setQuery]   = useState('')
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
-  const [followStates, setFollowStates] = useState({})
   const [recentViews, setRecentViews] = useState([])
   const inputRef  = useRef(null)
   const navigate  = useNavigate()
@@ -52,9 +54,6 @@ export default function GlobalSearch({ onClose }) {
         .then((res) => {
           const users = (res.data.data || []).slice(0, 6)
           const hits = users.map((u) => {
-            const alreadyFollowing = u.isFollowing || false
-            const followsMe = u.followsMe || false
-            setFollowStates((prev) => ({ ...prev, [u._id]: { following: alreadyFollowing, followsMe: followsMe } }))
             return {
               type: 'User',
               label: u.name,
@@ -62,8 +61,7 @@ export default function GlobalSearch({ onClose }) {
               to: `/profile/${u._id}`,
               avatar: u.photo,
               userId: u._id,
-              isFollowing: alreadyFollowing,
-              followsMe: followsMe,
+              friendStatus: u.friendStatus || 'none',
             }
           })
           setResults(hits)
@@ -84,8 +82,7 @@ export default function GlobalSearch({ onClose }) {
               to: `/profile/${v._id}`,
               avatar: v.photo,
               userId: v._id,
-              isFollowing: false,
-              followsMe: false,
+              friendStatus: 'none',
             })))
           })
           .catch(() => setRecentViews([]))
@@ -101,63 +98,38 @@ export default function GlobalSearch({ onClose }) {
 
   const go = (to) => { navigate(to); onClose?.() }
 
-  const handleFollowToggle = async (userId, currentFollowing, currentFollowsMe) => {
-    if (!currentUser?._id) return
-    try {
-      const res = await import('../api/profile').then(m => m.toggleFollow(userId))
-      const { isFollowing } = res.data.data
-      setFollowStates((prev) => ({ ...prev, [userId]: { following: isFollowing, followsMe: currentFollowsMe } }))
-      setResults((prev) => prev.map((r) =>
-        r.userId === userId ? { ...r, isFollowing: isFollowing, followsMe: currentFollowsMe } : r
-      ))
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  const getFollowButton = (r) => {
-    if (!currentUser?._id || r.userId === currentUser._id) return null
-    const state = followStates[r.userId] || { following: r.isFollowing || false, followsMe: r.followsMe || false }
-    const { following, followsMe } = state
-
-    if (following) {
-      return (
-        <button
-          onClick={(e) => { e.stopPropagation(); handleFollowToggle(r.userId, following, followsMe) }}
-          className="flex-shrink-0 px-3 py-1.5 text-[12px] font-semibold rounded-full bg-soft-stone text-ink border border-hairline hover:bg-soft-stone/80 transition-colors"
-        >
-          <UserCheck size={12} />
-        </button>
-      )
-    }
-    if (followsMe) {
-      return (
-        <button
-          onClick={(e) => { e.stopPropagation(); handleFollowToggle(r.userId, following, followsMe) }}
-          className="flex-shrink-0 px-3 py-1.5 text-[12px] font-semibold rounded-full bg-ink text-canvas hover:bg-ink/90 transition-colors"
-        >
-          <UserRound size={12} />
-        </button>
-      )
-    }
-    return (
-      <button
-        onClick={(e) => { e.stopPropagation(); handleFollowToggle(r.userId, following, followsMe) }}
-        className="flex-shrink-0 px-3 py-1.5 text-[12px] font-semibold rounded-full bg-ink text-canvas hover:bg-ink/90 transition-colors"
-      >
-        <UserPlus size={12} />
-      </button>
-    )
+  const handleFriendUpdate = (userId, updates) => {
+    setResults((prev) => prev.map((r) =>
+      r.userId === userId ? { ...r, ...updates } : r
+    ))
+    setRecentViews((prev) => prev.map((r) =>
+      r.userId === userId ? { ...r, ...updates } : r
+    ))
   }
 
   const displayItems = query.trim() ? results : recentViews
   const showHeader = !query.trim() && recentViews.length > 0
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) onClose?.() }}>
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 z-50 flex flex-col"
+        onClick={(e) => { if (e.target === e.currentTarget) onClose?.() }}
+        initial="hidden"
+        animate="visible"
+        exit="exiting"
+        variants={OVERLAY_VARIANTS}
+        transition={OVERLAY_TRANSITION}
+      >
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative z-10 bg-canvas border-b border-divider-soft shadow-2xl">
+        <motion.div
+          className="relative z-10 bg-canvas border-b border-divider-soft shadow-2xl"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -10, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 32, mass: 0.9 }}
+        >
         <div className="page-wrap flex items-center gap-3 py-4">
           <svg className="text-ink-muted-48 flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
@@ -207,7 +179,16 @@ export default function GlobalSearch({ onClose }) {
                       <span className="text-[15px] font-medium text-ink flex-1 truncate group-hover:text-primary transition-colors">{r.label}</span>
                       {r.sub && <span className="font-mono text-[10px] font-semibold text-ink-muted-48 block sm:mt-0.5">{r.sub}</span>}
                     </div>
-                    {r.type === 'User' && getFollowButton(r)}
+                    {r.type === 'User' && (
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <FriendActionButton
+                          userId={r.userId}
+                          friendStatus={r.friendStatus || 'none'}
+                          onUpdate={(updates) => handleFriendUpdate(r.userId, updates)}
+                          size="sm"
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -220,7 +201,8 @@ export default function GlobalSearch({ onClose }) {
             <p className="text-ink-muted-48 text-[14px] font-medium py-2">No results for "{query}"</p>
           </div>
         )}
-      </div>
-    </div>
+      </motion.div>
+      </motion.div>
+    </AnimatePresence>
   )
 }

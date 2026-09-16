@@ -10,6 +10,7 @@ import OrganicBlobs   from './components/OrganicBlobs'
 import ForumFlipOverlay from './components/ForumFlipOverlay'
 import OhmNo from './components/OhmNo'
 import { NotificationProvider } from './context/NotificationContext'
+import { PAGE_VARIANTS, PAGE_TRANSITION, MODAL_VARIANTS, MODAL_TRANSITION } from './utils/motion'
 
 // Public pages
 import Home         from './pages/Home'
@@ -32,6 +33,9 @@ import Profile      from './pages/Profile'
 import EditProfile  from './pages/EditProfile'
 import Notifications from './pages/Notifications'
 
+// MyProfile redirect component
+import MyProfile from './pages/MyProfile'
+
 // Auth pages
 import Login    from './pages/Login'
 import Activate        from './pages/Activate'
@@ -43,7 +47,6 @@ import Forum     from './pages/Forum'
 import Directory from './pages/Directory'
 import Dashboard from './pages/Dashboard'
 import Search    from './pages/Search'
-import ScanQR    from './pages/ScanQR'
 
 // Network page
 import Network from './pages/Network'
@@ -55,7 +58,6 @@ import AdminResources from './pages/admin/AdminResources'
 import AdminStudents  from './pages/admin/AdminStudents'
 import AdminDeadlines from './pages/admin/AdminDeadlines'
 import AdminRoutines  from './pages/admin/AdminRoutines'
-import AdminAttendance from './pages/admin/AdminAttendance'
 import AdminFaculty from './pages/admin/AdminFaculty'
 import AdminLabs from './pages/admin/AdminLabs'
 import AdminCourses from './pages/admin/AdminCourses'
@@ -70,32 +72,18 @@ import AdminYTLectures from './pages/admin/AdminYTLectures'
 import AdminLogin    from './pages/admin/AdminLogin'
 
 // Faculty pages
-import FacultyDashboard   from './pages/faculty/FacultyDashboard'
-import FacultyAttendance from './pages/attendance/FacultyAttendance'
-import StudentAttendance from './pages/attendance/StudentAttendance'
+import FacultyDashboard    from './pages/faculty/FacultyDashboard'
 import FacultyLogin      from './pages/faculty/FacultyLogin'
 import FacultyActivate   from './pages/faculty/FacultyActivate'
 const NotFound = () => <OhmNo />
-// Motion settings for page transitions
-const pageVariants = {
-  initial: { opacity: 0, y: 10 },
-  in: { opacity: 1, y: 0 },
-  out: { opacity: 0, y: -10 }
-};
-
-const pageTransition = {
-  type: 'tween',
-  ease: 'easeInOut',
-  duration: 0.3
-};
 
 const AnimatedRoute = ({ children }) => (
   <motion.div
     initial="initial"
     animate="in"
     exit="out"
-    variants={pageVariants}
-    transition={pageTransition}
+    variants={PAGE_VARIANTS}
+    transition={PAGE_TRANSITION}
     className="flex flex-col flex-1 w-full h-full"
   >
     {children}
@@ -153,8 +141,7 @@ export default function App() {
         <Route path="/faculty/dashboard" element={null} />
         <Route path="/faculty/login" element={null} />
         <Route path="/faculty/activate" element={null} />
-        <Route path="/forum"   element={null} />
-        <Route path="/attendance/faculty" element={null} />
+        <Route path="/forum" element={null} />
         <Route path="/login" element={null} />
         <Route path="/admin/login" element={null} />
         <Route path="/activate" element={null} />
@@ -182,8 +169,13 @@ export default function App() {
             <Route path="/projects"     element={<AnimatedRoute><Projects /></AnimatedRoute>} />
             <Route path="/projects/:id" element={<AnimatedRoute><ProjectDetails /></AnimatedRoute>} />
             <Route path="/contact"      element={<AnimatedRoute><Contact /></AnimatedRoute>} />
-            <Route path="/profile/:id"  element={<AnimatedRoute><Profile /></AnimatedRoute>} />
-            <Route path="/profile/edit" element={
+<Route path="/profile/:id"  element={<AnimatedRoute><Profile /></AnimatedRoute>} />
+<Route path="/profile/me" element={
+  <AnimatedRoute>
+    <ProtectedRoute><MyProfile /></ProtectedRoute>
+  </AnimatedRoute>
+} />
+<Route path="/profile/edit" element={
               <AnimatedRoute>
                 <ProtectedRoute><EditProfile /></ProtectedRoute>
               </AnimatedRoute>
@@ -225,33 +217,12 @@ export default function App() {
                 <ProtectedRoute><Search /></ProtectedRoute>
               </AnimatedRoute>
             }/>
-            <Route path="/scan-qr" element={
-              <AnimatedRoute>
-                <ProtectedRoute><ScanQR /></ProtectedRoute>
-              </AnimatedRoute>
-            }/>
 
                         {/* â”€â”€ Faculty â”€â”€ */}
             <Route path="/faculty/dashboard" element={
               <AnimatedRoute>
                 <ProtectedRoute role="faculty" loginPath="/faculty/login">
                   <FacultyDashboard />
-                </ProtectedRoute>
-              </AnimatedRoute>
-            }/>
-
-            {/* â”€â”€ Attendance â”€â”€ */}
-            <Route path="/attendance/faculty" element={
-              <AnimatedRoute>
-                <ProtectedRoute role="faculty" loginPath="/faculty/login">
-                  <FacultyAttendance />
-                </ProtectedRoute>
-              </AnimatedRoute>
-            }/>
-            <Route path="/attendance/student" element={
-              <AnimatedRoute>
-                <ProtectedRoute role="student, cr">
-                  <StudentAttendance />
                 </ProtectedRoute>
               </AnimatedRoute>
             }/>
@@ -277,7 +248,6 @@ export default function App() {
                         <Route path="students"   element={<AdminStudents />} />
                         <Route path="deadlines"  element={<AdminDeadlines />} />
                         <Route path="routines"   element={<AdminRoutines />} />
-                        <Route path="attendance" element={<AdminAttendance />} />
                         <Route path="faculty"   element={<AdminFaculty />} />
                         <Route path="labs"      element={<AdminLabs />} />
                         <Route path="courses"   element={<AdminCourses />} />
@@ -301,18 +271,23 @@ export default function App() {
         <Route path="/faculty/dashboard" element={null} />
         <Route path="/faculty/login" element={null} />
         <Route path="/faculty/activate" element={null} />
-        <Route path="/forum"   element={null} />
-        <Route path="/attendance/faculty" element={null} />
+        <Route path="/forum" element={null} />
+        <Route path="/login" element={null} />
+        <Route path="/admin/login" element={null} />
+        <Route path="/activate" element={null} />
+        <Route path="/forgot-password" element={null} />
         <Route path="*"        element={<Footer />} />
       </Routes>
 
-      {forumFlip && (
-        <ForumFlipOverlay
-          triggerRect={forumFlip.rect}
-          borderRadius={forumFlip.borderRadius}
-          onClose={() => setForumFlip(null)}
-        />
-      )}
+      <AnimatePresence>
+        {forumFlip && (
+          <ForumFlipOverlay
+            triggerRect={forumFlip.rect}
+            borderRadius={forumFlip.borderRadius}
+            onClose={() => setForumFlip(null)}
+          />
+        )}
+      </AnimatePresence>
 
     </div>
     </NotificationProvider>

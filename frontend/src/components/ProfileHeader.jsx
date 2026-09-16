@@ -1,11 +1,12 @@
 import { useState, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Camera, Share2, Edit3, X, QrCode, MessageCircle, Star, Activity } from 'lucide-react'
+import { Camera, Share2, Edit3, X, QrCode, MessageCircle, Star, Activity, User } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { uploadCoverPhoto, uploadProfilePhoto, toggleFollow, getProfileQr } from '../api/profile'
-import FollowButton from './FollowButton'
+import { uploadCoverPhoto, uploadProfilePhoto, getProfileQr } from '../api/profile'
+import FriendActionButton from './FriendActionButton'
 import { QRCodeSVG } from 'qrcode.react'
+import { EASE, DURATION } from '../utils/motion'
 
 function timeAgo(date) {
   if (!date) return ''
@@ -37,9 +38,9 @@ export default function ProfileHeader({
   const [qrLoading, setQrLoading] = useState(false)
 
   const mutualCount = useMemo(() => {
-    if (!currentUser?._id || !profile?.followers?.length) return 0
-    return profile.followers.filter(fid => currentUser.following?.some(cid => cid.toString() === fid.toString())).length
-  }, [profile?.followers, currentUser?.following])
+    if (!currentUser?._id || !profile?.friends?.length) return 0
+    return profile.friends.filter(fid => currentUser.friends?.some(cid => cid.toString() === fid.toString())).length
+  }, [profile?.friends, currentUser?.friends])
 
   const isActiveNow = useMemo(() => {
     if (!profile?.lastActive) return false
@@ -48,10 +49,12 @@ export default function ProfileHeader({
 
   const connectionLabel = useMemo(() => {
     if (!currentUser?._id) return null
-    if (profile?.isFollowing) return 'Following'
-    if (mutualCount > 0) return `${mutualCount} mutual`
+    if (profile?.friendStatus === 'friends') return 'Friends'
+    if (profile?.friendStatus === 'pending_sent') return 'Requested'
+    if (profile?.friendStatus === 'pending_received') return 'Wants to connect'
+    if (mutualCount > 0) return `${mutualCount} mutual friend${mutualCount !== 1 ? 's' : ''}`
     return null
-  }, [profile?.isFollowing, mutualCount, currentUser?._id])
+  }, [profile?.friendStatus, mutualCount, currentUser?._id])
 
   const handleCoverChange = async (e) => {
     const file = e.target.files?.[0]
@@ -108,21 +111,24 @@ export default function ProfileHeader({
     alert('Profile link copied to clipboard!')
   }
 
+  const totalPosts = (profile?.projects || 0) + (profile?.forumPosts || 0) + (profile?.resourcesUploaded || 0)
+
   return (
-    <div className="relative w-full">
-      {/* Cover */}
-      <div className="relative w-full h-[220px] md:h-[280px] bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden">
+    <div className="relative w-full bg-white border-b border-hairline">
+      <div className="relative w-full h-[170px] sm:h-[200px]">
         {profile.coverPhoto ? (
           <img src={profile.coverPhoto} alt="Cover" className="object-cover w-full h-full" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-r from-[#1863dc]/10 via-[#4c6ee6]/10 to-[#9b60aa]/10" />
+          <div className="w-full h-full bg-cover bg-center" style={{
+            backgroundImage: 'linear-gradient(135deg, #1877F2 0%, #1e3a8a 50%, #3730a3 100%)'
+          }} />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+
         {isOwn && (
           <button
             onClick={() => coverRef.current?.click()}
             disabled={coverLoading}
-            className="absolute top-4 right-4 bg-black/40 hover:bg-black/60 text-white rounded-full p-2.5 backdrop-blur-sm transition-colors disabled:opacity-50"
+            className="absolute top-4 right-4 w-9 h-9 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center backdrop-blur-sm transition-colors disabled:opacity-50"
           >
             <Camera size={18} />
           </button>
@@ -130,103 +136,154 @@ export default function ProfileHeader({
         <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={handleCoverChange} />
       </div>
 
-      {/* Profile Picture + Info */}
       <div className="max-w-[1280px] mx-auto px-4 md:px-12">
-        <div className="relative flex flex-col items-start gap-5 mb-6 -mt-12 md:-mt-16 md:flex-row md:items-end md:gap-8">
-          {/* Avatar with activity ring */}
-          <div className="relative flex-shrink-0">
-            {isActiveNow && !isOwn && (
-              <span className="absolute -top-1 -right-1 z-10 flex items-center gap-1 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md">
-                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                Active
-              </span>
-            )}
-            <div
-              className={`relative w-32 h-32 md:w-40 md:h-40 rounded-full border-4 ${
-                isActiveNow && !isOwn
-                  ? 'border-emerald-400 shadow-[0_0_0_4px_rgba(16,185,129,0.2)]'
-                  : 'border-canvas'
-              } shadow-lg overflow-hidden bg-soft-stone ${isOwn ? 'cursor-pointer group' : ''}`}
-            >
+        <div className="relative flex flex-col md:flex-row md:items-end md:gap-6 -mt-12 md:-mt-14">
+          <div className="relative flex-shrink-0 mb-[-2px]">
+            <div className={`relative w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-white bg-white p-0.5 overflow-hidden ${isOwn ? 'cursor-pointer group' : ''}`}>
               {profile.photo ? (
-                <img src={profile.photo} alt={profile.name} className="object-cover w-full h-full" />
+                <img src={profile.photo} alt={profile.name} className="object-cover w-full h-full rounded-full" />
               ) : (
-                <div className="flex items-center justify-center w-full h-full bg-ink/5">
-                  <span className="text-4xl font-bold md:text-5xl font-display text-ink-muted-48">
+                <div className="w-full h-full rounded-full bg-gray-300 flex items-center justify-center">
+                  <span className="text-4xl font-bold text-gray-600 font-display">
                     {profile.name?.charAt(0)}
                   </span>
                 </div>
               )}
               {isOwn && (
                 <div className="absolute inset-0 flex items-center justify-center transition-opacity rounded-full opacity-0 bg-black/30 group-hover:opacity-100">
-                  <Camera size={24} className="text-white" />
+                  <Camera size={22} className="text-white" />
                 </div>
               )}
             </div>
-            {profile.status?.text && !isOwn && (
-              <div className="mt-2 px-3 py-1.5 bg-canvas border border-divider-soft rounded-full shadow-sm max-w-[200px]">
-                <p className="text-[12px] font-sans text-ink-muted-80 truncate italic">"{profile.status.text}"</p>
-              </div>
+            {isOwn && (
+              <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
             )}
-            <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+
+            {isActiveNow && !isOwn && (
+              <span className="absolute -bottom-1 -right-1 z-10 flex items-center gap-0.5 bg-white border-2 border-white text-emerald-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow">
+                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+              </span>
+            )}
           </div>
 
-          {/* Name + Actions */}
-            <div className="flex-1 min-w-0 pt-1">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
-              <div>
-                <h1 className="font-display text-[28px] md:text-[36px] font-bold text-ink tracking-tight leading-tight drop-shadow-sm">
-                  {profile.name}
-                </h1>
-                <p className="font-mono text-[13px] md:text-[14px] text-slate mt-1 drop-shadow-sm">
+          <div className="flex-1 min-w-0 pt-2 md:pt-0">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between md:gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="font-display text-[24px] md:text-[28px] font-bold text-gray-900 leading-tight">
+                    {profile.name}
+                  </h1>
+                  {profile.badges?.length > 0 && profile.badges.map((badge) => (
+                    <span key={badge} className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-gray-100 text-[11px] font-medium text-gray-700">
+                      <Star size={10} className="mr-0.5" />
+                      {badge}
+                    </span>
+                  ))}
+                </div>
+
+                <p className="font-mono text-[13px] text-gray-500 mt-0.5">
                   {displayUsername}
                 </p>
+
                 {connectionLabel && (
-                  <p className="font-sans text-[12px] text-ink-muted-80 mt-1 drop-shadow-sm">
+                  <p className="font-sans text-[12px] text-gray-500 mt-0.5 font-medium">
                     {connectionLabel}
                   </p>
                 )}
+
+                {profile.bio && (
+                  <p className="font-sans text-[14px] text-gray-600 mt-2 leading-relaxed max-w-2xl">
+                    {profile.bio}
+                  </p>
+                )}
+
+                <div className="flex flex-wrap items-center gap-3 mt-2">
+                  {profile.department && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-[13px] font-medium text-gray-700">
+                      {profile.department}
+                    </span>
+                  )}
+                  {profile.semester && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-[13px] font-medium text-gray-700">
+                      Semester {profile.semester}
+                    </span>
+                  )}
+                  {profile.location && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-[13px] font-medium text-gray-700">
+                      {profile.location}
+                    </span>
+                  )}
+                  {profile.batch && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-[13px] font-medium text-gray-700">
+                      Batch {profile.batch}
+                    </span>
+                  )}
+                  {!isOwn && profile?.lastActive && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-[12px] font-medium text-gray-600">
+                      <Activity size={10} className={isActiveNow ? 'text-emerald-500' : 'text-gray-400'} />
+                      Active {timeAgo(profile.lastActive)}
+                    </span>
+                  )}
+                </div>
+
+                {profile.skills?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {profile.skills.slice(0, 8).map((skill) => (
+                      <span key={skill} className="font-mono text-[12px] font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">
+                        {skill}
+                      </span>
+                    ))}
+                    {profile.skills.length > 8 && (
+                      <span className="font-mono text-[12px] font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">
+                        +{profile.skills.length - 8}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+
+              <div className="flex items-center gap-2 mt-3 md:mt-0 shrink-0">
                 {isOwn ? (
                   <button
                     onClick={() => navigate('/profile/edit')}
-                    className="inline-flex items-center gap-2 bg-ink text-canvas px-4 py-2 rounded-full text-[13px] font-semibold hover:bg-ink/90 transition-colors shadow-sm"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#1877F2] text-white rounded-full text-[14px] font-semibold hover:bg-[#166FE2] transition-colors"
                   >
-                    <Edit3 size={14} /> Edit Profile
+                    <Edit3 size={16} />
+                    Edit Profile
                   </button>
                 ) : (
-                  <FollowButton
+                  <FriendActionButton
                     userId={profile._id}
-                    isFollowing={profile.isFollowing}
-                    followsMe={profile.followsMe}
+                    friendStatus={profile.friendStatus}
                     onUpdate={(updates) => onUpdate?.({ ...profile, ...updates })}
                   />
                 )}
+
                 {!isOwn && (
                   <button
                     onClick={() => alert('Messages coming soon!')}
-                    className="inline-flex items-center gap-2 bg-white border border-hairline text-ink px-4 py-2 rounded-full text-[13px] font-semibold hover:bg-soft-stone/50 transition-colors shadow-sm"
+                    className="w-10 h-10 inline-flex items-center justify-center bg-gray-100 text-gray-700 rounded-full text-[14px] font-semibold hover:bg-gray-200 transition-colors"
                   >
-                    <MessageCircle size={14} /> Message
+                    <MessageCircle size={18} />
                   </button>
                 )}
+
                 <div className="relative group">
                   <button
-                    className="inline-flex items-center gap-2 bg-white border border-hairline text-ink px-4 py-2 rounded-full text-[13px] font-semibold hover:bg-soft-stone/50 transition-colors shadow-sm"
+                    className="w-10 h-10 inline-flex items-center justify-center bg-gray-100 text-gray-700 rounded-full text-[14px] font-semibold hover:bg-gray-200 transition-colors"
                   >
-                    <Share2 size={14} /> Share
+                    <Share2 size={18} />
                   </button>
-                  <div className="absolute left-0 z-20 invisible w-48 mt-2 overflow-hidden transition-all border shadow-lg opacity-0 top-full bg-canvas border-divider-soft rounded-xl group-hover:opacity-100 group-hover:visible">
+                  <div className="absolute right-0 z-20 invisible w-40 mt-2 overflow-hidden transition-all border shadow-lg opacity-0 top-full bg-white border-hairline rounded-xl group-hover:opacity-100 group-hover:visible">
                     <button
                       onClick={handleCopyLink}
-                      className="w-full text-left px-4 py-2.5 text-[13px] font-semibold text-ink hover:bg-soft-stone transition-colors"
+                      className="w-full text-left px-4 py-2.5 text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       Copy Link
                     </button>
                     <button
                       onClick={openQr}
-                      className="w-full text-left px-4 py-2.5 text-[13px] font-semibold text-ink hover:bg-soft-stone transition-colors flex items-center gap-2"
+                      className="w-full text-left px-4 py-2.5 text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
                     >
                       <QrCode size={14} /> Share QR Code
                     </button>
@@ -235,65 +292,52 @@ export default function ProfileHeader({
               </div>
             </div>
 
-            {/* Meta */}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 text-[14px] text-ink-muted-80">
-              {profile.department && (
-                <span className="font-medium">{profile.department}</span>
-              )}
-              {profile.department && profile.semester && <span className="opacity-40">·</span>}
-              {profile.semester && (
-                <span>Semester {profile.semester}</span>
-              )}
-              {profile.location && (
-                <>
-                  <span className="opacity-40">·</span>
-                  <span>{profile.location}</span>
-                </>
-              )}
-              {!isOwn && profile?.lastActive && (
-                <>
-                  <span className="opacity-40">·</span>
-                  <span className="flex items-center gap-1 text-[12px]">
-                    <Activity size={12} className={isActiveNow ? 'text-emerald-500' : 'text-slate'} />
-                    Active {timeAgo(profile.lastActive)}
-                  </span>
-                </>
-              )}
+            <div className="flex items-center gap-6 mt-4 text-[13px] text-gray-500">
+              <div className="flex flex-col items-center">
+                <span className="font-display font-bold text-[20px] text-gray-900">{totalPosts}</span>
+                <span className="font-mono text-[10px] uppercase tracking-wider">Posts</span>
+              </div>
+              <div className="w-px h-6 bg-gray-300" />
+              <div className="flex flex-col items-center">
+                <span className="font-display font-bold text-[20px] text-gray-900">{profile.friends || 0}</span>
+                <span className="font-mono text-[10px] uppercase tracking-wider">Friends</span>
+              </div>
+              <div className="w-px h-6 bg-gray-300" />
+              <div className="flex flex-col items-center">
+                <span className="font-display font-bold text-[20px] text-gray-900">{profile.photosCount || 0}</span>
+                <span className="font-mono text-[10px] uppercase tracking-wider">Photos</span>
+              </div>
+              <div className="w-px h-6 bg-gray-300" />
+              <div className="flex flex-col items-center">
+                <span className="font-display font-bold text-[20px] text-gray-900">{profile.likesReceived || 0}</span>
+                <span className="font-mono text-[10px] uppercase tracking-wider">Likes</span>
+              </div>
             </div>
-
-            {/* Bio */}
-            {profile.bio && (
-              <p className="font-sans text-[15px] text-ink-muted-80 mt-3 leading-relaxed max-w-2xl">
-                {profile.bio}
-              </p>
-            )}
           </div>
         </div>
-
       </div>
 
-      {/* QR Modal */}
       {qrOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setQrOpen(false)}>
-          <div className="w-full max-w-md overflow-hidden border shadow-2xl bg-canvas border-divider-soft rounded-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-6 border-b border-divider-soft">
+          <div className="w-full max-w-md overflow-hidden border shadow-2xl bg-white border-hairline rounded-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b border-hairline">
               <div>
-                <h3 className="font-display text-[22px] font-bold">Share Profile</h3>
-                <p className="font-sans text-[13px] text-body-muted">
+                <h3 className="font-display text-[20px] font-bold text-gray-900">Share Profile</h3>
+                <p className="font-sans text-[13px] text-gray-500">
                   Scan this QR code to open {profile?.name}'s profile.
                 </p>
               </div>
-              <button onClick={() => setQrOpen(false)} className="flex items-center justify-center w-8 h-8 transition-colors border rounded-full bg-soft-stone border-hairline hover:bg-soft-stone/80">
-                <X size={14} />
+              <button onClick={() => setQrOpen(false)} className="flex items-center justify-center w-8 h-8 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
+                <X size={18} />
               </button>
             </div>
             <div className="flex flex-col items-center p-8">
               {qrLoading ? (
                 <div className="w-[260px] h-[260px] flex items-center justify-center">
-                  <div className="w-12 h-12 border-b-2 rounded-full animate-spin border-ink"></div>
+                  <div className="w-10 h-10 border-b-2 rounded-full animate-spin border-gray-500"></div>
                 </div>
               ) : qrData ? (
-                <div className="p-4 bg-white border shadow-sm rounded-2xl border-hairline">
+                <div className="p-4 bg-white border shadow-sm rounded-xl border-hairline">
                   <QRCodeSVG
                     value={qrData.profileUrl}
                     size={240}
@@ -302,13 +346,8 @@ export default function ProfileHeader({
                   />
                 </div>
               ) : (
-                <p className="text-ink-muted-80 text-[14px]">Failed to load QR code.</p>
+                <p className="text-gray-400 text-[14px]">Failed to load QR code.</p>
               )}
-              {/* {qrData?.profileUrl && (
-                <p className="font-mono text-[11px] text-slate mt-4 break-all text-center">
-                  {qrData.profileUrl}
-                </p>
-              )} */}
             </div>
           </div>
         </div>

@@ -32,7 +32,6 @@ const notificationSchema = new mongoose.Schema(
         'gallery_photo',
         'resource_uploaded',
         'achievement',
-        'attendance_session',
       ],
       required: true,
     },

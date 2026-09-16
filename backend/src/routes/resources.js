@@ -4,8 +4,38 @@ const { protect, guard, optionalAuth } = require('../middleware/auth')
 const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
 const { createActivity } = require('../utils/activity')
 const { createNotificationBulk } = require('../utils/notification')
+const axios = require('axios')
 
 const router = express.Router()
+
+const EXTENSION_TO_MIME = {
+  pdf: 'application/pdf',
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  webp: 'image/webp',
+  gif: 'image/gif',
+  svg: 'image/svg+xml',
+}
+
+function resolveMimeType(fileName) {
+  if (!fileName || typeof fileName !== 'string') return 'application/octet-stream'
+  const extension = fileName.split('.').pop()?.split('?')[0]?.toLowerCase() || ''
+  return EXTENSION_TO_MIME[extension] || 'application/octet-stream'
+}
+
+async function streamCloudinaryToResponse(res, cloudinaryUrl, fileName) {
+  try {
+    const response = await axios.get(cloudinaryUrl, { responseType: 'stream' })
+    res.setHeader('Content-Type', response.headers['content-type'] || resolveMimeType(fileName))
+    if (response.headers['content-length']) {
+      res.setHeader('Content-Length', response.headers['content-length'])
+    }
+    response.data.pipe(res)
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to fetch the file.' })
+  }
+}
 
 // ── GET /api/resources ─────────────────────────────────────────────────────
 // Public — supports ?type=notes&semester=5&subject=Power+System-I
@@ -19,7 +49,7 @@ router.get('/', optionalAuth, async (req, res) => {
     if (subject) filter.subject = subject
 
     const resources = await Resource.find(filter)
-      .populate('uploadedBy', 'name')
+      .populate('uploadedBy', 'name photo')
       .sort({ createdAt: -1 })
 
     res.json({ success: true, data: resources })
@@ -29,7 +59,7 @@ router.get('/', optionalAuth, async (req, res) => {
 })
 
 // ── GET /api/resources/:id/download ───────────────────────────────────────
-// Increments download count then redirects to the file
+// Increments download count then streams the file as an attachment
 router.get('/:id/download', async (req, res) => {
   try {
     const resource = await Resource.findByIdAndUpdate(
@@ -39,8 +69,22 @@ router.get('/:id/download', async (req, res) => {
     )
     if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
 
-    // Redirect the browser to the Cloudinary URL
-    res.redirect(resource.fileUrl)
+    res.setHeader('Content-Disposition', `attachment; filename="${resource.fileName || 'download'}"`)
+    await streamCloudinaryToResponse(res, resource.fileUrl, resource.fileName)
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── GET /api/resources/:id/preview ────────────────────────────────────────
+// Streams the file inline so it can be rendered in a preview drawer/iframe
+router.get('/:id/preview', async (req, res) => {
+  try {
+    const resource = await Resource.findById(req.params.id)
+    if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
+
+    res.setHeader('Content-Disposition', `inline; filename="${resource.fileName || 'preview'}"`)
+    await streamCloudinaryToResponse(res, resource.fileUrl, resource.fileName)
   } catch (err) {
     res.status(500).json({ success: false, error: err.message })
   }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, UserPlus, UserCheck, UserRound, ExternalLink } from 'lucide-react'
-import FollowButton from './FollowButton'
+import { X, ExternalLink } from 'lucide-react'
+import FriendActionButton from './FriendActionButton'
 
 export default function UserPopover({ user, rect, onClose, onFollow, onViewProfile }) {
   const popoverRef = useRef(null)
@@ -72,7 +72,7 @@ export default function UserPopover({ user, rect, onClose, onFollow, onViewProfi
           exit={{ opacity: 0, scale: 0.95, y: -5 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
           style={{ position: 'fixed', top: position.top, left: position.left, zIndex: 9999 }}
-          className="w-80 bg-canvas border border-hairline rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden"
+          className="w-80 bg-white border border-hairline rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden"
         >
           {/* Header with avatar and close button */}
           <div className="relative p-5 pb-4">
@@ -117,22 +117,16 @@ export default function UserPopover({ user, rect, onClose, onFollow, onViewProfi
               </div>
               <div className="w-px h-6 bg-hairline" />
               <div className="text-center">
-                <p className="font-display font-bold text-[15px] text-ink">{user.followers?.length || 0}</p>
-                <p className="font-mono text-[10px] uppercase tracking-wider text-body-muted">Followers</p>
-              </div>
-              <div className="w-px h-6 bg-hairline" />
-              <div className="text-center">
-                <p className="font-display font-bold text-[15px] text-ink">{user.following?.length || 0}</p>
-                <p className="font-mono text-[10px] uppercase tracking-wider text-body-muted">Following</p>
+                <p className="font-display font-bold text-[15px] text-ink">{user.friends?.length || 0}</p>
+                <p className="font-mono text-[10px] uppercase tracking-wider text-body-muted">Friends</p>
               </div>
             </div>
 
             {/* Actions */}
             <div className="flex items-center gap-2">
-              <FollowButton
+              <FriendActionButton
                 userId={user._id}
-                isFollowing={user.isFollowing}
-                followsMe={user.followsMe}
+                friendStatus={user.friendStatus}
                 onUpdate={onFollow}
                 size="sm"
               />

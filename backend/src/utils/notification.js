@@ -17,7 +17,6 @@ const DEFAULT_ICONS = {
   gallery_photo: 'image',
   resource_uploaded: 'upload',
   achievement: 'trophy',
-  attendance_session: 'zap',
 }
 
 async function createNotification({

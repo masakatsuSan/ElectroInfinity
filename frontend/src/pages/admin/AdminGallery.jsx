@@ -65,7 +65,7 @@ export default function AdminGallery() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <h1 className="font-display font-semibold text-[28px] tracking-tight text-ink">Department Gallery</h1>
+        <h1 className="font-[Inter,system-ui,sans-serif] font-semibold text-[28px] tracking-tight text-ink">Department Gallery</h1>
         <button onClick={() => setShowForm(v => !v)} className="button-primary !px-5 !py-2.5">
           {showForm && !editing ? 'Cancel' : (editing ? 'Edit Form' : '+ New Moment')}
         </button>
@@ -73,54 +73,54 @@ export default function AdminGallery() {
 
       {showForm && (
         <div className="border border-divider-soft bg-white p-6 mb-8 rounded-xl shadow-sm">
-          <h2 className="font-display font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Moment' : 'Add Gallery Moment'}</h2>
+          <h2 className="font-[Inter,system-ui,sans-serif] font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Moment' : 'Add Gallery Moment'}</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <div className="sm:col-span-2">
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Title</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Title</label>
               <input value={form.title} onChange={set('title')} className="input w-full" placeholder="e.g. Robotics Competition 2026" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Category</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Category</label>
               <select value={form.category} onChange={set('category')} className="input w-full">
                 {CATS.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Date</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Date</label>
               <input type="datetime-local" value={form.date} onChange={set('date')} className="input w-full" />
             </div>
             <div className="sm:col-span-2">
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Image</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Image</label>
               <input type="file" accept="image/*" onChange={e => setFile(e.target.files[0])}
-                className="mt-1 font-sans text-[14px] text-ink-muted-80 file:mr-4 file:bg-canvas-parchment file:text-ink file:border file:border-divider-soft file:rounded-lg file:px-4 file:py-2 file:cursor-pointer" />
+                className="mt-1 font-[Inter,system-ui,sans-serif] text-[14px] text-ink-muted-80 file:mr-4 file:bg-[#fff]-parchment file:text-ink file:border file:border-divider-soft file:rounded-lg file:px-4 file:py-2 file:cursor-pointer" />
               {editing && !file && form.imageUrl && (
-                <p className="font-sans text-[12px] text-ink-muted-80 mt-2">Existing image retained (current URL) — upload a new file to replace.</p>
+                <p className="font-[Inter,system-ui,sans-serif] text-[12px] text-ink-muted-80 mt-2">Existing image retained (current URL) — upload a new file to replace.</p>
               )}
             </div>
-            {file &&             <p className="font-sans text-[13px] font-medium text-green-500 mt-3"><Check size={14} /> {file.name} ({(file.size / 1024).toFixed(0)} KB)</p>}
+            {file &&             <p className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-green-500 mt-3"><Check size={14} /> {file.name} ({(file.size / 1024).toFixed(0)} KB)</p>}
           </div>
-          {error && <p className="font-sans text-red-500 text-[14px] font-medium mt-4">{error}</p>}
+          {error && <p className="font-[Inter,system-ui,sans-serif] text-red-500 text-[14px] font-medium mt-4">{error}</p>}
           <button onClick={handleSave} disabled={saveMut.isPending || (!file && !form.imageUrl) || !form.title} className="button-primary mt-6">
             {saveMut.isPending ? 'Saving…' : (editing ? 'Update Moment' : 'Add Moment')}
           </button>
         </div>
       )}
 
-      {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading gallery…</p>
-        : photos.length === 0 ? <p className="font-sans text-ink-muted-80 text-[15px]">No moments yet. Add one above.</p>
+      {isLoading ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">Loading gallery…</p>
+        : photos.length === 0 ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">No moments yet. Add one above.</p>
         : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {photos.map(p => (
-              <div key={p._id} className="border border-hairline rounded-22px overflow-hidden shadow-card bg-canvas group">
+              <div key={p._id} className="border border-hairline rounded-22px overflow-hidden shadow-card bg-[#fff] group">
                 <img src={p.imageUrl} alt={p.title} className="w-full aspect-video object-cover" />
                 <div className="p-4">
                   <p className="text-[15px] font-medium text-ink truncate">{p.title || p.category}</p>
                   <p className="font-mono text-[11px] text-slate uppercase mt-1">{p.category}</p>
                 </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-canvas-parchment/80 absolute top-2 right-2">
-                  <button onClick={() => openEdit(p)} className="font-sans text-[12px] font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors px-2.5 py-1 rounded-md">Edit</button>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-[#fff]-parchment/80 absolute top-2 right-2">
+                  <button onClick={() => openEdit(p)} className="font-[Inter,system-ui,sans-serif] text-[12px] font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors px-2.5 py-1 rounded-md">Edit</button>
                   <button onClick={() => { if (window.confirm('Remove this photo?')) deleteMut.mutate(p._id) }}
-                    className="font-sans text-[12px] font-medium text-red-500/70 hover:text-red-500 transition-colors bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1 rounded-md">Delete</button>
+                    className="font-[Inter,system-ui,sans-serif] text-[12px] font-medium text-red-500/70 hover:text-red-500 transition-colors bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1 rounded-md">Delete</button>
                 </div>
               </div>
             ))}

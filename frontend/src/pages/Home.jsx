@@ -13,190 +13,255 @@ export default function Home() {
   const announcements = data?.data || []
 
   return (
-    <div className="bg-canvas text-ink">
-      <SEO 
-        title="Home" 
-        description="Electro Infinity — Electrical Engineering Club, Alipurduar Government Engineering and Management College" 
-        path="/" 
+    <div className="bg-white text-ink">
+      <SEO
+        title="Home"
+        description="Electro Infinity — Electrical Engineering Club, Alipurduar Government Engineering and Management College"
+        path="/"
       />
 
-      {/* ── HERO SECTION (Stark white editorial canvas) ── */}
-      <section className="pb-20 border-b pt-36 md:pt-48 md:pb-28 border-hairline">
-        <div className="max-w-[1280px] mx-auto px-6 md:px-12">
-          
-          <div className="max-w-4xl">
-            {/* Coral Taxonomy Tag */}
-            <div className="inline-flex items-center gap-2 mb-6">
-              <span className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate">
+      {/* Hero Band */}
+      <section className="pt-24 md:pt-32 pb-16 md:pb-24">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+          <div className="max-w-[880px]">
+            <div className="mb-8">
+              <span className="inline-block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral">
                 Electrical Engineering Club · AGEMC
               </span>
             </div>
 
-            {/* Monumental display headline */}
-            <h1 className="font-display text-[44px] sm:text-[64px] lg:text-[84px] font-normal leading-[1.02] tracking-[-0.03em] text-ink mb-8">
+            <h1 className="font-display text-[40px] sm:text-[56px] lg:text-[72px] font-normal leading-[1.08] text-ink mb-8">
               Where engineering curiosity turns into real power.
             </h1>
 
-            <p className="font-sans text-[18px] sm:text-[20px] text-body-muted leading-[1.4] max-w-2xl mb-10">
+            <p className="font-sans text-[17px] sm:text-[20px] font-normal leading-[1.4] text-body max-w-2xl mb-12">
               The official hub for circuit design, power systems, hands-on automation labs, and peer-to-peer engineering research at AGEMC.
             </p>
 
-            {/* CTAs */}
-            <div className="flex flex-wrap items-center gap-4">
-              <Link to="/attendance/student" className="button-primary">
-                 Scan Attendance QR
-              </Link>
-              <Link to="/attendance/faculty" className="button-secondary">
-                Faculty Console
-              </Link>
-              <Link to="/courses" className="button-pill-outline">
+            <div className="flex flex-wrap items-center gap-3">
+              <Link to="/courses" className="button-primary font-sans">
                 Explore Courses →
               </Link>
             </div>
           </div>
-
-          {/* Hero Media Composition: Dark Agent Console Card & Stone Info Card */}
-          <div className="grid gap-6 mt-16 md:grid-cols-12 md:mt-24">
-            
-            {/* Agent console module */}
-            <div className="flex flex-col justify-between p-8 text-white md:col-span-8 bg-primary rounded-2xl md:p-10 shadow-card">
-              <div>
-                <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse"></span>
-                    <span className="font-mono text-[12px] uppercase tracking-wider text-slate">Live Department Platform</span>
-                  </div>
-                  <span className="font-mono text-[12px] text-muted">v2.4.0-stable</span>
-                </div>
-
-                <h3 className="font-display text-[26px] md:text-[34px] font-normal tracking-tight text-white mb-3">
-                  Dynamic Geofenced Attendance & Academic Management
-                </h3>
-                <p className="font-sans text-black text-[15px] text-muted leading-relaxed max-w-xl">
-                  Real-time classroom presence verification anchored to faculty devices with 15-second rotating security tokens and batch-isolated coursework.
-                </p>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-4 text-white items-center justify-between text-[13px] font-mono text-slate-400">
-              <span className="flex items-center gap-2"><Check size={14} />10m GPS Verification</span>
-              <span className="flex items-center gap-2"><Check size={14} />Anti-Proxy QR Rotation</span>
-              <span className="flex items-center gap-2"><Check size={14} />Batch Scoping</span>
-              </div>
-              
-            </div>
-
-            {/* Soft Stone Capability Card */}
-            <div className="flex flex-col justify-between p-8 border md:col-span-4 bg-soft-stone rounded-2xl border-hairline">
-              <div>
-                <span className="font-mono text-[11px] uppercase tracking-wider text-slate font-bold block mb-3">
-                  Academic Focus
-                </span>
-                <h4 className="font-display text-[22px] font-bold text-ink mb-3">
-                  Theory to Lab Prototype
-                </h4>
-                <p className="font-sans text-[14px] text-body-muted leading-relaxed">
-                  Power Electronics, Digital Signal Processing, Renewable Energy Systems, and Microcontrollers.
-                </p>
-              </div>
-
-              <div className="pt-4 mt-6 border-t border-hairline">
-                <Link to="/laboratory" className="font-sans text-[14px] font-medium text-action-blue hover:underline">
-                  View Laboratory Facilities →
-                </Link>
-              </div>
-            </div>
-
-          </div>
-
         </div>
       </section>
 
-      {/* ── DARK ENTERPRISE FEATURE BAND (#003c33 Deep Green) ── */}
-      <section className="py-24 text-white bg-deep-green md:py-32">
-        <div className="max-w-[1280px] mx-auto px-6 md:px-12">
+      {/* Dark Signature Card */}
+      <section className="pb-24 md:pb-24">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+          <div className="hero-card-dark min-h-[360px] md:min-h-[420px] flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-4 pb-6 mb-8 border-b border-white/20">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-signature-mint animate-pulse" />
+                  <span className="font-mono text-[11px] font-medium uppercase tracking-[0.16px] text-signature-mint">
+                    Live Department Platform
+                  </span>
+                </div>
+                <span className="font-mono text-[12px] font-normal text-white/70">
+                  v2.4.0-stable
+                </span>
+              </div>
+
+              <h3 className="font-display text-[26px] md:text-[34px] font-normal leading-[1.2] text-white mb-4">
+                Academic Management & Department Hub
+              </h3>
+              <p className="font-sans text-[15px] font-normal leading-[1.4] text-white/80 max-w-xl">
+                Real-time academic resource management, department announcements, and student-faculty collaboration tools.
+              </p>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-white/20 flex flex-wrap gap-4 text-white items-center text-[13px] font-sans font-normal">
+              <span className="flex items-center gap-2"><Check size={14} />Faculty-Led Workshops</span>
+              <span className="flex items-center gap-2"><Check size={14} />Research Collaboration</span>
+              <span className="flex items-center gap-2"><Check size={14} />Industry-Aligned Projects</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Coral Signature Card */}
+      <section className="pb-24 md:pb-24">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+          <div className="signature-coral-card">
+            <div className="max-w-3xl">
+              <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-cream mb-4">
+                Academic Focus
+              </span>
+              <h2 className="font-display text-[32px] md:text-[40px] font-normal leading-[1.2] text-white mb-6">
+                Theory to Lab Prototype
+              </h2>
+              <p className="font-sans text-[15px] font-normal leading-[1.4] text-white/85 max-w-xl mb-8">
+                Power Electronics, Digital Signal Processing, Renewable Energy Systems, and Microcontrollers.
+              </p>
+              <Link to="/laboratory" className="button-secondary-on-dark font-sans">
+                View Laboratory Facilities →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Core Pillars */}
+      <section className="pb-24 md:pb-32 bg-signature-forest">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12">
           <div className="max-w-3xl mb-16">
-            <span className="font-mono text-[12px] uppercase tracking-wider text-coral-soft font-semibold block mb-3">
+            <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-mint mb-4">
               Core Pillars
             </span>
-            <h2 className="font-display text-[36px] md:text-[48px] font-normal leading-tight tracking-tight text-white">
+            <h2 className="font-display text-[32px] md:text-[40px] font-normal leading-[1.2] text-white">
               Built for engineering rigor, practical mastery, and research collaboration.
             </h2>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="p-8 border border-white/10 rounded-2xl bg-black/20 backdrop-blur-sm">
-              <span className="font-mono text-[13px] text-coral-soft font-bold block mb-4">01. WORKSHOPS</span>
-              <h3 className="font-display text-[22px] font-bold text-white mb-2">Hands-on Hardware</h3>
-              <p className="font-sans text-[15px] text-white/80 leading-relaxed">
-                Practical sessions on PCB design, embedded systems, transformer testing, and power grid simulation.
-              </p>
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="bg-white md:col-span-2 md:row-span-2 min-h-[360px] flex flex-col justify-between p-8 md:p-10 border border-divider-soft shadow-sm">
+              <div>
+                <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-forest mb-5">
+                  01. WORKSHOPS
+                </span>
+                <h3 className="font-display text-[20px] font-normal leading-[1.35] text-ink mb-3">
+                  Hands-on Hardware
+                </h3>
+                <p className="font-sans text-[14px] font-normal leading-[1.4] text-body">
+                  Practical sessions on PCB design, embedded systems, transformer testing, and power grid simulation.
+                </p>
+              </div>
+              <span className="mt-8 block h-12 w-12 rounded-lg bg-signature-yellow" />
             </div>
 
-            <div className="p-8 border border-white/10 rounded-2xl bg-black/20 backdrop-blur-sm">
-              <span className="font-mono text-[13px] text-coral-soft font-bold block mb-4">02. ATTENDANCE</span>
-              <h3 className="font-display text-[22px] font-bold text-white mb-2">Precision Attendance</h3>
-              <p className="font-sans text-[15px] text-white/80 leading-relaxed">
-                Seamless GPS verification anchoring faculty and students with zero paperwork and instant analytics.
-              </p>
+            <div className="bg-[#f2f1ee] min-h-[180px] flex flex-col justify-between p-6 md:p-8 border border-divider-soft shadow-sm">
+              <div>
+                <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-ink mb-5">
+                  02. CAREER
+                </span>
+                <h3 className="font-display text-[20px] font-normal leading-[1.35] text-ink mb-3">
+                  Placement & Alumni
+                </h3>
+                <p className="font-sans text-[14px] font-normal leading-[1.4] text-body">
+                  Direct mentorship from alumni in core electrical, semiconductor, and automation industries.
+                </p>
+              </div>
+              <span className="block h-10 w-10 rounded-lg bg-ink" />
             </div>
 
-            <div className="p-8 border border-white/10 rounded-2xl bg-black/20 backdrop-blur-sm">
-              <span className="font-mono text-[13px] text-coral-soft font-bold block mb-4">03. CAREER</span>
-              <h3 className="font-display text-[22px] font-bold text-white mb-2">Placement & Alumni</h3>
-              <p className="font-sans text-[15px] text-white/80 leading-relaxed">
-                Direct mentorship from alumni in core electrical, semiconductor, and automation industries.
-              </p>
+            <div className="bg-white min-h-[180px] flex flex-col justify-between p-6 md:p-8 border border-divider-soft shadow-sm">
+              <div>
+                <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral mb-5">
+                  03. RESEARCH
+                </span>
+                <h3 className="font-display text-[20px] font-normal leading-[1.35] text-ink mb-3">
+                  Research & Innovation
+                </h3>
+                <p className="font-sans text-[14px] font-normal leading-[1.4] text-body">
+                  Faculty-guided research in power systems, renewable energy, and embedded intelligence.
+                </p>
+              </div>
+              <span className="block h-10 w-10 rounded-lg bg-signature-coral" />
+            </div>
+
+            <div className="bg-[#f2f1ee] md:col-span-2 min-h-[180px] flex flex-col justify-between p-6 md:p-8 border border-divider-soft shadow-sm">
+              <div>
+                <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-ink mb-5">
+                  04. LABS
+                </span>
+                <h3 className="font-display text-[20px] font-normal leading-[1.35] text-ink mb-3">
+                  Instrumentation & Automation
+                </h3>
+                <p className="font-sans text-[14px] font-normal leading-[1.4] text-body">
+                  Calibrated lab benches, digital oscilloscopes, relay test kits, and PLC trainers for every semester.
+                </p>
+              </div>
+              <span className="block h-10 w-10 rounded-lg bg-signature-forest" />
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── LATEST ANNOUNCEMENTS (Research-table style) ── */}
-      <section className="py-20 md:py-28 bg-canvas">
-        <div className="max-w-[1280px] mx-auto px-6 md:px-12">
-          <div className="flex flex-col justify-between gap-4 pb-4 mb-12 border-b sm:flex-row sm:items-end border-hairline">
+      {/* Stats + Manifesto */}
+      <section className="py-24 md:py-24 bg-white">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+          <div className="grid gap-12 md:grid-cols-2 md:gap-16">
             <div>
-              <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
+              <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral mb-4">
+                By the numbers
+              </span>
+              <h2 className="font-display text-[32px] md:text-[40px] font-normal leading-[1.2] text-ink mb-6">
+                A community built on measurable impact.
+              </h2>
+              <p className="font-sans text-[15px] font-normal leading-[1.5] text-body max-w-md">
+                We track workshops, projects, placements, and research output so every student can see the return on their effort.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="p-6 border border-divider-soft bg-surface-soft">
+                <span className="block font-display text-[36px] md:text-[44px] font-normal leading-none text-ink">50+</span>
+                <span className="block mt-2 font-sans text-[14px] text-body">Workshops delivered</span>
+              </div>
+              <div className="p-6 border border-divider-soft bg-surface-soft">
+                <span className="block font-display text-[36px] md:text-[44px] font-normal leading-none text-ink">120+</span>
+                <span className="block mt-2 font-sans text-[14px] text-body">Student projects</span>
+              </div>
+              <div className="p-6 border border-divider-soft bg-surface-soft">
+                <span className="block font-display text-[36px] md:text-[44px] font-normal leading-none text-ink">85%</span>
+                <span className="block mt-2 font-sans text-[14px] text-body">Placement readiness</span>
+              </div>
+              <div className="p-6 border border-divider-soft bg-surface-soft">
+                <span className="block font-display text-[36px] md:text-[44px] font-normal leading-none text-ink">30+</span>
+                <span className="block mt-2 font-sans text-[14px] text-body">Alumni mentors</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Announcements */}
+      <section className="py-24 md:py-24 bg-signature-cream">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+          <div className="flex flex-col justify-between gap-6 pb-8 mb-12 border-b border-hairline sm:flex-row sm:items-end">
+            <div>
+              <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral mb-3">
                 Official Communications
               </span>
-              <h2 className="font-display text-[32px] md:text-[40px] font-bold tracking-tight text-ink">
+              <h2 className="font-display text-[32px] md:text-[40px] font-normal leading-[1.2] text-ink">
                 Latest Announcements
               </h2>
             </div>
-            <Link to="/announcements" className="button-pill-outline text-[14px]">
+            <Link to="/announcements" className="button-secondary font-sans text-[14px]">
               View All Announcements →
             </Link>
           </div>
 
-          <div className="overflow-hidden border border-hairline rounded-2xl shadow-card">
+          <div className="overflow-hidden rounded-lg border border-hairline bg-white">
             {isLoading ? (
-              <div className="p-4">
+              <div className="divide-y divide-hairline">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex flex-col justify-between gap-4 p-5 border-b md:p-6 border-hairline last:border-b-0">
+                  <div key={i} className="flex flex-col justify-between gap-4 p-6 border-b border-hairline last:border-b-0">
                     <div className="flex items-center gap-4">
-                      <div className="w-16 h-5 rounded bg-soft-stone animate-pulse" />
-                      <div className="w-48 h-4 rounded bg-soft-stone animate-pulse" />
+                      <div className="w-16 h-5 rounded bg-surface-soft animate-pulse" />
+                      <div className="w-48 h-4 rounded bg-surface-soft animate-pulse" />
                     </div>
-                    <div className="w-24 h-4 rounded bg-soft-stone animate-pulse" />
+                    <div className="w-24 h-4 rounded bg-surface-soft animate-pulse" />
                   </div>
                 ))}
               </div>
             ) : announcements.length > 0 ? (
               <div className="divide-y divide-hairline">
                 {announcements.map(a => (
-                  <div key={a._id} className="flex flex-col justify-between gap-4 p-5 transition-colors md:p-6 sm:flex-row sm:items-center hover:bg-soft-stone/40">
+                  <div key={a._id} className="flex flex-col justify-between gap-4 p-6 transition-colors sm:flex-row sm:items-center hover:bg-surface-soft">
                     <div className="flex items-center min-w-0 gap-4">
-                      <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-md bg-pale-green text-deep-green border border-green-200 flex-shrink-0">
+                      <span className="font-mono text-[11px] font-medium uppercase tracking-[0.16px] px-3 py-1 rounded-md bg-signature-mint text-signature-forest border border-signature-mint flex-shrink-0">
                         {a.category || 'general'}
                       </span>
-                      <h3 className="font-sans text-[16px] font-semibold text-ink truncate">{a.title}</h3>
+                      <h3 className="font-sans text-[16px] font-medium text-ink truncate">{a.title}</h3>
                     </div>
 
                     <div className="flex items-center flex-shrink-0 gap-4">
-                      <span className="font-mono text-[12px] text-slate">
+                      <span className="font-mono text-[12px] font-normal text-muted">
                         {new Date(a.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
-                      <Link to="/announcements" className="text-[13px] font-medium text-action-blue hover:underline">
+                      <Link to="/announcements" className="text-[13px] font-sans font-medium text-link hover:underline">
                         Read →
                       </Link>
                     </div>
@@ -204,7 +269,7 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <div className="p-12 text-center text-slate">No announcements published yet.</div>
+              <div className="p-12 text-center text-muted font-sans font-normal">No announcements published yet.</div>
             )}
           </div>
         </div>

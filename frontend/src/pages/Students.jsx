@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Camera, BarChart3, Check, AlertTriangle, XCircle, CheckCircle2, Mail, ShieldCheck, ArrowRight, Search } from 'lucide-react';
+import { Check, AlertTriangle, XCircle, CheckCircle2, Mail, ShieldCheck, ArrowRight, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
@@ -14,7 +14,7 @@ export default function Students() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const fileRef = useRef(null);
-  const [activeTab, setActiveTab] = useState('attendance');
+  const [activeTab, setActiveTab] = useState('deadlines');
   const [photoError,  setPhotoError]  = useState('');
   const [pwForm,      setPwForm]      = useState({ current:'', next:'', confirm:'' });
   const [pwMsg,       setPwMsg]       = useState('');
@@ -27,13 +27,6 @@ export default function Students() {
   const [otpLoading,  setOtpLoading]  = useState(false);
   const [otpError,    setOtpError]    = useState('');
   const [otpMsg,      setOtpMsg]      = useState('');
-
-  // Attendance History Query
-  const { data: attendanceData, isLoading: attendanceLoading } = useQuery({
-    queryKey: ['studentAttendanceHistory', user?._id],
-    queryFn: () => getStudentHistory().then(r => r.data.data),
-    enabled: activeTab === 'attendance',
-  });
 
   // Deadlines Query
   const { data: deadlinesData, isLoading: deadlinesLoading } = useQuery({
@@ -95,7 +88,7 @@ export default function Students() {
   const roster = batchData?.data || [];
   const totalStudents = roster.length;
 
-  const TABS = ['attendance', 'deadlines', 'routine', 'announcements', 'password'];
+  const TABS = ['deadlines', 'routine', 'announcements', 'password'];
 
   // Helper to format countdown
   const getCountdown = (dateStr) => {
@@ -109,10 +102,6 @@ export default function Students() {
     return `${hours}h left`;
   };
 
-  const overall = attendanceData?.overall || { totalLectures: 0, attendedLectures: 0, percentage: 100, lowAttendance: false };
-  const perSubject = attendanceData?.perSubject || [];
-  const history = attendanceData?.history || [];
-
   return (
     <div className="container min-h-screen pt-32 pb-20">
       {/* ── Profile header ── */}
@@ -120,12 +109,12 @@ export default function Students() {
         <div className="relative flex-shrink-0">
           <div
             onClick={() => fileRef.current?.click()}
-            className="flex items-center justify-center overflow-hidden transition-colors border rounded-full shadow-sm cursor-pointer w-28 h-28 bg-canvas-parchment group border-divider-soft hover:border-ink"
+            className="flex items-center justify-center overflow-hidden transition-colors border rounded-full shadow-sm cursor-pointer w-28 h-28 bg-[#f8fafc] group border-divider-soft hover:border-ink"
           >
             {user?.photo ? (
               <img src={user.photo} alt={user.name} className="object-cover w-full h-full" />
             ) : (
-              <span className="text-4xl font-display text-ink-muted-48 group-hover:text-ink">{user?.name?.charAt(0)}</span>
+              <span className="text-4xl font-sans text-ink-muted-48 group-hover:text-ink">{user?.name?.charAt(0)}</span>
             )}
             <div className="absolute inset-0 flex items-center justify-center transition-opacity opacity-0 bg-black/40 group-hover:opacity-100">
               <span className="text-xs font-medium text-white">Edit</span>
@@ -135,7 +124,7 @@ export default function Students() {
         </div>
 
         <div className="flex-1 text-center md:text-left">
-          <h1 className="font-display font-semibold text-[32px] md:text-[40px] tracking-tight text-ink leading-tight mb-2">
+          <h1 className="font-sans font-medium text-[32px] md:text-[40px] tracking-tight text-ink leading-tight mb-2">
             {user?.name}
           </h1>
           <p className="font-sans text-[17px] font-medium text-ink-muted-80 flex flex-wrap items-center justify-center md:justify-start gap-x-3 gap-y-1">
@@ -145,22 +134,19 @@ export default function Students() {
           </p>
           {photoError && <p className="text-red-500 text-[14px] mt-2 font-[450]">{photoError}</p>}
           <div className="flex flex-wrap items-center justify-center gap-3 mt-4 md:justify-start">
-            <Link to="/attendance/student" className="button-primary text-[14px] !py-2 !px-4">
-              <Camera size={16} /> Scan Class QR →
-            </Link>
           </div>
         </div>
       </div>
 
       {/* ── Tabs (Pill style) ── */}
-      <div className="flex gap-2 mb-10 overflow-x-auto p-1 bg-white border border-divider-soft rounded-[999px] w-max max-w-full">
+      <div className="flex gap-2 mb-10 overflow-x-auto p-1 bg-white border border-divider-soft rounded-md w-max max-w-full">
         {TABS.map(t => (
           <button key={t} onClick={() => setActiveTab(t)}
-            className={`font-sans text-[14px] font-bold uppercase tracking-[0.04em] px-6 py-3 flex-none rounded-[999px] transition-all whitespace-nowrap ${
-              activeTab === t ? 'bg-ink text-canvas shadow-sm' : 'text-[#696969] bg-transparent hover:text-ink hover:bg-canvas-parchment'
-            }`}>
-            {t === 'attendance' ?  'Attendance'
-            : t === 'deadlines' ? 'Deadlines'
+            className={`font-sans text-[14px] font-medium uppercase tracking-[0.04em] px-6 py-3 flex-none rounded-md transition-all whitespace-nowrap ${
+              activeTab === t ? 'bg-ink text-canvas shadow-sm' : 'text-[#696969] bg-transparent hover:text-ink hover:bg-[#f8fafc]'
+            }`}
+            style={{ transitionDuration: '0.22s', transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }}>
+            {t === 'deadlines' ? 'Deadlines'
             : t === 'routine' ? 'Routine'
                         : t === 'password' ? 'Password'
             : 'Announcements'}
@@ -168,164 +154,15 @@ export default function Students() {
         ))}
       </div>
 
-      {/* ── Tab: Attendance History ── */}
-      {activeTab === 'attendance' && (
-        <div className="space-y-8 duration-300 animate-in fade-in">
-          {attendanceLoading ? (
-            <div className="space-y-4 animate-pulse">
-              <div className="h-40 bg-black/5 rounded-2xl"></div>
-              <div className="h-64 bg-black/5 rounded-2xl"></div>
-            </div>
-          ) : (
-            <>
-              {/* Overall & Subject Breakdown Cards */}
-              <div className="grid gap-6 md:grid-cols-12">
-                {/* Overall Score Card */}
-                <div className={`md:col-span-4 border border-divider-soft bg-white rounded-2xl p-6 shadow-sm flex flex-col justify-between ${
-                  overall.lowAttendance ? 'border-amber-500/40 bg-amber-500/5' : ''
-                }`}>
-                  <div>
-                    <span className="font-sans text-[12px] font-bold uppercase tracking-wider text-ink-muted-80">
-                      Overall Attendance
-                    </span>
-                    <div className="flex items-baseline gap-2 mt-2">
-                      <span className="font-display text-[48px] font-bold text-ink leading-none">{overall.percentage}%</span>
-                      <span className={`text-[12px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
-                        overall.percentage >= 75 ? 'bg-green-500/10 text-green-600' : 'bg-amber-500/15 text-amber-600'
-                      }`}>
-                        {overall.percentage >= 75 ? 'Good Standing' : 'Below 75%'}
-                      </span>
-                    </div>
-                    <p className="font-sans text-[14px] text-ink-muted-80 mt-2">
-                      Attended <strong>{overall.attendedLectures}</strong> out of <strong>{overall.totalLectures}</strong> conducted lectures.
-                    </p>
-                  </div>
-
-                  <div className="pt-4 mt-6 border-t border-divider-soft">
-                    <div className="h-2.5 w-full bg-divider-soft rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          overall.percentage >= 75 ? 'bg-green-500' : 'bg-amber-500'
-                        }`}
-                        style={{ width: `${Math.min(100, overall.percentage)}%` }}
-                      ></div>
-                    </div>
-                    <p className="font-sans text-[11px] text-ink-muted-48 mt-2">
-                      Minimum 75% attendance required for semester exams.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Per-Subject Breakdown Grid */}
-                <div className="p-6 border shadow-sm md:col-span-8 border-divider-soft bg-white rounded-2xl">
-                  <h3 className="font-display text-[18px] font-bold text-ink mb-4">Subject-Wise Breakdown</h3>
-                  {perSubject.length === 0 ? (
-                    <p className="font-sans text-[14px] text-ink-muted-80 py-8 text-center">No subject lecture records yet.</p>
-                  ) : (
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {perSubject.map((sub) => (
-                        <div
-                          key={sub.subject}
-                          className="p-4 border shadow-sm border-divider-soft bg-canvas rounded-xl"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-sans text-[13px] font-bold text-ink truncate">{sub.subject}</span>
-                            <span className={`text-[12px] font-bold ${
-                              sub.percentage >= 75 ? 'text-green-600' : 'text-amber-600'
-                            }`}>
-                              {sub.percentage}%
-                            </span>
-                          </div>
-                          <div className="w-full h-2 mb-2 overflow-hidden rounded-full bg-divider-soft">
-                            <div
-                              className={`h-full rounded-full ${sub.percentage >= 75 ? 'bg-green-500' : 'bg-amber-500'}`}
-                              style={{ width: `${Math.min(100, sub.percentage)}%` }}
-                            ></div>
-                          </div>
-                          <div className="flex justify-between text-[11px] font-sans text-ink-muted-80">
-                            <span>{sub.attended} / {sub.total} attended</span>
-                            {sub.flagged > 0 && <span className="text-amber-500">{sub.flagged} flagged</span>}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Past Lectures History Table */}
-              <div className="p-6 border shadow-sm border-divider-soft bg-white rounded-2xl">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="font-display text-[20px] font-bold text-ink">Past Lectures History</h3>
-                    <p className="font-sans text-[13px] text-ink-muted-80">Chronological log of verified classroom attendance</p>
-                  </div>
-                </div>
-
-                {history.length === 0 ? (
-                  <div className="py-12 text-center border text-ink-muted-80 border-divider-soft rounded-xl bg-canvas">
-                    <p className="font-sans text-[15px]">No attendance records found for your batch.</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left font-sans text-[14px]">
-                      <thead>
-                        <tr className="border-b border-divider-soft text-[12px] font-bold uppercase tracking-wider text-ink-muted-80">
-                          <th className="px-3 pb-3">Date & Time</th>
-                          <th className="px-3 pb-3">Subject</th>
-                          <th className="px-3 pb-3">Faculty</th>
-                           <th className="px-3 pb-3">Status</th>
-                          <th className="px-3 pb-3 text-right">Distance</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-divider-soft/50">
-                        {history.map((h) => (
-                          <tr key={h._id} className="transition-colors hover:bg-canvas/50">
-                            <td className="py-3.5 px-3">
-                              <p className="font-medium text-ink">
-                                {new Date(h.date).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
-                              </p>
-                              <p className="text-[12px] text-ink-muted-80">
-                                {new Date(h.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </p>
-                            </td>
-                            <td className="py-3.5 px-3 font-semibold text-ink">{h.subject}</td>
-                            <td className="py-3.5 px-3 text-ink-muted-80">{h.facultyName}</td>
-                             <td className="py-3.5 px-3">
-                              <span className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
-                                h.status === 'present'
-                                  ? 'bg-green-500/10 text-green-600 border border-green-500/20'
-                                  : h.status === 'flagged'
-                                  ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
-                                  : 'bg-red-500/10 text-red-500 border border-red-500/20'
-                              }`}>
-                                {h.status === 'present' ? <><Check size={14} /> Present</> : h.status === 'flagged' ? <><AlertTriangle size={14} /> Flagged</> : <><XCircle size={14} /> Absent</>}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-3 text-right font-mono text-[12px] text-ink-muted-80">
-                              {h.distanceInMeters != null ? `${h.distanceInMeters}m` : '—'}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
       {/* ── Deadlines Feed (Premium Glassy Tracking UI) ── */}
       {activeTab === 'deadlines' && (
         <div className="duration-300 animate-in fade-in">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="font-display text-[28px] font-medium tracking-[-0.02em] text-ink">Assignments & Deadlines</h2>
+            <h2 className="font-sans text-[28px] font-medium tracking-[-0.02em] text-ink">Assignments & Deadlines</h2>
           </div>
           
-          {deadlinesLoading ? <div className="space-y-4 animate-pulse"><div className="h-40 bg-black/5 rounded-2xl"></div></div> : deadlines.length === 0 ? (
-            <div className="py-16 text-center border border-divider-soft rounded-[24px] bg-white">
+          {deadlinesLoading ? <div className="space-y-4 animate-pulse"><div className="h-40 bg-[#f8fafc] rounded-[10px]"></div></div> : deadlines.length === 0 ? (
+            <div className="py-16 text-center border border-divider-soft rounded-md bg-white">
               <p className="text-ink-muted-80 font-sans text-[16px] font-[450]">No upcoming deadlines.</p>
             </div>
           ) : (
@@ -341,18 +178,18 @@ export default function Students() {
                 }
 
                 return (
-                  <div key={d._id} className="p-6 md:p-8 border border-white/20 dark:border-white/10 rounded-[24px] bg-gradient-to-br from-blue-50/50 to-white/50 dark:from-blue-900/10 dark:to-black/20 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.2)] flex flex-col hover:shadow-lg transition-shadow relative group">
+                  <div key={d._id} className="p-6 md:p-8 border border-divider-soft bg-[#ffffff] rounded-md flex flex-col transition-colors hover:border-ink relative group">
                     <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
-                          <span className="font-sans text-[12px] font-bold bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 px-3 py-1 rounded-full uppercase tracking-wider border border-blue-500/20">
+                          <span className="font-sans text-[12px] font-medium bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 px-3 py-1 rounded-full uppercase tracking-wider border border-blue-500/20">
                             {d.type}
                           </span>
                           <span className="font-sans text-[13px] font-medium text-ink-muted-80">
                             {d.subject}
                           </span>
                         </div>
-                        <h3 className="font-display text-[22px] font-semibold text-ink line-clamp-2 mb-2">
+                        <h3 className="font-sans text-[22px] font-medium text-ink line-clamp-2 mb-2">
                           {d.title}
                         </h3>
                         {d.description && <p className="text-ink-muted-80 font-sans text-[15px] mb-4">{d.description}</p>}
@@ -376,15 +213,15 @@ export default function Students() {
                         </div>
                       </div>
 
-                      <div className="md:w-[300px] flex-shrink-0 bg-white/40 dark:bg-black/20 rounded-2xl p-5 border border-white/20 dark:border-white/5 shadow-inner">
+                      <div className="md:w-[300px] flex-shrink-0 bg-[#ffffff] rounded-md p-5 border border-divider-soft">
                         {user?.role === 'student' ? (
                           <div className="flex flex-col items-center justify-center h-full text-center">
-                            <button 
+                            <button
                               onClick={() => submitDeadlineMut.mutate(d._id)}
-                              className={`w-full py-3 px-6 rounded-[999px] font-sans font-bold text-[14px] transition-all duration-300 ${
-                                hasSubmitted 
-                                  ? 'bg-green-500 text-white shadow-[0_4px_14px_rgba(34,197,94,0.3)] hover:bg-green-600' 
-                                  : 'bg-ink text-canvas hover:bg-ink/80 shadow-md'
+                              className={`w-full py-3 px-6 rounded-lg font-sans font-medium text-[14px] transition-colors ${
+                                hasSubmitted
+                                  ? 'bg-success text-white hover:bg-success/90'
+                                  : 'bg-ink text-canvas hover:bg-ink/90'
                               }`}
                             >
                               {hasSubmitted ? <>Submitted</> : 'Mark as Submitted'}
@@ -396,23 +233,23 @@ export default function Students() {
                         ) : (
                           <div className="flex flex-col h-full">
                             <div className="flex items-end justify-between mb-2">
-                              <span className="font-sans text-[13px] font-bold text-ink uppercase tracking-wider">Progress</span>
+                              <span className="font-sans text-[13px] font-medium text-ink uppercase tracking-wider">Progress</span>
                               <span className="font-sans text-[18px] font-medium text-ink">{submitCount} / {totalStudents}</span>
                             </div>
-                            <div className="w-full h-2 mb-4 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
+                            <div className="w-full h-2 mb-4 overflow-hidden rounded-md bg-[#f8fafc]">
                               <div 
-                                className="h-full transition-all duration-500 bg-blue-500 rounded-full" 
+                                className="h-full transition-all duration-500 bg-link rounded-md"
                                 style={{ width: `${totalStudents > 0 ? (submitCount/totalStudents)*100 : 0}%` }}
                               ></div>
                             </div>
                             
                             {isComplete ? (
-                              <button className="w-full py-2.5 bg-green-500 text-white rounded-lg font-sans font-bold text-[13px] shadow-sm uppercase tracking-wide cursor-default">
+                              <button className="w-full py-2.5 bg-success text-white rounded-md font-sans font-medium text-[13px] shadow-sm uppercase tracking-wide cursor-default">
                                 Ready to deliver to professor <CheckCircle2 size={14} />
                               </button>
                             ) : (
                               <div className="flex-1 overflow-y-auto pr-1 max-h-[120px] scrollbar-thumb-black/10">
-                                <span className="font-sans text-[11px] font-bold text-ink-muted-48 uppercase tracking-wider block mb-2">Not Submitted ({missingStudents.length})</span>
+                                <span className="font-sans text-[11px] font-medium text-ink-muted-48 uppercase tracking-wider block mb-2">Not Submitted ({missingStudents.length})</span>
                                 <ul className="space-y-1.5">
                                   {missingStudents.map(student => (
                                     <li key={student._id} className="flex justify-between items-center text-[13px] font-sans">
@@ -439,20 +276,20 @@ export default function Students() {
       {activeTab === 'routine' && (
         <div className="overflow-x-auto duration-300 text-ink animate-in fade-in">
           {routineLoading ? (
-             <div className="space-y-4 animate-pulse"><div className="h-40 bg-black/5 rounded-2xl"></div></div>
+             <div className="space-y-4 animate-pulse"><div className="h-40 bg-[#f8fafc] rounded-[10px]"></div></div>
           ) : routineData?.data?.length > 0 ? (
-            <table className="w-full min-w-[600px] border-collapse text-[14px] font-sans border border-divider-soft rounded-[20px] bg-white">
+            <table className="w-full min-w-[600px] border-collapse text-[14px] font-sans border border-divider-soft rounded-md bg-white">
               <thead>
-                <tr className="border-b border-divider-soft bg-canvas">
-                  <th className="w-32 px-4 py-4 font-bold text-left text-ink-muted-80">Time</th>
+                <tr className="border-b border-divider-soft bg-[#ffffff]">
+                  <th className="w-32 px-4 py-4 font-medium text-left text-ink-muted-80">Time</th>
                   {['Mon','Tue','Wed','Thu','Fri'].map(d => (
-                    <th key={d} className="px-2 py-4 font-bold text-center text-ink-muted-80">{d}</th>
+                    <th key={d} className="px-2 py-4 font-medium text-center text-ink-muted-80">{d}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {routineData.data.map((row, i) => (
-                  <tr key={i} className="transition-colors border-b border-divider-soft hover:bg-canvas-parchment last:border-b-0">
+                  <tr key={i} className="transition-colors border-b border-divider-soft hover:bg-[#f8fafc] last:border-b-0">
                     <td className="px-4 py-4 font-medium text-ink whitespace-nowrap">{row.time}</td>
                     {['mon','tue','wed','thu','fri'].map(d => (
                       <td key={d} className="px-2 py-4 text-center text-ink-muted-80">
@@ -464,7 +301,7 @@ export default function Students() {
               </tbody>
             </table>
           ) : (
-            <div className="py-16 text-center border border-divider-soft rounded-[24px] bg-white">
+            <div className="py-16 text-center border border-divider-soft rounded-md bg-white">
               <p className="text-ink-muted-80 font-sans text-[16px] font-[450]">No class routine published yet.</p>
             </div>
           )}
@@ -477,18 +314,19 @@ export default function Students() {
       {activeTab === 'announcements' && (
         <div className="space-y-4 duration-300 animate-in fade-in">
           {announcementsLoading ? (
-            <div className="h-40 rounded-lg animate-pulse bg-black/5"></div>
+            <div className="h-40 rounded-md animate-pulse bg-[#f8fafc]"></div>
           ) : announcementsData?.data?.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2">
               {announcementsData.data.map(a => (
-                <div key={a._id} className="bg-white rounded-lg p-[24px] border border-divider-soft text-left hover:shadow-product transition-shadow duration-300">
+                 <div key={a._id} className="bg-white rounded-md p-[24px] border border-divider-soft text-left hover:border-ink transition-shadow duration-300"
+                   style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
                   <div className="flex items-center justify-between gap-3 mb-2">
-                    <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-pale-green text-deep-green border border-green-200">
+                    <span className="font-mono text-[11px] font-medium uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-pale-green text-deep-green border border-green-200">
                       {a.category || 'general'}
                     </span>
                     <span className="font-sans text-[13px] text-ink-muted-80">{new Date(a.createdAt).toLocaleDateString()}</span>
                   </div>
-                  <h3 className="font-sans text-[17px] font-semibold text-ink mb-1">{a.title}</h3>
+                  <h3 className="font-sans text-[17px] font-medium text-ink mb-1">{a.title}</h3>
                   {a.content && <p className="font-sans text-[14px] text-ink-muted-80 line-clamp-3">{a.content}</p>}
                   {a.targetAudience === 'batch' && a.batchId && (
                     <p className="font-mono text-[12px] text-slate mt-2">Target classroom: {a.batchId}</p>
@@ -497,7 +335,7 @@ export default function Students() {
               ))}
             </div>
           ) : (
-            <p className="text-ink-muted-80 text-[17px] py-12 text-center font-sans border border-divider-soft rounded-lg bg-white">No announcements yet.</p>
+            <p className="text-ink-muted-80 text-[17px] py-12 text-center font-sans border border-divider-soft rounded-md bg-white">No announcements yet.</p>
           )}
         </div>
       )}
@@ -510,7 +348,7 @@ export default function Students() {
 
     {!otpSent ? (
       <div className="flex flex-col gap-5">
-        <div className="p-6 text-center border border-divider-soft rounded-2xl bg-white">
+        <div className="p-6 text-center border border-divider-soft rounded-[10px] bg-white">
           <div className="flex items-center justify-center mx-auto mb-4 rounded-full w-14 h-14 bg-soft-stone">
             <ShieldCheck size={24} className="text-body-muted" />
           </div>
@@ -547,7 +385,7 @@ export default function Students() {
       </div>
     ) : !otpVerified ? (
       <div className="flex flex-col gap-5">
-        <div className="p-6 border border-divider-soft rounded-2xl bg-white">
+        <div className="p-6 border border-divider-soft rounded-[10px] bg-white">
           <p className="font-sans text-[15px] font-normal text-ink mb-1">Enter OTP</p>
           <p className="font-sans text-[13px] text-slate mb-5">
             Enter the 6-digit code sent to your registered email
@@ -561,7 +399,7 @@ export default function Students() {
               onChange={e => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="000000"
               maxLength={6}
-              className="flex-1 bg-canvas border border-divider-soft text-ink px-4 py-3 text-[17px] text-center tracking-[0.3em] font-mono rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-ink-muted-48"
+              className="flex-1 bg-[#ffffff] border border-divider-soft text-ink px-4 py-3 text-[17px] text-center tracking-[0.3em] font-mono rounded-sm focus:outline-none focus:border-info-border focus:ring-1 focus:ring-info-border transition-all placeholder:text-ink-muted-48"
             />
             <button
               disabled={otpLoading || otpInput.length !== 6}
@@ -581,7 +419,7 @@ export default function Students() {
                   setOtpLoading(false);
                 }
               }}
-              className="px-6 py-3 bg-primary text-white rounded-lg text-[14px] font-bold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-6 py-3 bg-primary text-white rounded-lg text-[14px] font-medium hover:bg-primary-active transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               Verify <ArrowRight size={16} />
             </button>
@@ -596,7 +434,7 @@ export default function Students() {
       </div>
     ) : (
       <div className="flex flex-col gap-5">
-        <div className="flex items-center gap-3 p-4 border border-green-200 rounded-xl bg-pale-green">
+        <div className="flex items-center gap-3 p-4 border border-hairline rounded-md bg-[#f8fafc]">
           <CheckCircle2 size={20} className="flex-shrink-0 text-deep-green" />
           <p className="font-sans text-[14px] font-medium text-deep-green">
             Identity verified! Set your new password below.
@@ -606,13 +444,15 @@ export default function Students() {
           <label className="sr-only">New Password</label>
           <input type="password" value={pwForm.next} placeholder="New Password"
             onChange={e => setPwForm(f=>({...f,next:e.target.value}))}
-            className="w-full bg-canvas border border-divider-soft text-ink px-4 py-3 text-[17px] rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-ink-muted-48" />
+            className="w-full bg-[#ffffff] border border-divider-soft text-ink px-4 py-3 text-[17px] rounded-sm focus:outline-none focus:border-info-border focus:ring-1 focus:ring-info-border transition-all placeholder:text-ink-muted-48"
+            style={{ transitionDuration: '0.22s', transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }} />
         </div>
         <div>
           <label className="sr-only">Confirm Password</label>
           <input type="password" value={pwForm.confirm} placeholder="Confirm Password"
             onChange={e => setPwForm(f=>({...f,confirm:e.target.value}))}
-            className="w-full bg-canvas border border-divider-soft text-ink px-4 py-3 text-[17px] rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-ink-muted-48" />
+            className="w-full bg-[#ffffff] border border-divider-soft text-ink px-4 py-3 text-[17px] rounded-sm focus:outline-none focus:border-info-border focus:ring-1 focus:ring-info-border transition-all placeholder:text-ink-muted-48"
+            style={{ transitionDuration: '0.22s', transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }} />
         </div>
         
         {pwErr && <p className="font-sans text-[14px] font-medium text-red-500 text-center">{pwErr}</p>}

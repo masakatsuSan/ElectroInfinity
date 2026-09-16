@@ -93,7 +93,7 @@ export default function AdminAnnouncements() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <h1 className="font-display font-semibold text-[28px] tracking-tight text-ink">Announcements</h1>
+        <h1 className="font-[Inter,system-ui,sans-serif] font-semibold text-[28px] tracking-tight text-ink">Announcements</h1>
         <button onClick={openCreate} className="button-primary !px-5 !py-2.5">
           + New Announcement
         </button>
@@ -101,50 +101,50 @@ export default function AdminAnnouncements() {
 
       {showForm && (
         <div className="border border-divider-soft bg-white p-6 mb-8 rounded-xl shadow-sm">
-          <h2 className="font-display font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Announcement' : 'New Announcement'}</h2>
+          <h2 className="font-[Inter,system-ui,sans-serif] font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Announcement' : 'New Announcement'}</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <div className="sm:col-span-2">
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Title *</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Title *</label>
               <input value={form.title} onChange={set('title')} className="input w-full" placeholder="Announcement title" />
             </div>
             <div className="sm:col-span-2">
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Content *</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Content *</label>
               <textarea rows={4} value={form.content} onChange={set('content')} className="input w-full resize-none" placeholder="Full announcement..." />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Category</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Category</label>
               <select value={form.category} onChange={set('category')} className="input w-full">
                 {CATS.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
               </select>
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Target Audience</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Target Audience</label>
               <select value={form.targetAudience} onChange={set('targetAudience')} className="input w-full">
                 {AUDIENCES.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
               </select>
             </div>
             {form.targetAudience === 'batch' && (
               <div>
-                <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Target Classroom *</label>
+                <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Target Classroom *</label>
                 <select value={form.batchId} onChange={set('batchId')} className="input w-full">
                   <option value="">Select a batch</option>
                   {BATCHES.map(b => <option key={b} value={b}>{b}</option>)}
                 </select>
-                <p className="font-sans text-[12px] text-slate mt-1">Only students of this batch will see the announcement.</p>
+                <p className="font-[Inter,system-ui,sans-serif] text-[12px] text-slate mt-1">Only students of this batch will see the announcement.</p>
               </div>
             )}
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Expires At (optional)</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Expires At (optional)</label>
               <input type="datetime-local" value={form.expiresAt} onChange={set('expiresAt')} className="input w-full" />
             </div>
             <div className="flex items-center gap-2 pt-6">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.isPinned} onChange={set('isPinned')} className="w-4 h-4 rounded border-divider-soft text-primary focus:ring-primary" />
-                <span className="font-sans text-[14px] font-medium text-ink">Pinned</span>
+                <span className="font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink">Pinned</span>
               </label>
             </div>
           </div>
-          {error && <p className="font-sans text-red-500 text-[14px] font-medium mt-4">{error}</p>}
+          {error && <p className="font-[Inter,system-ui,sans-serif] text-red-500 text-[14px] font-medium mt-4">{error}</p>}
           <div className="flex gap-3 mt-6">
             <button onClick={handleSave} disabled={createMut.isPending || updateMut.isPending || !form.title || !form.content} className="button-primary">
               {createMut.isPending || updateMut.isPending ? 'Saving…' : (editing ? 'Update Announcement' : 'Post Announcement')}
@@ -154,22 +154,22 @@ export default function AdminAnnouncements() {
         </div>
       )}
 
-      {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading announcements…</p>
-        : announcements.length === 0 ? <p className="font-sans text-ink-muted-80 text-[15px]">No announcements. Create one above.</p>
+      {isLoading ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">Loading announcements…</p>
+        : announcements.length === 0 ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">No announcements. Create one above.</p>
         : (
           <div className="border border-divider-soft bg-white rounded-xl overflow-hidden shadow-sm">
             {announcements.map(a => (
-              <div key={a._id} className="flex items-start gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
-                <span className={`font-mono text-[11px] font-bold uppercase px-2.5 py-1 rounded-md border flex-shrink-0 ${CAT_COLORS[a.category] || CAT_COLORS.general}`}>
+              <div key={a._id} className="flex items-start gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft last:border-b-0 hover:bg-[#fff]-parchment transition-colors">
+                <span className={`font-mono text-[11px] font-medium uppercase px-2.5 py-1 rounded-md border flex-shrink-0 ${CAT_COLORS[a.category] || CAT_COLORS.general}`}>
                   {a.category}
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-[15px] font-medium text-ink">{a.title}</p>
-                    {a.isPinned && <span className="font-sans text-[11px] font-semibold text-primary uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded-sm flex items-center gap-1"><Pin size={12} /> Pinned</span>}
+                    {a.isPinned && <span className="font-[Inter,system-ui,sans-serif] text-[11px] font-semibold text-primary uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded-sm flex items-center gap-1"><Pin size={12} /> Pinned</span>}
                   </div>
-                  <p className="font-sans text-[13px] text-ink-muted-80 mt-1 line-clamp-2">{a.content}</p>
-                  <p className="font-sans text-[12px] text-slate mt-1.5">
+                  <p className="font-[Inter,system-ui,sans-serif] text-[13px] text-ink-muted-80 mt-1 line-clamp-2">{a.content}</p>
+                  <p className="font-[Inter,system-ui,sans-serif] text-[12px] text-slate mt-1.5">
                     {a.targetAudience === 'batch' && a.batchId ? `Target: ${a.batchId}` : 'Target: All Batches'}
                     {a.expiresAt ? ` · Expires ${new Date(a.expiresAt).toLocaleDateString('en-IN')}` : ''}
                     <span className="ml-2">{new Date(a.createdAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })}</span>

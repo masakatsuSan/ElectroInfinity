@@ -60,7 +60,7 @@ async function sendEmail({ to, subject, html }) {
 }
 
 // ── GET /api/auth/check-roll/:rollNo ──────────────────────────────────────
-// Step 1 of activation — check roll number exists and is not yet activated
+// Step 1 of activation — check roll number exists, send OTP to registered email
 router.get('/check-roll/:rollNo', async (req, res) => {
   try {
     const user = await User.findOne({
@@ -88,12 +88,53 @@ router.get('/check-roll/:rollNo', async (req, res) => {
   }
 })
 
+// ── POST /api/auth/verify-activation-otp ───────────────────────────────────
+// Step 2 of activation — verify OTP, return short-lived activation token
+// Body: { rollNumber, otp }
+router.post('/verify-activation-otp', async (req, res) => {
+  try {
+    const { rollNumber, otp } = req.body
+
+    if (!rollNumber || !otp) {
+      return res.status(400).json({ success: false, error: 'Roll number and OTP required' })
+    }
+
+    const user = await User.findOne({ rollNumber: rollNumber.toUpperCase(), role: { $in: ['student', 'cr'] } })
+
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
+    if (user.isVerified) return res.status(400).json({ success: false, error: 'Account already activated. Go to Login.' })
+
+    if (!user.otp || user.otp !== otp.trim()) {
+      return res.status(400).json({ success: false, error: 'Wrong OTP. Check your email.' })
+    }
+
+    if (!user.otpExpiry || new Date() > user.otpExpiry) {
+      user.otp = ''; user.otpExpiry = null
+      await user.save()
+      return res.status(400).json({ success: false, error: 'OTP expired. Request a new one.' })
+    }
+
+    const activationToken = jwt.sign(
+      { id: user._id, purpose: 'activation' },
+      process.env.JWT_SECRET,
+      { expiresIn: '5m' }
+    )
+
+    user.otp = ''; user.otpExpiry = null
+    await user.save()
+
+    res.json({ success: true, activationToken })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
 // ── POST /api/auth/activate ───────────────────────────────────────────────
 // Student sets password for the first time
-// Body: { rollNumber, password }
+// Body: { rollNumber, password, activationToken }
 router.post('/activate', async (req, res) => {
   try {
-    const { rollNumber, password } = req.body
+    const { rollNumber, password, activationToken } = req.body
 
     if (!rollNumber || !password) {
       return res.status(400).json({ success: false, error: 'Roll number and password required' })
@@ -102,10 +143,28 @@ router.post('/activate', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' })
     }
 
+    // Verify activation token if provided (OTP flow)
+    if (activationToken) {
+      let decoded
+      try {
+        decoded = jwt.verify(activationToken, process.env.JWT_SECRET)
+      } catch {
+        return res.status(400).json({ success: false, error: 'Activation link expired. Request a new OTP.' })
+      }
+      if (decoded.purpose !== 'activation') {
+        return res.status(400).json({ success: false, error: 'Invalid activation token' })
+      }
+    }
+
     const user = await User.findOne({ rollNumber: rollNumber.toUpperCase(), role: { $in: ['student', 'cr'] } })
 
     if (!user)            return res.status(404).json({ success: false, error: 'Roll number not found' })
     if (user.isVerified)  return res.status(400).json({ success: false, error: 'Already activated. Go to Login.' })
+
+    // If no activation token, require OTP verification
+    if (!activationToken && !user.otp) {
+      return res.status(400).json({ success: false, error: 'OTP verification required. Request OTP first.' })
+    }
 
     user.password    = password
     user.isVerified  = true

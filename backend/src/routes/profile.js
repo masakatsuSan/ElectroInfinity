@@ -8,6 +8,7 @@ const Gallery = require('../models/Gallery')
 const Achievement = require('../models/Achievement')
 const ForumPost = require('../models/ForumPost')
 const Resource = require('../models/Resource')
+const FriendRequest = require('../models/FriendRequest')
 const { protect, guard, optionalAuth } = require('../middleware/auth')
 const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
 const { createActivity } = require('../utils/activity')
@@ -41,6 +42,463 @@ function computeCompleteness(user) {
   if ((Object.values(p.socialLinks || {}).filter(Boolean).length === 0)) missing.push('Social Links')
   return { percentage, missing }
 }
+
+// ── GET /api/profile/search ───────────────────────────────────────────────
+// Enhanced search with filters, pagination, and fuzzy matching
+// Query: q, department, semester, batch, role, page, limit
+router.get('/search', optionalAuth, async (req, res) => {
+  try {
+    const { q, department, semester, batch, role, page = 1, limit = 20 } = req.query
+    const query = {
+      isActive: true,
+    }
+
+    if (q && q.trim().length >= 1) {
+      const regex = new RegExp(q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
+      query.$or = [
+        { name: regex },
+        { rollNumber: regex },
+        { regNumber: regex },
+        { email: regex },
+        { collegeEmail: regex },
+        { 'profile.department': regex },
+        { 'profile.skills': { $in: [regex] } },
+        { 'profile.interests': { $in: [regex] } },
+      ]
+    }
+
+    if (department) {
+      query['profile.department'] = new RegExp(department, 'i')
+    }
+
+    if (semester) {
+      query.semester = Number(semester)
+    }
+
+    if (batch) {
+      query.batch = new RegExp(batch, 'i')
+    }
+
+    if (role && ['student', 'cr', 'faculty'].includes(role)) {
+      query.role = role
+    } else {
+      query.role = { $in: ['student', 'cr', 'faculty'] }
+    }
+
+    const skip = (Number(page) - 1) * Number(limit)
+    const [users, total] = await Promise.all([
+      User.find(query)
+        .select('name rollNumber batch semester role photo email profile.department profile.skills profile.socialLinks profile.interests friends')
+        .sort({ name: 1 })
+        .skip(skip)
+        .limit(Number(limit)),
+      User.countDocuments(query),
+    ])
+
+    const viewerId = req.user?._id
+    const formatted = users.map(u => ({
+      _id: u._id,
+      name: u.name,
+      rollNumber: u.rollNumber,
+      email: u.email,
+      batch: u.batch,
+      semester: u.semester,
+      role: u.role,
+      photo: u.photo,
+      department: u.profile?.department || '',
+      skills: u.profile?.skills || [],
+      interests: u.profile?.interests || [],
+      socialLinks: u.profile?.socialLinks || {},
+      friends: u.friends?.length || 0,
+      friendStatus: viewerId
+        ? (u.friends || []).some(id => id.toString() === viewerId.toString())
+          ? 'friends'
+          : 'none'
+        : 'none',
+    }))
+
+    res.json({
+      success: true,
+      data: formatted,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        totalPages: Math.ceil(total / Number(limit)),
+      },
+    })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── GET /api/profile/trending ──────────────────────────────────────────────
+router.get('/trending', optionalAuth, async (req, res) => {
+  try {
+    const viewerId = req.user?._id
+    const trending = await User.find({ isActive: true, role: { $in: ['student', 'cr', 'faculty'] } })
+      .select('name rollNumber batch semester role photo profile.department friends')
+      .sort({ lastActive: -1, friends: -1 })
+      .limit(10)
+
+    let friendStatusMap = new Map()
+    if (viewerId) {
+      const currentUser = await User.findById(viewerId).select('friends')
+      const currentFriendIds = (currentUser?.friends || []).map(id => id.toString())
+
+      const pendingRequests = await FriendRequest.find({
+        $or: [
+          { sender: viewerId, status: 'pending' },
+          { recipient: viewerId, status: 'pending' },
+        ],
+      })
+
+      pendingRequests.forEach(r => {
+        if (r.sender.toString() === viewerId.toString()) {
+          friendStatusMap.set(r.recipient.toString(), 'pending_sent')
+        } else {
+          friendStatusMap.set(r.sender.toString(), 'pending_received')
+        }
+      })
+    }
+
+    const formatted = trending.map(u => {
+      const friendIds = (u.friends || []).map(id => id.toString())
+      let friendStatus = 'none'
+      if (viewerId) {
+        const isFriend = friendIds.includes(viewerId.toString())
+        if (isFriend) {
+          friendStatus = 'friends'
+        } else {
+          friendStatus = friendStatusMap.get(u._id.toString()) || 'none'
+        }
+      }
+      return {
+        _id: u._id,
+        name: u.name,
+        rollNumber: u.rollNumber,
+        batch: u.batch,
+        semester: u.semester,
+        role: u.role,
+        photo: u.photo,
+        department: u.profile?.department || '',
+        friendStatus,
+      }
+    })
+
+    res.json({ success: true, data: formatted })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── GET /api/profile/suggested ─────────────────────────────────────────────
+router.get('/suggested', optionalAuth, async (req, res) => {
+  try {
+    const viewerId = req.user?._id
+    const pipeline = []
+
+    if (viewerId) {
+      const viewer = await User.findById(viewerId).select('friends')
+      const friendIds = (viewer?.friends || []).map(id => id.toString())
+
+      pipeline.push(
+        { $match: { _id: { $ne: viewerId, $nin: friendIds.map(id => require('mongoose').Types.ObjectId(id)) } } }
+      )
+    }
+
+    pipeline.push(
+      { $match: { isActive: true, role: { $in: ['student', 'cr', 'faculty'] } } },
+      { $sort: { lastActive: -1 } },
+      { $limit: 20 }
+    )
+
+    const users = await User.aggregate(pipeline)
+
+    let friendStatusMap = new Map()
+    if (viewerId) {
+      const currentUser = await User.findById(viewerId).select('friends')
+      const currentFriendIds = (currentUser?.friends || []).map(id => id.toString())
+
+      const pendingRequests = await FriendRequest.find({
+        $or: [
+          { sender: viewerId, status: 'pending' },
+          { recipient: viewerId, status: 'pending' },
+        ],
+      })
+
+      pendingRequests.forEach(r => {
+        if (r.sender.toString() === viewerId.toString()) {
+          friendStatusMap.set(r.recipient.toString(), 'pending_sent')
+        } else {
+          friendStatusMap.set(r.sender.toString(), 'pending_received')
+        }
+      })
+    }
+
+    const formatted = users.map(u => {
+      const friendIds = (u.friends || []).map(id => id.toString())
+      let friendStatus = 'none'
+      if (viewerId) {
+        const isFriend = friendIds.includes(viewerId.toString())
+        if (isFriend) {
+          friendStatus = 'friends'
+        } else {
+          friendStatus = friendStatusMap.get(u._id.toString()) || 'none'
+        }
+      }
+      return {
+        _id: u._id,
+        name: u.name,
+        rollNumber: u.rollNumber,
+        batch: u.batch,
+        semester: u.semester,
+        role: u.role,
+        photo: u.photo,
+        department: u.profile?.department || '',
+        friendStatus,
+      }
+    })
+
+    res.json({ success: true, data: formatted })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── GET /api/profile/badges ───────────────────────────────────────────────
+router.get('/badges', async (req, res) => {
+  try {
+    const badges = await Badge.find().sort({ createdAt: -1 })
+    res.json({ success: true, data: badges })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /api/profile/badges (admin) ──────────────────────────────────────
+router.post('/badges', protect, guard('super_admin', 'admin'), async (req, res) => {
+  try {
+    const badge = await Badge.create(req.body)
+    res.status(201).json({ success: true, data: badge })
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message })
+  }
+})
+
+// ── GET /api/profile/me/completeness ──────────────────────────────────────
+router.get('/me/completeness', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id)
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
+
+    const { percentage, missing } = computeCompleteness(user)
+    res.json({ success: true, data: { percentage, missing } })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── GET /api/profile/me/uploads ──────────────────────────────────────────
+// Returns the authenticated user's uploads across Gallery, Achievements,
+// Projects.
+router.get('/me/uploads', protect, async (req, res) => {
+  try {
+    const userId = req.user._id
+
+    const [gallery, achievements, projects] = await Promise.all([
+      Gallery.find({ uploadedBy: userId }).sort({ createdAt: -1 }),
+      Achievement.find({ author: userId }).sort({ createdAt: -1 }),
+      Project.find({ author: userId }).sort({ createdAt: -1 }),
+    ])
+
+    const galleryItems = gallery.map((g) => ({
+      _id: g._id,
+      kind: 'gallery',
+      title: g.title,
+      category: g.category,
+      createdAt: g.createdAt,
+      updatedAt: g.updatedAt,
+      date: g.date,
+      thumb: g.imageUrl || '',
+      meta: {},
+    }))
+
+    const achievementItems = achievements.map((a) => ({
+      _id: a._id,
+      kind: 'achievement',
+      title: a.title,
+      category: a.category,
+      createdAt: a.createdAt,
+      updatedAt: a.updatedAt,
+      date: a.date,
+      thumb: a.image || '',
+      meta: { description: a.description },
+    }))
+
+    const projectItems = projects.map((p) => ({
+      _id: p._id,
+      kind: 'project',
+      title: p.title,
+      category: 'project',
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+      date: p.createdAt,
+      thumb: p.thumbnail || (p.images && p.images[0]) || '',
+      meta: { techStack: p.techStack || [] },
+    }))
+
+    const all = [...galleryItems, ...achievementItems, ...projectItems].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    )
+
+    res.json({ success: true, data: all })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── GET /api/profile/me/views ──────────────────────────────────────────
+// Returns recent profile views for the authenticated user
+router.get('/me/views', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate('profileViews.viewer', 'name rollNumber role photo profile.department')
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
+
+    const formatted = (user.profileViews || []).map(v => ({
+      _id: v.viewer?._id,
+      name: v.viewer?.name || 'Unknown',
+      rollNumber: v.viewer?.rollNumber || '',
+      role: v.viewer?.role || 'student',
+      photo: v.viewer?.photo || '',
+      department: v.viewer?.profile?.department || '',
+      viewedAt: v.viewedAt,
+    })).reverse()
+
+    res.json({ success: true, data: formatted })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /api/profile/:id/view ─────────────────────────────────────────
+// Record a profile view from the authenticated user to the target profile
+router.post('/:id/view', protect, async (req, res) => {
+  try {
+    if (req.params.id === req.user._id.toString()) {
+      return res.json({ success: true, data: { message: 'Own profile view skipped' } })
+    }
+
+    const targetUser = await User.findById(req.params.id)
+    if (!targetUser) return res.status(404).json({ success: false, error: 'User not found' })
+
+    const visibility = targetUser.profile?.profileVisibility || 'public'
+    if (visibility === 'private') {
+      return res.json({ success: true, data: { message: 'Profile is private' } })
+    }
+
+    if (visibility === 'friends') {
+      const isFriend = (targetUser.friends || []).some(id => id.toString() === req.user._id.toString())
+      if (!isFriend) {
+        return res.json({ success: true, data: { message: 'Profile visible to friends only' } })
+      }
+    }
+
+    const existing = (targetUser.profileViews || []).find(v => v.viewer?.toString() === req.user._id.toString())
+    if (existing) {
+      existing.viewedAt = new Date()
+    } else {
+      targetUser.profileViews.push({ viewer: req.user._id, viewedAt: new Date() })
+    }
+
+    if (targetUser.profileViews.length > 200) {
+      targetUser.profileViews = targetUser.profileViews.slice(-200)
+    }
+
+    await targetUser.save()
+
+    try {
+      await createActivity(req.user._id, 'profile_view', `${req.user.name} viewed your profile`, '', `/profile/${targetUser._id}`)
+    } catch (_) {}
+
+    res.json({ success: true, data: { message: 'Profile view recorded' } })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── GET /api/profile/:id/qr ──────────────────────────────────────────────
+// Generate QR code for a user profile
+const QRCode = require('qrcode')
+
+router.get('/:id/qr', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('name rollNumber batch semester role photo profile.department')
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
+
+    const profileUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/profile/${user._id}`
+
+    const qrDataUrl = await QRCode.toDataURL(profileUrl, {
+      width: 400,
+      margin: 2,
+      color: {
+        dark: '#111827',
+        light: '#ffffff',
+      },
+    })
+
+    res.json({
+      success: true,
+      data: {
+        qrCode: qrDataUrl,
+        profileUrl,
+        user: {
+          _id: user._id,
+          name: user.name,
+          rollNumber: user.rollNumber,
+          batch: user.batch,
+          semester: user.semester,
+          role: user.role,
+          photo: user.photo,
+          department: u.profile?.department || '',
+        },
+      },
+    })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
+// ── POST /api/profile/:userId/badges ──────────────────────────────────────
+router.post('/:userId/badges', protect, async (req, res) => {
+  try {
+    const { badgeId } = req.body
+    if (!badgeId) return res.status(400).json({ success: false, error: 'badgeId required' })
+
+    const badge = await Badge.findById(badgeId)
+    if (!badge) return res.status(404).json({ success: false, error: 'Badge not found' })
+
+    const targetUser = await User.findById(req.params.userId)
+    if (!targetUser) return res.status(404).json({ success: false, error: 'User not found' })
+
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin'
+    const isSelf = req.user._id.toString() === req.params.userId.toString()
+
+    if (!isAdmin && !isSelf) {
+      return res.status(403).json({ success: false, error: 'Not authorized to award this badge' })
+    }
+
+    if (!targetUser.badges) targetUser.badges = []
+    if (!targetUser.badges.includes(badgeId)) {
+      targetUser.badges.push(badgeId)
+      await targetUser.save()
+    }
+
+    res.json({ success: true, data: targetUser })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
 
 // ── GET /api/profile/:id ──────────────────────────────────────────────────
 // Public profile view — id is user _id
@@ -76,8 +534,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
       coverPhoto: user.profile?.coverPhoto || '',
       socialLinks: user.profile?.socialLinks || {},
       profileVisibility: user.profile?.profileVisibility || 'public',
-      followers: user.followers?.length || 0,
-      following: user.following?.length || 0,
+      friends: user.friends?.length || 0,
       badges: user.badges || [],
       collegeEmail: user.collegeEmail || '',
       personalEmail: user.personalEmail || '',
@@ -86,8 +543,36 @@ router.get('/:id', optionalAuth, async (req, res) => {
       forumPosts: postCount,
       resourcesUploaded: resourceCount,
       isOwn,
-      isFollowing: viewer ? user.followers?.some(id => id.toString() === viewer._id.toString()) : false,
-      followsMe: viewer ? user.following?.some(id => id.toString() === viewer._id.toString()) : false,
+    }
+
+    if (viewer) {
+      const viewerIdStr = viewer._id.toString()
+      const isFriend = (user.friends || []).some(id => id.toString() === viewerIdStr)
+      if (isFriend) {
+        profile.friendStatus = 'friends'
+      } else {
+        const pending = await FriendRequest.findOne({
+          sender: viewer._id,
+          recipient: user._id,
+          status: 'pending',
+        })
+        if (pending) {
+          profile.friendStatus = 'pending_sent'
+        } else {
+          const pendingReceived = await FriendRequest.findOne({
+            sender: user._id,
+            recipient: viewer._id,
+            status: 'pending',
+          })
+          if (pendingReceived) {
+            profile.friendStatus = 'pending_received'
+          } else {
+            profile.friendStatus = 'none'
+          }
+        }
+      }
+    } else {
+      profile.friendStatus = 'none'
     }
 
     // Apply privacy
@@ -102,7 +587,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
         profile.personalEmail = ''
         profile.phone = ''
       } else if (visibility === 'friends') {
-        const isFriend = viewer && user.followers?.some(id => id.toString() === viewer._id.toString())
+        const isFriend = viewer && (user.friends || []).some(id => id.toString() === viewer._id.toString())
         if (!isFriend) {
           profile.bio = profile.bio.slice(0, 100) + (profile.bio.length > 100 ? '…' : '')
           profile.skills = []
@@ -209,393 +694,6 @@ router.post('/me/photo', protect, upload.single('photo'), async (req, res) => {
     await createActivity(req.user._id, 'profile_updated', 'Updated profile photo', '', `/profile/${user._id}`)
 
     res.json({ success: true, data: { photo: result.url } })
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
-  }
-})
-
-// ── GET /api/profile/me/completeness ──────────────────────────────────────
-router.get('/me/completeness', protect, async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id)
-    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
-
-    const { percentage, missing } = computeCompleteness(user)
-    res.json({ success: true, data: { percentage, missing } })
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
-  }
-})
-
-const QRCode = require('qrcode')
-
-// ── GET /api/profile/me/uploads ──────────────────────────────────────────
-// Returns the authenticated user's uploads across Gallery, Achievements,
-// Projects with status (pending / approved / rejected) and rejection reason.
-router.get('/me/uploads', protect, async (req, res) => {
-  try {
-    const userId = req.user._id
-
-    const [gallery, achievements, projects] = await Promise.all([
-      Gallery.find({ uploadedBy: userId }).sort({ createdAt: -1 }),
-      Achievement.find({ author: userId }).sort({ createdAt: -1 }),
-      Project.find({ author: userId }).sort({ createdAt: -1 }),
-    ])
-
-    const mapStatus = (item) => {
-      if (item.isApproved) return 'approved'
-      if (item.rejectionReason) return 'rejected'
-      return 'pending'
-    }
-
-    const galleryItems = gallery.map((g) => ({
-      _id: g._id,
-      kind: 'gallery',
-      title: g.title,
-      category: g.category,
-      createdAt: g.createdAt,
-      updatedAt: g.updatedAt,
-      date: g.date,
-      status: mapStatus(g),
-      isApproved: g.isApproved,
-      approvedBy: g.approvedBy,
-      approvedAt: g.approvedAt,
-      rejectionReason: g.rejectionReason || '',
-      thumb: g.imageUrl || '',
-      meta: {},
-    }))
-
-    const achievementItems = achievements.map((a) => ({
-      _id: a._id,
-      kind: 'achievement',
-      title: a.title,
-      category: a.category,
-      createdAt: a.createdAt,
-      updatedAt: a.updatedAt,
-      date: a.date,
-      status: mapStatus(a),
-      isApproved: a.isApproved,
-      approvedBy: a.approvedBy,
-      approvedAt: a.approvedAt,
-      rejectionReason: a.rejectionReason || '',
-      thumb: a.image || '',
-      meta: { description: a.description },
-    }))
-
-    const projectItems = projects.map((p) => ({
-      _id: p._id,
-      kind: 'project',
-      title: p.title,
-      category: 'project',
-      createdAt: p.createdAt,
-      updatedAt: p.updatedAt,
-      date: p.createdAt,
-      status: mapStatus(p),
-      isApproved: p.isApproved,
-      approvedBy: p.approvedBy,
-      approvedAt: p.approvedAt,
-      rejectionReason: p.rejectionReason || '',
-      thumb: p.thumbnail || (p.images && p.images[0]) || '',
-      meta: { techStack: p.techStack || [] },
-    }))
-
-    const all = [...galleryItems, ...achievementItems, ...projectItems].sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-    )
-
-    const summary = {
-      total: all.length,
-      pending: all.filter((i) => i.status === 'pending').length,
-      approved: all.filter((i) => i.status === 'approved').length,
-      rejected: all.filter((i) => i.status === 'rejected').length,
-    }
-
-    res.json({ success: true, data: all, summary })
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
-  }
-})
-
-// ── GET /api/profile/search ───────────────────────────────────────────────
-// Enhanced search with filters, pagination, and fuzzy matching
-// Query: q, department, semester, batch, role, page, limit
-router.get('/search', optionalAuth, async (req, res) => {
-  try {
-    const { q, department, semester, batch, role, page = 1, limit = 20 } = req.query
-    const query = {
-      isActive: true,
-    }
-
-    if (q && q.trim().length >= 1) {
-      const regex = new RegExp(q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
-      query.$or = [
-        { name: regex },
-        { rollNumber: regex },
-        { regNumber: regex },
-        { email: regex },
-        { collegeEmail: regex },
-        { 'profile.department': regex },
-        { 'profile.skills': { $in: [regex] } },
-        { 'profile.interests': { $in: [regex] } },
-      ]
-    }
-
-    if (department) {
-      query['profile.department'] = new RegExp(department, 'i')
-    }
-
-    if (semester) {
-      query.semester = Number(semester)
-    }
-
-    if (batch) {
-      query.batch = new RegExp(batch, 'i')
-    }
-
-    if (role && ['student', 'cr', 'faculty'].includes(role)) {
-      query.role = role
-    } else {
-      query.role = { $in: ['student', 'cr', 'faculty'] }
-    }
-
-    const skip = (Number(page) - 1) * Number(limit)
-    const [users, total] = await Promise.all([
-      User.find(query)
-        .select('name rollNumber batch semester role photo email profile.department profile.skills profile.socialLinks profile.interests followers following')
-        .sort({ name: 1 })
-        .skip(skip)
-        .limit(Number(limit)),
-      User.countDocuments(query),
-    ])
-
-    const viewerId = req.user?._id
-    const formatted = users.map(u => ({
-      _id: u._id,
-      name: u.name,
-      rollNumber: u.rollNumber,
-      email: u.email,
-      batch: u.batch,
-      semester: u.semester,
-      role: u.role,
-      photo: u.photo,
-      department: u.profile?.department || '',
-      skills: u.profile?.skills || [],
-      interests: u.profile?.interests || [],
-      socialLinks: u.profile?.socialLinks || {},
-      followers: u.followers?.length || 0,
-      following: u.following?.length || 0,
-      isFollowing: viewerId ? u.followers?.some(id => id.toString() === viewerId.toString()) : false,
-      followsMe: viewerId ? u.following?.some(id => id.toString() === viewerId.toString()) : false,
-    }))
-
-    res.json({
-      success: true,
-      data: formatted,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total,
-        totalPages: Math.ceil(total / Number(limit)),
-      },
-    })
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
-  }
-})
-
-// ── GET /api/profile/:id/qr ──────────────────────────────────────────────
-// Generate QR code for a user profile
-router.get('/:id/qr', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id).select('name rollNumber batch semester role photo profile.department')
-    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
-
-    const profileUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/profile/${user._id}`
-
-    const qrDataUrl = await QRCode.toDataURL(profileUrl, {
-      width: 400,
-      margin: 2,
-      color: {
-        dark: '#111827',
-        light: '#ffffff',
-      },
-    })
-
-    res.json({
-      success: true,
-      data: {
-        qrCode: qrDataUrl,
-        profileUrl,
-        user: {
-          _id: user._id,
-          name: user.name,
-          rollNumber: user.rollNumber,
-          batch: user.batch,
-          semester: user.semester,
-          role: user.role,
-          photo: user.photo,
-          department: user.profile?.department || '',
-        },
-      },
-    })
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
-  }
-})
-
-// ── POST /api/profile/:id/follow ──────────────────────────────────────────
-router.post('/:id/follow', protect, async (req, res) => {
-  try {
-    const targetId = req.params.id
-    const currentUserId = req.user._id
-
-    if (targetId.toString() === currentUserId.toString()) {
-      return res.status(400).json({ success: false, error: 'You cannot follow yourself' })
-    }
-
-    const targetUser = await User.findById(targetId)
-    if (!targetUser) return res.status(404).json({ success: false, error: 'User not found' })
-
-    const currentUser = await User.findById(currentUserId)
-    const isFollowing = currentUser.following?.some(id => id.toString() === targetId)
-
-    if (isFollowing) {
-      currentUser.following = currentUser.following.filter(id => id.toString() !== targetId)
-      targetUser.followers = targetUser.followers.filter(id => id.toString() !== currentUserId.toString())
-    } else {
-      currentUser.following = [...(currentUser.following || []), targetId]
-      targetUser.followers = [...(targetUser.followers || []), currentUserId]
-    }
-
-    await currentUser.save()
-    await targetUser.save()
-
-    // Create notification for the follow action
-    if (!isFollowing) {
-      const io = req.app.get('io')
-      const actorName = currentUser.name || 'Someone'
-      await createNotification({
-        recipient: targetId,
-        actor: currentUserId,
-        type: 'follow',
-        title: `${actorName} started following you`,
-        message: '',
-        link: `/profile/${currentUserId}`,
-        entityId: currentUserId,
-        entityType: 'User',
-        io,
-      })
-
-      // Check if it's a follow-back (mutual)
-      const targetFollowsCurrent = targetUser.following?.some(
-        (id) => id.toString() === currentUserId.toString()
-      )
-      if (targetFollowsCurrent) {
-        await createNotification({
-          recipient: currentUserId,
-          actor: targetId,
-          type: 'follow_back',
-          title: `${targetUser.name || 'Someone'} followed you back`,
-          message: 'You are now following each other',
-          link: `/profile/${targetId}`,
-          entityId: targetId,
-          entityType: 'User',
-          io,
-        })
-      }
-    }
-
-    res.json({
-      success: true,
-      data: {
-        isFollowing: !isFollowing,
-        followers: targetUser.followers.length,
-        following: currentUser.following.length,
-      },
-    })
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
-  }
-})
-
-// ── GET /api/profile/:id/followers ────────────────────────────────────────
-router.get('/:id/followers', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id)
-    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
-
-    const followers = await User.find({ _id: { $in: user.followers || [] } })
-      .select('name rollNumber batch role photo profile.department')
-      .limit(50)
-
-    res.json({ success: true, data: followers })
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
-  }
-})
-
-// ── GET /api/profile/:id/following ────────────────────────────────────────
-router.get('/:id/following', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id)
-    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
-
-    const following = await User.find({ _id: { $in: user.following || [] } })
-      .select('name rollNumber batch role photo profile.department')
-      .limit(50)
-
-    res.json({ success: true, data: following })
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
-  }
-})
-
-// ── GET /api/profile/badges ───────────────────────────────────────────────
-router.get('/badges', async (req, res) => {
-  try {
-    const badges = await Badge.find().sort({ createdAt: -1 })
-    res.json({ success: true, data: badges })
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
-  }
-})
-
-// ── POST /api/profile/badges (admin) ──────────────────────────────────────
-router.post('/badges', protect, guard('super_admin', 'admin'), async (req, res) => {
-  try {
-    const badge = await Badge.create(req.body)
-    res.status(201).json({ success: true, data: badge })
-  } catch (err) {
-    res.status(400).json({ success: false, error: err.message })
-  }
-})
-
-// ── POST /api/profile/:userId/badges ──────────────────────────────────────
-router.post('/:userId/badges', protect, async (req, res) => {
-  try {
-    const { badgeId } = req.body
-    if (!badgeId) return res.status(400).json({ success: false, error: 'badgeId required' })
-
-    const badge = await Badge.findById(badgeId)
-    if (!badge) return res.status(404).json({ success: false, error: 'Badge not found' })
-
-    const targetUser = await User.findById(req.params.userId)
-    if (!targetUser) return res.status(404).json({ success: false, error: 'User not found' })
-
-    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin'
-    const isSelf = req.user._id.toString() === req.params.userId.toString()
-
-    if (!isAdmin && !isSelf) {
-      return res.status(403).json({ success: false, error: 'Not authorized to award this badge' })
-    }
-
-    if (!targetUser.badges) targetUser.badges = []
-    if (!targetUser.badges.includes(badgeId)) {
-      targetUser.badges.push(badgeId)
-      await targetUser.save()
-    }
-
-    res.json({ success: true, data: targetUser })
   } catch (err) {
     res.status(500).json({ success: false, error: err.message })
   }

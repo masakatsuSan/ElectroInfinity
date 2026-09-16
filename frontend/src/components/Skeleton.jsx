@@ -82,7 +82,7 @@ function SkeletonRow({ className = '' }) {
 
 function SkeletonRowList({ count = 6, className = '' }) {
   return (
-    <div className={cn('border border-hairline bg-white rounded-2xl overflow-hidden shadow-card divide-y divide-hairline', className)}>
+    <div className={cn('border border-hairline bg-white rounded-2xl overflow-hidden shadow-sm divide-y divide-hairline', className)}>
       {Array.from({ length: count }).map((_, i) => (
         <SkeletonRow key={i} />
       ))}
@@ -132,7 +132,7 @@ function SkeletonFaculty({ className = '' }) {
 
 function SkeletonFacultyList({ count = 4, className = '' }) {
   return (
-    <div className={cn('border border-hairline bg-white rounded-2xl overflow-hidden shadow-card divide-y divide-hairline', className)}>
+    <div className={cn('border border-hairline bg-white rounded-2xl overflow-hidden shadow-sm divide-y divide-hairline', className)}>
       {Array.from({ length: count }).map((_, i) => (
         <SkeletonFaculty key={i} />
       ))}
@@ -213,7 +213,7 @@ function SkeletonImageGrid({ count = 6, className = '' }) {
 
 function SkeletonTable({ rows = 5, cols = 5, className = '' }) {
   return (
-    <div className={cn('border border-hairline bg-white rounded-2xl overflow-hidden shadow-card', className)}>
+    <div className={cn('border border-hairline bg-white rounded-2xl overflow-hidden shadow-sm', className)}>
       <div className="p-4 border-b border-hairline flex gap-4">
         {Array.from({ length: cols }).map((_, i) => (
           <Skeleton key={i} className="h-4 flex-1" />
@@ -232,7 +232,7 @@ function SkeletonTable({ rows = 5, cols = 5, className = '' }) {
 
 function SkeletonDashboard({ className = '' }) {
   return (
-    <div className={cn('min-h-screen bg-canvas text-ink pt-28 pb-24', className)}>
+    <div className={cn('min-h-screen bg-white text-ink pt-28 pb-24', className)}>
       <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
         <div className="mb-8">
           <SkeletonTitle width="w-40" className="mb-2" />
@@ -266,7 +266,7 @@ function SkeletonLab({ className = '' }) {
 
 function SkeletonLabList({ count = 3, className = '' }) {
   return (
-    <div className={cn('border border-hairline bg-white rounded-2xl overflow-hidden shadow-card divide-y divide-hairline', className)}>
+    <div className={cn('border border-hairline bg-white rounded-2xl overflow-hidden shadow-sm divide-y divide-hairline', className)}>
       {Array.from({ length: count }).map((_, i) => (
         <SkeletonLab key={i} />
       ))}
@@ -308,7 +308,7 @@ function SkeletonBatchMates({ count = 4, className = '' }) {
 
 function SkeletonCalendar({ className = '' }) {
   return (
-    <div className={cn('bg-white border border-hairline rounded-2xl overflow-hidden shadow-card', className)}>
+    <div className={cn('bg-white border border-hairline rounded-2xl overflow-hidden shadow-sm', className)}>
       <div className="p-6 border-b border-hairline">
         <div className="flex items-center justify-between mb-4">
           <Skeleton className="h-6 w-32" />

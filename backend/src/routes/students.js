@@ -19,7 +19,7 @@ router.get('/batch/:batch', protect, async (req, res) => {
     }
 
     const students = await User.find({ batch: req.params.batch, role: { $in: ['student', 'cr'] } })
-      .select('name rollNumber email batch semester role photo profile.socialLinks followers following')
+      .select('name rollNumber email batch semester role photo profile.socialLinks friends')
       .sort({ rollNumber: 1 })
 
     const viewerId = req.user._id
@@ -27,8 +27,7 @@ router.get('/batch/:batch', protect, async (req, res) => {
       const obj = s.toObject()
       return {
         ...obj,
-        isFollowing: s.followers?.some(id => id.toString() === viewerId.toString()),
-        followsMe: s.following?.some(id => id.toString() === viewerId.toString()),
+        friendStatus: (s.friends || []).some(id => id.toString() === viewerId.toString()) ? 'friends' : 'none',
       }
     })
 
@@ -60,14 +59,13 @@ router.get('/all', protect, async (req, res) => {
     }
 
     const students = await User.find(filter)
-      .select('name rollNumber email batch semester role photo profile.socialLinks followers following')
+      .select('name rollNumber email batch semester role photo profile.socialLinks friends')
       .sort({ batch: -1, rollNumber: 1 })
 
     const viewerId = req.user._id
     const formatted = students.map(s => ({
       ...s.toObject(),
-      isFollowing: s.followers?.some(id => id.toString() === viewerId.toString()),
-      followsMe: s.following?.some(id => id.toString() === viewerId.toString()),
+      friendStatus: (s.friends || []).some(id => id.toString() === viewerId.toString()) ? 'friends' : 'none',
     }))
 
     res.json({ success: true, count: formatted.length, data: formatted })

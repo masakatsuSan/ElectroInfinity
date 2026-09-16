@@ -103,7 +103,7 @@ export default function AdminAchievements() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <h1 className="font-display font-semibold text-[28px] tracking-tight text-ink">Achievements</h1>
+        <h1 className="font-[Inter,system-ui,sans-serif] font-semibold text-[28px] tracking-tight text-ink">Achievements</h1>
         <button onClick={() => setShowForm(v => !v)} className="button-primary !px-5 !py-2.5">
           {showForm && !editing ? 'Cancel' : (editing ? 'Edit Form' : '+ New Achievement')}
         </button>
@@ -111,35 +111,35 @@ export default function AdminAchievements() {
 
       {showForm && (
         <div className="border border-divider-soft bg-white p-6 mb-8 rounded-xl shadow-sm">
-          <h2 className="font-display font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Achievement' : 'Add Achievement'}</h2>
+          <h2 className="font-[Inter,system-ui,sans-serif] font-semibold text-[18px] text-ink mb-6">{editing ? 'Edit Achievement' : 'Add Achievement'}</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <div className="sm:col-span-2">
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Title *</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Title *</label>
               <input value={form.title} onChange={set('title')} className="input w-full" placeholder="e.g. National Robotics Championship Winner" />
             </div>
             <div className="sm:col-span-2">
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Description</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Description</label>
               <textarea rows={3} value={form.description} onChange={set('description')} className="input w-full resize-none"
                 placeholder="Describe the achievement..." />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Date</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Date</label>
               <input type="datetime-local" value={form.date} onChange={set('date')} className="input w-full" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Category</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Category</label>
               <select value={form.category} onChange={set('category')} className="input w-full">
                 {CATS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Students (comma separated)</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Students (comma separated)</label>
               <input value={form.students} onChange={set('students')} className="input w-full" placeholder="e.g. John Doe, Jane Smith" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Image</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Image</label>
               <input type="file" accept="image/*" onChange={handleFileChange}
-                className="mt-1 font-sans text-[14px] text-ink-muted-80 file:mr-4 file:bg-canvas-parchment file:text-ink file:border file:border-divider-soft file:rounded-lg file:px-4 file:py-2 file:cursor-pointer" />
+                className="mt-1 font-[Inter,system-ui,sans-serif] text-[14px] text-ink-muted-80 file:mr-4 file:bg-[#fff]-parchment file:text-ink file:border file:border-divider-soft file:rounded-lg file:px-4 file:py-2 file:cursor-pointer" />
               {preview && (
                 <div className="mt-3 relative inline-block">
                   <img src={preview} alt="Preview" className="h-32 w-auto rounded-lg border border-divider-soft object-cover" />
@@ -153,23 +153,23 @@ export default function AdminAchievements() {
                 </div>
               )}
               {editing && !file && preview && (
-                <p className="font-sans text-[12px] text-ink-muted-80 mt-2">Existing image retained — upload a new file to replace.</p>
+                <p className="font-[Inter,system-ui,sans-serif] text-[12px] text-ink-muted-80 mt-2">Existing image retained — upload a new file to replace.</p>
               )}
             </div>
           </div>
-          {error && <p className="font-sans text-red-500 text-[14px] font-medium mt-4">{error}</p>}
+          {error && <p className="font-[Inter,system-ui,sans-serif] text-red-500 text-[14px] font-medium mt-4">{error}</p>}
           <button onClick={handleSave} disabled={saveMut.isPending || !form.title} className="button-primary mt-6">
             {saveMut.isPending ? 'Saving…' : (editing ? 'Update Achievement' : 'Add Achievement')}
           </button>
         </div>
       )}
 
-      {isLoading ? <p className="font-sans text-ink-muted-80 text-[15px]">Loading achievements…</p>
-        : achievements.length === 0 ? <p className="font-sans text-ink-muted-80 text-[15px]">No achievements yet. Add one above.</p>
+      {isLoading ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">Loading achievements…</p>
+        : achievements.length === 0 ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">No achievements yet. Add one above.</p>
         : (
           <div className="border border-divider-soft bg-white rounded-xl overflow-hidden shadow-sm divide-y divide-hairline">
             {achievements.map(a => (
-              <div key={a._id} className="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 hover:bg-canvas-parchment transition-colors">
+              <div key={a._id} className="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 hover:bg-[#fff]-parchment transition-colors">
                 {a.image ? (
                   <img src={a.image} alt={a.title} className="w-16 h-16 rounded-lg object-cover border border-hairline flex-shrink-0" />
                 ) : (
@@ -177,18 +177,18 @@ export default function AdminAchievements() {
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-[16px] font-semibold text-ink">{a.title}</p>
-                  <p className="font-sans text-[13px] text-ink-muted-80 mt-1 line-clamp-2">{a.description}</p>
+                  <p className="font-[Inter,system-ui,sans-serif] text-[13px] text-ink-muted-80 mt-1 line-clamp-2">{a.description}</p>
                   <div className="flex items-center gap-3 mt-2">
-                    <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate">{CAT_LABELS[a.category] || a.category}</span>
+                    <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-slate">{CAT_LABELS[a.category] || a.category}</span>
                     {a.date && (
                       <span className="font-mono text-[11px] text-ink-muted-80">{new Date(a.date).toLocaleDateString()}</span>
                     )}
                   </div>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
-                  <button onClick={() => openEdit(a)} className="font-sans text-[13px] font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors px-3 py-1.5 rounded-md">Edit</button>
+                  <button onClick={() => openEdit(a)} className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors px-3 py-1.5 rounded-md">Edit</button>
                   <button onClick={() => { if (window.confirm(`Remove ${a.title}?`)) deleteMut.mutate(a._id) }}
-                    className="font-sans text-[13px] font-medium text-red-500/70 hover:text-red-500 transition-colors bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-md">Delete</button>
+                    className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-red-500/70 hover:text-red-500 transition-colors bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-md">Delete</button>
                 </div>
               </div>
             ))}

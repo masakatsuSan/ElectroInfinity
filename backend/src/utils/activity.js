@@ -8,7 +8,8 @@ async function createActivity(userId, type, title, description = '', link = '', 
       forum_post: 'message-square',
       badge_earned: 'award',
       achievement_completed: 'trophy',
-      profile_updated: 'user',
+       profile_updated: 'user',
+       profile_view: 'eye',
     }
 
     await Activity.create({
@@ -33,6 +34,7 @@ function getDefaultTitle(type) {
     badge_earned: 'Earned a badge',
     achievement_completed: 'Completed an achievement',
     profile_updated: 'Updated profile',
+    profile_view: 'Viewed your profile',
   }
   return titles[type] || 'New activity'
 }

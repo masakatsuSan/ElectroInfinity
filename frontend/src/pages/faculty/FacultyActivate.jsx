@@ -116,15 +116,15 @@ export default function FacultyActivate() {
   if (user) return null
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-canvas text-ink py-28">
-      <div className="w-full max-w-md bg-white border border-hairline rounded-2xl p-8 sm:p-10 shadow-card">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-[#ffffff] text-ink py-28">
+      <div className="w-full max-w-md bg-canvas border-hairline rounded-[12px] p-8 sm:p-10 shadow-card">
 
         {/* Step indicator */}
         <div className="flex items-center gap-3 mb-8 justify-center">
           {[1, 2, 3].map((s, i) => (
             <div key={s} className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-mono text-[12px] font-bold transition-colors ${
-                step > s ? 'bg-deep-green text-white' : step === s ? 'bg-primary text-white' : 'border border-hairline text-slate'
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-mono text-[12px] font-medium transition-colors ${
+                step > s ? 'bg-deep-green text-white' : step === s ? 'bg-primary text-white' : 'border border-[#dddddd] text-muted'
               }`}>
                 {step > s ? '✓' : s}
               </div>
@@ -137,20 +137,20 @@ export default function FacultyActivate() {
         {step === 1 && (
           <>
             <div className="text-center mb-8">
-              <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
+              <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-medium block mb-2">
                 New Faculty Activation
               </span>
-              <h1 className="font-display font-bold text-[30px] tracking-tight text-ink mb-2">
+              <h1 className="font-[Haas,Inter,system-ui,sans-serif] font-medium text-[30px] tracking-tight text-ink mb-2">
                 Verify Email
               </h1>
-              <p className="font-sans text-[14px] text-body-muted">
+              <p className="font-sans text-[14px] text-muted">
                 Enter your institutional email to receive a verification OTP.
               </p>
             </div>
 
             <form onSubmit={handleCheckEmail} className="flex flex-col gap-5">
               <div>
-                <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1.5 block">
+                <label className="font-mono text-[12px] uppercase tracking-wider font-medium text-muted mb-1.5 block">
                   Institutional Email
                 </label>
                 <input
@@ -177,23 +177,23 @@ export default function FacultyActivate() {
         {step === 2 && (
           <>
             <div className="text-center mb-6">
-              <span className="font-mono text-[12px] uppercase tracking-wider text-deep-green font-semibold block mb-1">
+              <span className="font-mono text-[12px] uppercase tracking-wider text-deep-green font-medium block mb-1">
                 Email Verified
               </span>
-              <h1 className="font-display font-bold text-[28px] tracking-tight text-ink">
+              <h1 className="font-[Haas,Inter,system-ui,sans-serif] font-medium text-[28px] tracking-tight text-ink">
                 Enter OTP
               </h1>
             </div>
 
-            <div className="bg-soft-stone border border-hairline rounded-xl p-4 mb-6 text-center">
-              <p className="font-sans text-[13px] text-body-muted">OTP sent to</p>
-              <p className="font-mono text-[15px] font-semibold text-ink mt-0.5">{maskedEmail}</p>
-              <p className="font-sans text-[11px] text-slate mt-2">Check Spam if not in inbox · Valid for 10 min</p>
+            <div className="bg-surface-soft border-hairline rounded-xl p-4 mb-6 text-center">
+              <p className="font-sans text-[13px] text-muted">OTP sent to</p>
+              <p className="font-mono text-[15px] font-medium text-ink mt-0.5">{maskedEmail}</p>
+              <p className="font-sans text-[11px] text-muted mt-2">Check Spam if not in inbox · Valid for 10 min</p>
             </div>
 
             <form onSubmit={handleVerifyOtp} className="flex flex-col gap-5">
               <div>
-                <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1.5 block">
+                <label className="font-mono text-[12px] uppercase tracking-wider font-medium text-muted mb-1.5 block">
                   Enter 6-Digit OTP
                 </label>
                 <input
@@ -209,7 +209,7 @@ export default function FacultyActivate() {
 
               {error && (
                 <p className={`text-[13px] font-medium text-center rounded-xl px-4 py-3 border ${
-                  resendSuccess ? 'text-deep-green bg-pale-green border-green-200' : 'text-error bg-red-50 border-red-200'
+                  resendSuccess ? 'text-deep-green bg-pale-green border-green-200' : 'text-error bg-red-500/5 border-red-500/20'
                 }`}>
                   {resendSuccess ? <><Check size={14} /> {error}</> : error}
                 </p>
@@ -220,10 +220,10 @@ export default function FacultyActivate() {
               </button>
 
               <div className="flex justify-between items-center text-[13px] font-sans pt-2">
-                <button type="button" onClick={() => { setStep(1); setResendSuccess(false); setError('') }} className="text-body-muted hover:text-ink">
+                <button type="button" onClick={() => { setStep(1); setResendSuccess(false); setError('') }} className="text-muted hover:text-ink">
                   ← Wrong email?
                 </button>
-                <button type="button" onClick={handleResend} disabled={resending} className="text-action-blue font-semibold hover:underline">
+                <button type="button" onClick={handleResend} disabled={resending} className="text-action-blue font-medium hover:underline">
                   {resending ? 'Sending…' : 'Resend OTP'}
                 </button>
               </div>
@@ -235,25 +235,25 @@ export default function FacultyActivate() {
         {step === 3 && (
           <>
             <div className="text-center mb-6">
-              <span className="font-mono text-[12px] uppercase tracking-wider text-deep-green font-semibold block mb-1">
+              <span className="font-mono text-[12px] uppercase tracking-wider text-deep-green font-medium block mb-1">
                 Identity Confirmed
               </span>
-              <h1 className="font-display font-bold text-[28px] tracking-tight text-ink">
+              <h1 className="font-[Haas,Inter,system-ui,sans-serif] font-medium text-[28px] tracking-tight text-ink">
                 Set Your Password
               </h1>
             </div>
 
             {/* Confirm identity card */}
-            <div className="bg-soft-stone border border-hairline rounded-xl p-4 mb-6 text-center">
-              <p className="font-sans text-[16px] font-bold text-ink">{name}</p>
-              <p className="font-mono text-[12px] text-slate mt-0.5 uppercase tracking-wider">
+            <div className="bg-surface-soft border-hairline rounded-xl p-4 mb-6 text-center">
+              <p className="font-sans text-[16px] font-medium text-ink">{name}</p>
+              <p className="font-mono text-[12px] text-muted mt-0.5 uppercase tracking-wider">
                 {email}
               </p>
             </div>
 
             <form onSubmit={handleActivate} className="flex flex-col gap-4">
               <div>
-                <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1.5 block">
+                <label className="font-mono text-[12px] uppercase tracking-wider font-medium text-muted mb-1.5 block">
                   Create Password (min. 6 chars)
                 </label>
                 <input
@@ -268,7 +268,7 @@ export default function FacultyActivate() {
               </div>
 
               <div>
-                <label className="font-mono text-[12px] uppercase tracking-wider font-semibold text-slate mb-1.5 block">
+                <label className="font-mono text-[12px] uppercase tracking-wider font-medium text-muted mb-1.5 block">
                   Confirm Password
                 </label>
                 <input
@@ -290,7 +290,7 @@ export default function FacultyActivate() {
               <button
                 type="button"
                 onClick={() => { setStep(1); setError('') }}
-                className="font-sans text-[13px] text-body-muted hover:text-ink text-center mt-1"
+                className="font-sans text-[13px] text-muted hover:text-ink text-center mt-1"
               >
                 ← Back (change email)
               </button>
@@ -298,8 +298,8 @@ export default function FacultyActivate() {
           </>
         )}
 
-        <div className="mt-8 pt-4 border-t border-hairline text-center text-[13px] font-sans">
-          <Link to="/faculty/login" className="text-action-blue hover:underline font-semibold">
+        <div className="mt-8 pt-4 border-t border-[#dddddd] text-center text-[13px] font-sans">
+          <Link to="/faculty/login" className="text-action-blue hover:underline font-medium">
             Already activated? Sign in
           </Link>
         </div>

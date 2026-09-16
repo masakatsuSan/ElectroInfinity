@@ -166,7 +166,7 @@ export default function EditProfile() {
   ]
 
   return (
-    <div className="min-h-screen bg-canvas pt-28 pb-20">
+    <div className="min-h-screen bg-[#ffffff] pt-28 pb-20">
       <div className="max-w-[1280px] mx-auto px-4 md:px-12">
         {/* Profile Preview */}
         <div className="mb-8">
@@ -176,9 +176,8 @@ export default function EditProfile() {
               _id: user?._id,
               photo: photoPreview,
               coverPhoto: coverPreview,
-              followers: 0,
-              following: 0,
-              isFollowing: false,
+              friends: 0,
+              friendStatus: 'none',
             }}
             isOwn={true}
             onUpdate={() => {}}
@@ -186,15 +185,15 @@ export default function EditProfile() {
         </div>
 
          {/* Tabs */}
-         <div className="flex gap-2 mb-8 overflow-x-auto p-1 bg-white border border-divider-soft rounded-[999px] w-max max-w-full">
+         <div className="flex gap-2 mb-8 overflow-x-auto p-1 bg-white border border-divider-soft rounded-md w-max max-w-full">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`font-sans text-[13px] font-bold uppercase tracking-[0.04em] px-5 py-2.5 rounded-[999px] transition-all whitespace-nowrap ${
+              className={`font-sans text-[13px] font-medium uppercase tracking-[0.04em] px-5 py-2.5 rounded-md transition-all whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'bg-ink text-canvas shadow-sm'
-                  : 'text-[#696969] bg-transparent hover:text-ink hover:bg-canvas-parchment'
+                  : 'text-[#696969] bg-transparent hover:text-ink hover:bg-[#f8fafc]'
               }`}
             >
               {tab.label}
@@ -206,27 +205,27 @@ export default function EditProfile() {
         <div className="grid gap-6 md:grid-cols-3">
           <div className="md:col-span-2 space-y-6">
             {activeTab === 'general' && (
-              <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-2xl shadow-sm space-y-6">
-                <h2 className="font-display text-[22px] font-bold text-ink">General Information</h2>
+              <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-[10px] shadow-sm space-y-6">
+                <h2 className="font-sans text-[22px] font-medium text-ink">General Information</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Full Name *</label>
+                    <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">Full Name *</label>
                     <input value={form.name} onChange={(e) => handleChange('name', e.target.value)} className="input" />
                   </div>
                   <div>
-                    <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Roll Number</label>
+                    <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">Roll Number</label>
                     <input value={form.rollNumber} onChange={(e) => handleChange('rollNumber', e.target.value)} className="input" />
                   </div>
                   <div>
-                    <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Batch</label>
+                    <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">Batch</label>
                     <input value={form.batch} onChange={(e) => handleChange('batch', e.target.value)} className="input" />
                   </div>
                   <div>
-                    <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Section</label>
+                    <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">Section</label>
                     <input value={form.section} onChange={(e) => handleChange('section', e.target.value)} className="input" />
                   </div>
                   <div>
-                    <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Semester</label>
+                    <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">Semester</label>
                     <input type="number" value={form.semester} onChange={(e) => handleChange('semester', e.target.value)} className="input" />
                   </div>
                 </div>
@@ -234,26 +233,26 @@ export default function EditProfile() {
                 {/* Cover & Photo Upload */}
                 <div className="grid gap-4 sm:grid-cols-2 pt-4 border-t border-divider-soft">
                   <div>
-                    <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Cover Photo</label>
+                    <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">Cover Photo</label>
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => coverRef.current?.click()}
-                        className="inline-flex items-center gap-2 px-4 py-2 border border-divider-soft rounded-xl text-[13px] font-semibold hover:bg-soft-stone/50 transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2 border border-divider-soft rounded-md text-[13px] font-medium hover:bg-soft-stone/50 transition-colors"
                       >
                         <Camera size={14} /> Change Cover
                       </button>
                       {coverPreview && (
-                        <img src={coverPreview} alt="Cover preview" className="h-10 w-24 object-cover rounded-lg" />
+                        <img src={coverPreview} alt="Cover preview" className="h-10 w-24 object-cover rounded-md" />
                       )}
                     </div>
                     <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
                   </div>
                   <div>
-                    <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Profile Photo</label>
+                    <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">Profile Photo</label>
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => photoRef.current?.click()}
-                        className="inline-flex items-center gap-2 px-4 py-2 border border-divider-soft rounded-xl text-[13px] font-semibold hover:bg-soft-stone/50 transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2 border border-divider-soft rounded-md text-[13px] font-medium hover:bg-soft-stone/50 transition-colors"
                       >
                         <Camera size={14} /> Change Photo
                       </button>
@@ -268,10 +267,10 @@ export default function EditProfile() {
             )}
 
             {activeTab === 'about' && (
-              <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-2xl shadow-sm space-y-6">
-                <h2 className="font-display text-[22px] font-bold text-ink">About</h2>
+              <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-[10px] shadow-sm space-y-6">
+                <h2 className="font-sans text-[22px] font-medium text-ink">About</h2>
                 <div>
-                  <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Bio</label>
+                  <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">Bio</label>
                   <textarea
                     value={form.bio}
                     onChange={(e) => handleChange('bio', e.target.value)}
@@ -282,23 +281,23 @@ export default function EditProfile() {
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Department</label>
+                    <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">Department</label>
                     <input value={form.department} onChange={(e) => handleChange('department', e.target.value)} className="input" />
                   </div>
                   <div>
-                    <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Location</label>
+                    <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">Location</label>
                     <input value={form.location} onChange={(e) => handleChange('location', e.target.value)} className="input" />
                   </div>
                   <div>
-                    <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">College Email</label>
+                    <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">College Email</label>
                     <input value={form.collegeEmail} onChange={(e) => handleChange('collegeEmail', e.target.value)} className="input" />
                   </div>
                   <div>
-                    <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Personal Email</label>
+                    <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">Personal Email</label>
                     <input value={form.personalEmail} onChange={(e) => handleChange('personalEmail', e.target.value)} className="input" />
                   </div>
                   <div>
-                    <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Phone</label>
+                    <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">Phone</label>
                     <input value={form.phone} onChange={(e) => handleChange('phone', e.target.value)} className="input" />
                   </div>
                 </div>
@@ -306,10 +305,10 @@ export default function EditProfile() {
             )}
 
             {activeTab === 'skills' && (
-              <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-2xl shadow-sm space-y-6">
-                <h2 className="font-display text-[22px] font-bold text-ink">Skills, Interests & Languages</h2>
+              <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-[10px] shadow-sm space-y-6">
+                <h2 className="font-sans text-[22px] font-medium text-ink">Skills, Interests & Languages</h2>
                 <div>
-                  <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Skills</label>
+                  <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">Skills</label>
                   <input
                     value={form.skills}
                     onChange={(e) => handleChange('skills', e.target.value)}
@@ -319,7 +318,7 @@ export default function EditProfile() {
                   <p className="font-sans text-[11px] text-ink-muted-48 mt-1">Separate with commas</p>
                 </div>
                 <div>
-                  <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Interests</label>
+                  <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">Interests</label>
                   <input
                     value={form.interests}
                     onChange={(e) => handleChange('interests', e.target.value)}
@@ -328,7 +327,7 @@ export default function EditProfile() {
                   />
                 </div>
                 <div>
-                  <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Languages</label>
+                  <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">Languages</label>
                   <input
                     value={form.languages}
                     onChange={(e) => handleChange('languages', e.target.value)}
@@ -340,17 +339,17 @@ export default function EditProfile() {
             )}
 
             {activeTab === 'social' && (
-              <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-2xl shadow-sm space-y-6">
-                <h2 className="font-display text-[22px] font-bold text-ink">Social Links</h2>
+              <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-[10px] shadow-sm space-y-6">
+                <h2 className="font-sans text-[22px] font-medium text-ink">Social Links</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {socialPlatforms.map((platform) => (
                     <div key={platform.key}>
-                      <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">{platform.label}</label>
+                      <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-1.5">{platform.label}</label>
                       <input
                         value={form.socialLinks[platform.key] || ''}
                         onChange={(e) => handleSocialChange(platform.key, e.target.value)}
                         className="input"
-                        placeholder={`@${platform.key}`}
+                        placeholder={`https://${platform.key}.com/username`}
                       />
                     </div>
                   ))}
@@ -359,16 +358,16 @@ export default function EditProfile() {
             )}
 
             {activeTab === 'privacy' && (
-              <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-2xl shadow-sm space-y-6">
-                <h2 className="font-display text-[22px] font-bold text-ink">Privacy Settings</h2>
+              <div className="p-6 md:p-8 border border-divider-soft bg-white rounded-[10px] shadow-sm space-y-6">
+                <h2 className="font-sans text-[22px] font-medium text-ink">Privacy Settings</h2>
                 <div>
-                  <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-2">Profile Visibility</label>
+                  <label className="block font-sans text-[13px] font-medium text-ink-muted-80 mb-2">Profile Visibility</label>
                   <div className="flex flex-wrap gap-3">
                     {['public', 'friends', 'private'].map((option) => (
                       <button
                         key={option}
                         onClick={() => handleChange('profileVisibility', option)}
-                        className={`px-5 py-2.5 rounded-full text-[13px] font-semibold transition-colors ${
+                        className={`px-5 py-2.5 rounded-full text-[13px] font-medium transition-colors ${
                           form.profileVisibility === option
                             ? 'bg-ink text-canvas shadow-sm'
                             : 'bg-soft-stone text-ink hover:bg-soft-stone/80'
@@ -380,7 +379,7 @@ export default function EditProfile() {
                   </div>
                   <p className="font-sans text-[12px] text-ink-muted-48 mt-2">
                     {form.profileVisibility === 'public' && 'Everyone can view your full profile.'}
-                    {form.profileVisibility === 'friends' && 'Only followers can view your full profile. Others see limited info.'}
+                    {form.profileVisibility === 'friends' && 'Only friends can view your full profile. Others see limited info.'}
                     {form.profileVisibility === 'private' && 'Only you can view your profile.'}
                   </p>
                 </div>
@@ -391,11 +390,11 @@ export default function EditProfile() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Save Button */}
-            <div className="p-6 border border-divider-soft bg-white rounded-2xl shadow-sm">
+            <div className="p-6 border border-divider-soft bg-white rounded-[10px] shadow-sm">
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="w-full inline-flex items-center justify-center gap-2 bg-ink text-canvas px-6 py-3 rounded-full text-[14px] font-semibold hover:bg-ink/90 transition-colors disabled:opacity-50"
+                className="w-full inline-flex items-center justify-center gap-2 bg-ink text-canvas px-6 py-3 rounded-full text-[14px] font-medium hover:bg-ink/90 transition-colors disabled:opacity-50"
               >
                 {saving ? (
                   <div className="w-4 h-4 border-2 border-canvas border-t-transparent rounded-full animate-spin" />
@@ -406,7 +405,7 @@ export default function EditProfile() {
               </button>
               <button
                 onClick={() => navigate(`/profile/${user?._id}`)}
-                className="w-full mt-3 inline-flex items-center justify-center gap-2 bg-white border border-divider-soft text-ink px-6 py-3 rounded-full text-[14px] font-semibold hover:bg-soft-stone/50 transition-colors"
+                className="w-full mt-3 inline-flex items-center justify-center gap-2 bg-white border border-divider-soft text-ink px-6 py-3 rounded-full text-[14px] font-medium hover:bg-soft-stone/50 transition-colors"
               >
                 Cancel
               </button>

@@ -2,11 +2,11 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 function getLevelColor(count) {
-  if (count === 0) return 'bg-divider-soft'
-  if (count <= 2) return 'bg-green-200'
-  if (count <= 5) return 'bg-green-400'
-  if (count <= 8) return 'bg-green-600'
-  return 'bg-green-800'
+  if (count === 0) return 'bg-surface-strong'
+  if (count <= 2) return 'bg-signature-mint'
+  if (count <= 5) return 'bg-signature-mustard'
+  if (count <= 8) return 'bg-signature-forest'
+  return 'bg-signature-coral'
 }
 
 export default function ContributionGraph({ data = [], monthsToShow = 12 }) {
@@ -56,7 +56,7 @@ export default function ContributionGraph({ data = [], monthsToShow = 12 }) {
           {monthLabels.map(({ month, weekIndex }) => (
             <div
               key={month}
-              className="text-[11px] font-mono text-ink-muted-48"
+              className="font-sans text-[11px] text-muted"
               style={{ marginLeft: weekIndex === 0 ? 0 : `${(weekIndex - (monthLabels[monthLabels.indexOf({ month, weekIndex }) - 1]?.weekIndex || 0)) * 16}px` }}
             >
               {MONTHS[month]}
@@ -68,7 +68,7 @@ export default function ContributionGraph({ data = [], monthsToShow = 12 }) {
           <div className="flex flex-col gap-1 mr-1">
             {DAYS.map((day, i) => (
               <div key={day} className="h-3 w-3 flex items-center justify-center">
-                {i % 2 === 1 && <span className="text-[10px] font-mono text-ink-muted-48">{day}</span>}
+                {i % 2 === 1 && <span className="font-sans text-[10px] text-muted">{day}</span>}
               </div>
             ))}
           </div>

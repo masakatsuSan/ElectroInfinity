@@ -5,6 +5,8 @@ import ImageGuard from '../components/ImageGuard'
 import { ArrowLeft, Calendar } from 'lucide-react'
 import SEO from '../components/SEO'
 
+const NO_GRADIENTS = '[*]:bg-none [*]:before:bg-none'
+
 export default function AchievementDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -19,15 +21,15 @@ export default function AchievementDetails() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
+      <div className="min-h-screen bg-white text-ink pt-24 pb-24">
         <div className="max-w-[1280px] mx-auto px-6 md:px-12">
           <div className="animate-pulse space-y-4">
-            <div className="h-8 w-48 bg-soft-stone rounded mb-6" />
-            <div className="h-10 w-3/4 bg-soft-stone rounded mb-4" />
-            <div className="h-64 bg-soft-stone rounded-2xl mb-6" />
-            <div className="h-4 w-full bg-soft-stone rounded mb-2" />
-            <div className="h-4 w-full bg-soft-stone rounded mb-2" />
-            <div className="h-4 w-2/3 bg-soft-stone rounded" />
+            <div className="h-4 w-48 bg-surface-soft rounded-sm mb-6" />
+            <div className="h-10 w-3/4 bg-surface-soft rounded-sm mb-4" />
+            <div className="h-64 bg-surface-soft rounded-md mb-6" />
+            <div className="h-4 w-full bg-surface-soft rounded-sm mb-2" />
+            <div className="h-4 w-full bg-surface-soft rounded-sm mb-2" />
+            <div className="h-4 w-2/3 bg-surface-soft rounded-sm" />
           </div>
         </div>
       </div>
@@ -36,10 +38,10 @@ export default function AchievementDetails() {
 
   if (error || !achievement._id) {
     return (
-      <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
+      <div className="min-h-screen bg-white text-ink pt-24 pb-24">
         <div className="max-w-[1280px] mx-auto px-6 md:px-12 text-center">
-          <p className="text-body-muted text-lg mb-4">Achievement not found.</p>
-          <button onClick={() => navigate('/achievements')} className="text-primary hover:underline font-semibold">
+          <p className="font-sans text-[14px] text-muted mb-4">Achievement not found.</p>
+          <button onClick={() => navigate('/achievements')} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-hairline bg-white text-ink font-sans text-[14px] font-medium">
             ← Back to Achievements
           </button>
         </div>
@@ -56,7 +58,7 @@ export default function AchievementDetails() {
   const formattedDate = date ? date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : ''
 
   return (
-    <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
+    <div className="min-h-screen bg-white text-ink pt-24 pb-24">
       <SEO
         title={`${title} | Achievements | Electro Infinity`}
         description={description.slice(0, 160)}
@@ -65,7 +67,7 @@ export default function AchievementDetails() {
       <div className="max-w-[1280px] mx-auto px-6 md:px-12">
         <button
           onClick={() => navigate('/achievements')}
-          className="inline-flex items-center gap-2 text-slate hover:text-ink transition-colors mb-8 font-sans text-[14px] font-medium"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-hairline bg-white text-ink hover:border-ink transition-colors mb-8 font-sans text-[14px] font-medium"
         >
           <ArrowLeft size={16} />
           Back to Achievements
@@ -73,8 +75,8 @@ export default function AchievementDetails() {
 
         <div className="max-w-3xl">
           {image && (
-            <div className="rounded-2xl overflow-hidden border border-hairline mb-8 bg-white">
-              <ImageGuard className="w-full">
+            <div className="rounded-lg overflow-hidden border border-hairline mb-8 bg-white">
+              <ImageGuard className={`w-full ${NO_GRADIENTS}`}>
                 <img
                   src={image}
                   alt={title}
@@ -84,25 +86,31 @@ export default function AchievementDetails() {
             </div>
           )}
 
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex flex-wrap items-center gap-3 mb-4">
             {category && (
-              <span className="font-mono text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+              <span className={`font-sans text-[11px] font-medium uppercase tracking-[0.16px] px-3 py-1 rounded-sm border ${
+                category === 'student'
+                  ? 'bg-signature-coral text-white border-signature-coral'
+                  : category === 'faculty'
+                    ? 'bg-signature-forest text-white border-signature-forest'
+                    : 'bg-signature-mustard text-ink border-signature-mustard'
+              }`}>
                 {category}
               </span>
             )}
             {formattedDate && (
-              <span className="font-sans text-[13px] text-slate flex items-center gap-1.5">
+              <span className="font-sans text-[13px] text-muted flex items-center gap-1.5">
                 <Calendar size={14} />
                 {formattedDate}
               </span>
             )}
           </div>
 
-          <h1 className="font-display text-[36px] md:text-[48px] font-normal tracking-tight text-ink mb-6 leading-tight">
+          <h1 className="font-display text-[36px] md:text-[48px] font-normal tracking-[0] text-ink mb-6 leading-[1.2]">
             {title}
           </h1>
 
-          <p className="font-sans text-[16px] text-body-muted leading-relaxed whitespace-pre-line">
+          <p className="font-sans text-[14px] text-body leading-[1.25] whitespace-pre-line">
             {description}
           </p>
         </div>

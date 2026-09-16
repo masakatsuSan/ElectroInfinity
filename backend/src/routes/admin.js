@@ -18,16 +18,14 @@ router.get('/stats', protect, guard('cr', 'admin', 'super_admin'), async (req, r
       totalRooms,
       totalResources,
       totalAnnouncements,
-      totalProjects,
-      activeSessions
+      totalProjects
     ] = await Promise.all([
       require('../models/User').countDocuments({ isActive: true }),
       ForumPost.countDocuments(),
       CommunityRoom.countDocuments({ isActive: true }),
       require('../models/Resource').countDocuments(),
       Announcement.countDocuments(),
-      Project.countDocuments({ isApproved: true }),
-      require('../models/Session').countDocuments({ status: 'active' })
+      Project.countDocuments({ isApproved: true })
     ]);
 
     res.json({
@@ -36,10 +34,9 @@ router.get('/stats', protect, guard('cr', 'admin', 'super_admin'), async (req, r
         totalUsers,
         totalPosts,
         totalRooms,
-          totalResources,
+        totalResources,
         totalAnnouncements,
-        totalProjects,
-        activeSessions
+        totalProjects
       }
     });
   } catch (error) {

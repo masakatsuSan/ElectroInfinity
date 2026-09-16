@@ -111,7 +111,7 @@ export default function AdminResources() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <h1 className="font-display font-semibold text-[28px] tracking-tight text-ink">Resources</h1>
+        <h1 className="font-[Inter,system-ui,sans-serif] font-semibold text-[28px] tracking-tight text-ink">Resources</h1>
         <button
           onClick={() => setShowForm(v => !v)}
           className="button-primary !px-5 !py-2.5"
@@ -123,28 +123,28 @@ export default function AdminResources() {
       {/* Edit form */}
       {editingId && (
         <div className="border border-primary/30 bg-white p-6 mb-8 rounded-xl shadow-sm">
-          <h2 className="font-display font-semibold text-[18px] text-ink mb-6">Edit Resource</h2>
+          <h2 className="font-[Inter,system-ui,sans-serif] font-semibold text-[18px] text-ink mb-6">Edit Resource</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <div className="sm:col-span-2">
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Title *</label>
-              <input value={editForm.title} onChange={set('editForm', 'title')} className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Title *</label>
+              <input value={editForm.title} onChange={set('editForm', 'title')} className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Type *</label>
-              <select value={editForm.type} onChange={set('editForm', 'type')} className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Type *</label>
+              <select value={editForm.type} onChange={set('editForm', 'type')} className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Semester</label>
-              <select value={editForm.semester} onChange={set('editForm', 'semester')} className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Semester</label>
+              <select value={editForm.semester} onChange={set('editForm', 'semester')} className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 <option value="">— none —</option>
                 {SEMS.map(s => <option key={s} value={s}>Semester {s}</option>)}
               </select>
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Subject</label>
-              <select value={editForm.subject} onChange={set('editForm', 'subject')} className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Subject</label>
+              <select value={editForm.subject} onChange={set('editForm', 'subject')} className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 <option value="">— select subject —</option>
                 {(editForm.semester ? subjects.filter(s => s.semester === Number(editForm.semester)) : subjects).map(s => (
                   <option key={s._id} value={s.name}>{s.name} ({s.code})</option>
@@ -152,21 +152,21 @@ export default function AdminResources() {
               </select>
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Replace file (optional)</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Replace file (optional)</label>
               <input
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png,.webp"
                 onChange={e => setEditFile(e.target.files[0])}
-                className="mt-1 font-sans text-[14px] text-ink-muted-80 file:mr-4 file:bg-canvas-parchment file:text-ink file:border file:border-divider-soft file:rounded-lg file:px-4 file:py-2 file:cursor-pointer"
+                className="mt-1 font-[Inter,system-ui,sans-serif] text-[14px] text-ink-muted-80 file:mr-4 file:bg-[#fff]-parchment file:text-ink file:border file:border-divider-soft file:rounded-lg file:px-4 file:py-2 file:cursor-pointer"
               />
               {editFile && (
-                <p className="font-sans text-[13px] font-medium text-green-500 mt-2 truncate">
+                <p className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-green-500 mt-2 truncate">
                   <Check size={14} /> {editFile.name} ({(editFile.size / 1024).toFixed(0)} KB)
                 </p>
               )}
             </div>
           </div>
-          {editError && <p className="font-sans text-[14px] font-medium text-red-500 mt-3">{editError}</p>}
+          {editError && <p className="font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-red-500 mt-3">{editError}</p>}
           <div className="flex gap-3 mt-6">
             <button
               onClick={handleEditUpdate}
@@ -177,7 +177,7 @@ export default function AdminResources() {
             </button>
             <button
               onClick={() => { setEditingId(null); setEditError(''); setEditFile(null) }}
-              className="font-sans text-[14px] font-medium text-ink-muted-80 px-4 py-2.5 hover:text-ink transition-colors"
+              className="font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 px-4 py-2.5 hover:text-ink transition-colors"
             >
               Cancel
             </button>
@@ -188,28 +188,28 @@ export default function AdminResources() {
       {/* Upload form */}
       {showForm && (
         <div className="border border-divider-soft bg-white p-6 mb-8 rounded-xl shadow-sm">
-          <h2 className="font-display font-semibold text-[18px] text-ink mb-6">Upload Resource</h2>
+          <h2 className="font-[Inter,system-ui,sans-serif] font-semibold text-[18px] text-ink mb-6">Upload Resource</h2>
           <div className="grid sm:grid-cols-2 gap-5">
             <div className="sm:col-span-2">
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Title *</label>
-              <input value={form.title} onChange={set('title')} className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="e.g. Power Systems I — Unit 1 Notes" />
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Title *</label>
+              <input value={form.title} onChange={set('title')} className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="e.g. Power Systems I — Unit 1 Notes" />
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Type *</label>
-              <select value={form.type} onChange={set('type')} className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Type *</label>
+              <select value={form.type} onChange={set('type')} className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Semester</label>
-              <select value={form.semester} onChange={set('semester')} className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Semester</label>
+              <select value={form.semester} onChange={set('semester')} className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 <option value="">— none —</option>
                 {SEMS.map(s => <option key={s} value={s}>Semester {s}</option>)}
               </select>
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">Subject</label>
-              <select value={form.subject} onChange={set('subject')} className="w-full bg-canvas border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Subject</label>
+              <select value={form.subject} onChange={set('subject')} className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 <option value="">— select subject —</option>
                 {(form.semester ? subjects.filter(s => s.semester === Number(form.semester)) : subjects).map(s => (
                   <option key={s._id} value={s.name}>{s.name} ({s.code})</option>
@@ -217,21 +217,21 @@ export default function AdminResources() {
               </select>
             </div>
             <div>
-              <label className="block font-sans text-[14px] font-medium text-ink-muted-80 mb-1">File (PDF or image) *</label>
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">File (PDF or image) *</label>
               <input
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png,.webp"
                 onChange={e => setFile(e.target.files[0])}
-                className="mt-1 font-sans text-[14px] text-ink-muted-80 file:mr-4 file:bg-canvas-parchment file:text-ink file:border file:border-divider-soft file:rounded-lg file:px-4 file:py-2 file:cursor-pointer"
+                className="mt-1 font-[Inter,system-ui,sans-serif] text-[14px] text-ink-muted-80 file:mr-4 file:bg-[#fff]-parchment file:text-ink file:border file:border-divider-soft file:rounded-lg file:px-4 file:py-2 file:cursor-pointer"
               />
             </div>
           </div>
           {file && (
-            <p className="font-sans text-[13px] font-medium text-green-500 mt-3 truncate">
+            <p className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-green-500 mt-3 truncate">
               <Check size={14} /> {file.name} ({(file.size / 1024).toFixed(0)} KB)
             </p>
           )}
-          {error && <p className="font-sans text-[14px] font-medium text-red-500 mt-3">{error}</p>}
+          {error && <p className="font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-red-500 mt-3">{error}</p>}
           <button
             onClick={handleUpload}
             disabled={uploading || !file || !form.title}
@@ -248,7 +248,7 @@ export default function AdminResources() {
           <button
             key={t}
             onClick={() => setFilterType(t)}
-            className={`font-sans text-[14px] font-medium capitalize px-4 py-2 flex-none border-b-2 transition-colors rounded-t-md ${
+            className={`font-[Inter,system-ui,sans-serif] text-[14px] font-medium capitalize px-4 py-2 flex-none border-b-2 transition-colors rounded-t-md ${
               filterType === t ? 'text-ink border-primary bg-white' : 'text-ink-muted-80 border-transparent hover:text-ink hover:bg-white/50'
             }`}
           >
@@ -259,29 +259,29 @@ export default function AdminResources() {
 
       {/* List */}
       {isLoading ? (
-        <p className="font-sans text-ink-muted-80 text-[15px]">Loading…</p>
+        <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">Loading…</p>
       ) : resources.length === 0 ? (
-        <p className="font-sans text-ink-muted-80 text-[15px]">No resources yet. Upload one above.</p>
+        <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">No resources yet. Upload one above.</p>
       ) : (
         <div className="border border-divider-soft bg-white rounded-xl overflow-hidden shadow-sm">
           {resources.map(r => (
-            <div key={r._id} className="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft last:border-b-0 hover:bg-canvas-parchment transition-colors">
-              <span className="font-sans text-[11px] font-semibold text-primary uppercase tracking-widest w-24 flex-shrink-0">{r.type.replace('_', ' ')}</span>
+            <div key={r._id} className="flex items-center gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-divider-soft last:border-b-0 hover:bg-[#fff]-parchment transition-colors">
+              <span className="font-[Inter,system-ui,sans-serif] text-[11px] font-semibold text-primary uppercase tracking-widest w-24 flex-shrink-0">{r.type.replace('_', ' ')}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-[15px] font-medium text-ink truncate">{r.title}</p>
-                <p className="font-sans text-[13px] font-medium text-ink-muted-80 mt-1">
+                <p className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-ink-muted-80 mt-1">
                   {r.semester ? `Sem ${r.semester} · ` : ''}{r.fileName} · {r.downloadCount} downloads
                 </p>
               </div>
               <div className="flex gap-2 flex-shrink-0 items-center">
-                <a href={r.fileUrl} target="_blank" rel="noreferrer" className="font-sans text-[13px] font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors px-3 py-1.5 rounded-md">View</a>
+                <a href={r.fileUrl} target="_blank" rel="noreferrer" className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors px-3 py-1.5 rounded-md">View</a>
                 <button
                   onClick={() => openEdit(r)}
-                  className="font-sans text-[13px] font-medium text-blue-500/70 hover:text-blue-500 transition-colors bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded-md"
+                  className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-blue-500/70 hover:text-blue-500 transition-colors bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded-md"
                 >Edit</button>
                 <button
                   onClick={() => { if (window.confirm('Delete this file?')) deleteMut.mutate(r._id) }}
-                  className="font-sans text-[13px] font-medium text-red-500/70 hover:text-red-500 transition-colors bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-md"
+                  className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-red-500/70 hover:text-red-500 transition-colors bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-md"
                 >Delete</button>
               </div>
             </div>

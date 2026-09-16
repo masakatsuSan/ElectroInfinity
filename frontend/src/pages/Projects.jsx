@@ -5,7 +5,7 @@ import { GitBranch, ExternalLink, Heart, Code2, Plus, Search, X } from 'lucide-r
 import { getProjects, likeProject, createProject } from '../api/projects'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
-import PendingTeasersStrip from '../components/PendingTeasersStrip'
+import UploaderInfo from '../components/UploaderInfo'
 
 export default function Projects() {
   const { user } = useAuth()
@@ -45,36 +45,34 @@ export default function Projects() {
   })
 
   return (
-    <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
+    <div className="min-h-screen bg-white text-ink pt-24 pb-24">
       <SEO
         title="Student Projects | Electro Infinity"
         description="Showcase of student projects, prototypes, and engineering builds from AGEMC."
       />
 
       <div className="max-w-[1280px] mx-auto px-6 md:px-12">
-        {/* Header */}
-        <div className="max-w-3xl mb-12">
-          <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
+        <div className="max-w-3xl mb-12 md:mb-16">
+          <span className="font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral block mb-3">
             Student Innovation
           </span>
-          <h1 className="font-display text-[40px] md:text-[56px] font-normal tracking-tight text-ink mb-4">
+          <h1 className="font-display text-[40px] md:text-[56px] font-normal leading-[1.2] tracking-[0] text-ink mb-4">
             Student Projects
           </h1>
-          <p className="font-sans text-[17px] text-body-muted leading-relaxed">
+          <p className="font-sans text-[14px] text-body leading-[1.25] max-w-2xl">
             Explore prototypes, capstones, and research builds from fellow students. Filter by tech stack or share your own work.
           </p>
         </div>
 
-        {/* Filter bar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
           <div className="relative w-full sm:max-w-md">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by tech stack or title…"
-              className="w-full bg-soft-stone/60 border border-hairline rounded-xl pl-9 pr-4 py-2.5 text-[14px] font-sans text-ink placeholder:text-ink-muted-48 focus:outline-none focus:border-primary/40 transition-colors"
+              className="w-full bg-white border border-hairline rounded-md pl-9 pr-4 py-2.5 text-[14px] font-sans text-ink placeholder:text-muted focus:outline-none focus:border-info-border transition-colors"
             />
           </div>
 
@@ -82,11 +80,10 @@ export default function Projects() {
             {user && (
               <button
                 onClick={() => setMyProjects(!myProjects)}
-                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[14px] font-semibold transition-colors shadow-sm ${
-                  myProjects
-                    ? 'bg-ink text-canvas hover:bg-ink/90'
-                    : 'bg-white border border-divider-soft text-ink hover:bg-soft-stone/50'
-                }`}
+                className={'inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-[14px] font-medium border transition-colors ' +
+                  (myProjects
+                    ? 'bg-ink text-white border-ink'
+                    : 'bg-white border-hairline text-ink hover:border-ink')}
               >
                 {myProjects ? 'Showing My Projects' : 'My Projects'}
               </button>
@@ -94,7 +91,7 @@ export default function Projects() {
             {user && (
               <button
                 onClick={() => setShowModal(true)}
-                className="inline-flex items-center gap-2 bg-ink text-canvas px-5 py-2.5 rounded-xl text-[14px] font-semibold hover:bg-ink/90 transition-colors shadow-sm"
+                className="inline-flex items-center gap-2 bg-ink text-white px-5 py-2.5 rounded-md text-[14px] font-medium"
               >
                 <Plus size={16} />
                 Submit Project
@@ -103,21 +100,10 @@ export default function Projects() {
           </div>
         </div>
 
-        {/* Pending Teasers Strip — visible to all visitors */}
-        {data && !myProjects && (
-          <PendingTeasersStrip
-            title="Recent Projects Awaiting Approval"
-            sources={{ projects: data }}
-            compact
-            currentUser={user}
-          />
-        )}
-
-        {/* Loading */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="border border-hairline bg-soft-stone/40 rounded-2xl h-[240px] animate-pulse" />
+              <div key={i} className="border border-hairline bg-surface-soft rounded-lg h-[240px] animate-pulse" />
             ))}
           </div>
         ) : filtered.length > 0 ? (
@@ -127,16 +113,15 @@ export default function Projects() {
             ))}
           </div>
         ) : (
-          <div className="border border-hairline bg-soft-stone/30 rounded-2xl p-12 text-center">
-            <Code2 size={32} className="mx-auto text-slate mb-3" />
-            <p className="font-sans text-[15px] text-body-muted">
+          <div className="border border-hairline bg-surface-soft rounded-lg p-12 text-center">
+            <Code2 size={32} className="mx-auto text-muted mb-3" />
+            <p className="font-sans text-[14px] text-muted">
               {search ? 'No projects match your search.' : 'No projects submitted yet. Be the first to share your work!'}
             </p>
           </div>
         )}
       </div>
 
-      {/* Submit Modal */}
       {showModal && (
         <SubmitModal
           onClose={() => setShowModal(false)}
@@ -154,24 +139,18 @@ function ProjectCard({ project, liked, onLike, liking }) {
   const truncated = description.length > 140 ? description.slice(0, 140) + '…' : description
   const techStack = project.techStack || []
   const authorName = project.author?.name || 'Unknown'
-  const isPending = !project.isApproved
 
   return (
     <Link to={`/projects/${project._id}`} className="block h-full">
-       <div className="border border-hairline bg-white rounded-2xl p-6 shadow-card hover:border-slate/30 transition-all flex flex-col h-full">
+       <div className="border border-hairline bg-white rounded-lg p-6 transition-shadow flex flex-col h-full">
         <div className="flex-1">
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <h3 className="font-display text-[20px] font-bold text-ink leading-snug">
+          <div className="mb-3">
+            <h3 className="font-sans text-[18px] font-medium text-ink leading-[1.4]">
               {project.title}
             </h3>
-            {isPending && (
-              <span className="shrink-0 font-mono text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-soft-stone text-slate border border-hairline">
-                Pending Approval
-              </span>
-            )}
           </div>
 
-          <p className="font-sans text-[14px] text-body-muted leading-relaxed mb-4">
+          <p className="font-sans text-[14px] text-body leading-[1.25] mb-4">
             {truncated}
           </p>
 
@@ -180,7 +159,7 @@ function ProjectCard({ project, liked, onLike, liking }) {
               {techStack.map((tech) => (
                 <span
                   key={tech}
-                  className="font-mono text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-soft-stone text-ink border border-hairline"
+                  className="font-sans text-[11px] font-medium uppercase tracking-[0.16px] px-2.5 py-1 rounded-sm bg-surface-soft text-ink border border-hairline"
                 >
                   {tech}
                 </span>
@@ -188,38 +167,27 @@ function ProjectCard({ project, liked, onLike, liking }) {
             </div>
           )}
 
-          <div className="flex items-center gap-2.5">
-            <div className="relative w-7 h-7 rounded-full overflow-hidden bg-ink/5 border border-hairline shrink-0">
-              {project.author?.photo ? (
-                <img src={project.author.photo} alt={authorName} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="font-display text-[10px] font-bold text-ink-muted-80">
-                    {authorName.split(' ').filter(Boolean).map(p => p[0]).slice(0, 2).join('').toUpperCase() || 'S'}
-                  </span>
-                </div>
-              )}
-            </div>
-            <span className="font-mono text-[12px] text-slate">
-              by <span className="font-semibold text-ink">{authorName}</span>
+          <UploaderInfo user={project.author} size="w-7 h-7">
+            <span className="font-sans text-[12px] text-muted">
+              by <span className="font-medium text-ink">{authorName}</span>
             </span>
-          </div>
+          </UploaderInfo>
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-hairline">
           <div className="flex items-center gap-4">
-            <span className="font-sans text-[13px] text-body-muted flex items-center gap-1">
-              <Heart size={14} className={liked ? 'fill-coral text-coral' : 'text-slate'} />
+            <span className="font-sans text-[13px] text-body flex items-center gap-1">
+              <Heart size={14} className={liked ? 'fill-signature-coral text-signature-coral' : 'text-muted'} />
               {project.likes?.length || 0}
             </span>
 
-            {project.github && (
+            {project.githubLink && (
               <a
-                href={project.github}
+                href={project.githubLink}
                 target="_blank"
                 rel="noreferrer"
                 onClick={(e) => e.preventDefault()}
-                className="text-slate hover:text-ink transition-colors"
+                className="text-muted hover:text-ink transition-colors"
                 aria-label="GitBranch"
               >
                 <GitBranch size={16} />
@@ -232,7 +200,7 @@ function ProjectCard({ project, liked, onLike, liking }) {
                 target="_blank"
                 rel="noreferrer"
                 onClick={(e) => e.preventDefault()}
-                className="text-slate hover:text-ink transition-colors"
+                className="text-muted hover:text-ink transition-colors"
                 aria-label="Live demo"
               >
                 <ExternalLink size={16} />
@@ -240,20 +208,20 @@ function ProjectCard({ project, liked, onLike, liking }) {
             )}
           </div>
 
-          {!isPending && liked && (
+          {liked && (
             <button
               onClick={(e) => { e.preventDefault(); onLike() }}
               disabled={liking}
-              className="text-[12px] font-semibold text-coral hover:text-coral-soft transition-colors disabled:opacity-50"
+              className="text-[12px] font-medium text-signature-coral transition-colors disabled:opacity-50"
             >
               {liking ? 'Saving…' : 'Unlike'}
             </button>
           )}
-          {!isPending && !liked && (
+          {!liked && (
             <button
               onClick={(e) => { e.preventDefault(); onLike() }}
               disabled={liking}
-              className="text-[12px] font-semibold text-slate hover:text-ink transition-colors disabled:opacity-50"
+              className="text-[12px] font-medium text-muted hover:text-ink transition-colors disabled:opacity-50"
             >
               {liking ? 'Saving…' : 'Like'}
             </button>
@@ -303,113 +271,106 @@ function SubmitModal({ onClose, onSubmit, loading, error }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-canvas text-ink border border-divider-soft rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div className="p-6 border-b border-divider-soft flex items-center justify-between">
+    <div className="fixed inset-0 z-50 bg-ink/50 flex items-center justify-center p-4">
+      <div className="bg-white text-ink border border-hairline rounded-lg w-full max-w-xl max-h-[90vh] flex flex-col shadow-lg overflow-hidden">
+        <div className="p-6 border-b border-hairline flex items-center justify-between">
           <div>
-            <h3 className="font-display text-[22px] font-bold">Submit Project</h3>
-            <p className="font-sans text-[13px] text-body-muted">
+            <h3 className="font-display text-[22px] font-normal">Submit Project</h3>
+            <p className="font-sans text-[13px] text-muted">
               Share your project with the department community.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-soft-stone border border-hairline flex items-center justify-center hover:bg-soft-stone/80 transition-colors"
+            className="w-8 h-8 rounded-full bg-surface-soft border border-hairline flex items-center justify-center transition-colors"
           >
             <X size={14} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5 flex-1">
-          {/* Title */}
           <div>
-            <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Project Title *</label>
+            <label className="block font-mono text-[13px] font-medium text-muted mb-1.5">Project Title *</label>
             <input
               required
               value={form.title}
               onChange={set('title')}
               placeholder="e.g. Solar-Powered IoT Weather Station"
-              className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
+              className="input"
             />
-            {errors.title && <p className="text-error text-[12px] mt-1">{errors.title}</p>}
+            {errors.title && <p className="text-[12px] text-signature-coral mt-1">{errors.title}</p>}
           </div>
 
-          {/* Description */}
           <div>
-            <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Description *</label>
+            <label className="block font-mono text-[13px] font-medium text-muted mb-1.5">Description *</label>
             <textarea
               required
               value={form.description}
               onChange={set('description')}
               placeholder="What does your project do? What problem does it solve?"
               rows={4}
-              className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary resize-none"
+              className="input resize-none"
             />
-            {errors.description && <p className="text-error text-[12px] mt-1">{errors.description}</p>}
+            {errors.description && <p className="text-[12px] text-signature-coral mt-1">{errors.description}</p>}
           </div>
 
-          {/* Tech Stack */}
           <div>
-            <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Tech Stack *</label>
+            <label className="block font-mono text-[13px] font-medium text-muted mb-1.5">Tech Stack *</label>
             <input
               required
               value={form.techStack}
               onChange={set('techStack')}
               placeholder="e.g. React, Node.js, Arduino, TensorFlow"
-              className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
+              className="input"
             />
-            <p className="font-sans text-[11px] text-ink-muted-48 mt-1">Separate technologies with commas.</p>
-            {errors.techStack && <p className="text-error text-[12px] mt-1">{errors.techStack}</p>}
+            <p className="font-sans text-[11px] text-muted mt-1">Separate technologies with commas.</p>
+            {errors.techStack && <p className="text-[12px] text-signature-coral mt-1">{errors.techStack}</p>}
           </div>
 
-          {/* GitBranch + Demo */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">GitBranch Link</label>
+              <label className="block font-mono text-[13px] font-medium text-muted mb-1.5">GitHub Link</label>
               <input
                 type="url"
                 value={form.github}
                 onChange={set('github')}
                 placeholder="https://github.com/username/repo"
-                className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
+                className="input"
               />
             </div>
             <div>
-              <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Demo Link</label>
+              <label className="block font-mono text-[13px] font-medium text-muted mb-1.5">Demo Link</label>
               <input
                 type="url"
                 value={form.demoLink}
                 onChange={set('demoLink')}
                 placeholder="https://your-demo.vercel.app"
-                className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
+                className="input"
               />
             </div>
           </div>
 
-          {/* Images */}
           <div>
-            <label className="block font-sans text-[13px] font-semibold text-ink-muted-80 mb-1.5">Image URLs</label>
+            <label className="block font-mono text-[13px] font-medium text-muted mb-1.5">Image URLs</label>
             <input
               value={form.images}
               onChange={set('images')}
               placeholder="Paste image URLs separated by commas"
-              className="w-full bg-white border border-divider-soft rounded-xl px-4 py-2.5 text-[15px] font-sans text-ink focus:outline-none focus:border-primary"
+              className="input"
             />
           </div>
 
-          {/* Error */}
           {error && (
-            <p className="text-[13px] text-error font-medium bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-center">
+            <p className="text-[13px] text-signature-coral font-medium bg-surface-soft border border-hairline rounded-md px-4 py-3 text-center">
               {error}
             </p>
           )}
 
-          {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl text-[14px] font-semibold text-slate hover:text-ink transition-colors"
+              className="button-secondary px-5 py-2.5 rounded-md text-[14px]"
             >
               Cancel
             </button>
