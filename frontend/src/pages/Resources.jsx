@@ -7,6 +7,7 @@ import { getYTLectures } from '../api/ytLectures'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
 import ResourcePreviewDrawer from '../components/ResourcePreviewDrawer'
+import ResourceSplitView from '../components/ResourceSplitView'
 import UploaderInfo from '../components/UploaderInfo'
 
 const TABS = [
@@ -24,7 +25,28 @@ export default function Resources() {
   const [semesterFilter, setSemesterFilter] = useState('')
   const [subjectFilter, setSubjectFilter] = useState('')
   const [previewResource, setPreviewResource] = useState(null)
+  const [selectedResource, setSelectedResource] = useState(null)
+  const [isDesktop, setIsDesktop] = useState(
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : true,
+  )
   const { user } = useAuth()
+
+  useEffect(() => {
+    const mql = window.matchMedia('(min-width: 1024px)')
+    const handler = (e) => setIsDesktop(e.matches)
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
+  }, [])
+
+  const handleViewResource = (resource) => {
+    setPreviewResource(resource)
+    setSelectedResource(resource)
+  }
+
+  const handleCloseSplit = () => {
+    setSelectedResource(null)
+    setPreviewResource(null)
+  }
 
   const isYTLectures = activeTab.type === 'yt_lectures'
 
@@ -99,7 +121,7 @@ export default function Resources() {
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center gap-8 mb-6">
+        <div className="flex items-center gap-8 mb-6">
           <div className="flex items-center gap-3">
             <label className="font-sans text-[13px] font-medium text-muted">Filter by Semester:</label>
             <FilterSelect
@@ -129,6 +151,13 @@ export default function Resources() {
         <div key={activeTab.id} className="animate-in">
           {isLoading ? (
             <SkeletonGrid />
+          ) : selectedResource && isDesktop ? (
+            <ResourceSplitView
+              selectedResource={selectedResource}
+              resources={data}
+              onSelectResource={handleViewResource}
+              onClose={handleCloseSplit}
+            />
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {data?.length > 0
@@ -138,7 +167,7 @@ export default function Resources() {
                       : <ResourceCard
                           key={item._id}
                           resource={item}
-                          onView={setPreviewResource}
+                          onView={handleViewResource}
                           onDownload={(resource) => {
                             const link = document.createElement('a')
                             link.href = downloadResource(resource._id)
@@ -154,10 +183,12 @@ export default function Resources() {
           )}
         </div>
 
-        <ResourcePreviewDrawer
-          resource={previewResource}
-          onClose={() => setPreviewResource(null)}
-        />
+        {previewResource && (!isDesktop || !selectedResource) && (
+          <ResourcePreviewDrawer
+            resource={previewResource}
+            onClose={() => { setPreviewResource(null); setSelectedResource(null) }}
+          />
+        )}
       </div>
     </div>
   )

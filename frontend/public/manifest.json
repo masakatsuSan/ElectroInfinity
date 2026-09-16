@@ -1,7 +1,7 @@
 {
-  "name": "Electro Infinity",
-  "short_name": "ElectroInf",
-  "description": "Electro Infinity — Electrical Engineering Club, AGEMC",
+  "name": "ElectroInfinity",
+  "short_name": "ElectroInfinity",
+  "description": "ElectroInfinity — Electrical Engineering Club, AGEMC",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -15,5 +15,8 @@
     { "src": "/pic.png", "sizes": "512x512", "type": "image/png" },
     { "src": "/pic.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "/pic.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
-  ]
+  ],
+  "screenshots": [],
+  "categories": ["education", "utilities"],
+  "prefer_related_applications": false
 }

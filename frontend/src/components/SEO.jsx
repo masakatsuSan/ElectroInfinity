@@ -1,7 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
-const SEO = ({ title, description, name = 'Electro Infinity', type = 'website', path = '' }) => {
+const SEO = ({ title, description, name = 'ElectroInfinity', type = 'website', path = '' }) => {
   const url = `https://electro-infinity.vercel.app${path}`;
   const fullTitle = `${title} | ${name} - EE Club, AGEMC`;
 

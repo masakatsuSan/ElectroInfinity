@@ -53,6 +53,7 @@ app.use('/api/profile',   require('./src/routes/profile'))
 app.use('/api/network',   require('./src/routes/network'))
 app.use('/api/notifications', require('./src/routes/notifications'))
 app.use('/api/subjects',   require('./src/routes/subjects'))
+app.use('/api/folders',    require('./src/routes/folders'))
 
 app.get('/api/health', (req, res) =>
   res.json({ success: true, message: 'Electro Infinity API is running ⚡' })

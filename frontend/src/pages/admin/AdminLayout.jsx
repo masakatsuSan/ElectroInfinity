@@ -20,10 +20,12 @@ import {
   Power,
   Award,
   Play,
+  User,
 } from 'lucide-react'
 
 const LINKS = [
   { to: '/admin',             label: 'Overview',             icon: LayoutDashboard, end: true },
+  { to: '/admin/profile',     label: 'My Profile',           icon: User },
   { to: '/admin/faculty',     label: 'Faculty Directory',    icon: UserCheck },
   { to: '/admin/students',    label: 'Students',             icon: Users },
   { to: '/admin/labs',        label: 'Laboratories',         icon: Building2 },
@@ -31,6 +33,7 @@ const LINKS = [
   { to: '/admin/rooms',       label: 'Community Rooms',      icon: Hash },
   { to: '/admin/announcements', label: 'Announcements',      icon: Megaphone },
   { to: '/admin/resources',   label: 'Resources',            icon: FolderOpen },
+  { to: '/admin/resource-folders', label: 'Resource Folders', icon: FolderOpen },
   { to: '/admin/calendar',    label: 'Academic Calendar',    icon: CalendarRange },
   { to: '/admin/projects',    label: 'Projects',             icon: Code2 },
   { to: '/admin/gallery',     label: 'Gallery',              icon: Image },
@@ -57,6 +60,7 @@ export default function AdminLayout() {
     '/admin/rooms',
     '/admin/announcements',
     '/admin/resources',
+    '/admin/resource-folders',
     '/admin/yt-lectures',
     '/admin/calendar',
     '/admin/gallery',

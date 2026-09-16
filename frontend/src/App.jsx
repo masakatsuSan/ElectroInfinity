@@ -21,6 +21,7 @@ import Courses      from './pages/Courses'
 import SubjectDetails from './pages/SubjectDetails'
 import Labs         from './pages/Labs'
 import Contact      from './pages/Contact'
+import TermsAndConditions from './pages/TermsAndConditions'
 import Placements   from './pages/Placements'
 import Achievements from './pages/Achievements'
 import AchievementDetails from './pages/AchievementDetails'
@@ -55,6 +56,7 @@ import Network from './pages/Network'
 import AdminLayout    from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminResources from './pages/admin/AdminResources'
+import AdminResourceFolders from './pages/admin/AdminResourceFolders'
 import AdminStudents  from './pages/admin/AdminStudents'
 import AdminDeadlines from './pages/admin/AdminDeadlines'
 import AdminRoutines  from './pages/admin/AdminRoutines'
@@ -70,6 +72,7 @@ import AdminAnnouncements from './pages/admin/AdminAnnouncements'
 import AdminAchievements from './pages/admin/AdminAchievements'
 import AdminYTLectures from './pages/admin/AdminYTLectures'
 import AdminLogin    from './pages/admin/AdminLogin'
+import AdminProfile  from './pages/admin/AdminProfile'
 
 // Faculty pages
 import FacultyDashboard    from './pages/faculty/FacultyDashboard'
@@ -169,6 +172,7 @@ export default function App() {
             <Route path="/projects"     element={<AnimatedRoute><Projects /></AnimatedRoute>} />
             <Route path="/projects/:id" element={<AnimatedRoute><ProjectDetails /></AnimatedRoute>} />
             <Route path="/contact"      element={<AnimatedRoute><Contact /></AnimatedRoute>} />
+            <Route path="/terms-and-conditions" element={<AnimatedRoute><TermsAndConditions /></AnimatedRoute>} />
 <Route path="/profile/:id"  element={<AnimatedRoute><Profile /></AnimatedRoute>} />
 <Route path="/profile/me" element={
   <AnimatedRoute>
@@ -238,10 +242,12 @@ export default function App() {
               <AnimatedRoute>
                 <ProtectedRoute role="cr, admin" loginPath="/admin/login">
                   <Routes>
-                    <Route element={<AdminLayout />}>
-                      <Route index             element={<AdminDashboard />} />
-                        <Route path="announcements" element={<AdminAnnouncements />} />
-                        <Route path="resources"  element={<AdminResources />} />
+<Route element={<AdminLayout />}>
+  <Route index             element={<AdminDashboard />} />
+    <Route path="profile"          element={<AdminProfile />} />
+    <Route path="announcements" element={<AdminAnnouncements />} />
+    <Route path="resources"  element={<AdminResources />} />
+    <Route path="resource-folders" element={<AdminResourceFolders />} />
                         <Route path="calendar"   element={<AdminCalendar />} />
                         <Route path="projects"   element={<AdminProjects />} />
                         <Route path="rooms"      element={<AdminRooms />} />

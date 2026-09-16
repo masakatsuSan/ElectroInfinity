@@ -52,6 +52,7 @@ const FOOTER_LINKS = [
     links: [
       { to: '/contact', label: 'Contact Department' },
       { to: '/announcements', label: 'Official Announcements' },
+      { to: '/terms-and-conditions', label: 'Terms & Conditions' },
     ]
   },
 ]
@@ -64,8 +65,8 @@ export default function Footer() {
   }
   return (
     <footer className="bg-white text-body border-t border-hairline">
-      <div className="w-full max-w-[1280px] mx-auto px-6 md:px-12">
-        <div className="py-16 md:py-24 grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-8">
+      <div className="w-full max-w-[1440px] mx-auto px-4 md:px-6 xl:px-10">
+        <div className="py-10 sm:py-16 md:py-24 grid grid-cols-2 gap-6 sm:gap-8 md:gap-10 md:grid-cols-4">
           {FOOTER_LINKS.map((group) => (
             <div key={group.title}>
               <h4 className="font-mono text-[11px] font-bold text-muted uppercase tracking-wider mb-5">

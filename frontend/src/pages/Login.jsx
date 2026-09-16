@@ -3,7 +3,6 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { motion } from 'framer-motion'
 import { EASE, DURATION } from '../utils/motion'
-import TermsCheckbox from '../components/TermsCheckbox'
 
 const COLORS = {
   canvas: '#ffffff',
@@ -178,20 +177,12 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [termsAccepted, setTermsAccepted] = useState(false)
-  const [termsError, setTermsError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPwd, setShowPwd] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError(''); setTermsError(''); setLoading(true)
-
-    if (!termsAccepted) {
-      setTermsError('You must accept the Terms & Conditions to sign in')
-      setLoading(false)
-      return
-    }
+    setError(''); setLoading(true)
 
     try {
       const payload = tab === 'student'
@@ -443,20 +434,6 @@ export default function Login() {
               </p>
             )}
 
-            {termsError && (
-              <p style={errorStatusStyle}>
-                {termsError}
-              </p>
-            )}
-
-            <div className="mt-1">
-              <TermsCheckbox
-                checked={termsAccepted}
-                onChange={(val) => { setTermsAccepted(val); setTermsError('') }}
-                error={termsError}
-              />
-            </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -593,20 +570,6 @@ export default function Login() {
                     {error}
                   </p>
                 )}
-
-                {termsError && (
-                  <p style={errorStatusStyle}>
-                    {termsError}
-                  </p>
-                )}
-
-                <div className="mt-1">
-                  <TermsCheckbox
-                    checked={termsAccepted}
-                    onChange={(val) => { setTermsAccepted(val); setTermsError('') }}
-                    error={termsError}
-                  />
-                </div>
 
                 <button
                   type="submit"

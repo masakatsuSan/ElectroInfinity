@@ -355,7 +355,9 @@ export default function Profile() {
   const suggested = suggestedData?.slice(0, 5) || []
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16">
+    <div className="min-h-screen bg-gray-50 pt-16" style={{
+      backgroundImage: 'radial-gradient(circle at 10% 10%, rgba(24,29,38,0.03) 0%, transparent 30%), radial-gradient(circle at 90% 80%, rgba(24,29,38,0.02) 0%, transparent 25%)'
+    }}>
       <SEO
         title={`${profile.name} | Electro Infinity`}
         description={profile.bio || `Profile of ${profile.name} at Electro Infinity`}
@@ -369,8 +371,8 @@ export default function Profile() {
         onShare={handleShare}
       />
 
-      <div className="max-w-[1280px] mx-auto px-4 md:px-12 pt-4">
-        <div className="flex gap-6 lg:gap-8">
+      <div className="mx-auto w-full max-w-[1440px] px-4 pb-12 pt-5 md:px-6 xl:px-10">
+        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[240px_minmax(0,1fr)_300px]">
           {/* Left Sidebar */}
           <LeftSidebar
             profile={profile}
@@ -398,7 +400,7 @@ export default function Profile() {
           />
 
           {/* Main Content */}
-          <div className="flex-1 min-w-0 max-w-[720px]">
+          <div className="min-w-0">
             <MainContent
               activeTab={activeTab}
               setActiveTab={setActiveTab}
@@ -457,17 +459,17 @@ export default function Profile() {
               startEditAbout={startEditAbout}
               saveAbout={saveAbout}
             />
-
-            {/* Right Sidebar */}
-            <RightSidebar
-              isOwn={isOwn}
-              viewsData={viewsData}
-              suggested={suggested}
-              profile={profile}
-              currentUser={currentUser}
-              navigate={navigate}
-            />
           </div>
+
+          {/* Right Sidebar */}
+          <RightSidebar
+            isOwn={isOwn}
+            viewsData={viewsData}
+            suggested={suggested}
+            profile={profile}
+            currentUser={currentUser}
+            navigate={navigate}
+          />
         </div>
       </div>
 
@@ -535,7 +537,7 @@ function LeftSidebar({
   saveAbout, saveSkills, saveSocial,
 }) {
   return (
-    <div className="hidden xl:block w-64 flex-shrink-0">
+    <div className="hidden xl:block w-64 flex-shrink-0 xl:sticky xl:top-24 self-start">
       <div className="space-y-3">
         <div className="bg-white rounded-xl shadow border border-hairline overflow-hidden">
           <div className="p-4 border-b border-hairline">
@@ -605,7 +607,7 @@ function LeftSidebar({
 
 function RightSidebar({ isOwn, viewsData, suggested, profile, currentUser, navigate }) {
   return (
-    <div className="hidden lg:block w-80 flex-shrink-0">
+    <div className="hidden lg:block w-80 flex-shrink-0 lg:sticky lg:top-24 self-start">
       <div className="space-y-4">
         {isOwn && viewsData?.length > 0 && (
           <div className="bg-white rounded-xl shadow border border-hairline p-4">
@@ -737,14 +739,14 @@ function MainContent({
 
   return (
     <div>
-      <div className="mb-4 overflow-x-auto">
+      <div className="mb-4 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
         <div className="inline-flex gap-1 bg-white rounded-xl shadow border border-hairline p-1">
           {TABS.filter(tab => isOwn || (tab !== 'directory' && tab !== 'uploads')).map((tab) => (
             <motion.button
               key={tab}
               onClick={() => handleTabChange(tab)}
               whileTap={{ scale: 0.97 }}
-              className={`font-sans text-[13px] font-medium uppercase tracking-[0.04em] px-5 py-2.5 rounded-lg transition-all whitespace-nowrap ${
+              className={`font-sans text-[12px] sm:text-[13px] font-medium uppercase tracking-[0.04em] px-3 sm:px-5 py-2 rounded-lg transition-all whitespace-nowrap ${
                 activeTab === tab
                   ? 'bg-[#181d26] text-white shadow'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
@@ -1204,7 +1206,7 @@ function PostsGrid({ gallery = [], achievements = [], projects = [], isOwn, onOp
     <div>
       {isOwn && (
         <div className="bg-white rounded-xl shadow border border-hairline p-4 mb-4">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <button
               onClick={onOpenGalleryModal}
               className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#181d26] text-white rounded-lg text-[14px] font-semibold hover:bg-[#0d1218] transition-colors"

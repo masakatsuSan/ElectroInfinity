@@ -114,21 +114,32 @@ export default function ProfileHeader({
   const totalPosts = (profile?.projects || 0) + (profile?.forumPosts || 0) + (profile?.resourcesUploaded || 0)
 
   return (
-    <div className="relative w-full bg-white border-b border-hairline">
-      <div className="relative w-full h-[170px] sm:h-[200px]">
+    <div className="relative w-full overflow-hidden border-b border-hairline bg-white">
+      <div className="relative h-[180px] sm:h-[220px] lg:h-[260px] bg-[#181d26]">
         {profile.coverPhoto ? (
-          <img src={profile.coverPhoto} alt="Cover" className="object-cover w-full h-full" />
+          <img src={profile.coverPhoto} alt="Cover" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-cover bg-center" style={{
-            backgroundImage: 'linear-gradient(135deg, #181d26 0%, #0d1218 50%, #181d26 100%)'
-          }} />
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage: 'radial-gradient(circle at 18% 20%, rgba(255,255,255,0.10), transparent 28%), radial-gradient(circle at 82% 75%, rgba(122, 91, 248, 0.22), transparent 32%), linear-gradient(120deg, #181d26 0%, #252b38 52%, #11161d 100%)'
+            }}
+          />
         )}
+        <div className="absolute inset-0 bg-gradient-to-r from-ink/50 via-ink/10 to-ink/30" />
+        <div
+          className="absolute inset-0 opacity-[0.16]"
+          style={{
+            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.7) 1px, transparent 0)',
+            backgroundSize: '22px 22px'
+          }}
+        />
 
         {isOwn && (
           <button
             onClick={() => coverRef.current?.click()}
             disabled={coverLoading}
-            className="absolute top-4 right-4 w-9 h-9 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center backdrop-blur-sm transition-colors disabled:opacity-50"
+            className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white shadow-sm backdrop-blur-sm transition-colors hover:bg-white/30 disabled:opacity-50"
           >
             <Camera size={18} />
           </button>
@@ -136,21 +147,21 @@ export default function ProfileHeader({
         <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={handleCoverChange} />
       </div>
 
-      <div className="max-w-[1280px] mx-auto px-4 md:px-12">
-        <div className="relative flex flex-col md:flex-row md:items-end md:gap-6 -mt-12 md:-mt-14">
-          <div className="relative flex-shrink-0 mb-[-2px]">
-            <div className={`relative w-28 h-28 md:w-36 md:h-36 rounded-full border-4 border-white bg-white p-0.5 overflow-hidden ${isOwn ? 'cursor-pointer group' : ''}`}>
+      <div className="mx-auto max-w-[1440px] px-4 md:px-6 xl:px-10">
+        <div className="relative flex flex-col lg:flex-row lg:items-end lg:gap-8 -mt-14 sm:-mt-16 lg:-mt-20">
+          <div className="relative z-10 flex-shrink-0">
+            <div className={`relative h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-white p-0.5 shadow-xl sm:h-32 sm:w-32 lg:h-36 lg:w-36 ${isOwn ? 'cursor-pointer group' : ''}`}>
               {profile.photo ? (
-                <img src={profile.photo} alt={profile.name} className="object-cover w-full h-full rounded-full" />
+                <img src={profile.photo} alt={profile.name} className="h-full w-full rounded-full object-cover" />
               ) : (
-                <div className="w-full h-full rounded-full bg-gray-300 flex items-center justify-center">
-                  <span className="text-4xl font-bold text-gray-600 font-display">
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-gray-200 to-gray-300">
+                  <span className="font-display text-4xl font-bold text-gray-600">
                     {profile.name?.charAt(0)}
                   </span>
                 </div>
               )}
               {isOwn && (
-                <div className="absolute inset-0 flex items-center justify-center transition-opacity rounded-full opacity-0 bg-black/30 group-hover:opacity-100">
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
                   <Camera size={22} className="text-white" />
                 </div>
               )}
@@ -160,157 +171,157 @@ export default function ProfileHeader({
             )}
 
             {isActiveNow && !isOwn && (
-              <span className="absolute -bottom-1 -right-1 z-10 flex items-center gap-0.5 bg-white border-2 border-white text-emerald-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow">
-                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+              <span className="absolute -bottom-1 -right-1 z-10 flex items-center gap-0.5 rounded-full border-2 border-white bg-white px-1.5 py-0.5 text-[10px] font-bold text-emerald-600 shadow">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
               </span>
             )}
           </div>
 
-          <div className="flex-1 min-w-0 pt-2 md:pt-0">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between md:gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="font-display text-[24px] md:text-[28px] font-bold text-gray-900 leading-tight">
-                    {profile.name}
-                  </h1>
-                  {profile.badges?.length > 0 && profile.badges.map((badge) => (
-                    <span key={badge} className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-gray-100 text-[11px] font-medium text-gray-700">
-                      <Star size={10} className="mr-0.5" />
-                      {badge}
-                    </span>
-                  ))}
-                </div>
-
-                <p className="font-mono text-[13px] text-gray-500 mt-0.5">
-                  {displayUsername}
-                </p>
-
-                {connectionLabel && (
-                  <p className="font-sans text-[12px] text-gray-500 mt-0.5 font-medium">
-                    {connectionLabel}
-                  </p>
-                )}
-
-                {profile.bio && (
-                  <p className="font-sans text-[14px] text-gray-600 mt-2 leading-relaxed max-w-2xl">
-                    {profile.bio}
-                  </p>
-                )}
-
-                <div className="flex flex-wrap items-center gap-3 mt-2">
-                  {profile.department && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-[13px] font-medium text-gray-700">
-                      {profile.department}
-                    </span>
-                  )}
-                  {profile.semester && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-[13px] font-medium text-gray-700">
-                      Semester {profile.semester}
-                    </span>
-                  )}
-                  {profile.location && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-[13px] font-medium text-gray-700">
-                      {profile.location}
-                    </span>
-                  )}
-                  {profile.batch && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-[13px] font-medium text-gray-700">
-                      Batch {profile.batch}
-                    </span>
-                  )}
-                  {!isOwn && profile?.lastActive && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-[12px] font-medium text-gray-600">
-                      <Activity size={10} className={isActiveNow ? 'text-emerald-500' : 'text-gray-400'} />
-                      Active {timeAgo(profile.lastActive)}
-                    </span>
-                  )}
-                </div>
-
-                {profile.skills?.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-3">
-                    {profile.skills.slice(0, 8).map((skill) => (
-                      <span key={skill} className="font-mono text-[12px] font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">
-                        {skill}
+          <div className="mt-5 min-w-0 flex-1 lg:mt-0">
+            <div className="rounded-2xl border border-hairline bg-white p-5 shadow-sm lg:p-6">
+              <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="font-display text-[24px] font-bold leading-tight text-gray-900 sm:text-[28px] lg:text-[30px]">
+                      {profile.name}
+                    </h1>
+                    {profile.badges?.length > 0 && profile.badges.map((badge) => (
+                      <span key={badge} className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-medium text-gray-700">
+                        <Star size={10} className="mr-0.5" />
+                        {badge}
                       </span>
                     ))}
-                    {profile.skills.length > 8 && (
-                      <span className="font-mono text-[12px] font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">
-                        +{profile.skills.length - 8}
+                  </div>
+
+                  <p className="mt-1 font-mono text-[13px] text-gray-500">
+                    {displayUsername}
+                  </p>
+
+                  {connectionLabel && (
+                    <p className="mt-1 text-[12px] font-medium text-gray-500">
+                      {connectionLabel}
+                    </p>
+                  )}
+
+                  {profile.bio && (
+                    <p className="mt-3 max-w-3xl text-[14px] leading-relaxed text-gray-600">
+                      {profile.bio}
+                    </p>
+                  )}
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {profile.department && (
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-[13px] font-medium text-gray-700">
+                        {profile.department}
+                      </span>
+                    )}
+                    {profile.semester && (
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-[13px] font-medium text-gray-700">
+                        Semester {profile.semester}
+                      </span>
+                    )}
+                    {profile.location && (
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-[13px] font-medium text-gray-700">
+                        {profile.location}
+                      </span>
+                    )}
+                    {profile.batch && (
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-[13px] font-medium text-gray-700">
+                        Batch {profile.batch}
+                      </span>
+                    )}
+                    {!isOwn && profile?.lastActive && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-[12px] font-medium text-gray-600">
+                        <Activity size={10} className={isActiveNow ? 'text-emerald-500' : 'text-gray-400'} />
+                        Active {timeAgo(profile.lastActive)}
                       </span>
                     )}
                   </div>
-                )}
-              </div>
 
-              <div className="flex items-center gap-2 mt-3 md:mt-0 shrink-0">
-                {isOwn ? (
-                  <button
-                    onClick={() => navigate('/profile/edit')}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-ink text-white rounded-full text-[14px] font-semibold hover:bg-primary-active transition-colors"
-                  >
-                    <Edit3 size={16} />
-                    Edit Profile
-                  </button>
-                ) : (
-                  <FriendActionButton
-                    userId={profile._id}
-                    friendStatus={profile.friendStatus}
-                    onUpdate={(updates) => onUpdate?.({ ...profile, ...updates })}
-                  />
-                )}
+                  {profile.skills?.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-1.5">
+                      {profile.skills.slice(0, 8).map((skill) => (
+                        <span key={skill} className="rounded-full bg-gray-100 px-2.5 py-1 font-mono text-[12px] font-medium text-gray-700">
+                          {skill}
+                        </span>
+                      ))}
+                      {profile.skills.length > 8 && (
+                        <span className="rounded-full bg-gray-100 px-2.5 py-1 font-mono text-[12px] font-medium text-gray-500">
+                          +{profile.skills.length - 8}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
 
-                {!isOwn && (
-                  <button
-                    onClick={() => alert('Messages coming soon!')}
-                    className="w-10 h-10 inline-flex items-center justify-center bg-gray-100 text-gray-700 rounded-full text-[14px] font-semibold hover:bg-gray-200 transition-colors"
-                  >
-                    <MessageCircle size={18} />
-                  </button>
-                )}
-
-                <div className="relative group">
-                  <button
-                    className="w-10 h-10 inline-flex items-center justify-center bg-gray-100 text-gray-700 rounded-full text-[14px] font-semibold hover:bg-gray-200 transition-colors"
-                  >
-                    <Share2 size={18} />
-                  </button>
-                  <div className="absolute right-0 z-20 invisible w-40 mt-2 overflow-hidden transition-all border shadow-lg opacity-0 top-full bg-white border-hairline rounded-xl group-hover:opacity-100 group-hover:visible">
+                <div className="flex flex-wrap items-center gap-2 xl:mt-0">
+                  {isOwn ? (
                     <button
-                      onClick={handleCopyLink}
-                      className="w-full text-left px-4 py-2.5 text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => navigate('/profile/edit')}
+                      className="inline-flex items-center gap-2 rounded-xl bg-ink px-5 py-2.5 text-[14px] font-semibold text-white shadow-sm transition-colors hover:bg-primary-active"
                     >
-                      Copy Link
+                      <Edit3 size={16} />
+                      Edit Profile
                     </button>
+                  ) : (
+                    <FriendActionButton
+                      userId={profile._id}
+                      friendStatus={profile.friendStatus}
+                      onUpdate={(updates) => onUpdate?.({ ...profile, ...updates })}
+                    />
+                  )}
+
+                  {!isOwn && (
                     <button
-                      onClick={openQr}
-                      className="w-full text-left px-4 py-2.5 text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                      onClick={() => alert('Messages coming soon!')}
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-hairline bg-white text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
                     >
-                      <QrCode size={14} /> Share QR Code
+                      <MessageCircle size={18} />
                     </button>
+                  )}
+
+                  <div className="relative group">
+                    <button
+                      onClick={onShare}
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-hairline bg-white text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+                    >
+                      <Share2 size={18} />
+                    </button>
+                    <div className="absolute right-0 top-full z-20 mt-2 w-40 overflow-hidden rounded-xl border border-hairline bg-white opacity-0 shadow-lg transition-all group-hover:visible group-hover:opacity-100">
+                      <button
+                        onClick={handleCopyLink}
+                        className="w-full px-4 py-2.5 text-left text-[13px] font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                      >
+                        Copy Link
+                      </button>
+                      <button
+                        onClick={openQr}
+                        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-[13px] font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                      >
+                        <QrCode size={14} /> Share QR Code
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-6 mt-4 text-[13px] text-gray-500">
-              <div className="flex flex-col items-center">
-                <span className="font-display font-bold text-[20px] text-gray-900">{totalPosts}</span>
-                <span className="font-mono text-[10px] uppercase tracking-wider">Posts</span>
-              </div>
-              <div className="w-px h-6 bg-gray-300" />
-              <div className="flex flex-col items-center">
-                <span className="font-display font-bold text-[20px] text-gray-900">{profile.friends || 0}</span>
-                <span className="font-mono text-[10px] uppercase tracking-wider">Friends</span>
-              </div>
-              <div className="w-px h-6 bg-gray-300" />
-              <div className="flex flex-col items-center">
-                <span className="font-display font-bold text-[20px] text-gray-900">{profile.photosCount || 0}</span>
-                <span className="font-mono text-[10px] uppercase tracking-wider">Photos</span>
-              </div>
-              <div className="w-px h-6 bg-gray-300" />
-              <div className="flex flex-col items-center">
-                <span className="font-display font-bold text-[20px] text-gray-900">{profile.likesReceived || 0}</span>
-                <span className="font-mono text-[10px] uppercase tracking-wider">Likes</span>
+              <div className="mt-6 grid grid-cols-4 divide-x divide-gray-200 border-t border-hairline pt-4">
+                <div className="flex flex-col items-center px-1">
+                  <span className="font-display text-[20px] font-bold text-gray-900">{totalPosts}</span>
+                  <span className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-gray-500">Posts</span>
+                </div>
+                <div className="flex flex-col items-center px-1">
+                  <span className="font-display text-[20px] font-bold text-gray-900">{profile.friends || 0}</span>
+                  <span className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-gray-500">Friends</span>
+                </div>
+                <div className="flex flex-col items-center px-1">
+                  <span className="font-display text-[20px] font-bold text-gray-900">{profile.photosCount || 0}</span>
+                  <span className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-gray-500">Photos</span>
+                </div>
+                <div className="flex flex-col items-center px-1">
+                  <span className="font-display text-[20px] font-bold text-gray-900">{profile.likesReceived || 0}</span>
+                  <span className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-gray-500">Likes</span>
+                </div>
               </div>
             </div>
           </div>
