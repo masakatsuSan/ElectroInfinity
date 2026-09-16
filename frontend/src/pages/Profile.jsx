@@ -131,6 +131,8 @@ export default function Profile() {
     }
   }, [profileData])
 
+  const isOwn = currentUser && currentUser._id === profile?._id
+
   useEffect(() => {
     if (profile && !isOwn && currentUser && profile._id !== currentUser._id) {
       recordProfileView(profile._id).catch(() => {})
@@ -146,8 +148,6 @@ export default function Profile() {
     achievements: profile?.achievements || 0,
     profileViews: profile?.profileViews || 0,
   }
-
-  const isOwn = currentUser && currentUser._id === profile?._id
 
   const handleSetStatus = async () => {
     if (!statusText.trim()) return
@@ -343,7 +343,7 @@ export default function Profile() {
           </p>
           <Link
             to="/"
-            className="inline-flex items-center px-5 py-2.5 bg-[#1877F2] text-white rounded-full font-semibold hover:bg-[#166FE2] transition-colors"
+            className="inline-flex items-center px-5 py-2.5 bg-[#181d26] text-white rounded-full font-semibold hover:bg-[#0d1218] transition-colors"
           >
             Go Home
           </Link>
@@ -450,6 +450,12 @@ export default function Profile() {
               setSocialForm={setSocialForm}
               saveSocial={saveSocial}
               socialPlatforms={socialPlatforms}
+              editingAbout={editingAbout}
+              setEditingAbout={setEditingAbout}
+              aboutForm={aboutForm}
+              setAboutForm={setAboutForm}
+              startEditAbout={startEditAbout}
+              saveAbout={saveAbout}
             />
 
             {/* Right Sidebar */}
@@ -543,7 +549,7 @@ function LeftSidebar({
               onClick={() => setActiveTab('about')}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
                 activeTab === 'about'
-                  ? 'bg-[#1877F2] text-white'
+                  ? 'bg-[#181d26] text-white'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
@@ -555,7 +561,7 @@ function LeftSidebar({
               onClick={() => setActiveTab('posts')}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
                 activeTab === 'posts'
-                  ? 'bg-[#1877F2] text-white'
+                  ? 'bg-[#181d26] text-white'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
@@ -568,7 +574,7 @@ function LeftSidebar({
                 onClick={() => setActiveTab('uploads')}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
                   activeTab === 'uploads'
-                    ? 'bg-[#1877F2] text-white'
+                    ? 'bg-[#181d26] text-white'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -582,7 +588,7 @@ function LeftSidebar({
                 onClick={() => setActiveTab('directory')}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
                   activeTab === 'directory'
-                    ? 'bg-[#1877F2] text-white'
+                    ? 'bg-[#181d26] text-white'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -636,7 +642,7 @@ function RightSidebar({ isOwn, viewsData, suggested, profile, currentUser, navig
         {!isOwn && suggested.length > 0 && (
           <div className="bg-white rounded-xl shadow border border-hairline p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles size={18} className="text-[#1877F2]" />
+              <Sparkles size={18} className="text-[#181d26]" />
               <h3 className="font-display text-[16px] font-bold text-gray-900">Suggested Friends</h3>
             </div>
             <div className="space-y-2">
@@ -656,7 +662,7 @@ function RightSidebar({ isOwn, viewsData, suggested, profile, currentUser, navig
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-sans text-[14px] font-medium text-gray-900 group-hover:text-[#1877F2] transition-colors truncate">
+                    <p className="font-sans text-[14px] font-medium text-gray-900 group-hover:text-[#181d26] transition-colors truncate">
                       {user.name}
                     </p>
                     <p className="font-mono text-[11px] text-gray-500">{user.department || user.role}</p>
@@ -716,10 +722,10 @@ function MainContent({
   createProject, saveAchievementMut, updateAchievementMut, deleteAchievementMut,
   createGalleryMut, updateGalleryMut, deleteGalleryMut,
   saving,
-  // Add missing props
   editingSkills, setEditingSkills, skillsForm, setSkillsForm, saveSkills,
   editingSocial, setEditingSocial, socialForm, setSocialForm, saveSocial,
   socialPlatforms,
+  editingAbout, setEditingAbout, aboutForm, setAboutForm, startEditAbout, saveAbout,
 }) {
   const handleTabChange = (tab) => {
     setActiveTab(tab)
@@ -740,7 +746,7 @@ function MainContent({
               whileTap={{ scale: 0.97 }}
               className={`font-sans text-[13px] font-medium uppercase tracking-[0.04em] px-5 py-2.5 rounded-lg transition-all whitespace-nowrap ${
                 activeTab === tab
-                  ? 'bg-[#1877F2] text-white shadow'
+                  ? 'bg-[#181d26] text-white shadow'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               }`}
             >
@@ -766,7 +772,17 @@ function MainContent({
             transition={{ duration: 0.25 }}
             className="space-y-4"
           >
-            <AboutSection profile={profile} />
+            <AboutSection
+              profile={profile}
+              isOwn={isOwn}
+              editingAbout={editingAbout}
+              setEditingAbout={setEditingAbout}
+              aboutForm={aboutForm}
+              setAboutForm={setAboutForm}
+              saving={saving}
+              startEditAbout={startEditAbout}
+              saveAbout={saveAbout}
+            />
             <SkillsSection
               profile={profile}
               isOwn={isOwn}
@@ -861,7 +877,7 @@ function MainContent({
               {isOwn && (
                 <button
                   onClick={() => setShowProjectModal(true)}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1877F2] text-white rounded-full text-[14px] font-semibold hover:bg-[#166FE2] transition-colors shadow"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#181d26] text-white rounded-full text-[14px] font-semibold hover:bg-[#0d1218] transition-colors shadow"
                 >
                   <Plus size={16} />
                   Upload Your Project
@@ -885,7 +901,7 @@ function MainContent({
               {isOwn && (
                 <button
                   onClick={() => setShowAchievementModal(true)}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1877F2] text-white rounded-full text-[14px] font-semibold hover:bg-[#166FE2] transition-colors shadow"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#181d26] text-white rounded-full text-[14px] font-semibold hover:bg-[#0d1218] transition-colors shadow"
                 >
                   <Trophy size={16} />
                   Post Achievement
@@ -914,7 +930,7 @@ function MainContent({
               {isOwn && (
                 <button
                   onClick={() => setShowGalleryModal(true)}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1877F2] text-white rounded-full text-[14px] font-semibold hover:bg-[#166FE2] transition-colors shadow"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#181d26] text-white rounded-full text-[14px] font-semibold hover:bg-[#0d1218] transition-colors shadow"
                 >
                   <Plus size={16} />
                   Upload Photo
@@ -1034,7 +1050,7 @@ function ProjectCard({ project }) {
             <div className="flex items-start justify-between gap-3 mb-3">
               <h3 className="font-display text-[18px] font-bold text-gray-900 leading-snug">{project.title}</h3>
               {project.pinned && (
-                <span className="shrink-0 font-mono text-[10px] font-medium uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#1877F2]/10 text-[#1877F2]">
+                <span className="shrink-0 font-mono text-[10px] font-medium uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#181d26]/10 text-[#181d26]">
                   <Pin size={10} className="mr-0.5" />
                   Pinned
                 </span>
@@ -1061,7 +1077,7 @@ function ProjectCard({ project }) {
                   href={project.githubLink}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-gray-500 hover:text-[#1877F2] transition-colors"
+                  className="text-gray-500 hover:text-[#181d26] transition-colors"
                 >
                   <GitBranch size={18} />
                 </a>
@@ -1071,7 +1087,7 @@ function ProjectCard({ project }) {
                   href={project.demoLink}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-gray-500 hover:text-[#1877F2] transition-colors"
+                  className="text-gray-500 hover:text-[#181d26] transition-colors"
                 >
                   <ExternalLink size={18} />
                 </a>
@@ -1110,7 +1126,7 @@ function AchievementsList({ achievements, isOwn, onEdit, onDelete }) {
                 <div className="flex gap-2 flex-shrink-0">
                   <button
                     onClick={() => onEdit?.(achievement)}
-                    className="font-sans text-[12px] font-medium text-[#1877F2] hover:bg-blue-50 transition-colors px-2.5 py-1 rounded-md"
+                    className="font-sans text-[12px] font-medium text-[#181d26] hover:bg-gray-100 transition-colors px-2.5 py-1 rounded-md"
                   >
                     Edit
                   </button>
@@ -1133,7 +1149,7 @@ function AchievementsList({ achievements, isOwn, onEdit, onDelete }) {
                   href={achievement.certificatePdf}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-[12px] font-medium text-[#1877F2] hover:underline"
+                  className="inline-flex items-center gap-1 text-[12px] font-medium text-[#181d26] hover:underline"
                 >
                   View Certificate
                 </a>
@@ -1191,21 +1207,21 @@ function PostsGrid({ gallery = [], achievements = [], projects = [], isOwn, onOp
           <div className="flex items-center gap-3">
             <button
               onClick={onOpenGalleryModal}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1877F2] text-white rounded-lg text-[14px] font-semibold hover:bg-[#166FE2] transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#181d26] text-white rounded-lg text-[14px] font-semibold hover:bg-[#0d1218] transition-colors"
             >
               <ImageIcon size={16} />
               Upload Photo
             </button>
             <button
               onClick={onOpenAchievementModal}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1877F2] text-white rounded-lg text-[14px] font-semibold hover:bg-[#166FE2] transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#181d26] text-white rounded-lg text-[14px] font-semibold hover:bg-[#0d1218] transition-colors"
             >
               <Trophy size={16} />
               Post Achievement
             </button>
             <button
               onClick={onOpenProjectModal}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1877F2] text-white rounded-lg text-[14px] font-semibold hover:bg-[#166FE2] transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#181d26] text-white rounded-lg text-[14px] font-semibold hover:bg-[#0d1218] transition-colors"
             >
               <GitBranch size={16} />
               Upload Project
@@ -1218,51 +1234,7 @@ function PostsGrid({ gallery = [], achievements = [], projects = [], isOwn, onOp
   )
 }
 
-function AboutSection({ profile }) {
-  const { user: currentUser } = useAuth()
-  const qc = useQueryClient()
-  const { id } = useParams()
-  const [editingAbout, setEditingAbout] = useState(false)
-  const [aboutForm, setAboutForm] = useState({})
-  const [saving, setSaving] = useState(false)
-  const isOwn = currentUser && currentUser._id === profile?._id
-
-  const startEditAbout = () => {
-    setAboutForm({
-      bio: profile.bio || '',
-      department: profile.department || '',
-      location: profile.location || '',
-      batch: profile.batch || '',
-      semester: profile.semester || '',
-      collegeEmail: profile.collegeEmail || '',
-      personalEmail: profile.personalEmail || '',
-      phone: profile.phone || '',
-    })
-    setEditingAbout(true)
-  }
-
-  const saveAbout = async () => {
-    setSaving(true)
-    try {
-      await updateMyProfile({
-        bio: aboutForm.bio,
-        department: aboutForm.department,
-        location: aboutForm.location,
-        batch: aboutForm.batch,
-        semester: aboutForm.semester ? Number(aboutForm.semester) : undefined,
-        collegeEmail: aboutForm.collegeEmail,
-        personalEmail: aboutForm.personalEmail,
-        phone: aboutForm.phone,
-      })
-      setEditingAbout(false)
-      qc.invalidateQueries({ queryKey: ['profile', id] })
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setSaving(false)
-    }
-  }
-
+function AboutSection({ profile, isOwn, editingAbout, setEditingAbout, aboutForm, setAboutForm, saving, startEditAbout, saveAbout }) {
   return (
     <div className="bg-white rounded-xl shadow border border-hairline p-6">
       <div className="flex items-center justify-between mb-5">
@@ -1270,7 +1242,7 @@ function AboutSection({ profile }) {
         {isOwn && !editingAbout && (
           <button
             onClick={startEditAbout}
-            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#1877F2] hover:underline"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#181d26] hover:underline"
           >
             <Edit3 size={14} /> Edit
           </button>
@@ -1285,7 +1257,7 @@ function AboutSection({ profile }) {
               value={aboutForm.bio}
               onChange={(e) => setAboutForm((f) => ({ ...f, bio: e.target.value }))}
               rows={4}
-              className="w-full bg-gray-50 border border-hairline rounded-lg px-3 py-2 text-[14px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#1877F2]"
+              className="w-full bg-gray-50 border border-hairline rounded-lg px-3 py-2 text-[14px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#181d26]"
             />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -1319,7 +1291,7 @@ function AboutSection({ profile }) {
             </div>
           </div>
           <div className="flex items-center gap-3 pt-2">
-            <button onClick={saveAbout} disabled={saving} className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1877F2] text-white rounded-full text-[13px] font-medium hover:bg-[#166FE2] transition-colors disabled:opacity-50">
+            <button onClick={saveAbout} disabled={saving} className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#181d26] text-white rounded-full text-[13px] font-medium hover:bg-[#0d1218] transition-colors disabled:opacity-50">
               <Save size={14} /> {saving ? 'Saving…' : 'Save'}
             </button>
             <button onClick={() => setEditingAbout(false)} className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-full text-[13px] font-medium hover:bg-gray-200 transition-colors">
@@ -1388,7 +1360,7 @@ function SkillsSection({ profile, isOwn, editingSkills, setEditingSkills, skills
         {isOwn && !editingSkills && (
           <button
             onClick={() => setEditingSkills(true)}
-            className="text-[12px] font-medium text-[#1877F2] hover:underline inline-flex items-center gap-1"
+            className="text-[12px] font-medium text-[#181d26] hover:underline inline-flex items-center gap-1"
           >
             <Edit3 size={12} /> Edit
           </button>
@@ -1400,7 +1372,7 @@ function SkillsSection({ profile, isOwn, editingSkills, setEditingSkills, skills
           <input value={skillsForm.interests} onChange={(e) => setSkillsForm((f) => ({ ...f, interests: e.target.value }))} className="input" placeholder="Machine Learning, Robotics..." />
           <input value={skillsForm.languages} onChange={(e) => setSkillsForm((f) => ({ ...f, languages: e.target.value }))} className="input" placeholder="English, Hindi, Bengali..." />
           <div className="flex items-center gap-3">
-            <button onClick={saveSkills} disabled={saving} className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1877F2] text-white rounded-full text-[13px] font-medium hover:bg-[#166FE2] transition-colors disabled:opacity-50">
+            <button onClick={saveSkills} disabled={saving} className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#181d26] text-white rounded-full text-[13px] font-medium hover:bg-[#0d1218] transition-colors disabled:opacity-50">
               <Save size={14} /> {saving ? 'Saving…' : 'Save'}
             </button>
             <button onClick={() => setEditingSkills(false)} className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-full text-[13px] font-medium hover:bg-gray-200 transition-colors">
@@ -1427,7 +1399,7 @@ function SkillsSection({ profile, isOwn, editingSkills, setEditingSkills, skills
               <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500 mb-2.5">Interests</p>
               <div className="flex flex-wrap gap-2">
                 {profile.interests.map((interest) => (
-                  <span key={interest} className="font-mono text-[12px] font-medium px-3 py-1.5 rounded-full bg-blue-50 text-[#1877F2] border border-blue-100">
+                  <span key={interest} className="font-mono text-[12px] font-medium px-3 py-1.5 rounded-full bg-gray-100 text-[#181d26] border border-hairline">
                     {interest}
                   </span>
                 ))}
@@ -1460,7 +1432,7 @@ function SocialLinksSection({ profile, isOwn, editingSocial, setEditingSocial, s
         {isOwn && !editingSocial && (
           <button
             onClick={() => setEditingSocial(true)}
-            className="text-[12px] font-medium text-[#1877F2] hover:underline inline-flex items-center gap-1"
+            className="text-[12px] font-medium text-[#181d26] hover:underline inline-flex items-center gap-1"
           >
             <Edit3 size={12} /> Edit
           </button>
@@ -1480,7 +1452,7 @@ function SocialLinksSection({ profile, isOwn, editingSocial, setEditingSocial, s
             </div>
           ))}
           <div className="flex items-center gap-3 pt-2">
-            <button onClick={saveSocial} disabled={saving} className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1877F2] text-white rounded-full text-[13px] font-medium hover:bg-[#166FE2] transition-colors disabled:opacity-50">
+            <button onClick={saveSocial} disabled={saving} className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#181d26] text-white rounded-full text-[13px] font-medium hover:bg-[#0d1218] transition-colors disabled:opacity-50">
               <Save size={14} /> {saving ? 'Saving…' : 'Save'}
             </button>
             <button onClick={() => setEditingSocial(false)} className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-full text-[13px] font-medium hover:bg-gray-200 transition-colors">
@@ -1528,7 +1500,7 @@ function DirectoryPanel({ data, loading, search, setSearch, batch, setBatch, sel
           <select
             value={batch}
             onChange={(e) => setBatch(e.target.value)}
-            className="bg-white border border-hairline rounded-lg px-3 py-2 text-[13px] font-sans text-gray-700 focus:outline-none focus:border-[#1877F2]/40 transition-colors"
+            className="bg-white border border-hairline rounded-lg px-3 py-2 text-[13px] font-sans text-gray-700 focus:outline-none focus:border-[#181d26]/40 transition-colors"
           >
             <option value="">All Batches</option>
             {batches.map((b) => (
@@ -1542,7 +1514,7 @@ function DirectoryPanel({ data, loading, search, setSearch, batch, setBatch, sel
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name or roll..."
-              className="w-full md:w-64 bg-white border border-hairline rounded-lg pl-9 pr-4 py-2 text-[14px] font-sans text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-[#1877F2]/40 transition-colors"
+              className="w-full md:w-64 bg-white border border-hairline rounded-lg pl-9 pr-4 py-2 text-[14px] font-sans text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-[#181d26]/40 transition-colors"
             />
           </div>
         </div>

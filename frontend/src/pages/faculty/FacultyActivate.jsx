@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { activateFaculty, checkFacultyEmail, facultyVerifyOtp } from '../../api/auth'
 import { motion } from 'framer-motion'
+import TermsCheckbox from '../../components/TermsCheckbox'
 
 export default function FacultyActivate() {
   const navigate = useNavigate()
@@ -29,6 +30,8 @@ export default function FacultyActivate() {
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [termsError, setTermsError] = useState('')
   const [step, setStep] = useState(1)
   const [resending, setResending] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
@@ -91,9 +94,14 @@ export default function FacultyActivate() {
   const handleActivate = async (e) => {
     e.preventDefault()
     setError('')
+    setTermsError('')
 
     if (password.length < 6) return setError('Password must be at least 6 characters')
     if (password !== confirm) return setError('Passwords do not match')
+    if (!termsAccepted) {
+      setTermsError('You must accept the Terms & Conditions to activate your account')
+      return
+    }
 
     setLoading(true)
     try {
@@ -282,6 +290,16 @@ export default function FacultyActivate() {
               </div>
 
               {error && <p className="text-[13px] font-medium text-error bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-center">{error}</p>}
+
+              {termsError && <p className="text-[13px] font-medium text-error bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-center">{termsError}</p>}
+
+              <div className="mt-2">
+                <TermsCheckbox
+                  checked={termsAccepted}
+                  onChange={(val) => { setTermsAccepted(val); setTermsError('') }}
+                  error={termsError}
+                />
+              </div>
 
               <button type="submit" disabled={loading} className="button-primary w-full py-3.5 mt-2">
                 {loading ? 'Activating…' : 'Activate & Enter Dashboard →'}

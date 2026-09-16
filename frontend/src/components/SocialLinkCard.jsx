@@ -55,7 +55,7 @@ export default function SocialLinkCard({ platform, username, url }) {
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="flex items-center justify-between p-4 border border-hairline bg-white rounded-xl group hover:bg-[#1877F2]/5 transition-colors"
+      className="flex items-center justify-between p-4 border border-hairline bg-white rounded-xl group hover:bg-black/5 transition-colors"
     >
       <div className="flex items-center gap-3">
         <div
@@ -71,7 +71,7 @@ export default function SocialLinkCard({ platform, username, url }) {
           </p>
         </div>
       </div>
-      <ExternalLink size={16} className="text-gray-400 group-hover:text-[#1877F2] transition-colors" />
+      <ExternalLink size={16} className="text-gray-400 group-hover:text-ink transition-colors" />
     </a>
   )
 }

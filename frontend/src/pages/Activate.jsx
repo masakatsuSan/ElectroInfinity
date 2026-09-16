@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { checkRoll, verifyActivationOtp, activateAccount } from '../api/auth'
+import TermsCheckbox from '../components/TermsCheckbox'
 
 const COLORS = {
   canvas: '#ffffff',
@@ -143,6 +144,8 @@ export default function Activate() {
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [termsError, setTermsError] = useState('')
   const [otpSent, setOtpSent] = useState(false)
   const [resendTimer, setResendTimer] = useState(0)
 
@@ -187,9 +190,14 @@ export default function Activate() {
   const handleActivate = async (e) => {
     e.preventDefault()
     setError('')
+    setTermsError('')
 
     if (password.length < 6) return setError('Password must be at least 6 characters')
     if (password !== confirm) return setError('Passwords do not match')
+    if (!termsAccepted) {
+      setTermsError('You must accept the Terms & Conditions to activate your account')
+      return
+    }
 
     setLoading(true)
     try {
@@ -415,6 +423,16 @@ export default function Activate() {
               </div>
 
               {error && <p style={errorStatusStyle}>{error}</p>}
+
+              {termsError && <p style={errorStatusStyle}>{termsError}</p>}
+
+              <div className="mt-2">
+                <TermsCheckbox
+                  checked={termsAccepted}
+                  onChange={(val) => { setTermsAccepted(val); setTermsError('') }}
+                  error={termsError}
+                />
+              </div>
 
               <button type="submit" disabled={loading} className="mt-2 w-full" style={submitButtonStyle}>
                 {loading ? 'Activating…' : 'Activate & Enter Dashboard →'}

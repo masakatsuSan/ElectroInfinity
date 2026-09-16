@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../api/auth'
 import { motion } from 'framer-motion'
 import { BATCHES, DEFAULT_BATCH } from '../data/batches'
+import TermsCheckbox from '../components/TermsCheckbox'
 
 const COLORS = {
   canvas: '#ffffff',
@@ -123,6 +124,8 @@ export default function Register() {
     rollNumber: '', regNumber: '', batch: DEFAULT_BATCH,
   })
   const [error, setError] = useState('')
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [termsError, setTermsError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -131,12 +134,17 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setTermsError('')
 
     if (form.password !== form.confirmPassword) {
       return setError('Passwords do not match')
     }
     if (form.password.length < 6) {
       return setError('Password must be at least 6 characters')
+    }
+    if (!termsAccepted) {
+      setTermsError('You must accept the Terms & Conditions to register')
+      return
     }
 
     setLoading(true)
@@ -318,6 +326,20 @@ export default function Register() {
               {error}
             </p>
           )}
+
+          {termsError && (
+            <p style={errorStatusStyle}>
+              {termsError}
+            </p>
+          )}
+
+          <div className="mt-1">
+            <TermsCheckbox
+              checked={termsAccepted}
+              onChange={(val) => { setTermsAccepted(val); setTermsError('') }}
+              error={termsError}
+            />
+          </div>
 
           <button
             type="submit"

@@ -120,7 +120,7 @@ export default function ProfileHeader({
           <img src={profile.coverPhoto} alt="Cover" className="object-cover w-full h-full" />
         ) : (
           <div className="w-full h-full bg-cover bg-center" style={{
-            backgroundImage: 'linear-gradient(135deg, #1877F2 0%, #1e3a8a 50%, #3730a3 100%)'
+            backgroundImage: 'linear-gradient(135deg, #181d26 0%, #0d1218 50%, #181d26 100%)'
           }} />
         )}
 
@@ -246,7 +246,7 @@ export default function ProfileHeader({
                 {isOwn ? (
                   <button
                     onClick={() => navigate('/profile/edit')}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#1877F2] text-white rounded-full text-[14px] font-semibold hover:bg-[#166FE2] transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-ink text-white rounded-full text-[14px] font-semibold hover:bg-primary-active transition-colors"
                   >
                     <Edit3 size={16} />
                     Edit Profile

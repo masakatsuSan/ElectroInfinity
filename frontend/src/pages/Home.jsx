@@ -104,8 +104,13 @@ export default function Home() {
       </section>
 
       {/* Core Pillars */}
-      <section className="pb-24 md:pb-32 bg-signature-forest">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+      <section className="py-28 md:py-36 bg-signature-forest relative overflow-hidden">
+        {/* Subtle background texture & geometry */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.04] bg-[radial-gradient(circle,white_1px,transparent_1px)] bg-size-[22px_22px]" />
+        <div className="absolute -top-24 -left-24 w-80 h-80 rounded-full border border-white/5" />
+        <div className="absolute top-1/3 -right-20 w-72 h-72 rounded-full border border-white/5" />
+
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 relative">
           <div className="max-w-3xl mb-16">
             <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-mint mb-4">
               Core Pillars
@@ -115,66 +120,86 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="bg-white md:col-span-2 md:row-span-2 min-h-[360px] flex flex-col justify-between p-8 md:p-10 border border-divider-soft shadow-sm">
-              <div>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-5 md:auto-rows-[180px] lg:grid-cols-4">
+            {/* Large feature card — Hands-on Hardware (visual anchor) */}
+            <article className="bento-card col-span-1 md:col-span-2 lg:col-span-2 md:row-span-2 bg-white rounded-[22px] p-6 md:p-8 lg:p-10 border border-white/70 shadow-card flex flex-col justify-between relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-44 h-44 bg-signature-yellow/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+              <div className="hidden md:absolute md:top-4 md:right-6 font-display text-[140px] font-normal leading-none text-ink/4 select-none">
+                01
+              </div>
+              <div className="relative">
                 <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-forest mb-5">
                   01. WORKSHOPS
                 </span>
-                <h3 className="font-display text-[20px] font-normal leading-[1.35] text-ink mb-3">
+                <h3 className="font-display text-[26px] md:text-[32px] font-normal leading-[1.2] text-ink mb-4">
                   Hands-on Hardware
                 </h3>
-                <p className="font-sans text-[14px] font-normal leading-[1.4] text-body">
+                <p className="font-sans text-[15px] font-normal leading-[1.5] text-body max-w-sm">
                   Practical sessions on PCB design, embedded systems, transformer testing, and power grid simulation.
                 </p>
               </div>
-              <span className="mt-8 block h-12 w-12 rounded-lg bg-signature-yellow" />
-            </div>
+              <div className="relative flex items-end justify-between">
+                
+              </div>
+            </article>
 
-            <div className="bg-[#f2f1ee] min-h-[180px] flex flex-col justify-between p-6 md:p-8 border border-divider-soft shadow-sm">
-              <div>
-                <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-ink mb-5">
+            {/* Placement & Alumni — medium card */}
+            <article className="bento-card col-span-1 md:col-span-2 lg:col-span-2 bg-[#f2f1ee] rounded-[22px] p-6 md:p-7 lg:p-8 border border-white/60 shadow-card flex flex-col justify-between relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-ink/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
+              <div className="relative">
+                <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-ink mb-4">
                   02. CAREER
                 </span>
-                <h3 className="font-display text-[20px] font-normal leading-[1.35] text-ink mb-3">
+                <h3 className="font-display text-[22px] font-normal leading-[1.3] text-ink mb-3">
                   Placement & Alumni
                 </h3>
-                <p className="font-sans text-[14px] font-normal leading-[1.4] text-body">
+                <p className="font-sans text-[14px] font-normal leading-[1.45] text-body">
                   Direct mentorship from alumni in core electrical, semiconductor, and automation industries.
                 </p>
               </div>
-              <span className="block h-10 w-10 rounded-lg bg-ink" />
-            </div>
+              <div className="relative flex items-end justify-between">
+        
+              </div>
+            </article>
 
-            <div className="bg-white min-h-[180px] flex flex-col justify-between p-6 md:p-8 border border-divider-soft shadow-sm">
-              <div>
-                <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral mb-5">
+            {/* Research & Innovation — medium card */}
+            <article className="bento-card col-span-1 md:col-span-2 lg:col-span-2 bg-white rounded-[22px] p-6 md:p-7 lg:p-8 border border-white/70 shadow-card flex flex-col justify-between relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-signature-coral/15 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
+              <div className="relative">
+                <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral mb-4">
                   03. RESEARCH
                 </span>
-                <h3 className="font-display text-[20px] font-normal leading-[1.35] text-ink mb-3">
+                <h3 className="font-display text-[22px] font-normal leading-[1.3] text-ink mb-3">
                   Research & Innovation
                 </h3>
-                <p className="font-sans text-[14px] font-normal leading-[1.4] text-body">
+                <p className="font-sans text-[14px] font-normal leading-[1.45] text-body">
                   Faculty-guided research in power systems, renewable energy, and embedded intelligence.
                 </p>
               </div>
-              <span className="block h-10 w-10 rounded-lg bg-signature-coral" />
-            </div>
+              <div className="relative flex items-end justify-between">
+                
+              </div>
+            </article>
 
-            <div className="bg-[#f2f1ee] md:col-span-2 min-h-[180px] flex flex-col justify-between p-6 md:p-8 border border-divider-soft shadow-sm">
-              <div>
-                <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-ink mb-5">
+            {/* Instrumentation & Automation — wide full-width band */}
+            <article className="bento-card col-span-1 md:col-span-2 lg:col-span-4 bg-white rounded-[22px] p-7 md:p-8 lg:p-10 border border-white/10 shadow-card flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(168,216,196,0.14),transparent_55%)]" />
+              <div className="absolute inset-0 opacity-[0.05] bg-[radial-gradient(circle,white_1px,transparent_1px)] bg-size-[18px_18px]" />
+              <div className="relative">
+                <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-mint mb-4">
                   04. LABS
                 </span>
-                <h3 className="font-display text-[20px] font-normal leading-[1.35] text-ink mb-3">
+                <h3 className="font-display text-[26px] md:text-[32px] font-normal leading-[1.2] text-black mb-3">
                   Instrumentation & Automation
                 </h3>
-                <p className="font-sans text-[14px] font-normal leading-[1.4] text-body">
+                <p className="font-sans text-[15px] font-normal leading-[1.5] text-black/70 max-w-2xl">
                   Calibrated lab benches, digital oscilloscopes, relay test kits, and PLC trainers for every semester.
                 </p>
               </div>
-              <span className="block h-10 w-10 rounded-lg bg-signature-forest" />
-            </div>
+              <div className="relative flex items-end justify-between md:justify-end gap-6">
+                
+              </div>
+            </article>
           </div>
         </div>
       </section>

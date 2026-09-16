@@ -1,5 +1,5 @@
 export default function ProfileCompleteness({ percentage, missing, onEdit }) {
-  const color = percentage >= 80 ? 'bg-green-600' : percentage >= 50 ? 'bg-orange-400' : 'bg-[#1877F2]'
+  const color = percentage >= 80 ? 'bg-green-600' : percentage >= 50 ? 'bg-orange-400' : 'bg-ink'
 
   return (
     <div className="border border-hairline bg-white p-6 rounded-xl shadow">
@@ -26,7 +26,7 @@ export default function ProfileCompleteness({ percentage, missing, onEdit }) {
           </ul>
           <button
             onClick={onEdit}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#1877F2] text-white rounded-full text-[13px] font-medium hover:bg-[#166FE2] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-ink text-white rounded-full text-[13px] font-medium hover:bg-primary-active transition-colors"
           >
             Complete Profile
           </button>

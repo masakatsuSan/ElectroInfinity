@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { motion } from 'framer-motion'
+import TermsCheckbox from '../../components/TermsCheckbox'
 
 export default function FacultyLogin() {
   const navigate = useNavigate()
@@ -21,13 +22,22 @@ export default function FacultyLogin() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [termsError, setTermsError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPwd, setShowPwd] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setTermsError('')
     setLoading(true)
+
+    if (!termsAccepted) {
+      setTermsError('You must accept the Terms & Conditions to sign in')
+      setLoading(false)
+      return
+    }
 
     try {
       const userData = await login({
@@ -147,6 +157,20 @@ export default function FacultyLogin() {
                   {error}
                 </p>
               )}
+
+              {termsError && (
+                <p className="text-[13px] font-medium text-error bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-center">
+                  {termsError}
+                </p>
+              )}
+
+              <div className="mt-1">
+                <TermsCheckbox
+                  checked={termsAccepted}
+                  onChange={(val) => { setTermsAccepted(val); setTermsError('') }}
+                  error={termsError}
+                />
+              </div>
 
               <button
                 type="submit"

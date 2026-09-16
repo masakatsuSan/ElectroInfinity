@@ -183,7 +183,7 @@ export default function FriendActionButton({
           ref={btnRef}
           onClick={handleAccept}
           disabled={loading}
-          className={`${baseBtnClass} bg-[#1877F2] text-white hover:bg-[#166FE2]`}
+          className={`${baseBtnClass} bg-ink text-white hover:bg-primary-active`}
         >
           {showIcon && <Check size={iconSize} />}
           Accept
@@ -206,7 +206,7 @@ export default function FriendActionButton({
         ref={btnRef}
         onClick={handleSend}
         disabled={loading}
-        className={`${baseBtnClass} bg-[#1877F2] text-white hover:bg-[#166FE2]`}
+        className={`${baseBtnClass} bg-ink text-white hover:bg-primary-active`}
       >
         {showIcon && <UserPlus size={iconSize} />}
         Add Friend

@@ -618,7 +618,7 @@ export default function Navbar({ onForumFlip }) {
                 <h3 className="font-mono text-[11px] font-bold uppercase tracking-wider text-muted mb-3">Quick Actions</h3>
                 <div className="flex flex-col gap-2">
                   <Link to={`/profile/${user._id}`} onClick={closeMenu} className="button-secondary w-full justify-center">
-                    <UserCheck size={16} /> My Profile
+                  My Profile
                   </Link>
                   {user.role === 'faculty' && (
                     <>

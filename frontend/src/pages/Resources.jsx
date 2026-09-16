@@ -99,30 +99,31 @@ export default function Resources() {
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          <label className="font-sans text-[13px] font-medium text-muted">Filter by Semester:</label>
-          <FilterSelect
-            value={semesterFilter}
-            onChange={setSemesterFilter}
-            options={[{ value: '', label: 'All Semesters' }, ...SEMS.map(s => ({ value: String(s), label: `Semester ${s}` }))]}
-            placeholder="All Semesters"
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          <label className="font-sans text-[13px] font-medium text-muted">Filter by Subject:</label>
-          <FilterSelect
-            value={subjectFilter}
-            onChange={setSubjectFilter}
-            options={[
-              { value: '', label: 'All Subjects' },
-              ...(semesterFilter
-                ? subjects.filter(s => s.semester === Number(semesterFilter))
-                : subjects
-              ).map(s => ({ value: s.name, label: s.name })),
-            ]}
-            placeholder="All Subjects"
-          />
+        <div className="flex flex-wrap items-center gap-8 mb-6">
+          <div className="flex items-center gap-3">
+            <label className="font-sans text-[13px] font-medium text-muted">Filter by Semester:</label>
+            <FilterSelect
+              value={semesterFilter}
+              onChange={setSemesterFilter}
+              options={[{ value: '', label: 'All Semesters' }, ...SEMS.map(s => ({ value: String(s), label: `Semester ${s}` }))]}
+              placeholder="All Semesters"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <label className="font-sans text-[13px] font-medium text-muted">Filter by Subject:</label>
+            <FilterSelect
+              value={subjectFilter}
+              onChange={setSubjectFilter}
+              options={[
+                { value: '', label: 'All Subjects' },
+                ...(semesterFilter
+                  ? subjects.filter(s => s.semester === Number(semesterFilter))
+                  : subjects
+                ).map(s => ({ value: s.name, label: s.name })),
+              ]}
+              placeholder="All Subjects"
+            />
+          </div>
         </div>
 
         <div key={activeTab.id} className="animate-in">

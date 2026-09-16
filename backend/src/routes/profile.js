@@ -460,7 +460,7 @@ router.get('/:id/qr', async (req, res) => {
           semester: user.semester,
           role: user.role,
           photo: user.photo,
-          department: u.profile?.department || '',
+department: user.profile?.department || '',
         },
       },
     })
