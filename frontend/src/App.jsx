@@ -17,6 +17,7 @@ import Home         from './pages/Home'
 import About        from './pages/About'
 import Faculty      from './pages/Faculty'
 import Resources    from './pages/Resources'
+import ResourceFolders from './pages/ResourceFolders'
 import Courses      from './pages/Courses'
 import SubjectDetails from './pages/SubjectDetails'
 import Labs         from './pages/Labs'
@@ -163,6 +164,8 @@ export default function App() {
             <Route path="/courses"      element={<AnimatedRoute><Courses /></AnimatedRoute>} />
             <Route path="/subject/:id" element={<AnimatedRoute><SubjectDetails /></AnimatedRoute>} />
             <Route path="/resources"    element={<AnimatedRoute><Resources /></AnimatedRoute>} />
+            <Route path="/resources/folders" element={<AnimatedRoute><ResourceFolders /></AnimatedRoute>} />
+            <Route path="/resources/folders/:id" element={<AnimatedRoute><ResourceFolders /></AnimatedRoute>} />
             <Route path="/placements"   element={<AnimatedRoute><Placements /></AnimatedRoute>} />
             <Route path="/calendar"     element={<AnimatedRoute><Calendar /></AnimatedRoute>} />
             <Route path="/gallery"      element={<AnimatedRoute><Gallery /></AnimatedRoute>} />

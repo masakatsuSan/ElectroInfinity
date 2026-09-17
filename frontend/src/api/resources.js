@@ -8,6 +8,14 @@ export const getResources = (params) =>
 export const getPreviewUrl = (id) =>
   `${import.meta.env.VITE_API_URL || '/api'}/resources/${id}/preview`
 
+// Fetch a resource preview as a blob URL via the axios instance (handles auth + base URL)
+export const fetchPreviewBlobUrl = async (id) => {
+  const response = await api.get(`/resources/${id}/preview`, {
+    responseType: 'blob',
+  })
+  return URL.createObjectURL(response.data)
+}
+
 // Download a resource (increments count, streams as attachment)
 export const downloadResource = (id) =>
   `${import.meta.env.VITE_API_URL || '/api'}/resources/${id}/download`

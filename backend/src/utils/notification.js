@@ -5,6 +5,7 @@ const DEFAULT_ICONS = {
   follow_back: 'user-check',
   forum_comment: 'message-circle',
   forum_reply: 'message-circle',
+  forum_mention: 'at-sign',
   forum_upvote: 'arrow-big-up',
   project_like: 'heart',
   project_approved: 'check-circle',

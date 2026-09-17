@@ -17,3 +17,6 @@ export const patchGalleryPhoto = (id, data) =>
 
 export const deleteGalleryPhoto = (id) =>
   api.delete(`/gallery/${id}`)
+
+export const getGalleryImageUrl = (id) =>
+  `${import.meta.env.VITE_API_URL || '/api'}/gallery/${id}/image`

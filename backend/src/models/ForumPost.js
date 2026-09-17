@@ -9,7 +9,8 @@ const forumPostSchema = new mongoose.Schema({
   },
   content: {
     type: String,
-    required: [true, 'Please provide post content']
+    trim: true,
+    default: ''
   },
   author: {
     type: mongoose.Schema.ObjectId,
@@ -43,6 +44,10 @@ const forumPostSchema = new mongoose.Schema({
   }],
   tags: [{
     type: String
+  }],
+  mentions: [{
+    type: mongoose.Schema.ObjectId,
+    ref: 'User'
   }],
   pollOptions: [{
     text: { type: String, required: true, trim: true },

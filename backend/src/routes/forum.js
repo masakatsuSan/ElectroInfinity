@@ -8,6 +8,7 @@ const FriendRequest = require('../models/FriendRequest')
 const { protect, guard } = require('../middleware/auth')
 const { createActivity } = require('../utils/activity')
 const { createNotification, createNotificationBulk } = require('../utils/notification')
+const { resolveMentions } = require('../utils/mentions')
 
 // @route   GET /api/forum/rooms
 // @desc    Get all community rooms
@@ -103,12 +104,19 @@ router.get('/', protect, async (req, res) => {
       .limit(parseInt(limit))
       .populate('author', 'name role photo rollNumber batch semester friends')
       .populate('room', 'name icon color isPopular')
+      .populate('mentions', 'name rollNumber photo')
       .populate({
         path: 'comments',
-        populate: {
-          path: 'author',
-          select: 'name role photo rollNumber batch semester friends'
-        }
+        populate: [
+          {
+            path: 'author',
+            select: 'name role photo rollNumber batch semester friends'
+          },
+          {
+            path: 'mentions',
+            select: 'name rollNumber photo'
+          }
+        ]
       });
 
     const total = await ForumPost.countDocuments(query);
@@ -180,12 +188,19 @@ router.get('/:id', protect, async (req, res) => {
     const post = await ForumPost.findById(req.params.id)
       .populate('author', 'name role photo rollNumber batch semester friends')
       .populate('room', 'name icon color isPopular')
+      .populate('mentions', 'name rollNumber photo')
       .populate({
         path: 'comments',
-        populate: {
-          path: 'author',
-          select: 'name role photo rollNumber batch semester friends'
-        }
+        populate: [
+          {
+            path: 'author',
+            select: 'name role photo rollNumber batch semester friends'
+          },
+          {
+            path: 'mentions',
+            select: 'name rollNumber photo'
+          }
+        ]
       });
 
     if (!post) {
@@ -240,6 +255,10 @@ router.post('/', protect, async (req, res) => {
       return res.status(400).json({ success: false, error: 'Room is required' });
     }
 
+    if (req.body.postType === 'text' && !String(req.body.content || '').trim()) {
+      return res.status(400).json({ success: false, error: 'Post content is required' });
+    }
+
     req.body.author = req.user.id;
 
     if (req.body.postType === 'poll' && (!req.body.pollOptions || req.body.pollOptions.length < 2)) {
@@ -249,6 +268,10 @@ router.post('/', protect, async (req, res) => {
     if (req.body.postType === 'link' && !req.body.linkUrl) {
       return res.status(400).json({ success: false, error: 'Link URL is required for link posts' });
     }
+
+    const mentionText = `${req.body.title || ''}\n${req.body.content || ''}`;
+    const mentionResult = await resolveMentions(mentionText, { actorId: req.user.id });
+    req.body.mentions = mentionResult.mentions;
 
     const post = await ForumPost.create(req.body);
 
@@ -265,14 +288,13 @@ router.post('/', protect, async (req, res) => {
       $set: { lastActivity: new Date() }
     });
 
-    // Notify room members about new post
-    const io = req.app.get('io')
-    const room = await CommunityRoom.findById(req.body.room).select('name members')
+    const io = req.app.get('io');
+    const room = await CommunityRoom.findById(req.body.room).select('name members');
     if (room?.members?.length > 0) {
-      const actorName = req.user.name || 'Someone'
+      const actorName = req.user.name || 'Someone';
       const memberIds = room.members
         .filter(id => id.toString() !== req.user.id)
-        .map(id => id.toString())
+        .map(id => id.toString());
       if (memberIds.length > 0) {
         await createNotificationBulk({
           recipients: memberIds,
@@ -284,8 +306,23 @@ router.post('/', protect, async (req, res) => {
           entityId: post._id,
           entityType: 'ForumPost',
           io,
-        })
+        });
       }
+    }
+
+    const mentionedIds = (post.mentions || []).map(id => id.toString());
+    if (mentionedIds.length > 0) {
+      await createNotificationBulk({
+        recipients: mentionedIds,
+        actor: req.user.id,
+        type: 'forum_mention',
+        title: `${req.user.name || 'Someone'} mentioned you in a post`,
+        message: String(post.content || post.title || '').substring(0, 120),
+        link: '/forum',
+        entityId: post._id,
+        entityType: 'ForumPost',
+        io,
+      });
     }
 
     res.status(201).json({ success: true, data: post });
@@ -380,6 +417,10 @@ router.post('/:id/comments', protect, async (req, res) => {
     req.body.post = req.params.id;
     req.body.author = req.user.id;
 
+    if (!String(req.body.content || '').trim()) {
+      return res.status(400).json({ success: false, error: 'Comment content is required' });
+    }
+
     if (req.body.parent) {
       const parentComment = await ForumComment.findById(req.body.parent);
       if (!parentComment) {
@@ -387,15 +428,32 @@ router.post('/:id/comments', protect, async (req, res) => {
       }
     }
 
+    const mentionResult = await resolveMentions(req.body.content, { actorId: req.user.id });
+    req.body.mentions = mentionResult.mentions;
+
     const comment = await ForumComment.create(req.body);
 
     await CommunityRoom.findByIdAndUpdate(post.room, {
       $set: { lastActivity: new Date() }
     });
 
-    // Create notifications for comment/reply
-    const io = req.app.get('io')
-    const actorName = req.user.name || 'Someone'
+    const io = req.app.get('io');
+    const actorName = req.user.name || 'Someone';
+
+    const mentionedIds = (comment.mentions || []).map(id => id.toString());
+    if (mentionedIds.length > 0) {
+      await createNotificationBulk({
+        recipients: mentionedIds,
+        actor: req.user.id,
+        type: 'forum_mention',
+        title: `${actorName} mentioned you in a comment`,
+        message: String(comment.content).substring(0, 120),
+        link: '/forum',
+        entityId: post._id,
+        entityType: 'ForumPost',
+        io,
+      });
+    }
 
     // Notify parent comment author (reply notification)
     if (req.body.parent) {

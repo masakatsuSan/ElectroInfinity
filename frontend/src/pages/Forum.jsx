@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { SkeletonPost } from '../components/Skeleton'
 import UserPopover from '../components/UserPopover'
+import MentionInput, { normalizeHandle } from '../components/MentionInput'
 
 const POST_TYPES = [
   { key: 'text', label: 'Text', icon: FileText },
@@ -37,6 +38,46 @@ const EDITORIAL_DISPLAY_FONT = {
   fontWeight: 400,
 }
 
+function buildMentionMap(mentions = []) {
+  const map = new Map()
+  mentions.forEach((user) => {
+    const handle = normalizeHandle(user?.rollNumber || user?.name)
+    if (handle && user?._id) map.set(handle, user)
+  })
+  return map
+}
+
+function MentionText({ text = '', mentions = [], onViewProfile }) {
+  const mentionMap = useMemo(() => buildMentionMap(mentions), [mentions])
+  const parts = String(text || '').split(/(@[A-Za-z0-9_]{1,64})/g)
+
+  return (
+    <span>
+      {parts.map((part, index) => {
+        const match = part.match(/^@([A-Za-z0-9_]{1,64})$/)
+        const handle = match ? normalizeHandle(match[1]) : ''
+        const user = handle ? mentionMap.get(handle) : null
+
+        if (!user) return part
+
+        return (
+          <button
+            key={`${part}-${index}`}
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation()
+              onViewProfile?.(user._id)
+            }}
+            className="text-[#1b61c9] font-medium hover:underline"
+          >
+            {part}
+          </button>
+        )
+      })}
+    </span>
+  )
+}
+
 export default function Forum() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -51,6 +92,7 @@ export default function Forum() {
   const [showCreate, setShowCreate] = useState(false)
   const [createRoom, setCreateRoom] = useState('')
   const [createType, setCreateType] = useState('text')
+  const [createError, setCreateError] = useState('')
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -78,8 +120,9 @@ export default function Forum() {
     try {
       const res = await getForumRooms()
       setRooms(res.data.data)
-      if (res.data.data.length > 0 && !selectedRoom) {
-        setSelectedRoom(res.data.data[0]._id)
+      if (res.data.data.length > 0) {
+        setSelectedRoom((current) => current || res.data.data[0]._id)
+        setCreateRoom((current) => current || res.data.data[0]._id)
       }
     } catch (err) {
       console.error(err)
@@ -103,7 +146,27 @@ export default function Forum() {
 
   const handleCreate = async (e) => {
     e.preventDefault()
-    if (!createRoom) return
+    setCreateError('')
+
+    if (!createRoom) {
+      setCreateError('Select a room before posting.')
+      return
+    }
+
+    if (createType === 'text' && !formData.content.trim()) {
+      setCreateError('Add post content before posting.')
+      return
+    }
+
+    if (createType === 'link' && !formData.linkUrl.trim()) {
+      setCreateError('Add a link URL before posting.')
+      return
+    }
+
+    if (createType === 'poll' && formData.pollOptions.filter(option => option.trim()).length < 2) {
+      setCreateError('Add at least two poll options before posting.')
+      return
+    }
 
     try {
       const payload = {
@@ -127,7 +190,7 @@ export default function Forum() {
       setCreateType('text')
       fetchPosts(page)
     } catch (err) {
-      console.error(err)
+      setCreateError(err.response?.data?.error || 'Unable to create post. Please try again.')
     }
   }
 
@@ -149,17 +212,16 @@ export default function Forum() {
     }
   }
 
-  const handleCommentSubmit = async (e, postId) => {
+  const handleCommentSubmit = async (e, postId, content = commentDrafts[postId]?.content) => {
     e.preventDefault()
-    const draft = commentDrafts[postId]
-    if (!draft?.content?.trim()) return
+    if (!content?.trim()) return
 
     try {
       await createComment(postId, {
-        content: draft.content.trim(),
+        content: content.trim(),
         parent: replyingTo || null
       })
-      setCommentDrafts({ ...commentDrafts, [postId]: '' })
+      setCommentDrafts((current) => ({ ...current, [postId]: '' }))
       setReplyingTo(null)
       fetchPosts(page)
     } catch (err) {
@@ -356,6 +418,16 @@ export default function Forum() {
                       <option key={room._id} value={room._id}>{room.name}</option>
                     ))}
                   </select>
+                  {createError && (
+                    <p role="alert" className="text-[12px] font-medium text-[#aa2d00]">
+                      {createError}
+                    </p>
+                  )}
+                  {rooms.length === 0 && (
+                    <p className="text-[12px] font-medium text-[#41454d]">
+                      No rooms are available. Ask an administrator to create a forum room.
+                    </p>
+                  )}
 
                   {/* Post Type Tabs */}
                   <div className="flex gap-1 rounded-sm bg-[#f8fafc] p-1">
@@ -386,12 +458,12 @@ export default function Forum() {
                   />
 
                   {createType === 'text' && (
-                    <textarea
-                      rows={4}
+                    <MentionInput
+                      multiline
                       value={formData.content}
-                      onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                      placeholder="What's on your mind?"
-                      className="min-h-[112px] w-full rounded-sm border border-[#dddddd] bg-[#ffffff] px-4 py-3 text-[14px] font-normal leading-[1.5] text-[#181d26] placeholder:text-[#41454d] outline-none focus:border-[#458fff] focus:ring-2 focus:ring-[#458fff]/20 resize-none"
+                      onChange={(value) => setFormData({ ...formData, content: value })}
+                      placeholder="What's on your mind? Type @ to mention someone"
+                      excludeUserId={user?._id}
                     />
                   )}
 
@@ -516,6 +588,7 @@ export default function Forum() {
                     setReplyingTo={setReplyingTo}
                     formatTimeAgo={formatTimeAgo}
                     onUserClick={handleUserClick}
+                    onViewProfile={handleViewProfile}
                     onUpvoteComment={upvoteComment}
                   />
                 ))}
@@ -609,7 +682,7 @@ function PostCard({
   post, user, userVote, onUpvote, onDownvote,
   onToggleComments, openComments, commentDrafts, setCommentDrafts,
   onCommentSubmit, replyingTo, setReplyingTo, formatTimeAgo,
-  onUserClick, onUpvoteComment
+  onUserClick, onViewProfile, onUpvoteComment
 }) {
   const [localDraft, setLocalDraft] = useState('')
   const [replyDraft, setReplyDraft] = useState('')
@@ -624,13 +697,13 @@ function PostCard({
 
   const handleLocalSubmit = (e) => {
     e.preventDefault()
-    onCommentSubmit(e, post._id)
+    onCommentSubmit(e, post._id, localDraft)
     setLocalDraft('')
   }
 
   const handleReplySubmit = (e, parentId) => {
     e.preventDefault()
-    onCommentSubmit(e, post._id)
+    onCommentSubmit(e, post._id, replyDraft)
     setReplyDraft('')
     setReplyingTo(null)
   }
@@ -696,10 +769,10 @@ function PostCard({
 
       {/* Post Body */}
       <h2 className="mb-1 text-[18px] font-medium leading-[1.4] text-[#181d26]" style={EDITORIAL_DISPLAY_FONT}>
-        {post.title}
+        <MentionText text={post.title} mentions={post.mentions} onViewProfile={onViewProfile} />
       </h2>
       <div className="mb-4 text-[14px] font-normal leading-[1.5] text-[#333840] whitespace-pre-wrap break-words">
-        {post.content}
+        <MentionText text={post.content} mentions={post.mentions} onViewProfile={onViewProfile} />
       </div>
 
       {/* Link Preview */}
@@ -797,12 +870,12 @@ function PostCard({
               {user?.name?.charAt(0)?.toUpperCase()}
             </div>
             <div className="flex flex-1 gap-2">
-              <input
-                type="text"
+              <MentionInput
                 value={localDraft}
-                onChange={(e) => { setLocalDraft(e.target.value); handleCommentDraft(post._id, e.target.value) }}
-                placeholder="Add a comment..."
-                className="h-11 flex-1 rounded-sm border border-[#dddddd] bg-[#ffffff] px-4 text-[14px] font-normal text-[#181d26] placeholder:text-[#41454d] outline-none focus:border-[#458fff] focus:ring-2 focus:ring-[#458fff]/20"
+                onChange={(value) => { setLocalDraft(value); handleCommentDraft(post._id, value) }}
+                placeholder="Add a comment... Type @ to mention someone"
+                excludeUserId={user?._id}
+                className="h-11 flex-1"
               />
               <button
                 type="submit"
@@ -841,7 +914,7 @@ function PostCard({
                     </button>
                     <span className="text-[11px] font-normal text-[#41454d]">{formatTimeAgo(comment.createdAt)}</span>
                   </div>
-                  <p className="text-[14px] font-normal leading-[1.5] text-[#333840] break-words">{comment.content}</p>
+                  <MentionText text={comment.content} mentions={comment.mentions} onViewProfile={onViewProfile} />
                   <div className="mt-1.5 flex items-center gap-3">
                     <button
                       onClick={() => onUpvoteComment(comment._id)}
@@ -861,12 +934,12 @@ function PostCard({
                   {/* Reply Input */}
                   {replyingTo === comment._id && (
                     <form onSubmit={(e) => handleReplySubmit(e, comment._id)} className="mt-2 flex gap-2">
-                      <input
-                        type="text"
+                      <MentionInput
                         value={replyDraft}
-                        onChange={(e) => handleReplyDraft(e.target.value)}
-                        placeholder="Reply..."
-                        className="h-10 flex-1 rounded-sm border border-[#dddddd] bg-[#ffffff] px-3 py-1.5 text-[13px] font-normal text-[#181d26] placeholder:text-[#41454d] outline-none focus:border-[#458fff] focus:ring-2 focus:ring-[#458fff]/20"
+                        onChange={handleReplyDraft}
+                        placeholder="Reply... Type @ to mention someone"
+                        excludeUserId={user?._id}
+                        className="h-10 flex-1"
                         autoFocus
                       />
                       <button
@@ -904,7 +977,7 @@ function PostCard({
                               </button>
                               <span className="text-[10px] font-normal text-[#41454d]">{formatTimeAgo(reply.createdAt)}</span>
                             </div>
-                            <p className="text-[13px] font-normal leading-[1.5] text-[#333840] break-words">{reply.content}</p>
+                            <MentionText text={reply.content} mentions={reply.mentions} onViewProfile={onViewProfile} />
                           </div>
                         </div>
                       ))}

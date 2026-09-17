@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { MODAL_VARIANTS, MODAL_TRANSITION } from '../utils/motion'
-import { getPreviewUrl } from '../api/resources'
+import { getPreviewUrl, fetchPreviewBlobUrl } from '../api/resources'
 
 export default function ResourcePreviewDrawer({ resource, onClose }) {
   if (!resource) return null
 
-  const previewUrl = getPreviewUrl(resource._id)
   const isPdf = /\.pdf($|[?#])/i.test(resource.fileUrl || '')
   const isImage = /\.(png|jpe?g|webp|gif|svg)($|[?#])/i.test(resource.fileUrl || '')
   const [loading, setLoading] = useState(true)
+  const [previewUrl, setPreviewUrl] = useState(null)
 
   useEffect(() => {
     const onKey = (e) => {
@@ -19,6 +19,25 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
+
+  useEffect(() => {
+    let objectUrl = null
+    setLoading(true)
+    fetchPreviewBlobUrl(resource._id)
+      .then(url => {
+        objectUrl = url
+        setPreviewUrl(url)
+      })
+      .catch(() => {
+        setPreviewUrl(getPreviewUrl(resource._id))
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+    return () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [resource._id])
 
   return (
     <div className="fixed inset-0 z-[100] flex">
@@ -56,7 +75,7 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           )}
-          {isPdf ? (
+          {previewUrl && isPdf ? (
             <iframe
               src={previewUrl}
               title={resource.title || 'Preview'}
@@ -64,7 +83,7 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
               onLoad={() => setLoading(false)}
               style={{ visibility: loading ? 'hidden' : 'visible' }}
             />
-          ) : isImage ? (
+          ) : previewUrl && isImage ? (
             <img
               src={previewUrl}
               alt={resource.title || 'Preview'}
@@ -73,13 +92,13 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
               loading="lazy"
               style={{ visibility: loading ? 'hidden' : 'visible' }}
             />
-          ) : (
+          ) : !previewUrl && !loading ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 p-6 text-center">
               <p className="font-sans text-[15px] text-body-muted">
                 Preview is not available for this file type.
               </p>
             </div>
-          )}
+          ) : null}
         </div>
       </motion.div>
     </div>

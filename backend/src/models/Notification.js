@@ -20,6 +20,7 @@ const notificationSchema = new mongoose.Schema(
         'follow_back',
         'forum_comment',
         'forum_reply',
+        'forum_mention',
         'forum_upvote',
         'project_like',
         'project_approved',

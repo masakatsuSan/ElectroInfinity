@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckCheck, Trash2, Bell, UserPlus, UserCheck, MessageSquare, Reply, ThumbsUp, Heart, CheckCircle, XCircle, Send, Megaphone, Clock, FileText, Calendar, Image, Upload, Trophy, Zap } from 'lucide-react'
+import { CheckCheck, Trash2, Bell, UserPlus, UserCheck, MessageSquare, Reply, ThumbsUp, Heart, CheckCircle, XCircle, Send, Megaphone, Clock, FileText, Calendar, Image, Upload, Trophy, Zap, AtSign } from 'lucide-react'
 import { useNotifications } from '../context/NotificationContext'
 import SEO from '../components/SEO'
 
@@ -10,6 +10,7 @@ const TYPE_ICONS = {
   friend_accepted: UserCheck,
   forum_comment: MessageSquare,
   forum_reply: Reply,
+  forum_mention: AtSign,
   forum_upvote: ThumbsUp,
   project_like: Heart,
   project_approved: CheckCircle,

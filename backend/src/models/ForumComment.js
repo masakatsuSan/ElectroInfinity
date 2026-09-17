@@ -13,9 +13,14 @@ const forumCommentSchema = new mongoose.Schema({
   },
   content: {
     type: String,
-    required: [true, 'Please provide comment content']
+    trim: true,
+    default: ''
   },
   upvotes: [{
+    type: mongoose.Schema.ObjectId,
+    ref: 'User'
+  }],
+  mentions: [{
     type: mongoose.Schema.ObjectId,
     ref: 'User'
   }],

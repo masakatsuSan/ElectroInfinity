@@ -1,15 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getGallery, createGalleryPhoto } from '../api/gallery'
+import { getGallery, createGalleryPhoto, getGalleryImageUrl } from '../api/gallery'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
-import ImageGuard from '../components/ImageGuard'
 import { Plus, X, Upload } from 'lucide-react'
 import UploaderInfo from '../components/UploaderInfo'
 
 const CATEGORIES = ['All', 'Workshops', 'Events', 'Lab', 'Campus']
 const GALLERY_RATIOS = ['lg:aspect-[4/5]', 'lg:aspect-[3/4]', 'lg:aspect-video']
-const NO_GRADIENTS = '[*]:bg-none [*]:before:bg-none'
 
 export default function Gallery() {
   const { user } = useAuth()
@@ -25,7 +23,7 @@ export default function Gallery() {
 
   const GALLERY = (data?.data || []).map(p => ({
     _id: p._id,
-    url: `/api/gallery/${p._id}/image`,
+    url: getGalleryImageUrl(p._id),
     label: p.title,
     category: p.category
       ? p.category.charAt(0).toUpperCase() + p.category.slice(1)
@@ -117,14 +115,12 @@ export default function Gallery() {
                     onClick={() => setSelectedIndex(i)}
                     className={`relative overflow-hidden group block w-full text-left rounded-md border border-divider-soft bg-white shadow-sm ${GALLERY_RATIOS[i % GALLERY_RATIOS.length]}`}
                   >
-                    <ImageGuard className={`w-full h-full ${NO_GRADIENTS}`}>
-                      <img
-                        src={img.url}
-                        alt={img.label}
-                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                         style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
-                      />
-                    </ImageGuard>
+                    <img
+                      src={img.url}
+                      alt={img.label}
+                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                       style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
+                    />
                      <div className="absolute inset-0 bg-ink/55 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4" style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
                       <p className="font-sans text-[13px] font-medium text-white">
                         {img.label}
@@ -133,13 +129,11 @@ export default function Gallery() {
                   </button>
                 ) : (
                   <div className={`relative overflow-hidden rounded-md border border-divider-soft bg-surface-soft ${GALLERY_RATIOS[i % GALLERY_RATIOS.length]}`}>
-                    <ImageGuard className={`w-full h-full ${NO_GRADIENTS}`}>
-                      <img
-                        src={img.url}
-                        alt={img.label}
-                        className="w-full h-full object-cover"
-                      />
-                    </ImageGuard>
+                    <img
+                      src={img.url}
+                      alt={img.label}
+                      className="w-full h-full object-cover"
+                    />
                     <div className="absolute inset-0 bg-ink/38 flex items-end p-4">
                       <p className="font-sans text-[13px] font-medium text-white">
                         {img.label}

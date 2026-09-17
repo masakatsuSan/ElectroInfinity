@@ -1,23 +1,46 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
-import { getPreviewUrl } from '../api/resources'
+import { getPreviewUrl, fetchPreviewBlobUrl } from '../api/resources'
 
 export default function ResourceSplitView({ selectedResource, resources, onSelectResource, onClose }) {
   if (!selectedResource) return null
 
-  const previewUrl = getPreviewUrl(selectedResource._id)
   const isPdf = /\.pdf($|[?#])/i.test(selectedResource.fileUrl || '')
   const isImage = /\.(png|jpe?g|webp|gif|svg)($|[?#])/i.test(selectedResource.fileUrl || '')
   const [loading, setLoading] = useState(true)
+  const [previewUrl, setPreviewUrl] = useState(null)
 
   useEffect(() => {
+    let objectUrl = null
     setLoading(true)
+    fetchPreviewBlobUrl(selectedResource._id)
+      .then(url => {
+        objectUrl = url
+        setPreviewUrl(url)
+      })
+      .catch(() => {
+        setPreviewUrl(getPreviewUrl(selectedResource._id))
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+    return () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+      const onKey = (e) => {
+        if (e.key === 'Escape') onClose()
+      }
+      window.addEventListener('keydown', onKey)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [selectedResource._id, onClose])
+
+  useEffect(() => {
     const onKey = (e) => {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [selectedResource._id, onClose])
+  }, [onClose])
 
   const otherResources = resources.filter(r => r._id !== selectedResource._id)
 
@@ -50,7 +73,7 @@ export default function ResourceSplitView({ selectedResource, resources, onSelec
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           )}
-          {isPdf ? (
+          {previewUrl && isPdf ? (
             <iframe
               src={previewUrl}
               title={selectedResource.title || 'Preview'}
@@ -58,7 +81,7 @@ export default function ResourceSplitView({ selectedResource, resources, onSelec
               onLoad={() => setLoading(false)}
               style={{ visibility: loading ? 'hidden' : 'visible' }}
             />
-          ) : isImage ? (
+          ) : previewUrl && isImage ? (
             <img
               src={previewUrl}
               alt={selectedResource.title || 'Preview'}
@@ -67,13 +90,13 @@ export default function ResourceSplitView({ selectedResource, resources, onSelec
               loading="lazy"
               style={{ visibility: loading ? 'hidden' : 'visible' }}
             />
-          ) : (
+          ) : !previewUrl && !loading ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 p-6 text-center">
               <p className="font-sans text-[15px] text-body-muted">
                 Preview is not available for this file type.
               </p>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 

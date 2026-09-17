@@ -39,9 +39,26 @@ function applyBatchScope(filter, user) {
     filter.visibility = 'GLOBAL'
     return
   }
-  if (user.role === 'cr') {
-    filter.batchId = user.batch || ''
+  if (user.role === 'cr' || user.role === 'student') {
+    const batch = user.batch || ''
+    if (batch) {
+      filter['$or'] = [{ visibility: 'GLOBAL' }, { batchId: batch }]
+    } else {
+      filter.visibility = 'GLOBAL'
+    }
+    return
   }
+}
+
+function canUserViewFolder(user, folder) {
+  if (!folder) return false
+  if (!user) return folder.visibility === 'GLOBAL'
+  if (['admin', 'super_admin', 'faculty'].includes(user.role)) return true
+  if (user.role === 'cr' || user.role === 'student') {
+    if (folder.visibility === 'GLOBAL') return true
+    if (folder.batchId && folder.batchId === user.batch) return true
+  }
+  return false
 }
 
 async function resolveItems(items) {
@@ -105,7 +122,7 @@ router.get('/', optionalAuth, async (req, res) => {
     applyBatchScope(filter, req.user)
     if (semester) filter.semester = Number(semester)
     if (subject) filter.subject = subject
-    if (batchId) filter.batchId = batchId
+    if (batchId && req.user && ['admin', 'super_admin'].includes(req.user.role)) filter.batchId = batchId
     if (search) filter.title = new RegExp(search, 'i')
 
     const folders = await Folder.find(filter)
@@ -127,11 +144,10 @@ router.get('/:id', optionalAuth, async (req, res) => {
 
     if (!folder) return res.status(404).json({ success: false, error: 'Folder not found' })
 
-    if (req.user && req.user.role === 'cr' && folder.batchId && folder.batchId !== req.user.batch) {
-      return res.status(403).json({ success: false, error: 'Not your folder' })
-    }
-    if (!req.user && folder.visibility === 'BATCH') {
-      return res.status(403).json({ success: false, error: 'Login required' })
+    if (!canUserViewFolder(req.user, folder)) {
+      return res
+        .status(req.user ? 403 : 401)
+        .json({ success: false, error: req.user ? 'Not your folder' : 'Login required' })
     }
 
     const items = await resolveItems(folder.items)

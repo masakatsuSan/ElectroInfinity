@@ -594,10 +594,10 @@ export default function Navbar({ onForumFlip }) {
       </nav>
 
       {/* Mobile overlay menu */}
-      <div className={`fixed inset-0 z-40 bg-white flex flex-col px-4 sm:px-6 no-scrollbar ${
+      <div className={`fixed inset-0 z-40 bg-white ${
         menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
-        <div className="pt-[100px] flex-1 overflow-y-auto pb-8">
+        <div className="absolute top-[72px] bottom-0 left-4 right-4 sm:left-6 sm:right-6 overflow-y-auto pb-8 no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
           {user && (
             <div className="p-4 mb-6 border bg-soft-stone rounded-xl border-hairline">
               <div className="flex items-center justify-between mb-1">

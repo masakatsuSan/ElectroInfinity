@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ChevronDown, Play } from 'lucide-react'
@@ -98,9 +99,12 @@ export default function Resources() {
             Resources & Bulletins
           </h1>
           <p className="font-sans text-[17px] text-body leading-relaxed">
-            Curated repository of previous year questions, class notes, laboratory manuals, and official departmental announcements.
-          </p>
-        </div>
+          Curated repository of previous year questions, class notes, laboratory manuals, and official departmental announcements.
+        </p>
+        <Link to="/resources/folders" className="inline-flex items-center gap-2 font-sans text-[13px] font-medium text-primary hover:underline mt-2">
+          Browse by Folder (Series)
+        </Link>
+      </div>
 
         <div className="flex gap-2 pb-4 mb-10 overflow-x-auto border-b border-hairline">
           {TABS.map(tab => (
