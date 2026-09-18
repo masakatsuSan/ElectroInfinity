@@ -83,11 +83,35 @@ router.get('/', optionalAuth, async (req, res) => {
     if (semester) filter.semester = Number(semester)
     if (subject) filter.subject = subject
 
-    const resources = await Resource.find(filter)
+    // Optional pagination. Only applied when the caller sends ?page / ?limit,
+    // so the existing "return everything" response shape stays byte-identical
+    // for the live frontend (which calls this without any params).
+    const wantsPaging = req.query.page !== undefined || req.query.limit !== undefined
+    const page  = Math.max(1, parseInt(req.query.page, 10) || 1)
+    const limit = Math.min(200, Math.max(1, parseInt(req.query.limit, 10) || 50))
+
+    let query = Resource.find(filter)
       .populate('uploadedBy', 'name photo')
       .sort({ createdAt: -1 })
+      .lean()
 
-    res.json({ success: true, data: resources })
+    if (wantsPaging) query = query.skip((page - 1) * limit).limit(limit)
+
+    const resources = await query
+
+    if (!wantsPaging) {
+      return res.json({ success: true, data: resources })
+    }
+
+    const total = await Resource.countDocuments(filter)
+    res.json({
+      success: true,
+      data: resources,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    })
   } catch (err) {
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }

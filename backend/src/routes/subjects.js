@@ -110,6 +110,7 @@ router.get('/', optionalAuth, async (req, res) => {
     const subjects = await Subject.find(filter)
       .populate('updatedBy', 'name')
       .sort({ semester: 1, code: 1, name: 1 })
+      .lean()
     res.json({ success: true, count: subjects.length, data: subjects })
   } catch (err) {
     res.status(500).json({ success: false, error: 'An internal server error occurred' })

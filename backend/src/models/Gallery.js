@@ -19,4 +19,11 @@ const gallerySchema = new mongoose.Schema(
   { timestamps: true }
 )
 
+// ── Indexes ────────────────────────────────────────────────────────────────
+// Public list is sorted by date/createdAt (routes/gallery.js) and can be
+// filtered by category or uploader; profile pages query by uploadedBy too.
+gallerySchema.index({ date: -1, createdAt: -1 })
+gallerySchema.index({ category: 1, date: -1 })
+gallerySchema.index({ uploadedBy: 1, createdAt: -1 })
+
 module.exports = mongoose.model('Gallery', gallerySchema)

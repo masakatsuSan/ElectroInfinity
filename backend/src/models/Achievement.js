@@ -20,4 +20,9 @@ const achievementSchema = new mongoose.Schema(
   { timestamps: true }
 )
 
+// ── Indexes ────────────────────────────────────────────────────────────────
+// Public list sorts by createdAt; profile pages filter by author.
+achievementSchema.index({ createdAt: -1 })
+achievementSchema.index({ author: 1, createdAt: -1 })
+
 module.exports = mongoose.model('Achievement', achievementSchema)

@@ -31,6 +31,7 @@ router.get('/', optionalAuth, async (req, res) => {
     const lectures = await YTLecture.find(filter)
       .populate('uploadedBy', 'name photo')
       .sort({ lectureNumber: 1, createdAt: -1 })
+      .lean()
 
     res.json({ success: true, data: lectures })
   } catch (err) {

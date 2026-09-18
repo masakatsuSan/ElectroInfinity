@@ -40,7 +40,7 @@ router.get('/', async (req, res) => {
     const query = {}
     if (author) query.uploadedBy = author
 
-    const photos = await Gallery.find(query).sort({ date: -1, createdAt: -1 })
+    const photos = await Gallery.find(query).sort({ date: -1, createdAt: -1 }).lean()
 
     res.json({ success: true, data: photos })
   } catch (err) {

@@ -24,6 +24,7 @@ router.get('/', optionalAuth, async (req, res) => {
     const achievements = await Achievement.find(query)
       .sort({ createdAt: -1 })
       .populate('author', 'name rollNumber batch role photo profile.profileVisibility')
+      .lean()
 
     res.json({ success: true, data: achievements })
   } catch (err) {

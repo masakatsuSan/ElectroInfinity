@@ -23,12 +23,6 @@ const userSchema = new mongoose.Schema(
       default: 'student',
     },
 
-     role: {
-      type:    String,
-      enum:    ['student', 'cr', 'admin', 'super_admin', 'faculty'],
-      default: 'student',
-    },
-
     isActive:             { type: Boolean, default: true },
 
     photo: { type: String, default: '' },
@@ -119,5 +113,13 @@ userSchema.pre('save', async function (next) {
 userSchema.methods.comparePassword = async function (typed) {
   return bcrypt.compare(typed, this.password)
 }
+
+// ── Indexes ────────────────────────────────────────────────────────────────
+// Login / activation flows look users up by roll number (routes/auth.js).
+// `email` is already covered by its unique index.
+// NOTE: intentionally not unique — several accounts use an empty rollNumber.
+userSchema.index({ rollNumber: 1 })
+// Directory and batch listing filters.
+userSchema.index({ batch: 1, section: 1, role: 1 })
 
 module.exports = mongoose.model('User', userSchema)
