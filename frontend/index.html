@@ -12,8 +12,211 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="ElectroInfinity" />
-  <body class="bg-bg text-ink">
+
+    <meta name="description" content="Electro Infinity — Electrical Engineering Club, Alipurduar Government Engineering and Management College" />
+    <meta name="keywords" content="Electrical Engineering, AGEMC, Electro Infinity, Engineering Club, Alipurduar" />
+    <meta name="author" content="Electro Infinity" />
+    <link rel="canonical" href="https://electro-infinity.vercel.app/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://electro-infinity.vercel.app/" />
+    <meta name="google-site-verification" content="mTMSfiYlpdvDccP1oSSAqheIolQKYqIRt9d_ovJmKF4" />
+    <meta property="og:title" content="Electro Infinity | EE Club, AGEMC" />
+    <meta property="og:description" content="Electro Infinity — Electrical Engineering Club, Alipurduar Government Engineering and Management College" />
+    <meta property="og:image" content="https://electro-infinity.vercel.app/og-image.jpg" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://electro-infinity.vercel.app/" />
+    <meta name="twitter:title" content="Electro Infinity | EE Club, AGEMC" />
+    <meta name="twitter:description" content="Electro Infinity — Electrical Engineering Club, Alipurduar Government Engineering and Management College" />
+    <meta name="twitter:image" content="https://electro-infinity.vercel.app/og-image.jpg" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+  <!--
+      Boot screen — inline and dependency-free so it paints on the very first
+      frame, before any stylesheet or bundle arrives.
+
+      It is deliberately NOT on a timer. The previous splash faded itself out
+      after a fixed 0.8s, which left a blank page until the entry chunk had
+      downloaded, parsed and mounted (measured: 4.9s of white on Slow 3G, and
+      "refresh to fix it" because the second load came from cache).
+      This one stays up until React reports that it mounted:
+      main.jsx calls window.__eiBoot.ready().
+    -->
+    <style>
+      html:not(.app-ready) body { background-color: #0a0a0a; }
+
+      #boot {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        padding: 24px;
+        background: #0a0a0a;
+        color: #fff;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        text-align: center;
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.45s ease, visibility 0s linear 0.45s;
+      }
+      html.app-ready #boot { opacity: 0; visibility: hidden; }
+
+      #boot-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 2px;
+        width: 40%;
+        background: #00d4ff;
+        animation: boot-slide 1.15s ease-in-out infinite;
+      }
+      @keyframes boot-slide {
+        0%   { transform: translateX(-110%); }
+        100% { transform: translateX(360%); }
+      }
+
+      #boot-ring {
+        width: 52px;
+        height: 52px;
+        border: 3px solid rgba(255, 255, 255, 0.12);
+        border-top-color: #00d4ff;
+        border-radius: 50%;
+        animation: boot-spin 0.9s linear infinite;
+      }
+      @keyframes boot-spin { to { transform: rotate(360deg); } }
+
+      #boot-name {
+        margin: 0;
+        font-size: 1.6rem;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+      }
+      #boot-sub {
+        margin: 0;
+        font-size: 0.75rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.55);
+      }
+
+      /* Skeleton shell — shows the app frame is coming, not a blank page. */
+      .boot-skel {
+        width: 100%;
+        max-width: 340px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 4px;
+      }
+      .boot-skel span {
+        height: 10px;
+        border-radius: 6px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.07) 25%,
+          rgba(255, 255, 255, 0.16) 37%,
+          rgba(255, 255, 255, 0.07) 63%
+        );
+        background-size: 400% 100%;
+        animation: boot-shimmer 1.4s ease-in-out infinite;
+      }
+      .boot-skel span:nth-child(1) { width: 100%; }
+      .boot-skel span:nth-child(2) { width: 62%; }
+      .boot-skel span:nth-child(3) { width: 84%; }
+      @keyframes boot-shimmer {
+        0%   { background-position: 100% 50%; }
+        100% { background-position: 0 50%; }
+      }
+
+      #boot-hint {
+        margin: 0;
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+      #boot-hint button {
+        font: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 9px 20px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        background: #fff;
+        color: #0a0a0a;
+        cursor: pointer;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #boot-bar, #boot-ring, .boot-skel span { animation: none; }
+        #boot { transition: none; }
+      }
+    </style>
+  </head>
+
+  <body class="text-ink">
     <div id="root"></div>
+
+    <div id="boot" role="status" aria-live="polite" aria-label="Loading ElectroInfinity">
+      <div id="boot-bar"></div>
+      <div id="boot-ring"></div>
+      <h1 id="boot-name">ElectroInfinity</h1>
+      <p id="boot-sub">EE Club · AGEMC</p>
+      <div class="boot-skel" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div id="boot-hint" hidden>
+        <span>This is taking longer than usual.</span>
+        <button type="button" onclick="window.location.reload()">Reload</button>
+      </div>
+    </div>
+
+    <noscript>
+      <div style="position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;background:#0a0a0a;color:#fff;font-family:system-ui,sans-serif;text-align:center">
+        <h1 style="margin:0;font-size:1.4rem">ElectroInfinity</h1>
+        <p style="margin:0;color:rgba(255,255,255,0.75);max-width:32ch">
+          JavaScript is disabled, so the app cannot start. Please enable it and reload.
+        </p>
+      </div>
+    </noscript>
+    <script>
+      // Fail-safe for the boot screen: normally main.jsx calls __eiBoot.ready()
+      // as soon as React mounts. If that never happens (bundle blocked, stale
+      // cached chunk, offline) we surface a Reload button at 9s and again at
+      // 25s, instead of leaving the user on a dead screen.
+      window.__eiBoot = {
+        ready: function () {
+          document.documentElement.classList.add('app-ready')
+          if (window.__eiBootTimer) clearTimeout(window.__eiBootTimer)
+          if (window.__eiBootTimer2) clearTimeout(window.__eiBootTimer2)
+        },
+      }
+      function showBootHint() {
+        if (document.documentElement.classList.contains('app-ready')) return
+        var hint = document.getElementById('boot-hint')
+        if (hint) hint.hidden = false
+      }
+      window.__eiBootTimer = setTimeout(showBootHint, 9000)
+      window.__eiBootTimer2 = setTimeout(showBootHint, 25000)
+    </script>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
