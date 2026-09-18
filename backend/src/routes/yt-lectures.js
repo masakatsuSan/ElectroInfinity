@@ -34,7 +34,7 @@ router.get('/', optionalAuth, async (req, res) => {
 
     res.json({ success: true, data: lectures })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -100,7 +100,7 @@ router.post('/', protect, guard('cr', 'super_admin', 'admin'), async (req, res) 
 
     res.status(201).json({ success: true, data: lecture })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -134,7 +134,7 @@ router.put('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, res
     const updated = await YTLecture.findByIdAndUpdate(req.params.id, updates, { new: true })
     res.json({ success: true, data: updated })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -151,7 +151,7 @@ router.delete('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, 
     await lecture.deleteOne()
     res.json({ success: true, message: 'YT Lecture deleted' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

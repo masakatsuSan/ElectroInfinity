@@ -24,7 +24,7 @@ router.get('/', protect, async (req, res) => {
     const deadlines = await Deadline.find(query).sort({ deadline: 1 }).populate('postedBy', 'name role')
     res.json({ success: true, count: deadlines.length, data: deadlines })
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

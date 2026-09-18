@@ -13,7 +13,7 @@ export default function Home() {
   const announcements = data?.data || []
 
   return (
-    <div className="bg-white text-ink">
+    <div className="min-h-screen bg-white text-ink">
       <SEO
         title="Home"
         description="Electro Infinity — Electrical Engineering Club, Alipurduar Government Engineering and Management College"
@@ -21,7 +21,7 @@ export default function Home() {
       />
 
       {/* Hero Band */}
-      <section className="pt-24 md:pt-32 pb-16 md:pb-24">
+      <section className="pt-24 pb-16 md:pt-32 md:pb-24">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12">
           <div className="max-w-[880px]">
             <div className="mb-8">
@@ -39,7 +39,7 @@ export default function Home() {
             </p>
 
             <div className="flex flex-wrap items-center gap-3">
-              <Link to="/courses" className="button-primary font-sans">
+              <Link to="/courses" className="font-sans button-primary">
                 Explore Courses →
               </Link>
             </div>
@@ -95,7 +95,7 @@ export default function Home() {
               <p className="font-sans text-[15px] font-normal leading-[1.4] text-white/85 max-w-xl mb-8">
                 Power Electronics, Digital Signal Processing, Renewable Energy Systems, and Microcontrollers.
               </p>
-              <Link to="/laboratory" className="button-secondary-on-dark font-sans">
+              <Link to="/laboratory" className="font-sans button-secondary-on-dark">
                 View Laboratory Facilities →
               </Link>
             </div>
@@ -104,11 +104,11 @@ export default function Home() {
       </section>
 
       {/* Core Pillars */}
-      <section className="py-28 md:py-36 bg-signature-forest relative overflow-hidden">
+      <section className="relative overflow-hidden py-28 md:py-36 bg-signature-forest">
         {/* Subtle background texture & geometry */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.04] bg-[radial-gradient(circle,white_1px,transparent_1px)] bg-size-[22px_22px]" />
-        <div className="absolute -top-24 -left-24 w-80 h-80 rounded-full border border-white/5" />
-        <div className="absolute top-1/3 -right-20 w-72 h-72 rounded-full border border-white/5" />
+        <div className="absolute border rounded-full -top-24 -left-24 w-80 h-80 border-white/5" />
+        <div className="absolute border rounded-full top-1/3 -right-20 w-72 h-72 border-white/5" />
 
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 relative">
           <div className="max-w-3xl mb-16">
@@ -123,7 +123,7 @@ export default function Home() {
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-5 md:auto-rows-[180px] lg:grid-cols-4">
             {/* Large feature card — Hands-on Hardware (visual anchor) */}
             <article className="bento-card col-span-1 md:col-span-2 lg:col-span-2 md:row-span-2 bg-white rounded-[22px] p-6 md:p-8 lg:p-10 border border-white/70 shadow-card flex flex-col justify-between relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-44 h-44 bg-signature-yellow/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+              <div className="absolute top-0 right-0 -translate-y-1/2 rounded-full w-44 h-44 bg-signature-yellow/20 blur-3xl translate-x-1/4" />
               <div className="hidden md:absolute md:top-4 md:right-6 font-display text-[140px] font-normal leading-none text-ink/4 select-none">
                 01
               </div>
@@ -145,7 +145,7 @@ export default function Home() {
 
             {/* Placement & Alumni — medium card */}
             <article className="bento-card col-span-1 md:col-span-2 lg:col-span-2 bg-[#f2f1ee] rounded-[22px] p-6 md:p-7 lg:p-8 border border-white/60 shadow-card flex flex-col justify-between relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-ink/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
+              <div className="absolute top-0 right-0 w-32 h-32 -translate-y-1/2 rounded-full bg-ink/5 blur-2xl translate-x-1/3" />
               <div className="relative">
                 <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-ink mb-4">
                   02. CAREER
@@ -164,7 +164,7 @@ export default function Home() {
 
             {/* Research & Innovation — medium card */}
             <article className="bento-card col-span-1 md:col-span-2 lg:col-span-2 bg-white rounded-[22px] p-6 md:p-7 lg:p-8 border border-white/70 shadow-card flex flex-col justify-between relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-signature-coral/15 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
+              <div className="absolute top-0 right-0 w-32 h-32 -translate-y-1/2 rounded-full bg-signature-coral/15 blur-2xl translate-x-1/3" />
               <div className="relative">
                 <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral mb-4">
                   03. RESEARCH
@@ -196,7 +196,7 @@ export default function Home() {
                   Calibrated lab benches, digital oscilloscopes, relay test kits, and PLC trainers for every semester.
                 </p>
               </div>
-              <div className="relative flex items-end justify-between md:justify-end gap-6">
+              <div className="relative flex items-end justify-between gap-6 md:justify-end">
                 
               </div>
             </article>
@@ -205,7 +205,7 @@ export default function Home() {
       </section>
 
       {/* Stats + Manifesto */}
-      <section className="py-24 md:py-24 bg-white">
+      <section className="py-24 bg-white md:py-24">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12">
           <div className="grid gap-12 md:grid-cols-2 md:gap-16">
             <div>
@@ -221,11 +221,11 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="p-6 border border-divider-soft bg-surface-soft">
-                <span className="block font-display text-[36px] md:text-[44px] font-normal leading-none text-ink">50+</span>
+                <span className="block font-display text-[36px] md:text-[44px] font-normal leading-none text-ink">5+</span>
                 <span className="block mt-2 font-sans text-[14px] text-body">Workshops delivered</span>
               </div>
               <div className="p-6 border border-divider-soft bg-surface-soft">
-                <span className="block font-display text-[36px] md:text-[44px] font-normal leading-none text-ink">120+</span>
+                <span className="block font-display text-[36px] md:text-[44px] font-normal leading-none text-ink">20+</span>
                 <span className="block mt-2 font-sans text-[14px] text-body">Student projects</span>
               </div>
               <div className="p-6 border border-divider-soft bg-surface-soft">
@@ -233,7 +233,7 @@ export default function Home() {
                 <span className="block mt-2 font-sans text-[14px] text-body">Placement readiness</span>
               </div>
               <div className="p-6 border border-divider-soft bg-surface-soft">
-                <span className="block font-display text-[36px] md:text-[44px] font-normal leading-none text-ink">30+</span>
+                <span className="block font-display text-[36px] md:text-[44px] font-normal leading-none text-ink">10+</span>
                 <span className="block mt-2 font-sans text-[14px] text-body">Alumni mentors</span>
               </div>
             </div>
@@ -258,7 +258,7 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="overflow-hidden rounded-lg border border-hairline bg-white">
+          <div className="overflow-hidden bg-white border rounded-lg border-hairline">
             {isLoading ? (
               <div className="divide-y divide-hairline">
                 {Array.from({ length: 4 }).map((_, i) => (
@@ -286,7 +286,7 @@ export default function Home() {
                       <span className="font-mono text-[12px] font-normal text-muted">
                         {new Date(a.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
-                      <Link to="/announcements" className="text-[13px] font-sans font-medium text-link hover:underline">
+                      <Link to="/announcements" className="text-[13px] font-sans font-medium text-link hover:None">
                         Read →
                       </Link>
                     </div>
@@ -294,7 +294,7 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <div className="p-12 text-center text-muted font-sans font-normal">No announcements published yet.</div>
+              <div className="p-12 font-sans font-normal text-center text-muted">No announcements published yet.</div>
             )}
           </div>
         </div>

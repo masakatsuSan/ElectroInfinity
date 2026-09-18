@@ -20,7 +20,7 @@ router.get('/rooms', protect, async (req, res) => {
       .select('name description icon color isPopular postCount lastActivity createdAt')
     res.json({ success: true, count: rooms.length, data: rooms });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -76,7 +76,7 @@ router.delete('/rooms/:id', protect, guard('admin', 'super_admin'), async (req, 
     if (error.name === 'CastError') {
       return res.status(404).json({ success: false, error: 'Room not found' });
     }
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -176,7 +176,7 @@ router.get('/', protect, async (req, res) => {
       data: posts
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -242,7 +242,7 @@ router.get('/:id', protect, async (req, res) => {
 
     res.json({ success: true, data: post });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -372,7 +372,7 @@ router.put('/:id/upvote', protect, async (req, res) => {
 
     res.json({ success: true, data: post.upvotes });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -400,7 +400,7 @@ router.put('/:id/downvote', protect, async (req, res) => {
     await post.save();
     res.json({ success: true, data: post.downvotes });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -514,7 +514,7 @@ router.put('/comments/:id/upvote', protect, async (req, res) => {
     await comment.save();
     res.json({ success: true, data: comment.upvotes });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 

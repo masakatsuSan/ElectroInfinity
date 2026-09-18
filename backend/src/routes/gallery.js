@@ -1,4 +1,4 @@
-﻿const express = require('express')
+const express = require('express')
 const Gallery = require('../models/Gallery')
 const User = require('../models/User')
 const { protect, guard } = require('../middleware/auth')
@@ -31,7 +31,7 @@ function buildGalleryTeaser(photo) {
   }
 }
 
-// ── GET /api/gallery ────────────────────────────────────────────────
+// -- GET /api/gallery ------------------------------------------------
 router.get('/', async (req, res) => {
   try {
     const user = req.user
@@ -44,11 +44,11 @@ router.get('/', async (req, res) => {
 
     res.json({ success: true, data: photos })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
-// ── GET /api/gallery/:id ────────────────────────────────────────────
+// -- GET /api/gallery/:id --------------------------------------------
 router.get('/:id', async (req, res) => {
   try {
     const photo = await Gallery.findById(req.params.id)
@@ -57,7 +57,7 @@ router.get('/:id', async (req, res) => {
 
     res.json({ success: true, data: photo })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -101,11 +101,11 @@ router.get('/:id/image', async (req, res) => {
 
     response.data.pipe(res)
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
-// ── POST /api/gallery ───────────────────────────────────────────────
+// -- POST /api/gallery -----------------------------------------------
 router.post('/', protect, upload.single('image'), async (req, res) => {
   try {
     const { title, category, date, imageUrl } = req.body
@@ -138,11 +138,11 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
 
     res.status(201).json({ success: true, data: photo })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
-// ── PATCH /api/gallery/:id ───────────────────────────────────────────
+// -- PATCH /api/gallery/:id -------------------------------------------
 router.patch('/:id', protect, upload.single('image'), async (req, res) => {
   try {
     const photo = await Gallery.findById(req.params.id)
@@ -178,11 +178,11 @@ router.patch('/:id', protect, upload.single('image'), async (req, res) => {
     await photo.save()
     res.json({ success: true, data: photo })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
-// ── DELETE /api/gallery/:id ─────────────────────────────────────────
+// -- DELETE /api/gallery/:id -----------------------------------------
 router.delete('/:id', protect, async (req, res) => {
   try {
     const photo = await Gallery.findById(req.params.id)
@@ -202,7 +202,7 @@ router.delete('/:id', protect, async (req, res) => {
     await photo.deleteOne()
     res.json({ success: true, message: 'Photo removed from gallery' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

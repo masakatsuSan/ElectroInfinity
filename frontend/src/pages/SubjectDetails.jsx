@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getSubject } from '../api/subjects';
 import SEO from '../components/SEO';
@@ -54,7 +54,7 @@ export default function SubjectDetails() {
     <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
       <div className="max-w-[1280px] mx-auto px-6 md:px-12">
         <p className="font-sans text-coral">Course not found.</p>
-          <button onClick={() => { window.location.href = '/courses'; }} className="button-secondary mt-4">Back to Courses</button>
+          <button onClick={() => navigate('/courses')} className="button-secondary mt-4">Back to Courses</button>
       </div>
     </div>
   );
@@ -66,7 +66,7 @@ export default function SubjectDetails() {
         description={'Detailed syllabus, modules, and reference books for ' + course.name}
       />
       <div className="max-w-[1280px] mx-auto px-6 md:px-12">
-        <button onClick={() => { window.location.href = '/courses'; }} className="inline-flex items-center gap-2 font-sans text-[14px] font-medium text-ink-muted-80 hover:text-ink transition-colors mb-8">
+        <button onClick={() => navigate('/courses')} className="inline-flex items-center gap-2 font-sans text-[14px] font-medium text-ink-muted-80 hover:text-ink transition-colors mb-8">
           ← Back to Curriculum
         </button>
 

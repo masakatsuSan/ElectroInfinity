@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "free-port": "node scripts/freePort.js",
+    "check-port": "node scripts/freePort.js --dry-run"
   },
   "dependencies": {
     "@getbrevo/brevo": "^6.0.3",

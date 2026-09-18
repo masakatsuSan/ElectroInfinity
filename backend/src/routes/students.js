@@ -33,7 +33,7 @@ router.get('/batch/:batch', protect, async (req, res) => {
 
     res.json({ success: true, count: formatted.length, data: formatted })
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -70,7 +70,7 @@ router.get('/all', protect, async (req, res) => {
 
     res.json({ success: true, count: formatted.length, data: formatted })
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -103,7 +103,7 @@ router.post('/add', protect, guard('super_admin', 'admin'), async (req, res) => 
 
     res.status(201).json({ success: true, data: student })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -157,7 +157,7 @@ router.post('/bulk-import', protect, guard('super_admin', 'admin'), async (req, 
       results,
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -182,7 +182,7 @@ router.get('/', protect, guard('super_admin', 'admin'), async (req, res) => {
 
     res.json({ success: true, data: normalized })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -214,7 +214,7 @@ router.patch('/:id/role', protect, guard('super_admin', 'admin'), async (req, re
       message: user.role === 'cr' ? 'Student promoted to CR successfully' : 'CR privileges removed successfully',
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -224,7 +224,7 @@ router.get('/batches', protect, guard('super_admin', 'admin'), async (req, res) 
     const batches = await User.distinct('batch', { role: 'student', batch: { $ne: '' } })
     res.json({ success: true, data: batches.sort().reverse() })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -234,7 +234,7 @@ router.delete('/:id', protect, guard('super_admin', 'admin'), async (req, res) =
     await User.findByIdAndDelete(req.params.id)
     res.json({ success: true, message: 'Student removed' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -254,7 +254,7 @@ router.patch('/me/photo', protect, upload.single('photo'), async (req, res) => {
 
     res.json({ success: true, data: user })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

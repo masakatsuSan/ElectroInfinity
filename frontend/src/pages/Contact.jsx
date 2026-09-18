@@ -64,7 +64,7 @@ export default function Contact() {
                   </span>
                   <a
                     href="mailto:electroinfinity@agemc.edu"
-                    className="font-sans text-[15px] font-medium text-link hover:underline"
+                    className="font-sans text-[15px] font-medium text-link hover:None"
                   >
                     electroinfinity@agemc.edu
                   </a>

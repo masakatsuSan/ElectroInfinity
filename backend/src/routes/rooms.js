@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
       .select('name description icon color isPopular postCount lastActivity createdAt')
     res.json({ success: true, count: rooms.length, data: rooms });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -29,7 +29,7 @@ router.get('/:id', async (req, res) => {
     }
     res.json({ success: true, data: room });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -82,7 +82,7 @@ router.delete('/:id', protect, guard('cr', 'admin', 'super_admin'), async (req, 
     await room.save();
     res.json({ success: true, data: {} });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 

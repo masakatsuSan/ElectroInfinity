@@ -12,79 +12,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="ElectroInfinity" />
-    <style>
-      @keyframes splash-fade {
-        0% { opacity: 1; transform: scale(1); }
-        80% { opacity: 1; transform: scale(1.02); }
-        100% { opacity: 0; transform: scale(1.05); }
-      }
-      @keyframes app-fade-in {
-        0% { opacity: 0; transform: scale(0.97); }
-        100% { opacity: 1; transform: scale(1); }
-      }
-      #splash {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        background: #0a0a0a;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        animation: splash-fade 0.8s ease-out forwards;
-        pointer-events: none;
-      }
-      #splash h1 {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 2rem;
-        font-weight: 700;
-        color: #fff;
-        letter-spacing: -0.5px;
-      }
-      #splash .splash-ring {
-        width: 60px;
-        height: 60px;
-        border: 3px solid rgba(255,255,255,0.1);
-        border-top-color: #00d4ff;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin-bottom: 20px;
-      }
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-      #root { animation: app-fade-in 0.5s ease-out 0.3s both; }
-    </style>
-    <meta name="description" content="Electro Infinity — Electrical Engineering Club, Alipurduar Government Engineering and Management College" />
-    <meta name="keywords" content="Electrical Engineering, AGEMC, Electro Infinity, Engineering Club, Alipurduar" />
-    <meta name="author" content="Electro Infinity" />
-    <link rel="canonical" href="https://electro-infinity.vercel.app/" />
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://electro-infinity.vercel.app/" />
-    <meta name="google-site-verification" content="mTMSfiYlpdvDccP1oSSAqheIolQKYqIRt9d_ovJmKF4" />
-    <meta property="og:title" content="Electro Infinity | EE Club, AGEMC" />
-    <meta property="og:description" content="Electro Infinity — Electrical Engineering Club, Alipurduar Government Engineering and Management College" />
-    <!-- Replace with an actual image URL when available -->
-    <meta property="og:image" content="https://electro-infinity.vercel.app/og-image.jpg" />
-    
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://electro-infinity.vercel.app/" />
-    <meta property="twitter:title" content="Electro Infinity | EE Club, AGEMC" />
-    <meta property="twitter:description" content="Electro Infinity — Electrical Engineering Club, Alipurduar Government Engineering and Management College" />
-    <meta property="twitter:image" content="https://electro-infinity.vercel.app/og-image.jpg" />
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    </head>
   <body class="bg-bg text-ink">
-    <div id="splash"><div class="splash-ring"></div><h1>ElectroInfinity</h1></div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

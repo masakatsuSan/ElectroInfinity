@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
     const labs = await Lab.find().sort({ createdAt: 1 })
     res.json({ success: true, data: labs })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -41,7 +41,7 @@ router.post('/', protect, guard('super_admin', 'admin', 'cr'), upload.single('im
 
     res.status(201).json({ success: true, data: lab })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -76,7 +76,7 @@ router.put('/:id', protect, guard('super_admin', 'admin', 'cr'), upload.single('
     await lab.save()
     res.json({ success: true, data: lab })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -92,7 +92,7 @@ router.delete('/:id', protect, guard('super_admin', 'admin', 'cr'), async (req, 
     await lab.deleteOne()
     res.json({ success: true, data: {} })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

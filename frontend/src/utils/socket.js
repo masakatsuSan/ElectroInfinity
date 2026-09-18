@@ -3,11 +3,12 @@ export function getSocketUrl() {
   if (api && api.startsWith('http')) {
     return api.replace(/\/api\/?$/, '')
   }
-  // Dev: connect to the dev server origin. Vite proxies /socket.io → backend,
-  // which keeps phone testing working (the old http://localhost:5000 fallback
-  // pointed at the phone's own port).
-  if (import.meta.env.DEV) {
-    return window.location.origin
+
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  let host = window.location.host
+  if (!host || host.includes('undefined')) {
+    host = 'localhost:5173'
   }
-  return window.location.origin
+
+  return `${protocol}//${host}`
 }

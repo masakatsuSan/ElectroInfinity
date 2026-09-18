@@ -113,7 +113,7 @@ export default function AdminLogin() {
                   <label className="font-mono text-[11px] uppercase tracking-wider font-semibold text-slate block">
                     Password
                   </label>
-                  <Link to="/forgot-password" className="text-[12px] font-medium text-action-blue hover:underline">
+                  <Link to="/forgot-password" className="text-[12px] font-medium text-action-blue hover:None">
                     Forgot?
                   </Link>
                 </div>
@@ -153,7 +153,7 @@ export default function AdminLogin() {
 
             <p className="text-[13px] font-[Inter,system-ui,sans-serif] text-body-muted text-center mt-8">
               Faculty?{' '}
-              <Link to="/faculty/login" className="text-action-blue hover:underline font-semibold">
+              <Link to="/faculty/login" className="text-action-blue hover:None font-semibold">
                 Sign in here
               </Link>
             </p>

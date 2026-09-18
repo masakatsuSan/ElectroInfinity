@@ -551,7 +551,7 @@ function LeftSidebar({
               onClick={() => setActiveTab('about')}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
                 activeTab === 'about'
-                  ? 'bg-[#181d26] text-white'
+                  ? 'bg-[#181d26] text-white hover:text-white'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
@@ -563,7 +563,7 @@ function LeftSidebar({
               onClick={() => setActiveTab('posts')}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
                 activeTab === 'posts'
-                  ? 'bg-[#181d26] text-white'
+                  ? 'bg-[#181d26] text-white hover:text-white'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
@@ -576,7 +576,7 @@ function LeftSidebar({
                 onClick={() => setActiveTab('uploads')}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
                   activeTab === 'uploads'
-                    ? 'bg-[#181d26] text-white'
+                    ? 'bg-[#181d26] text-white hover:text-white'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -590,7 +590,7 @@ function LeftSidebar({
                 onClick={() => setActiveTab('directory')}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
                   activeTab === 'directory'
-                    ? 'bg-[#181d26] text-white'
+                    ? 'bg-[#181d26] text-white hover:text-white'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -1151,7 +1151,7 @@ function AchievementsList({ achievements, isOwn, onEdit, onDelete }) {
                   href={achievement.certificatePdf}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-[12px] font-medium text-[#181d26] hover:underline"
+                  className="inline-flex items-center gap-1 text-[12px] font-medium text-[#181d26] hover:None"
                 >
                   View Certificate
                 </a>
@@ -1244,7 +1244,7 @@ function AboutSection({ profile, isOwn, editingAbout, setEditingAbout, aboutForm
         {isOwn && !editingAbout && (
           <button
             onClick={startEditAbout}
-            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#181d26] hover:underline"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#181d26] hover:None"
           >
             <Edit3 size={14} /> Edit
           </button>
@@ -1362,7 +1362,7 @@ function SkillsSection({ profile, isOwn, editingSkills, setEditingSkills, skills
         {isOwn && !editingSkills && (
           <button
             onClick={() => setEditingSkills(true)}
-            className="text-[12px] font-medium text-[#181d26] hover:underline inline-flex items-center gap-1"
+            className="text-[12px] font-medium text-[#181d26] hover:None inline-flex items-center gap-1"
           >
             <Edit3 size={12} /> Edit
           </button>
@@ -1434,7 +1434,7 @@ function SocialLinksSection({ profile, isOwn, editingSocial, setEditingSocial, s
         {isOwn && !editingSocial && (
           <button
             onClick={() => setEditingSocial(true)}
-            className="text-[12px] font-medium text-[#181d26] hover:underline inline-flex items-center gap-1"
+            className="text-[12px] font-medium text-[#181d26] hover:None inline-flex items-center gap-1"
           >
             <Edit3 size={12} /> Edit
           </button>

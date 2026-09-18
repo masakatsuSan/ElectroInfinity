@@ -132,7 +132,7 @@ router.get('/', optionalAuth, async (req, res) => {
 
     res.json({ success: true, count: folders.length, data: folders })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -153,7 +153,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
     const items = await resolveItems(folder.items)
     res.json({ success: true, data: { ...folder.toObject(), items } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -196,7 +196,7 @@ router.post('/', protect, guard('cr', 'super_admin', 'admin'), async (req, res) 
     if (err.code === 11000) {
       return res.status(409).json({ success: false, error: 'Folder with this slug already exists for this batch' })
     }
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -232,7 +232,7 @@ router.put('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, res
     if (err.code === 11000) {
       return res.status(409).json({ success: false, error: 'Folder with this slug already exists for this batch' })
     }
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -277,7 +277,7 @@ router.delete('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, 
     await folder.deleteOne()
     res.json({ success: true, message: 'Folder deleted' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -354,7 +354,7 @@ router.post('/:id/upload', protect, guard('cr', 'super_admin', 'admin'), upload.
     const item = { ref: resource._id, type: 'resource', title: resource.title, thumbnail: '', data: resource.toObject() }
     res.status(201).json({ success: true, data: { folder, item } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -432,7 +432,7 @@ router.post('/:id/playlist', protect, guard('cr', 'super_admin', 'admin'), async
     if (err.code === 'NO_YOUTUBE_KEY' || err.code === 'PLAYLIST_NOT_FOUND' || err.code === 'PLAYLIST_EMPTY' || err.code === 'YOUTUBE_API_ERROR') {
       return res.status(400).json({ success: false, error: err.message })
     }
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -500,7 +500,7 @@ router.put('/:id/items', protect, guard('cr', 'super_admin', 'admin'), async (re
 
     res.json({ success: true, data: folder })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -529,7 +529,7 @@ router.delete('/:id/items/:itemId', protect, guard('cr', 'super_admin', 'admin')
 
     res.json({ success: true, message: 'Item removed from folder' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

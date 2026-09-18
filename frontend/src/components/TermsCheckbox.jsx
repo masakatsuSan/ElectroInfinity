@@ -33,7 +33,7 @@ export default function TermsCheckbox({ checked, onChange, error, label = "I agr
           <button
             type="button"
             onClick={() => setShowModal(true)}
-            className="font-semibold hover:underline"
+            className="font-semibold hover:None"
             style={{ color: COLORS.link, fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: TEXT_FONT }}
           >
             View Terms

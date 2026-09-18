@@ -28,7 +28,7 @@ router.get('/', protect, async (req, res) => {
       
     res.json({ success: true, count: assignments.length, data: assignments });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -100,7 +100,7 @@ router.delete('/:id', protect, guard('cr', 'admin', 'super_admin'), async (req, 
     await assignment.deleteOne();
     res.json({ success: true, data: {} });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 

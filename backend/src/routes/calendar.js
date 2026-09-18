@@ -47,7 +47,7 @@ router.get('/', optionalAuth, async (req, res) => {
       data: entries
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -64,7 +64,7 @@ router.get('/:id', async (req, res) => {
     }
     res.json({ success: true, data: entry });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -136,7 +136,7 @@ router.delete('/:id', protect, guard('cr', 'admin', 'super_admin'), async (req, 
     await entry.deleteOne();
     res.json({ success: true, data: {} });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 

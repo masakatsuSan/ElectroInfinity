@@ -26,14 +26,49 @@ function resolveMimeType(fileName) {
 
 async function streamCloudinaryToResponse(res, cloudinaryUrl, fileName) {
   try {
-    const response = await axios.get(cloudinaryUrl, { responseType: 'stream' })
-    res.setHeader('Content-Type', response.headers['content-type'] || resolveMimeType(fileName))
+    const response = await axios.get(cloudinaryUrl, {
+      responseType: 'stream',
+      timeout: 30000,
+      maxRedirects: 5,
+      validateStatus: (status) => status >= 200 && status < 400,
+    })
+
+    const mimeType = response.headers['content-type'] || resolveMimeType(fileName)
+    res.setHeader('Content-Type', mimeType)
+
     if (response.headers['content-length']) {
       res.setHeader('Content-Length', response.headers['content-length'])
     }
+
+    response.data.on('error', (err) => {
+      console.error('Stream error while fetching from Cloudinary:', {
+        url: cloudinaryUrl,
+        error: err.message,
+      })
+      if (!res.headersSent) {
+        res.status(500).json({ success: false, error: 'Failed to fetch the file.' })
+      }
+    })
+
     response.data.pipe(res)
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Failed to fetch the file.' })
+    console.error('Failed to fetch file from Cloudinary:', {
+      url: cloudinaryUrl,
+      error: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      code: error.code,
+    })
+
+    if (!res.headersSent) {
+      if (error.response?.status === 404) {
+        res.status(404).json({ success: false, error: 'File not found.' })
+      } else if (error.code === 'ECONNABORTED') {
+        res.status(504).json({ success: false, error: 'File request timed out.' })
+      } else {
+        res.status(500).json({ success: false, error: 'Failed to fetch the file.' })
+      }
+    }
   }
 }
 
@@ -54,7 +89,7 @@ router.get('/', optionalAuth, async (req, res) => {
 
     res.json({ success: true, data: resources })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -72,12 +107,12 @@ router.get('/:id/download', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="${resource.fileName || 'download'}"`)
     await streamCloudinaryToResponse(res, resource.fileUrl, resource.fileName)
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
 // ── GET /api/resources/:id/preview ────────────────────────────────────────
-// Streams the file inline so it can be rendered in a preview drawer/iframe
+// Streams the file inline for the application PDF viewer
 router.get('/:id/preview', async (req, res) => {
   try {
     const resource = await Resource.findById(req.params.id)
@@ -86,7 +121,7 @@ router.get('/:id/preview', async (req, res) => {
     res.setHeader('Content-Disposition', `inline; filename="${resource.fileName || 'preview'}"`)
     await streamCloudinaryToResponse(res, resource.fileUrl, resource.fileName)
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -177,7 +212,7 @@ router.post(
 
       res.status(201).json({ success: true, data: resource })
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message })
+      res.status(500).json({ success: false, error: 'An internal server error occurred' })
     }
   }
 )
@@ -241,7 +276,7 @@ router.put(
       const updated = await Resource.findByIdAndUpdate(req.params.id, updates, { new: true })
       res.json({ success: true, data: updated })
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message })
+      res.status(500).json({ success: false, error: 'An internal server error occurred' })
     }
   }
 )
@@ -269,7 +304,7 @@ router.delete('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, 
     await resource.deleteOne()
     res.json({ success: true, message: 'Resource deleted' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

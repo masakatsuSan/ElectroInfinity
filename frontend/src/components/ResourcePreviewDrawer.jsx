@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { MODAL_VARIANTS, MODAL_TRANSITION } from '../utils/motion'
-import { getPreviewUrl, fetchPreviewBlobUrl } from '../api/resources'
+import { fetchPreviewBlobUrl } from '../api/resources'
+import PdfViewer from './PdfViewer'
 
 export default function ResourcePreviewDrawer({ resource, onClose }) {
   if (!resource) return null
@@ -11,6 +12,7 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
   const isImage = /\.(png|jpe?g|webp|gif|svg)($|[?#])/i.test(resource.fileUrl || '')
   const [loading, setLoading] = useState(true)
   const [previewUrl, setPreviewUrl] = useState(null)
+  const [previewError, setPreviewError] = useState('')
 
   useEffect(() => {
     const onKey = (e) => {
@@ -21,20 +23,36 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
   }, [onClose])
 
   useEffect(() => {
+    let active = true
     let objectUrl = null
+
     setLoading(true)
+    setPreviewUrl(null)
+    setPreviewError('')
+
     fetchPreviewBlobUrl(resource._id)
       .then(url => {
+        if (!active) {
+          URL.revokeObjectURL(url)
+          return
+        }
         objectUrl = url
         setPreviewUrl(url)
       })
-      .catch(() => {
-        setPreviewUrl(getPreviewUrl(resource._id))
+      .catch(error => {
+        if (!active) return
+        setPreviewError(
+          error.response?.status === 404
+            ? 'This file is no longer available.'
+            : 'Preview could not be loaded.'
+        )
       })
       .finally(() => {
-        setLoading(false)
+        if (active) setLoading(false)
       })
+
     return () => {
+      active = false
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
   }, [resource._id])
@@ -75,14 +93,16 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           )}
+          {previewError && !loading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center p-6 bg-soft-stone/40">
+              <div className="max-w-sm rounded-xl border border-hairline bg-white p-6 text-center shadow-sm">
+                <p className="font-sans text-[15px] font-medium text-ink">Preview unavailable</p>
+                <p className="mt-2 font-sans text-[13px] text-body-muted">{previewError}</p>
+              </div>
+            </div>
+          )}
           {previewUrl && isPdf ? (
-            <iframe
-              src={previewUrl}
-              title={resource.title || 'Preview'}
-              className="w-full h-full"
-              onLoad={() => setLoading(false)}
-              style={{ visibility: loading ? 'hidden' : 'visible' }}
-            />
+            <PdfViewer key={previewUrl} file={previewUrl} />
           ) : previewUrl && isImage ? (
             <img
               src={previewUrl}
@@ -95,7 +115,7 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
           ) : !previewUrl && !loading ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 p-6 text-center">
               <p className="font-sans text-[15px] text-body-muted">
-                Preview is not available for this file type.
+                {previewError || 'Preview is not available for this file type.'}
               </p>
             </div>
           ) : null}

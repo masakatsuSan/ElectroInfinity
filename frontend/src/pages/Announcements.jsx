@@ -156,7 +156,7 @@ function AnnouncementCard({ ann, onClick }) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-1 text-link hover:underline"
+            className="inline-flex items-center gap-1 text-link hover:None"
             aria-label="View attachment"
           >
             <Paperclip size={12} />
@@ -258,7 +258,7 @@ function AnnouncementDetail({ detail, loading, error, user, onClose }) {
                     href={detail.attachmentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-[14px] font-medium text-link hover:underline"
+                    className="inline-flex items-center gap-1.5 text-[14px] font-medium text-link hover:None"
                   >
                     <Paperclip size={14} />
                     View Attachment

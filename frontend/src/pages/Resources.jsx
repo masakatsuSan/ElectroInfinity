@@ -101,7 +101,7 @@ export default function Resources() {
           <p className="font-sans text-[17px] text-body leading-relaxed">
           Curated repository of previous year questions, class notes, laboratory manuals, and official departmental announcements.
         </p>
-        <Link to="/resources/folders" className="inline-flex items-center gap-2 font-sans text-[13px] font-medium text-primary hover:underline mt-2">
+        <Link to="/resources/folders" className="inline-flex items-center gap-2 font-sans text-[13px] font-medium text-primary hover:None mt-2">
           Browse by Folder (Series)
         </Link>
       </div>
@@ -285,7 +285,7 @@ function ResourceCard({ resource: r, onView, onDownload }) {
           )}
         </div>
 
-        <h3 className="font-sans text-[16px] font-medium text-ink leading-snug group-hover:text-link transition-colors">
+        <h3 className="font-sans text-[16px] font-medium text-ink leading-snug truncate">
           {r.title}
         </h3>
         {r.subject && (
@@ -295,24 +295,13 @@ function ResourceCard({ resource: r, onView, onDownload }) {
       </div>
 
       <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-hairline text-[12px]">
-        {onView ? (
-          <button
-            type="button"
-            onClick={() => onView(r)}
-            className="button-primary !py-1 !px-3 !text-[12px] !bg-soft-stone !text-ink border border-hairline hover:bg-hairline"
-          >
-            View
-          </button>
-        ) : (
-          <a
-            href={r.fileUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="button-primary !py-1 !px-3 !text-[12px] !bg-soft-stone !text-ink border border-hairline hover:bg-hairline"
-          >
-            View
-          </a>
-        )}
+        <button
+          type="button"
+          onClick={() => onView ? onView(r) : null}
+          className="button-primary !py-1 !px-3 !text-[12px] !bg-soft-stone !text-ink border border-hairline hover:bg-hairline"
+        >
+          View
+        </button>
         {onDownload ? (
           <button
             type="button"

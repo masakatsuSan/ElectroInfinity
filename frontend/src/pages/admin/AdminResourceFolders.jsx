@@ -10,7 +10,8 @@ import {
   removeFolderItem, getFolder,
 } from '../../api/folders'
 import { getSubjects } from '../../api/subjects'
-import { downloadResource, getPreviewUrl } from '../../api/resources'
+import { downloadResource } from '../../api/resources'
+import ResourcePreviewDrawer from '../../components/ResourcePreviewDrawer'
 
 const TYPES = ['notes', 'pyq', 'assignment', 'lab_manual', 'syllabus', 'other']
 const SEMS = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -33,6 +34,7 @@ export default function AdminResourceFolders() {
   const [importing, setImporting] = useState(false)
   const [savingOrder, setSavingOrder] = useState(false)
   const dragIndex = useRef(null)
+  const [previewResource, setPreviewResource] = useState(null)
 
   const { data: foldersData, isLoading } = useQuery({
     queryKey: ['folders'],
@@ -394,9 +396,9 @@ export default function AdminResourceFolders() {
                     )}
                     {item.type === 'resource' && item.data?._id && (
                       <>
-                        <a href={getPreviewUrl(item.data._id)} target="_blank" rel="noreferrer" className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-blue-500/70 hover:text-blue-500 transition-colors bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded-md flex items-center gap-1">
+                        <button type="button" onClick={() => setPreviewResource(item.data)} className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-blue-500/70 hover:text-blue-500 transition-colors bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded-md flex items-center gap-1">
                           <FileText size={12} /> Preview
-                        </a>
+                        </button>
                         <a href={downloadResource(item.data._id)} className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-ink-muted-80 hover:text-ink transition-colors bg-soft-stone hover:bg-soft-stone/50 px-3 py-1.5 rounded-md flex items-center gap-1">
                           Download
                         </a>
@@ -471,6 +473,10 @@ export default function AdminResourceFolders() {
           </div>
         </div>
       )}
+      <ResourcePreviewDrawer
+        resource={previewResource}
+        onClose={() => setPreviewResource(null)}
+      />
     </div>
   )
 }

@@ -68,7 +68,7 @@ function MentionText({ text = '', mentions = [], onViewProfile }) {
               event.stopPropagation()
               onViewProfile?.(user._id)
             }}
-            className="text-[#1b61c9] font-medium hover:underline"
+            className="text-[#1b61c9] font-medium hover:None"
           >
             {part}
           </button>
@@ -188,7 +188,8 @@ export default function Forum() {
       setFormData({ title: '', content: '', links: '', linkUrl: '', pollOptions: ['', ''] })
       setShowCreate(false)
       setCreateType('text')
-      fetchPosts(page)
+      setPage(1)
+      fetchPosts(1)
     } catch (err) {
       setCreateError(err.response?.data?.error || 'Unable to create post. Please try again.')
     }
@@ -223,7 +224,8 @@ export default function Forum() {
       })
       setCommentDrafts((current) => ({ ...current, [postId]: '' }))
       setReplyingTo(null)
-      fetchPosts(page)
+      setPage(1)
+      fetchPosts(1)
     } catch (err) {
       console.error(err)
     }
@@ -497,7 +499,7 @@ export default function Forum() {
                         <button
                           type="button"
                           onClick={() => setFormData({ ...formData, pollOptions: [...formData.pollOptions, ''] })}
-                          className="text-[14px] font-medium text-[#1b61c9] hover:underline"
+                          className="text-[14px] font-medium text-[#1b61c9] hover:None"
                         >
                           + Add option
                         </button>
@@ -736,7 +738,7 @@ function PostCard({
         </button>
         <button
           onClick={(e) => onUserClick?.(post.author, e)}
-          className="font-medium text-[#181d26] hover:underline"
+          className="font-medium text-[#181d26] hover:None"
         >
           {post.author?.name}
         </button>
@@ -781,7 +783,7 @@ function PostCard({
           href={post.linkUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mb-3 inline-flex items-center gap-2 text-[13px] font-medium text-[#1b61c9] hover:underline"
+          className="mb-3 inline-flex items-center gap-2 text-[13px] font-medium text-[#1b61c9] hover:None"
           onClick={(e) => e.stopPropagation()}
         >
           <Link2 size={14} />
@@ -908,7 +910,7 @@ function PostCard({
                   <div className="mb-0.5 flex items-center gap-2">
                     <button
                       onClick={(e) => onUserClick?.(comment.author, e)}
-                      className="text-[13px] font-medium text-[#181d26] hover:underline"
+                      className="text-[13px] font-medium text-[#181d26] hover:None"
                     >
                       {comment.author?.name}
                     </button>
@@ -971,7 +973,7 @@ function PostCard({
                             <div className="mb-0.5 flex items-center gap-2">
                               <button
                                 onClick={(e) => onUserClick?.(reply.author, e)}
-                                className="text-[12px] font-medium text-[#181d26] hover:underline"
+                                className="text-[12px] font-medium text-[#181d26] hover:None"
                               >
                                 {reply.author?.name}
                               </button>

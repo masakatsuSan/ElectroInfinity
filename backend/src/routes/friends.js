@@ -144,7 +144,7 @@ router.post('/:userId/accept', protect, async (req, res) => {
       },
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -171,7 +171,7 @@ router.post('/:userId/reject', protect, async (req, res) => {
 
     res.json({ success: true, message: 'Friend request rejected' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -210,7 +210,7 @@ router.delete('/:id/remove', protect, async (req, res) => {
 
     res.json({ success: true, message: 'Friend removed' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -242,7 +242,7 @@ router.get('/:id/list', async (req, res) => {
 
     res.json({ success: true, data: formatted })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -276,7 +276,7 @@ router.get('/requests', protect, async (req, res) => {
 
     res.json({ success: true, data: formatted })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

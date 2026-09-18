@@ -4,10 +4,6 @@ import api from './axios'
 export const getResources = (params) =>
   api.get('/resources', { params })
 
-// Stream a resource inline for preview (no direct Cloudinary URL exposed)
-export const getPreviewUrl = (id) =>
-  `${import.meta.env.VITE_API_URL || '/api'}/resources/${id}/preview`
-
 // Fetch a resource preview as a blob URL via the axios instance (handles auth + base URL)
 export const fetchPreviewBlobUrl = async (id) => {
   const response = await api.get(`/resources/${id}/preview`, {

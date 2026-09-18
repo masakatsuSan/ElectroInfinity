@@ -27,7 +27,7 @@ router.get('/', optionalAuth, async (req, res) => {
 
     res.json({ success: true, data: achievements })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -40,7 +40,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 
     res.json({ success: true, data: achievement })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -111,7 +111,7 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
 
     res.status(201).json({ success: true, data: achievement })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -155,7 +155,7 @@ router.patch('/:id', protect, upload.single('image'), async (req, res) => {
     await achievement.save()
     res.json({ success: true, data: achievement })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -179,7 +179,7 @@ router.delete('/:id', protect, async (req, res) => {
     await achievement.deleteOne()
     res.json({ success: true, message: 'Achievement removed' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

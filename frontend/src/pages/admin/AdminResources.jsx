@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getResources, uploadResource, updateResource, deleteResource } from '../../api/resources'
+import ResourcePreviewDrawer from '../../components/ResourcePreviewDrawer'
 import { getSubjects } from '../../api/subjects'
 import { Check } from 'lucide-react'
 
@@ -18,6 +19,7 @@ export default function AdminResources() {
   const [editSaving, setEditSaving] = useState(false)
   const [form, setForm] = useState({ title: '', type: 'notes', semester: '', subject: '' })
   const [file, setFile] = useState(null)
+  const [previewResource, setPreviewResource] = useState(null)
   const [error, setError] = useState('')
   const [uploading, setUploading] = useState(false)
 
@@ -274,7 +276,11 @@ export default function AdminResources() {
                 </p>
               </div>
               <div className="flex gap-2 flex-shrink-0 items-center">
-                <a href={r.fileUrl} target="_blank" rel="noreferrer" className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors px-3 py-1.5 rounded-md">View</a>
+                <button
+                  type="button"
+                  onClick={() => setPreviewResource(r)}
+                  className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors px-3 py-1.5 rounded-md"
+                >View</button>
                 <button
                   onClick={() => openEdit(r)}
                   className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-blue-500/70 hover:text-blue-500 transition-colors bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded-md"
@@ -288,6 +294,10 @@ export default function AdminResources() {
           ))}
         </div>
       )}
+      <ResourcePreviewDrawer
+        resource={previewResource}
+        onClose={() => setPreviewResource(null)}
+      />
     </div>
   )
 }

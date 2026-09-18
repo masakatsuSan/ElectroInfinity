@@ -1,12 +1,12 @@
-﻿const express = require('express')
+const express = require('express')
 const axios = require('axios')
 const Contact = require('../models/Contact')
 const { protect, guard } = require('../middleware/auth')
 
 const router = express.Router()
 
-// ── POST /api/contact ───────────────────────────────────────────────
-// Public contact form — stores the message AND emails the department.
+// -- POST /api/contact -----------------------------------------------
+// Public contact form � stores the message AND emails the department.
 router.post('/', async (req, res) => {
   const { name, email, subject, message } = req.body
 
@@ -19,14 +19,14 @@ router.post('/', async (req, res) => {
   try {
     stored = await Contact.create({ name, email, subject, message })
   } catch (dbErr) {
-    console.error('❌ Contact: DB store failed:', dbErr.message)
+    console.error('? Contact: DB store failed:', dbErr.message)
     // If the DB is unavailable we still try to send the email so the
     // user's message is not lost.
   }
 
-  // ── Email the department via Brevo ────────────────────────────────
+  // -- Email the department via Brevo --------------------------------
   if (!process.env.BREVO_API_KEY) {
-    console.warn('⚠️  BREVO_API_KEY missing — contact stored but email not sent')
+    console.warn('??  BREVO_API_KEY missing � contact stored but email not sent')
     return res.json({ success: true, message: 'Message received. (Email delivery not configured on server.)', data: stored })
   }
 
@@ -53,10 +53,10 @@ router.post('/', async (req, res) => {
     const response = await axios.post('https://api.brevo.com/v3/smtp/email', payload, {
       headers: { 'api-key': apiKey, 'Content-Type': 'application/json' },
     })
-    console.log('✅ Contact email sent. ID:', response.data?.messageId)
+    console.log('? Contact email sent. ID:', response.data?.messageId)
     res.json({ success: true, message: 'Message sent successfully', data: stored })
   } catch (error) {
-    console.error('❌ Brevo API Error (Contact):')
+    console.error('? Brevo API Error (Contact):')
     console.error('   Status:', error.response?.status)
     console.error('   Message:', error.response?.data?.message)
     console.error('   Code:', error.response?.data?.code)
@@ -66,8 +66,8 @@ router.post('/', async (req, res) => {
   }
 })
 
-// ── GET /api/contact ────────────────────────────────────────────────
-// Admin inbox — list submissions with optional ?status=new|read|archived
+// -- GET /api/contact ------------------------------------------------
+// Admin inbox � list submissions with optional ?status=new|read|archived
 router.get('/', protect, guard('super_admin', 'admin'), async (req, res) => {
   try {
     const { status } = req.query
@@ -80,22 +80,22 @@ router.get('/', protect, guard('super_admin', 'admin'), async (req, res) => {
 
     res.json({ success: true, count: contacts.length, data: contacts })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
-// ── GET /api/contact/:id ────────────────────────────────────────────
+// -- GET /api/contact/:id --------------------------------------------
 router.get('/:id', protect, guard('super_admin', 'admin'), async (req, res) => {
   try {
     const contact = await Contact.findById(req.params.id).populate('readBy', 'name')
     if (!contact) return res.status(404).json({ success: false, error: 'Contact not found' })
     res.json({ success: true, data: contact })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
-// ── PATCH /api/contact/:id ──────────────────────────────────────────
+// -- PATCH /api/contact/:id ------------------------------------------
 // Admin updates status / reply flag
 router.patch('/:id', protect, guard('super_admin', 'admin'), async (req, res) => {
   try {
@@ -111,11 +111,11 @@ router.patch('/:id', protect, guard('super_admin', 'admin'), async (req, res) =>
     await contact.save()
     res.json({ success: true, data: contact })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
-// ── DELETE /api/contact/:id ─────────────────────────────────────────
+// -- DELETE /api/contact/:id -----------------------------------------
 router.delete('/:id', protect, guard('super_admin', 'admin'), async (req, res) => {
   try {
     const contact = await Contact.findById(req.params.id)
@@ -123,7 +123,7 @@ router.delete('/:id', protect, guard('super_admin', 'admin'), async (req, res) =
     await contact.deleteOne()
     res.json({ success: true, message: 'Contact removed' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

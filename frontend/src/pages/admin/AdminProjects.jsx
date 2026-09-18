@@ -47,7 +47,7 @@ export default function AdminProjects() {
                   </div>
                 )}
                 {p.liveUrl && (
-                  <a href={p.liveUrl} target="_blank" rel="noreferrer" className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-primary hover:underline mb-4 inline-flex items-center gap-1">
+                  <a href={p.liveUrl} target="_blank" rel="noreferrer" className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-primary hover:None mb-4 inline-flex items-center gap-1">
                     <ExternalLink size={12} /> Live Demo
                   </a>
                 )}

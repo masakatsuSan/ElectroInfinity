@@ -13,7 +13,7 @@ const protect = async (req, res, next) => {
   }
 
   if (!token) {
-    return res.status(401).json({ success: false, error: 'Not logged in' })
+    return res.status(401).json({ success: false, error: 'Authentication required' })
   }
 
   try {
@@ -24,12 +24,12 @@ const protect = async (req, res, next) => {
     req.user = await User.findById(decoded.id)
 
     if (!req.user) {
-      return res.status(401).json({ success: false, error: 'User not found' })
+      return res.status(401).json({ success: false, error: 'Authentication required' })
     }
 
     next()
   } catch (err) {
-    return res.status(401).json({ success: false, error: 'Invalid token' })
+    return res.status(401).json({ success: false, error: 'Authentication required' })
   }
 }
 
@@ -41,7 +41,7 @@ const guard = (...roles) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        error: `Only ${roles.join(' or ')} can do this`,
+        error: 'Access denied',
       })
     }
     next()

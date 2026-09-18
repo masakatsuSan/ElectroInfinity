@@ -235,11 +235,11 @@ export default function Navbar({ onForumFlip }) {
   const featuredCard = (group) => {
     if (group.label === 'Academics') {
       return (
-        <div className="hidden lg:flex flex-col w-60 p-3 rounded-xl bg-surface-soft border border-hairline">
+        <div className="flex-col hidden p-3 border lg:flex w-60 rounded-xl bg-surface-soft border-hairline">
           <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-signature-coral mb-1">Featured Section</span>
           <p className="font-display font-medium text-[16px] text-ink leading-snug mb-1">Explore the Curriculum</p>
           <p className="font-sans text-[12px] text-muted leading-relaxed mb-2">Semester-wise subjects, labs, and study materials in one place.</p>
-          <NavLink to="/courses" onClick={() => setDropdownOpen(null)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:underline">
+          <NavLink to="/courses" onClick={() => setDropdownOpen(null)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold  ">
             View All Courses <ChevronRight size={14} />
           </NavLink>
         </div>
@@ -247,11 +247,11 @@ export default function Navbar({ onForumFlip }) {
     }
     if (group.label === 'Community') {
       return (
-        <div className="hidden lg:flex flex-col w-60 p-3 rounded-xl bg-surface-soft border border-hairline">
+        <div className="flex-col hidden p-3 border lg:flex w-60 rounded-xl bg-surface-soft border-hairline">
           <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-signature-coral mb-1">What's Happening</span>
           <p className="font-display font-medium text-[16px] text-ink leading-snug mb-1">Join the Conversation</p>
           <p className="font-sans text-[12px] text-muted leading-relaxed mb-2">Latest discussions, projects, and announcements from peers.</p>
-          <NavLink to="/forum" onClick={() => setDropdownOpen(null)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:underline">
+          <NavLink to="/forum" onClick={() => setDropdownOpen(null)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:None">
             Open Forum <ChevronRight size={14} />
           </NavLink>
         </div>
@@ -259,11 +259,11 @@ export default function Navbar({ onForumFlip }) {
     }
     if (group.label === 'Resources') {
       return (
-        <div className="hidden lg:flex flex-col w-60 p-3 rounded-xl bg-surface-soft border border-hairline">
+        <div className="flex-col hidden p-3 border lg:flex w-60 rounded-xl bg-surface-soft border-hairline">
           <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-signature-coral mb-1">Resources</span>
           <p className="font-display font-medium text-[16px] text-ink leading-snug mb-1">Tools & Materials</p>
           <p className="font-sans text-[12px] text-muted leading-relaxed mb-2">Access labs, study materials, and the gallery in one place.</p>
-          <NavLink to="/resources" onClick={() => setDropdownOpen(null)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:underline">
+          <NavLink to="/resources" onClick={() => setDropdownOpen(null)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:None">
             Browse Resources <ChevronRight size={14} />
           </NavLink>
         </div>
@@ -274,7 +274,7 @@ export default function Navbar({ onForumFlip }) {
 
   return (
     <>
-      <nav className="fixed left-0 right-0 z-50 top-0 bg-white border-b border-hairline">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-hairline">
         <div className="w-full max-w-[1440px] mx-auto px-4 md:px-6 xl:px-10 h-16 flex items-center justify-between">
           {/* Left: Brand Logo */}
           <div className="flex items-center gap-1">
@@ -308,56 +308,53 @@ export default function Navbar({ onForumFlip }) {
                   <ChevronDown size={14} className={`relative z-10 transition-transform duration-200 ${dropdownOpen === group.label ? 'rotate-180' : ''}`} style={{ transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }} />
                 </button>
 
-                <AnimatePresence>
-                  {dropdownOpen === group.label && (
-                    <motion.div
-                      key={group.label}
-                      className="absolute top-full left-1/2 -translate-x-1/2 w-[500px] bg-white border border-hairline rounded-xl shadow-sm py-0 z-50 origin-top"
-                      initial="hidden"
-                      animate="visible"
-                      exit="exiting"
-                      variants={DROPDOWN_VARIANTS}
-                      transition={DROPDOWN_TRANSITION}
-                    >
+                {dropdownOpen === group.label && (
+                  <div
+                    key={group.label}
+                    className="absolute top-full left-1/2 -translate-x-1/2 w-[500px] bg-white border border-hairline rounded-xl shadow-sm py-0 z-50 origin-top"
+                  >
                       <div className="flex gap-2 p-2">
                         <div className="flex-1 min-w-0">
-                          {group.items.map(item => {
-                            const Icon = item.icon
-                            return (
-                              <NavLink
-                                key={item.to}
-                                to={item.to}
-                                onClick={(e) => {
-                                  if (item.flip && user && typeof onForumFlip === 'function') {
-                                    e.preventDefault()
-                                    const el = e.currentTarget
-                                    const rect = el.getBoundingClientRect()
-                                    const borderRadius = getComputedStyle(el).borderRadius
-                                    setDropdownOpen(null)
-                                    onForumFlip({ rect, borderRadius })
-                                  } else {
-                                    setDropdownOpen(null)
-                                  }
-                                }}
-                                className={({ isActive }) => `group flex items-center gap-3 px-2.5 py-2 rounded-lg transition-all duration-200 ${dropdownItemClass(isActive)}`}
-                                style={{ transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }}
-                              >
-                                <span className={iconTileClass(item.to === '/courses' || item.to === '/forum')}>
-                                  {Icon && <Icon size={18} strokeWidth={1.75} />}
-                                </span>
-                                <span className="flex-1">
-                                  <span className="block text-[14px] font-normal">{item.label}</span>
-                                </span>
-                                <ChevronRight size={14} className="text-muted opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }} />
-                              </NavLink>
-                            )
-                          })}
+{group.items.map(item => {
+                                const Icon = item.icon
+                                return (
+                                  <NavLink
+                                    key={item.to}
+                                    to={item.to}
+                                    onClick={(e) => {
+                                      if (item.flip && user && typeof onForumFlip === 'function') {
+                                        e.preventDefault()
+                                        const el = e.currentTarget
+                                        const rect = el.getBoundingClientRect()
+                                        const borderRadius = getComputedStyle(el).borderRadius
+                                        setDropdownOpen(null)
+                                        onForumFlip({ rect, borderRadius })
+                                      } else {
+                                        setDropdownOpen(null)
+                                      }
+                                    }}
+                                    className={({ isActive }) => `group flex items-center gap-3 px-2.5 py-2 rounded-lg transition-all duration-200 ${dropdownItemClass(isActive)}`}
+                                    style={{ transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }}
+                                  >
+                                    {({ isActive }) => (
+                                      <>
+                                        <span className={iconTileClass(isActive)}>
+                                          {Icon && <Icon size={18} strokeWidth={1.75} />}
+                                        </span>
+                                        <span className="flex-1">
+                                          <span className="block text-[14px] font-normal">{item.label}</span>
+                                        </span>
+                                        <ChevronRight size={14} className="transition-all duration-200 -translate-x-1 opacity-0 text-muted group-hover:opacity-100 group-hover:translate-x-0" style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }} />
+                                      </>
+                                    )}
+                                  </NavLink>
+                                )
+                              })}
                         </div>
                         {featuredCard(group)}
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                  </div>
+                )}
               </div>
             ))}
 
@@ -410,14 +407,14 @@ export default function Navbar({ onForumFlip }) {
 
                 {profileOpen && (
                   <motion.div
-                    className="absolute right-0 z-50 p-2 mt-2 border w-72 bg-white text-ink border-hairline rounded-xl shadow-lg"
+                    className="absolute right-0 z-50 p-2 mt-2 bg-white border shadow-lg w-72 text-ink border-hairline rounded-xl"
                     initial="hidden"
                     animate="visible"
                     exit="exiting"
                     variants={MODAL_VARIANTS}
                     transition={MODAL_TRANSITION}
                   >
-                    <div className="p-3 mb-2 bg-soft-stone rounded-lg">
+                    <div className="p-3 mb-2 rounded-lg bg-soft-stone">
                       <div className="flex items-center justify-between gap-2 mb-1">
                         <p className="font-display font-medium text-[15px] text-ink truncate">{user.name}</p>
                         {roleInfo && (
@@ -439,46 +436,46 @@ export default function Navbar({ onForumFlip }) {
                     <div className="space-y-1 text-[13px] font-sans font-medium">
                       {userRole === 'faculty' && (
                         <>
-                          <Link
-                            to={`/profile/${user._id}`}
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink font-medium hover:bg-soft-stone transition-colors"
-                          >
-                            <UserCheck size={17} strokeWidth={1.75} /> My Profile
-                          </Link>
-                          <Link
-                            to="/faculty/dashboard"
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink font-medium hover:bg-soft-stone transition-colors"
-                          >
-                            <LayoutGrid size={17} strokeWidth={1.75} /> Faculty Dashboard
-                          </Link>
+<Link
+                        to={`/profile/${user._id}`}
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-muted font-medium hover:text-ink hover:bg-soft-stone transition-colors"
+                      >
+                        <UserCheck size={17} strokeWidth={1.75} /> My Profile
+                      </Link>
+                      <Link
+                        to="/faculty/dashboard"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-muted font-medium hover:text-ink hover:bg-soft-stone transition-colors"
+                      >
+                        <LayoutGrid size={17} strokeWidth={1.75} /> Faculty Dashboard
+                      </Link>
                         </>
                       )}
 
                       {(userRole === 'student' || userRole === 'cr') && (
                         <>
-                          <Link
-                            to={`/profile/${user._id}`}
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink font-medium hover:bg-soft-stone transition-colors"
-                          >
-                            <UserCheck size={17} strokeWidth={1.75} /> My Profile
-                          </Link>
-                          <Link
-                            to="/students"
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink hover:bg-soft-stone transition-colors"
-                          >
-                            <CalendarClock size={17} strokeWidth={1.75} /> Deadlines & Routine
-                          </Link>
-                          <Link
-                            to="/forum"
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink hover:bg-soft-stone transition-colors"
-                          >
-                            <MessagesSquare size={17} strokeWidth={1.75} /> Discussion Forum
-                          </Link>
+<Link
+                        to={`/profile/${user._id}`}
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-muted font-medium hover:text-ink hover:bg-soft-stone transition-colors"
+                      >
+                        <UserCheck size={17} strokeWidth={1.75} /> My Profile
+                      </Link>
+                      <Link
+                        to="/students"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-muted hover:text-ink hover:bg-soft-stone transition-colors"
+                      >
+                        <CalendarClock size={17} strokeWidth={1.75} /> Deadlines & Routine
+                      </Link>
+                      <Link
+                        to="/forum"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-muted hover:text-ink hover:bg-soft-stone transition-colors"
+                      >
+                        <MessagesSquare size={17} strokeWidth={1.75} /> Discussion Forum
+                      </Link>
                         </>
                       )}
 
@@ -494,34 +491,34 @@ export default function Navbar({ onForumFlip }) {
 
                       {(userRole === 'admin' || userRole === 'super_admin') && (
                         <>
-                          <Link
-                            to="/admin"
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink font-medium hover:bg-soft-stone transition-colors"
-                          >
-                            <LayoutGrid size={17} strokeWidth={1.75} /> Admin Console
-                          </Link>
-                          <Link
-                            to="/admin/faculty"
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink hover:bg-soft-stone transition-colors"
-                          >
-                            <UserCheck size={17} strokeWidth={1.75} /> Faculty Directory
-                          </Link>
-                          <Link
-                            to="/admin/students"
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink hover:bg-soft-stone transition-colors"
-                          >
-                            <Contact size={17} strokeWidth={1.75} /> Student Directory
-                          </Link>
-                          <Link
-                            to="/forum"
-                            onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-ink hover:bg-soft-stone transition-colors"
-                          >
-                            <MessagesSquare size={17} strokeWidth={1.75} /> Discussion Forum
-                          </Link>
+<Link
+                        to="/admin"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-muted font-medium hover:text-ink hover:bg-soft-stone transition-colors"
+                      >
+                        <LayoutGrid size={17} strokeWidth={1.75} /> Admin Console
+                      </Link>
+                      <Link
+                        to="/admin/faculty"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-muted hover:text-ink hover:bg-soft-stone transition-colors"
+                      >
+                        <UserCheck size={17} strokeWidth={1.75} /> Faculty Directory
+                      </Link>
+                      <Link
+                        to="/admin/students"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-muted hover:text-ink hover:bg-soft-stone transition-colors"
+                      >
+                        <Contact size={17} strokeWidth={1.75} /> Student Directory
+                      </Link>
+                      <Link
+                        to="/forum"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-muted hover:text-ink hover:bg-soft-stone transition-colors"
+                      >
+                        <MessagesSquare size={17} strokeWidth={1.75} /> Discussion Forum
+                      </Link>
                         </>
                       )}
 
@@ -534,7 +531,7 @@ export default function Navbar({ onForumFlip }) {
                               onClick={handleInstallApp}
                               className="w-full flex items-center gap-2.5 p-3 rounded-lg border border-primary/20 bg-surface-soft hover:bg-soft-stone transition-colors text-left"
                             >
-                              <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white flex-shrink-0">
+                              <span className="flex items-center justify-center flex-shrink-0 w-8 h-8 text-white rounded-lg bg-primary">
                                 <Download size={15} strokeWidth={2} />
                               </span>
                               <span className="flex-1 font-sans text-[13px] font-medium text-ink">Install App</span>
@@ -554,7 +551,7 @@ export default function Navbar({ onForumFlip }) {
                         onClick={handleLogout}
                         className="w-full flex items-center gap-2.5 p-3 mt-1 rounded-lg border border-signature-coral/20 bg-signature-coral/5 hover:bg-signature-coral/10 transition-colors text-left"
                       >
-                        <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-signature-coral text-white flex-shrink-0">
+                        <span className="flex items-center justify-center flex-shrink-0 w-8 h-8 text-white rounded-lg bg-signature-coral">
                           <Power size={15} strokeWidth={2} />
                         </span>
                         <span className="flex-1 font-sans text-[13px] font-medium text-signature-coral">Sign Out</span>
@@ -594,10 +591,10 @@ export default function Navbar({ onForumFlip }) {
       </nav>
 
       {/* Mobile overlay menu */}
-      <div className={`fixed inset-0 z-40 bg-white ${
+      <div className={`fixed inset-0 z-40 flex flex-col bg-white overflow-hidden ${
         menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
-        <div className="absolute top-[72px] bottom-0 left-4 right-4 sm:left-6 sm:right-6 overflow-y-auto pb-8 no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="fixed top-[72px] bottom-0 left-0 right-0 overflow-y-auto px-4 sm:px-6 py-6 pb-8 no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
           {user && (
             <div className="p-4 mb-6 border bg-soft-stone rounded-xl border-hairline">
               <div className="flex items-center justify-between mb-1">
@@ -617,12 +614,12 @@ export default function Navbar({ onForumFlip }) {
               <div className="p-4 bg-white border border-hairline rounded-xl">
                 <h3 className="font-mono text-[11px] font-bold uppercase tracking-wider text-muted mb-3">Quick Actions</h3>
                 <div className="flex flex-col gap-2">
-                  <Link to={`/profile/${user._id}`} onClick={closeMenu} className="button-secondary w-full justify-center">
+                  <Link to={`/profile/${user._id}`} onClick={closeMenu} className="justify-center w-full button-secondary">
                   My Profile
                   </Link>
                   {user.role === 'faculty' && (
                     <>
-                      <Link to="/faculty/dashboard" onClick={closeMenu} className="button-secondary w-full justify-center">
+                      <Link to="/faculty/dashboard" onClick={closeMenu} className="justify-center w-full button-secondary">
                         <Megaphone size={16} /> Faculty Dashboard
                       </Link>
                     </>
@@ -691,15 +688,15 @@ export default function Navbar({ onForumFlip }) {
             ))}
 
             {user ? (
-              <button onClick={() => { logout(); closeMenu() }} className="w-full flex items-center gap-3 p-3 rounded-lg border border-signature-coral/20 bg-signature-coral/5 hover:bg-signature-coral/10 transition-colors text-left mt-2">
-                <span className="w-9 h-9 flex items-center justify-center rounded-lg bg-signature-coral text-white flex-shrink-0">
+              <button onClick={() => { logout(); closeMenu() }} className="flex items-center w-full gap-3 p-3 mt-2 text-left transition-colors border rounded-lg border-signature-coral/20 bg-signature-coral/5 hover:bg-signature-coral/10">
+                <span className="flex items-center justify-center flex-shrink-0 text-white rounded-lg w-9 h-9 bg-signature-coral">
                   <Power size={17} strokeWidth={2} />
                 </span>
                 <span className="font-sans text-[15px] font-medium text-signature-coral flex-1">Sign Out</span>
               </button>
             ) : (
-              <Link to="/login" onClick={closeMenu} className="w-full flex items-center gap-3 p-3 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors text-left mt-2">
-                <span className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-white flex-shrink-0">
+              <Link to="/login" onClick={closeMenu} className="flex items-center w-full gap-3 p-3 mt-2 text-left transition-colors border rounded-lg border-primary/20 bg-primary/5 hover:bg-primary/10">
+                <span className="flex items-center justify-center flex-shrink-0 text-white rounded-lg w-9 h-9 bg-primary">
                   <Power size={17} strokeWidth={2} />
                 </span>
                 <span className="font-sans text-[15px] font-medium text-primary flex-1">Sign In</span>
@@ -707,7 +704,7 @@ export default function Navbar({ onForumFlip }) {
             )}
 
             {!appInstalled && (installPromptEvent || isIosDevice()) && (
-              <div className="mt-2 p-3 rounded-lg border border-hairline bg-surface-soft">
+              <div className="p-3 mt-2 border rounded-lg border-hairline bg-surface-soft">
                 {installPromptEvent ? (
                   <button
                     onClick={handleInstallApp}
@@ -718,7 +715,7 @@ export default function Navbar({ onForumFlip }) {
                   </button>
                 ) : (
                   <div className="text-[13px] font-sans text-muted leading-relaxed">
-                    <p className="font-display font-medium text-ink mb-1 flex items-center gap-2">
+                    <p className="flex items-center gap-2 mb-1 font-medium font-display text-ink">
                       <Download size={16} strokeWidth={1.75} /> Install App
                     </p>
                     <p>Tap the <span className="font-medium">Share</span> button, then choose <span className="font-medium">"Add to Home Screen"</span> to install Electro Infinity on your iPhone.</p>
@@ -733,9 +730,9 @@ export default function Navbar({ onForumFlip }) {
       {searchOpen && <GlobalSearch onClose={() => setSearchOpen(false)} />}
 
       {showFloatingInstallBar && (
-        <div className="fixed bottom-4 left-4 right-4 z-40 md:hidden">
-          <div className="flex items-center gap-3 p-3 pr-2 rounded-lg border border-hairline bg-white shadow-lg">
-            <span className="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-white flex-shrink-0">
+        <div className="fixed z-40 bottom-4 left-4 right-4 md:hidden">
+          <div className="flex items-center gap-3 p-3 pr-2 bg-white border rounded-lg shadow-lg border-hairline">
+            <span className="flex items-center justify-center flex-shrink-0 w-10 h-10 text-white rounded-lg bg-primary">
               <Download size={18} strokeWidth={2} />
             </span>
             <div className="flex-1 min-w-0">
@@ -751,7 +748,7 @@ export default function Navbar({ onForumFlip }) {
             <button
               onClick={dismissInstallBar}
               aria-label="Dismiss install hint"
-              className="w-8 h-8 flex items-center justify-center rounded-full text-muted hover:bg-soft-stone transition-colors flex-shrink-0"
+              className="flex items-center justify-center flex-shrink-0 w-8 h-8 transition-colors rounded-full text-muted hover:bg-soft-stone"
             >
               <X size={16} />
             </button>

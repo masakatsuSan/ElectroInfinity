@@ -128,7 +128,7 @@ router.get('/search', optionalAuth, async (req, res) => {
       },
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -188,7 +188,7 @@ router.get('/trending', optionalAuth, async (req, res) => {
 
     res.json({ success: true, data: formatted })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -262,7 +262,7 @@ router.get('/suggested', optionalAuth, async (req, res) => {
 
     res.json({ success: true, data: formatted })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -272,7 +272,7 @@ router.get('/badges', async (req, res) => {
     const badges = await Badge.find().sort({ createdAt: -1 })
     res.json({ success: true, data: badges })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -295,7 +295,7 @@ router.get('/me/completeness', protect, async (req, res) => {
     const { percentage, missing } = computeCompleteness(user)
     res.json({ success: true, data: { percentage, missing } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -354,7 +354,7 @@ router.get('/me/uploads', protect, async (req, res) => {
 
     res.json({ success: true, data: all })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -377,7 +377,7 @@ router.get('/me/views', protect, async (req, res) => {
 
     res.json({ success: true, data: formatted })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -423,7 +423,7 @@ router.post('/:id/view', protect, async (req, res) => {
 
     res.json({ success: true, data: { message: 'Profile view recorded' } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -465,7 +465,7 @@ department: user.profile?.department || '',
       },
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -496,7 +496,7 @@ router.post('/:userId/badges', protect, async (req, res) => {
 
     res.json({ success: true, data: targetUser })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -602,7 +602,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 
     res.json({ success: true, data: profile })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -640,7 +640,7 @@ router.patch('/me', protect, async (req, res) => {
     await createActivity(req.user._id, 'profile_updated', 'Updated profile', '', `/profile/${user._id}`)
     res.json({ success: true, data: user.toObject() })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -671,7 +671,7 @@ router.post('/me/cover', protect, upload.single('cover'), async (req, res) => {
 
     res.json({ success: true, data: { coverPhoto: result.url, coverPhotoPublicId: result.publicId } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -695,7 +695,7 @@ router.post('/me/photo', protect, upload.single('photo'), async (req, res) => {
 
     res.json({ success: true, data: { photo: result.url } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

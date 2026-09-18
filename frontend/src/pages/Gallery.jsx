@@ -160,7 +160,7 @@ export default function Gallery() {
 
         {selectedIndex !== null && (
           <div
-            className="fixed inset-0 z-50 bg-ink/88 flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-ink/70 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={(e) => {
               if (e.target === e.currentTarget) setSelectedIndex(null)
             }}
