@@ -78,6 +78,29 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// ─── Keep the API warm while someone is actually using the site ────────────
+// The API runs on a free tier that sleeps after ~15 minutes without traffic.
+// The first request after that took 22.9s in testing, which reads to a student
+// as "the site is broken". Pinging /api/health every 10 minutes *only while a
+// tab is visible* keeps an active session warm without burning free-tier
+// hours overnight. Set VITE_KEEP_API_WARM=off to disable it.
+if (typeof window !== 'undefined' && import.meta.env.VITE_KEEP_API_WARM !== 'off') {
+  const healthUrl = `${import.meta.env.VITE_API_URL || '/api'}/health`
+  const KEEP_ALIVE_MS = 10 * 60 * 1000
+
+  const ping = () => {
+    if (document.visibilityState !== 'visible') return
+    // Plain fetch on purpose: it must not be slowed by interceptors or retries.
+    fetch(healthUrl, { keepalive: true, cache: 'no-store' }).catch(() => {})
+  }
+
+  // Warm up immediately on load (covers the "opened the site after a while" case).
+  window.addEventListener('load', ping)
+  // Re-warm when the user comes back to the tab.
+  document.addEventListener('visibilitychange', ping)
+  window.setInterval(ping, KEEP_ALIVE_MS)
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     {/* HelmetProvider: manages document head tags */}
