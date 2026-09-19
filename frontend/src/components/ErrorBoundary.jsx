@@ -1,5 +1,5 @@
 import React from 'react'
-import OhmNo from './OhmNo'
+import FatalError from './FatalError'
 
 /**
  * Catches render/effect errors in any child subtree and shows a friendly
@@ -7,7 +7,13 @@ import OhmNo from './OhmNo'
  * white page (which is what an uncaught error does without a boundary).
  *
  *   <ErrorBoundary>                        → full-page fallback
- *   <ErrorBoundary fallback={<p>…</p>}>    → custom fallback (e.g. the 3D map)
+ *   <ErrorBoundary fallback={<p>…</p>}>    → custom fallback (e.g. page-level)
+ *   <ErrorBoundary resetKey={someKey}>     → clears the error when the key
+ *                                            changes (used for route changes)
+ *
+ * Note that error boundaries only catch errors thrown while rendering — not
+ * errors inside event handlers, timers or promises. Those are logged globally
+ * in main.jsx instead.
  */
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -24,8 +30,10 @@ export default class ErrorBoundary extends React.Component {
     console.error('[ErrorBoundary] Caught error:', error, errorInfo)
   }
 
-  // Optional resetKey: when the parent changes it (e.g. a "Restart" button
-  // bumping an epoch counter), clear the error and render children again.
+  // Optional resetKey: when the parent changes it (e.g. navigating to another
+  // route), clear the error and render children again. Without this the
+  // boundary stays latched and every page shows the error until a hard reload —
+  // one of the "have to refresh to use the site" causes.
   componentDidUpdate(prevProps) {
     if (this.props.resetKey !== prevProps.resetKey && this.state.error) {
       this.setState({ error: null })
@@ -40,7 +48,7 @@ export default class ErrorBoundary extends React.Component {
     if (this.state.error) {
       if (this.props.fallback) return this.props.fallback
 
-      return <OhmNo />
+      return <FatalError />
     }
     return this.props.children
   }

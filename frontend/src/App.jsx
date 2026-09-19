@@ -9,6 +9,8 @@ import OrganicBlobs   from './components/OrganicBlobs'
 import ForumFlipOverlay from './components/ForumFlipOverlay'
 import OhmNo from './components/OhmNo'
 import RouteFallback from './components/RouteFallback'
+import PageError from './components/PageError'
+import ErrorBoundary from './components/ErrorBoundary'
 import { NotificationProvider } from './context/NotificationContext'
 import { PAGE_VARIANTS, PAGE_TRANSITION } from './utils/motion'
 
@@ -83,22 +85,32 @@ const FacultyLogin     = lazy(() => import('./pages/faculty/FacultyLogin'))
 const FacultyActivate  = lazy(() => import('./pages/faculty/FacultyActivate'))
 const NotFound = () => <OhmNo />
 
-const AnimatedRoute = ({ children }) => (
-  <motion.div
-    initial="initial"
-    animate="in"
-    exit="out"
-    variants={PAGE_VARIANTS}
-    transition={PAGE_TRANSITION}
-    className="flex flex-col flex-1 w-full h-full"
-  >
-    {/* Route code is fetched lazily; the skeleton replaces only the page area
-        while the chunk arrives, so the shell never blanks out. */}
-    <Suspense fallback={<RouteFallback />}>
-      {children}
-    </Suspense>
-  </motion.div>
-);
+const AnimatedRoute = ({ children }) => {
+  const location = useLocation()
+
+  return (
+    <motion.div
+      initial="initial"
+      animate="in"
+      exit="out"
+      variants={PAGE_VARIANTS}
+      transition={PAGE_TRANSITION}
+      className="flex flex-col flex-1 w-full h-full"
+    >
+      {/* Route code is fetched lazily; the skeleton replaces only the page area
+          while the chunk arrives, so the shell never blanks out. */}
+      <Suspense fallback={<RouteFallback />}>
+        {/* A crash on one page now shows a retry card in the page area instead
+            of blanking the whole app, and it clears itself when you navigate
+            away (resetKey) — previously the boundary stayed latched until a
+            hard refresh. */}
+        <ErrorBoundary resetKey={location.pathname} fallback={<PageError resetKey={location.pathname} />}>
+          {children}
+        </ErrorBoundary>
+      </Suspense>
+    </motion.div>
+  )
+};
 
 export default function App() {
   const location = useLocation()
@@ -121,15 +133,20 @@ export default function App() {
 
     lenisRef.current = lenis
 
+    let frame
     function raf(time) {
       lenis.raf(time)
-      requestAnimationFrame(raf)
+      frame = requestAnimationFrame(raf)
     }
 
-    requestAnimationFrame(raf)
+    frame = requestAnimationFrame(raf)
 
     return () => {
+      // Cancel the loop too — otherwise it kept running after unmount and
+      // piled up one loop per remount (visible as growing CPU in dev/HMR).
+      if (frame) cancelAnimationFrame(frame)
       lenis.destroy()
+      lenisRef.current = null
     }
   }, [])
 
