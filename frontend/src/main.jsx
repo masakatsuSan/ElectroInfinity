@@ -25,7 +25,11 @@ function BootSignal() {
 // After a deploy, a tab that is still open may ask for a chunk whose hashed
 // filename no longer exists. Vite raises `vite:preloadError`; we reload once so
 // the user picks up the new index.html instead of staring at a dead screen.
-if (typeof window !== 'undefined') {
+//
+// PRODUCTION ONLY. In `npm run dev` Vite/HMR owns reloads, and reacting to a
+// dynamic-import failure there turns an ordinary dev error (for example a
+// stale Vite dependency cache) into a page that reloads over and over.
+if (typeof window !== 'undefined' && import.meta.env.PROD) {
   const RELOAD_KEY = 'ei_chunk_reload_at'
   const reloadOnce = () => {
     let last = 0
