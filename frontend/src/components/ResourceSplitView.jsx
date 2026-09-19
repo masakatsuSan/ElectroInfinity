@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { X } from 'lucide-react'
 import { fetchPreviewBlobUrl } from '../api/resources'
-import PdfViewer from './PdfViewer'
+
+// react-pdf pulls in a ~1.4 MB PDF.js worker, so it is only downloaded when a
+// user actually opens a PDF preview rather than on every page load.
+const PdfViewer = lazy(() => import('./PdfViewer'))
 
 export default function ResourceSplitView({ selectedResource, resources, onSelectResource, onClose }) {
   if (!selectedResource) return null
@@ -95,7 +98,15 @@ export default function ResourceSplitView({ selectedResource, resources, onSelec
             </div>
           )}
           {previewUrl && isPdf ? (
-            <PdfViewer key={previewUrl} file={previewUrl} />
+            <Suspense
+              fallback={
+                <div className="absolute inset-0 flex items-center justify-center bg-soft-stone/40">
+                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              }
+            >
+              <PdfViewer key={previewUrl} file={previewUrl} />
+            </Suspense>
           ) : previewUrl && isImage ? (
             <img
               src={previewUrl}

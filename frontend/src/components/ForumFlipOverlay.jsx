@@ -1,11 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MessagesSquare } from 'lucide-react'
 import ProtectedRoute from './ProtectedRoute'
-import Forum from '../pages/Forum'
 import ForumFlipContext from '../context/ForumFlipContext'
 import { EASE, DURATION } from '../utils/motion'
+
+// Forum is a large page. Loading it lazily here (instead of a static import)
+// keeps it out of the entry chunk — the overlay shows a spinner while the
+// chunk streams in, and Vite can then split Forum into its own file.
+const Forum = lazy(() => import('../pages/Forum'))
 
 const OPEN_SPRING = { type: 'spring', stiffness: 420, damping: 38, mass: 0.9 }
 const CLOSE_SPRING = { type: 'spring', stiffness: 380, damping: 44, mass: 1.0 }
@@ -119,7 +123,15 @@ export default function ForumFlipOverlay({ triggerRect, borderRadius: borderRadi
         <div className="absolute inset-0" style={{ opacity: fullOpacity, pointerEvents: fullPointerEvents, transition: 'opacity ' + CROSSFADE_DURATION + 'ms ease' }}>
           <ForumFlipContext.Provider value={flipContextValue}>
             <ProtectedRoute>
-              <Forum />
+              <Suspense
+                fallback={
+                  <div className="absolute inset-0 flex items-center justify-center bg-canvas">
+                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  </div>
+                }
+              >
+                <Forum />
+              </Suspense>
             </ProtectedRoute>
           </ForumFlipContext.Provider>
         </div>
