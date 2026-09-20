@@ -396,22 +396,11 @@
                 border-color 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
     will-change: transform, box-shadow;
   }
-  .bento-card:hover {
-    transform: translateY(-3px) scale(1.005);
-    box-shadow: 0 20px 44px -18px rgba(0, 0, 0, 0.5);
-    border-color: rgba(255, 255, 255, 0.22);
-  }
-
-  /* ── Core Pillars Bento Grid ─────────────────────────────────── */
-  .bento-card {
-    transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1),
-                box-shadow 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
-    will-change: transform, box-shadow;
-  }
-  .bento-card:hover {
-    transform: translateY(-3px) scale(1.005);
-    box-shadow: 0 20px 44px -18px rgba(0, 0, 0, 0.5);
-  }
+   .bento-card:hover {
+     transform: translateY(-3px) scale(1.005);
+     box-shadow: 0 20px 44px -18px rgba(0, 0, 0, 0.5);
+     border-color: rgba(255, 255, 255, 0.22);
+   }
 
   /* ── Inputs & Forms ─────────────────────────────────────────── */
   .text-input {

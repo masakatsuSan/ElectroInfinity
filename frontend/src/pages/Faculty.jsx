@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Mail } from 'lucide-react'
 import { getFaculty } from '../api/faculty'
 import SEO from '../components/SEO'
+import ScrollReveal from '../components/ScrollReveal'
 import { SkeletonFaculty, SkeletonAvatar, SkeletonButton } from '../components/Skeleton'
 
 export default function Faculty() {
@@ -19,9 +20,10 @@ export default function Faculty() {
         description="Distinguished faculty members and researchers of Electrical Engineering at AGEMC."
       />
 
-      <div className="max-w-[1280px] mx-auto px-4 md:px-6">
-        {/* Header */}
-        <div className="max-w-3xl mb-16">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-6">
+          <ScrollReveal variant="fadeUp">
+          {/* Header */}
+          <div className="max-w-3xl mb-16">
           <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">
             Academic Leadership
           </span>
@@ -32,8 +34,10 @@ export default function Faculty() {
             Professors guiding undergraduate coursework, state-of-the-art power labs, and embedded systems engineering.
           </p>
         </div>
+        </ScrollReveal>
 
         {/* Directory (Rule-separated research layout) */}
+        <ScrollReveal variant="fadeUp" delay={0.1}>
         <div className="border border-hairline bg-white rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
           {isLoading ? (
             Array.from({ length: 4 }).map((_, i) => (
@@ -57,6 +61,7 @@ export default function Faculty() {
             </div>
           )}
         </div>
+        </ScrollReveal>
       </div>
     </div>
   )

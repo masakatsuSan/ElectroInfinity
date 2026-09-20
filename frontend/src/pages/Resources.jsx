@@ -110,7 +110,7 @@ export default function Resources() {
         </div>
       </ScrollReveal>
 
-        <div className="flex gap-2 px-4 pb-4 mb-10 overflow-x-auto border-b border-hairline scrollbar-thin">
+        <div className="flex gap-2 pb-4 mb-10 overflow-x-auto border-b border-hairline scrollbar-thin">
           {TABS.map(tab => (
             <button
               key={tab.id}
@@ -119,7 +119,7 @@ export default function Resources() {
                 setSemesterFilter('')
                 setSubjectFilter('')
               }}
-              className={'font-sans text-[13px] sm:text-[14px] font-medium px-4 py-2.5 rounded-full transition-all whitespace-nowrap ' +
+              className={'font-sans text-[13px] sm:text-[14px] font-medium px-4 py-2.5 rounded-full transition-all whitespace-nowrap shrink-0 ' +
                 (activeTab.id === tab.id
                   ? 'bg-primary text-white'
                   : 'bg-soft-stone text-muted hover:text-ink')}
@@ -129,8 +129,8 @@ export default function Resources() {
           ))}
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mb-6">
-          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 min-w-0">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mb-6 w-full">
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 min-w-0 w-full sm:w-auto">
             <label className="font-sans text-[13px] font-medium text-muted">Filter by Semester:</label>
             <FilterSelect
               value={semesterFilter}
@@ -139,7 +139,7 @@ export default function Resources() {
               placeholder="All Semesters"
             />
           </div>
-          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 min-w-0">
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 min-w-0 w-full sm:w-auto">
             <label className="font-sans text-[13px] font-medium text-muted">Filter by Subject:</label>
             <FilterSelect
               value={subjectFilter}
@@ -156,7 +156,7 @@ export default function Resources() {
           </div>
         </div>
 
-        <div key={activeTab.id} className="animate-in">
+        <div key={activeTab.id} className="animate-in h-[calc(100vh-15rem)] min-h-[600px]">
           {isLoading ? (
             <SkeletonGrid />
           ) : selectedResource && isDesktop ? (

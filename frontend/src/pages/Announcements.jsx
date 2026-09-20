@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { getAnnouncements, getAnnouncement } from '../api/announcements'
 import { Bell, Pin, Paperclip, User } from 'lucide-react'
 import SEO from '../components/SEO'
+import ScrollReveal from '../components/ScrollReveal'
 
 const CATEGORIES = [
   { key: 'all', label: 'All' },
@@ -156,7 +157,7 @@ function AnnouncementCard({ ann, onClick }) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-1 text-link hover:None"
+            className="inline-flex items-center gap-1 text-link hover:no-underline"
             aria-label="View attachment"
           >
             <Paperclip size={12} />
@@ -258,7 +259,7 @@ function AnnouncementDetail({ detail, loading, error, user, onClose }) {
                     href={detail.attachmentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-[14px] font-medium text-link hover:None"
+                    className="inline-flex items-center gap-1.5 text-[14px] font-medium text-link hover:no-underline"
                   >
                     <Paperclip size={14} />
                     View Attachment
@@ -336,6 +337,7 @@ export default function Announcements() {
       />
 
       <div className="max-w-[1100px] mx-auto px-4 md:px-6">
+        <ScrollReveal variant="fadeUp">
         <header className="mb-10">
           <span className="inline-flex items-center gap-2 font-mono text-[12px] font-medium uppercase tracking-wider text-signature-coral mb-3">
             <Bell size={16} strokeWidth={1.75} /> Official Communications
@@ -347,9 +349,11 @@ export default function Announcements() {
             Official communications from the department and club
           </p>
         </header>
+        </ScrollReveal>
 
+        <ScrollReveal variant="fadeUp" delay={0.1}>
         <nav
-          className="flex items-center gap-2 px-4 pb-4 mb-6 overflow-x-auto scrollbar-thin"
+          className="flex items-center gap-2 pb-4 mb-6 overflow-x-auto scrollbar-thin"
           aria-label="Filter announcements"
         >
           {CATEGORIES.map((c) => {
@@ -370,7 +374,9 @@ export default function Announcements() {
             )
           })}
         </nav>
+        </ScrollReveal>
 
+        <ScrollReveal variant="fadeUp" delay={0.2}>
         {isLoading ? (
           <SkeletonGrid />
         ) : error ? (
@@ -394,6 +400,7 @@ export default function Announcements() {
             ))}
           </div>
         )}
+        </ScrollReveal>
       </div>
 
       {selectedId && (
@@ -408,3 +415,4 @@ export default function Announcements() {
     </div>
   )
 }
+

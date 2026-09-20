@@ -1,8 +1,18 @@
-import { Component, useEffect, lazy, Suspense, useState, useRef } from 'react'
+import { useEffect, lazy, Suspense, useState } from 'react'
+import { X } from 'lucide-react'
+import { fetchPreviewBlobUrl, getPreviewUrl } from '../api/resources'
+
+function isGoogleDriveUrl(url) {
+  if (!url) return false
+  return /^https?:\/\/(?:drive\.google\.com|drive\.userdata\.googleusercontent\.com|drive\.googleusercontent\.com)/i.test(url)
+}
+
+const PdfViewer = lazy(() => import('./PdfViewer'))
+
 export default function ResourceSplitView({ selectedResource, resources, onSelectResource, onClose }) {
   if (!selectedResource) return null
 
-  const isPdf = /\.pdf($|[?#])/i.test(selectedResource.fileUrl || '')
+  const isPdf = /\.(pdf)($|[?#])/i.test(selectedResource.fileUrl || '') || isGoogleDriveUrl(selectedResource.fileUrl)
   const isImage = /\.(png|jpe?g|webp|gif|svg)($|[?#])/i.test(selectedResource.fileUrl || '')
   const [loading, setLoading] = useState(true)
   const [previewUrl, setPreviewUrl] = useState(null)

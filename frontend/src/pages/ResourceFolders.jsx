@@ -47,7 +47,7 @@ export default function ResourceFolders() {
         description="Semester-wise, subject-wise curated folders of notes, PDFs, and YouTube lecture series."
         path="/resources/folders"
       />
-      <div className="max-w-[1280px] mx-auto px-6 md:px-12">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-12">
         {id ? (
           <>
             {detailLoading ? (
@@ -211,7 +211,7 @@ function FolderDetail({ folder, onPreview }) {
         </p>
       ) : (
         <div>
-          <div className="flex gap-2 pb-4 mb-6 overflow-x-auto border-b border-hairline" role="tablist" aria-label="Folder content">
+          <div className="flex gap-2 pb-4 mb-6 overflow-x-auto border-b border-hairline scrollbar-thin" role="tablist" aria-label="Folder content">
             <button
               type="button"
               role="tab"

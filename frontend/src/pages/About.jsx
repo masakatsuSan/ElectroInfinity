@@ -23,8 +23,8 @@ const HIGHLIGHTS = [
 ]
 
 const ACHIEVEMENTS = [
-  { year: '2024', title: 'Campus Placements in Core & IT', desc: 'Students secured placements at TCS, core EPC firms, and power automation companies.' },
-  { year: '2023', title: 'Smart India Hackathon Finalists', desc: 'Team Electro represented AGEMC at SIH national hardware edition.' },
+  { year: '2026', title: 'Summer Internship at POWERGRID', desc: 'Completed a summer internship at POWERGRID\'s ±800 kV HVDC Substation, gaining practical exposure to HVDC systems, protection, control, switchyards, and converter technology.' },
+  { year: '2026', title: 'Internship at URSC, ISRO', desc: 'Completed an internship at UR Rao Satellite Centre, ISRO, working on derating analysis of actuator power units for space applications.' },
 ]
 
 export default function About() {
@@ -37,7 +37,7 @@ export default function About() {
       />
 
       <ScrollReveal variant="fadeUp">
-        <section className="pt-24 md:pt-32 pb-24 md:pb-24" view-transition-name="about-hero">
+        <section className="pt-24 pb-24 md:pt-32 md:pb-24" view-transition-name="about-hero">
           <div className="mx-auto max-w-[1280px] px-6 md:px-12">
             <div className="max-w-3xl">
               <span className="mb-3 block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral">
@@ -57,7 +57,7 @@ export default function About() {
       <ScrollReveal variant="fadeUp">
         <section className="py-24 md:py-24" view-transition-name="about-highlights">
           <div className="mx-auto max-w-[1280px] px-6 md:px-12">
-            <div className="cream-callout-card grid gap-6 sm:grid-cols-3 md:gap-8">
+            <div className="grid gap-6 cream-callout-card sm:grid-cols-3 md:gap-8">
               {HIGHLIGHTS.map(h => (
                 <div
                   key={h.label}
@@ -80,7 +80,7 @@ export default function About() {
       <ScrollReveal variant="fadeUp">
         <section className="py-24 md:py-24" view-transition-name="about-objectives">
           <div className="mx-auto max-w-[1280px] px-6 md:px-12">
-            <div className="mb-12 max-w-3xl">
+            <div className="max-w-3xl mb-12">
               <span className="mb-3 block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-forest">
                 Our Mission
               </span>
@@ -93,7 +93,7 @@ export default function About() {
               {OBJECTIVES.map((o, i) => (
                 <ScrollReveal key={i} variant="fadeUp" delay={i * 0.1}>
                   <div
-                    className="border border-divider-soft bg-white p-8 flex gap-5 items-start hover:bg-surface-soft transition-colors"
+                    className="flex items-start gap-5 p-8 transition-colors bg-white border border-divider-soft hover:bg-surface-soft"
                   >
                     <span className="font-mono text-[13px] font-medium text-signature-coral flex-shrink-0">
                       0{i + 1}.
@@ -110,7 +110,7 @@ export default function About() {
       <ScrollReveal variant="fadeUp">
         <section className="py-24 md:py-24" view-transition-name="about-timeline">
           <div className="mx-auto max-w-[1280px] px-6 md:px-12">
-            <div className="mb-12 max-w-3xl">
+            <div className="max-w-3xl mb-12">
               <span className="mb-3 block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-muted">
                 History & Milestones
               </span>
@@ -119,10 +119,10 @@ export default function About() {
               </h2>
             </div>
 
-            <div className="signature-forest-card overflow-hidden">
+            <div className="overflow-hidden signature-forest-card">
               {TIMELINE.map((t, i) => (
                 <ScrollReveal key={i} variant="fadeUp" delay={i * 0.1}>
-                  <div className="flex flex-col gap-5 border-b border-white/20 p-6 last:border-b-0 sm:flex-row sm:items-center hover:bg-white/10 transition-colors md:p-8">
+                  <div className="flex flex-col gap-5 p-6 transition-colors border-b border-white/20 last:border-b-0 sm:flex-row sm:items-center hover:bg-white/10 md:p-8">
                     <span className="flex-shrink-0 rounded-sm border border-signature-cream bg-signature-cream px-3 py-1 text-center font-mono text-[14px] font-medium text-signature-forest w-20">
                       {t.year}
                     </span>
@@ -138,30 +138,28 @@ export default function About() {
       <ScrollReveal variant="fadeUp">
         <section className="py-24 md:py-24" view-transition-name="about-achievements">
           <div className="mx-auto max-w-[1280px] px-6 md:px-12">
-            <div className="mb-12 max-w-3xl">
+            <div className="max-w-3xl mb-12">
               <span className="mb-3 block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral">
                 Excellence
               </span>
               <h2 className="mb-4 font-display text-[32px] font-normal leading-[1.2] text-ink md:text-[40px]">
-                Student Achievements
+                2026 Milestones
               </h2>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
               {ACHIEVEMENTS.map((a, i) => (
                 <ScrollReveal key={i} variant="scaleIn" delay={i * 0.15}>
-                  <div
-                    className={`rounded-sm p-8 md:p-10 ${i === 0 ? 'bg-signature-peach' : 'bg-signature-mint'}`}
-                  >
-                    <div className="flex flex-col h-full justify-between gap-12">
+                  <div className={`flex flex-col h-full rounded-sm p-8 md:p-10 ${i === 0 ? 'bg-signature-peach' : 'bg-signature-mint'}`}>
+                    <div className="flex flex-col justify-between h-full gap-12">
                       <div>
                         <span className="mb-3 block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-ink">
-                          {a.year} Milestone
+                          2026 MILESTONE
                         </span>
                         <h3 className="mb-3 font-display text-[20px] font-normal leading-[1.35] text-ink">{a.title}</h3>
                         <p className="font-sans text-[14px] font-normal leading-[1.45] text-body">{a.desc}</p>
                       </div>
-                      <span className="mt-8 block h-10 w-10 rounded-sm bg-ink" />
+                      <span className="block w-10 h-10 mt-8 rounded-sm bg-ink" />
                     </div>
                   </div>
                 </ScrollReveal>

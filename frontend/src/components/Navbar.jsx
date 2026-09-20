@@ -251,7 +251,7 @@ export default function Navbar({ onForumFlip }) {
           <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-signature-coral mb-1">What's Happening</span>
           <p className="font-display font-medium text-[16px] text-ink leading-snug mb-1">Join the Conversation</p>
           <p className="font-sans text-[12px] text-muted leading-relaxed mb-2">Latest discussions, projects, and announcements from peers.</p>
-          <NavLink to="/forum" onClick={() => setDropdownOpen(null)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:None">
+          <NavLink to="/forum" onClick={() => setDropdownOpen(null)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:no-underline">
             Open Forum <ChevronRight size={14} />
           </NavLink>
         </div>
@@ -263,7 +263,7 @@ export default function Navbar({ onForumFlip }) {
           <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-signature-coral mb-1">Resources</span>
           <p className="font-display font-medium text-[16px] text-ink leading-snug mb-1">Tools & Materials</p>
           <p className="font-sans text-[12px] text-muted leading-relaxed mb-2">Access labs, study materials, and the gallery in one place.</p>
-          <NavLink to="/resources" onClick={() => setDropdownOpen(null)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:None">
+          <NavLink to="/resources" onClick={() => setDropdownOpen(null)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:no-underline">
             Browse Resources <ChevronRight size={14} />
           </NavLink>
         </div>
@@ -758,3 +758,4 @@ export default function Navbar({ onForumFlip }) {
     </>
   );
 }
+

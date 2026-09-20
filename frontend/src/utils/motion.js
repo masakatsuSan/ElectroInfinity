@@ -97,10 +97,33 @@ export function useReducedMotion() {
   return reduced
 }
 
+let _vtInFlight = false
+
 export function safeViewTransition(callback) {
-  if (typeof document !== 'undefined' && 'startViewTransition' in document) {
-    return document.startViewTransition(callback)
+  if (typeof document === 'undefined' || !('startViewTransition' in document)) {
+    callback()
+    return null
   }
-  callback()
-  return null
+  if (_vtInFlight) {
+    // A transition is already running — run the callback without starting a new one
+    callback()
+    return null
+  }
+  _vtInFlight = true
+  try {
+    const vt = document.startViewTransition(callback)
+    vt.finished.then(
+      () => { _vtInFlight = false },
+      (err) => {
+        _vtInFlight = false
+        if (err.name === 'AbortError') return
+        throw err
+      }
+    )
+    return vt
+  } catch (err) {
+    _vtInFlight = false
+    if (err.name === 'AbortError') return null
+    throw err
+  }
 }

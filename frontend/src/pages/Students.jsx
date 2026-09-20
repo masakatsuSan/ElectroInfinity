@@ -9,6 +9,7 @@ import { getAnnouncements } from '../api/announcements';
 import { uploadPhoto, getBatchStudents } from '../api/students';
 import { getDeadlines, submitDeadline } from '../api/deadlines';
 import { getRoutine } from '../api/routines';
+import ScrollReveal from '../components/ScrollReveal';
 
 export default function Students() {
   const { user } = useAuth();
@@ -109,6 +110,7 @@ export default function Students() {
   return (
     <div className="w-full px-4 min-h-screen pt-32 pb-20 sm:max-w-[1280px] sm:mx-auto sm:px-6 md:px-8 lg:px-10">
       {/* ── Profile header ── */}
+      <ScrollReveal variant="fadeUp">
       <div className="flex flex-col items-center gap-8 pb-12 mb-12 border-b md:flex-row md:items-start border-divider-soft">
         <div className="relative flex-shrink-0">
           <div
@@ -138,12 +140,12 @@ export default function Students() {
           </p>
           {photoError && <p className="text-red-500 text-[14px] mt-2 font-[450]">{photoError}</p>}
           <div className="flex flex-wrap items-center justify-center gap-3 mt-4 md:justify-start">
-          </div>
-        </div>
-      </div>
-
-      {/* ── Tabs (Pill style) ── */}
-      <div className="flex w-full gap-2 px-4 py-3 mb-10 overflow-x-auto bg-white border rounded-md border-divider-soft scrollbar-thin scroll-smooth">
+           </div>
+           </div>
+           </div>
+      </ScrollReveal>
+      <ScrollReveal variant="fadeUp" delay={0.1}>
+      <div className="flex w-full gap-2 py-3 mb-10 overflow-x-auto bg-white border rounded-md border-divider-soft scrollbar-thin scroll-smooth">
         {TABS.map(t => (
           <button key={t} onClick={() => setActiveTab(t)}
             className={`font-sans text-[13px] sm:text-[14px] font-medium uppercase tracking-[0.02em] sm:tracking-[0.04em] px-5 py-3 shrink-0 rounded-md transition-all whitespace-nowrap ${
@@ -156,9 +158,10 @@ export default function Students() {
             : 'Announcements'}
           </button>
         ))}
-      </div>
+        </div>
+        </ScrollReveal>
 
-      {/* ── Deadlines Feed (Premium Glassy Tracking UI) ── */}
+        {/* ── Deadlines Feed (Premium Glassy Tracking UI) ── */}
       {activeTab === 'deadlines' && (
         <div className="duration-300 animate-in fade-in">
           <div className="flex items-center justify-between mb-8">

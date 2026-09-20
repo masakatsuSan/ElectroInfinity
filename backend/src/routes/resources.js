@@ -13,6 +13,30 @@ function isExternalUrl(url) {
   return /^https?:\/\/(?!.*\.cloudinary\.com)/.test(url)
 }
 
+function isGoogleDriveUrl(url) {
+  if (!url) return false
+  return /^https?:\/\/(?:drive\.google\.com|drive\.usercontent\.google\.com)/i.test(url)
+}
+
+function normalizeGoogleDriveUrl(url) {
+  if (!url) return url
+  if (!isGoogleDriveUrl(url)) return url
+
+  let fileId = null
+
+  const idMatch = url.match(/[?&]id=([^&]+)/)
+  if (idMatch) {
+    fileId = idMatch[1]
+  } else {
+    const dMatch = url.match(/\/d\/([^/]+)/)
+    if (dMatch) fileId = dMatch[1]
+  }
+
+  if (!fileId) return url
+
+  return `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`
+}
+
 const EXTENSION_TO_MIME = {
   pdf: 'application/pdf',
   png: 'image/png',
@@ -148,6 +172,11 @@ router.get('/:id/download', async (req, res) => {
 
     res.setHeader('Content-Disposition', `attachment; filename="${resource.fileName || 'download'}"`)
 
+    if (isGoogleDriveUrl(resource.fileUrl)) {
+      const normalizedUrl = normalizeGoogleDriveUrl(resource.fileUrl)
+      return await streamCloudinaryToResponse(req, res, normalizedUrl, resource.fileName)
+    }
+
     if (isExternalUrl(resource.fileUrl)) {
       return res.redirect(resource.fileUrl)
     }
@@ -166,6 +195,11 @@ router.get('/:id/preview', async (req, res) => {
     if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
 
     res.setHeader('Content-Disposition', `inline; filename="${resource.fileName || 'preview'}"`)
+
+    if (isGoogleDriveUrl(resource.fileUrl)) {
+      const normalizedUrl = normalizeGoogleDriveUrl(resource.fileUrl)
+      return await streamCloudinaryToResponse(req, res, normalizedUrl, resource.fileName)
+    }
 
     if (isExternalUrl(resource.fileUrl)) {
       return res.redirect(resource.fileUrl)

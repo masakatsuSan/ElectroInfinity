@@ -133,7 +133,7 @@ export default function Home() {
 
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-5 md:auto-rows-[180px] lg:grid-cols-4">
               <ScrollReveal variant="scaleIn" delay={0}>
-                <article className="bento-card col-span-1 md:col-span-2 lg:col-span-2 md:row-span-2 bg-white rounded-[22px] p-6 md:p-8 lg:p-10 border border-white/70 shadow-card flex flex-col justify-between relative overflow-hidden" view-transition-name="bento-card-1">
+                <article className="bento-card col-span-1 md:col-span-1 lg:col-span-1 lg:row-span-2 bg-white rounded-[22px] p-6 md:p-8 lg:p-10 border border-white/70 shadow-card flex flex-col justify-between relative overflow-hidden" view-transition-name="bento-card-1">
                   <div className="absolute top-0 right-0 -translate-y-1/2 rounded-full w-44 h-44 bg-signature-yellow/20 blur-3xl translate-x-1/4" />
                   <div className="hidden md:absolute md:top-4 md:right-6 font-display text-[140px] font-normal leading-none text-ink/4 select-none">
                     01
@@ -154,7 +154,7 @@ export default function Home() {
               </ScrollReveal>
 
               <ScrollReveal variant="scaleIn" delay={0.1}>
-                <article className="bento-card col-span-1 md:col-span-2 lg:col-span-2 bg-[#f2f1ee] rounded-[22px] p-6 md:p-7 lg:p-8 border border-white/60 shadow-card flex flex-col justify-between relative overflow-hidden" view-transition-name="bento-card-2">
+                <article className="bento-card col-span-1 md:col-span-1 lg:col-span-1 bg-[#f2f1ee] rounded-[22px] p-6 md:p-7 lg:p-8 border border-white/60 shadow-card flex flex-col justify-between relative overflow-hidden" view-transition-name="bento-card-2">
                   <div className="absolute top-0 right-0 w-32 h-32 -translate-y-1/2 rounded-full bg-ink/5 blur-2xl translate-x-1/3" />
                   <div className="relative">
                     <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-ink mb-4">
@@ -172,7 +172,7 @@ export default function Home() {
               </ScrollReveal>
 
               <ScrollReveal variant="scaleIn" delay={0.2}>
-                <article className="bento-card col-span-1 md:col-span-2 lg:col-span-2 bg-white rounded-[22px] p-6 md:p-7 lg:p-8 border border-white/70 shadow-card flex flex-col justify-between relative overflow-hidden" view-transition-name="bento-card-3">
+                <article className="bento-card col-span-1 md:col-span-1 lg:col-span-1 bg-white rounded-[22px] p-6 md:p-7 lg:p-8 border border-white/70 shadow-card flex flex-col justify-between relative overflow-hidden" view-transition-name="bento-card-3">
                   <div className="absolute top-0 right-0 w-32 h-32 -translate-y-1/2 rounded-full bg-signature-coral/15 blur-2xl translate-x-1/3" />
                   <div className="relative">
                     <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral mb-4">
@@ -190,7 +190,7 @@ export default function Home() {
               </ScrollReveal>
 
               <ScrollReveal variant="scaleIn" delay={0.3}>
-                <article className="bento-card col-span-1 md:col-span-2 lg:col-span-4 bg-white rounded-[22px] p-7 md:p-8 lg:p-10 border border-white/10 shadow-card flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden" view-transition-name="bento-card-4">
+                <article className="bento-card col-span-1 md:col-span-1 lg:col-span-1 lg:row-span-2 bg-white rounded-[22px] p-7 md:p-8 lg:p-10 border border-white/10 shadow-card flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden" view-transition-name="bento-card-4">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(168,216,196,0.14),transparent_55%)]" />
                   <div className="absolute inset-0 opacity-[0.05] bg-[radial-gradient(circle,white_1px,transparent_1px)] bg-[length:18px_18px]" />
                   <div className="relative">

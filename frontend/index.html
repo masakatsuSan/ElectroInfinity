@@ -40,66 +40,10 @@
       rel="stylesheet"
     />
 
-  <!--
-      Boot screen — inline and dependency-free so it paints on the very first
-      frame, before any stylesheet or bundle arrives.
-
-      It is deliberately NOT on a timer. The previous splash faded itself out
-      after a fixed 0.8s, which left a blank page until the entry chunk had
-      downloaded, parsed and mounted (measured: 4.9s of white on Slow 3G, and
-      "refresh to fix it" because the second load came from cache).
-      This one stays up until React reports that it mounted:
-      main.jsx calls window.__eiBoot.ready().
-    -->
-    <style>
-      html:not(.app-ready) body { background-color: #0a0a0a; }
-
-      #boot {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 20px;
-        padding: 24px;
-        background: #0a0a0a;
-        color: #fff;
-        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-        text-align: center;
-        opacity: 1;
-        visibility: visible;
-        transition: opacity 0.45s ease, visibility 0s linear 0.45s;
-      }
-      html.app-ready #boot { opacity: 0; visibility: hidden; }
-
-      #boot-name {
-        margin: 0;
-        font-size: 1.6rem;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-        opacity: 0;
-        animation: boot-fade-in 0.8s ease-out 0.2s forwards;
-      }
-      @keyframes boot-fade-in {
-        from { opacity: 0; transform: translateY(8px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        #boot-name { animation: none; opacity: 1; }
-        #boot { transition: none; }
-      }
-    </style>
   </head>
 
   <body class="text-ink">
     <div id="root"></div>
-
-    <div id="boot" role="status" aria-live="polite" aria-label="Loading ElectroInfinity">
-      <h1 id="boot-name">ElectroInfinity</h1>
-    </div>
 
     <noscript>
       <div style="position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;background:#0a0a0a;color:#fff;font-family:system-ui,sans-serif;text-align:center">
@@ -109,25 +53,6 @@
         </p>
       </div>
     </noscript>
-    <script>
-      // Fail-safe for the boot screen: normally main.jsx calls __eiBoot.ready()
-      // as soon as React mounts. If that never happens (bundle blocked, stale
-      // cached chunk, offline) we surface a Reload button at 9s and again at
-      // 25s, instead of leaving the user on a dead screen.
-      window.__eiBoot = {
-        ready: function () {
-          document.documentElement.classList.add('app-ready')
-          if (window.__eiBootTimer) clearTimeout(window.__eiBootTimer)
-          if (window.__eiBootTimer2) clearTimeout(window.__eiBootTimer2)
-        },
-      }
-      window.__eiBootTimer = setTimeout(function () {
-        if (!document.documentElement.classList.contains('app-ready')) {
-          window.location.reload()
-        }
-      }, 25000)
-    </script>
-
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

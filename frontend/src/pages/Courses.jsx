@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { getSubjects } from '../api/subjects'
 import SEO from '../components/SEO'
+import ScrollReveal from '../components/ScrollReveal'
 
 const SEMESTER_PILLS = [1, 2, 3, 4, 5, 6, 7, 8]
 
@@ -45,6 +46,7 @@ export default function Courses() {
       />
 
       <div className="max-w-[1280px] mx-auto px-4 md:px-6">
+        <ScrollReveal variant="fadeUp">
         <div className="max-w-3xl mb-12">
           <span className="font-mono text-[12px] uppercase tracking-wider text-signature-coral font-medium block mb-2">
             Academic Curriculum
@@ -56,19 +58,23 @@ export default function Courses() {
             MAKAUT-affiliated 4-year degree roadmap spanning power systems, circuits, electronics, and lab practicums.
           </p>
         </div>
+        </ScrollReveal>
 
-         <div className="flex gap-2 px-4 pb-4 mb-10 overflow-x-auto border-b border-hairline scrollbar-thin">
+         <ScrollReveal variant="fadeUp" delay={0.1}>
+         <div className="flex gap-3 pb-4 mb-10 overflow-x-auto border-b border-hairline scrollbar-thin">
           {SEMESTER_PILLS.map((sem) => (
             <button
               key={sem}
               onClick={() => setSelectedSem(sem)}
-              className={'font-sans text-[14px] font-medium px-5 py-2 rounded-full transition-all whitespace-nowrap ' + (selectedSem === sem ? 'bg-primary text-white' : 'bg-soft-stone text-muted hover:text-ink')}
+              className={'font-sans text-[14px] font-medium px-6 py-2.5 rounded-full transition-all whitespace-nowrap shrink-0 ' + (selectedSem === sem ? 'bg-primary text-white' : 'bg-soft-stone text-muted hover:text-ink')}
             >
               Semester {sem}
             </button>
           ))}
         </div>
+        </ScrollReveal>
 
+        <ScrollReveal variant="fadeUp" delay={0.2}>
         {isLoading ? (
           <SkeletonGrid />
         ) : (
@@ -118,6 +124,7 @@ export default function Courses() {
             </div>
           </div>
         )}
+        </ScrollReveal>
       </div>
     </div>
   )

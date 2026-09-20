@@ -231,7 +231,7 @@ export default function FacultyActivate() {
                 <button type="button" onClick={() => { setStep(1); setResendSuccess(false); setError('') }} className="text-muted hover:text-ink">
                   ← Wrong email?
                 </button>
-                <button type="button" onClick={handleResend} disabled={resending} className="text-action-blue font-medium hover:None">
+                <button type="button" onClick={handleResend} disabled={resending} className="text-action-blue font-medium hover:no-underline">
                   {resending ? 'Sending…' : 'Resend OTP'}
                 </button>
               </div>
@@ -317,7 +317,7 @@ export default function FacultyActivate() {
         )}
 
         <div className="mt-8 pt-4 border-t border-[#dddddd] text-center text-[13px] font-sans">
-          <Link to="/faculty/login" className="text-action-blue hover:None font-medium">
+          <Link to="/faculty/login" className="text-action-blue hover:no-underline font-medium">
             Already activated? Sign in
           </Link>
         </div>
@@ -325,3 +325,4 @@ export default function FacultyActivate() {
     </div>
   )
 }
+

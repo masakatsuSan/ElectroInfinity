@@ -1163,7 +1163,7 @@ function AchievementsList({ achievements, isOwn, onEdit, onDelete }) {
                   href={achievement.certificatePdf}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-[12px] font-medium text-[#181d26] hover:None"
+                  className="inline-flex items-center gap-1 text-[12px] font-medium text-[#181d26] hover:no-underline"
                 >
                   View Certificate
                 </a>
@@ -1256,7 +1256,7 @@ function AboutSection({ profile, isOwn, editingAbout, setEditingAbout, aboutForm
         {isOwn && !editingAbout && (
           <button
             onClick={startEditAbout}
-            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#181d26] hover:None"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#181d26] hover:no-underline"
           >
             <Edit3 size={14} /> Edit
           </button>
@@ -1374,7 +1374,7 @@ function SkillsSection({ profile, isOwn, editingSkills, setEditingSkills, skills
         {isOwn && !editingSkills && (
           <button
             onClick={() => setEditingSkills(true)}
-            className="text-[12px] font-medium text-[#181d26] hover:None inline-flex items-center gap-1"
+            className="text-[12px] font-medium text-[#181d26] hover:no-underline inline-flex items-center gap-1"
           >
             <Edit3 size={12} /> Edit
           </button>
@@ -1446,7 +1446,7 @@ function SocialLinksSection({ profile, isOwn, editingSocial, setEditingSocial, s
         {isOwn && !editingSocial && (
           <button
             onClick={() => setEditingSocial(true)}
-            className="text-[12px] font-medium text-[#181d26] hover:None inline-flex items-center gap-1"
+            className="text-[12px] font-medium text-[#181d26] hover:no-underline inline-flex items-center gap-1"
           >
             <Edit3 size={12} /> Edit
           </button>
@@ -2014,3 +2014,4 @@ function GallerySubmitModal({ onClose, onSubmit, loading, initialData }) {
     </div>
   )
 }
+

@@ -54,17 +54,17 @@ function ProfileGridLightbox({ item, onClose }) {
             <p className="font-mono text-[12px] text-gray-500">{dateLabel}</p>
             <div className="flex items-center gap-3">
               {item.kind === 'project' && item.meta?.githubLink && (
-                <a href={item.meta.githubLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] font-semibold text-ink hover:None">
+                <a href={item.meta.githubLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] font-semibold text-ink hover:no-underline">
                   <GitBranch size={12} /> GitHub
                 </a>
               )}
               {item.kind === 'project' && item.meta?.demoLink && (
-                <a href={item.meta.demoLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] font-semibold text-ink hover:None">
+                <a href={item.meta.demoLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] font-semibold text-ink hover:no-underline">
                   <ExternalLink size={12} /> Demo
                 </a>
               )}
               {item.kind === 'achievement' && item.certificatePdf && (
-                <a href={item.certificatePdf} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] font-semibold text-ink hover:None">
+                <a href={item.certificatePdf} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] font-semibold text-ink hover:no-underline">
                   <ExternalLink size={12} /> View Certificate
                 </a>
               )}
@@ -156,3 +156,4 @@ export default function ProfileGrid({ items = [], isOwn, onOpenUpload }) {
     </div>
   )
 }
+

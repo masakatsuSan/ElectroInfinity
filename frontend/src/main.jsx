@@ -11,17 +11,6 @@ import FatalError from './components/FatalError'
 import App from './App'
 import './index.css'
 
-// ─── Boot hand-off ─────────────────────────────────────────────────────────
-// index.html paints an inline boot screen that stays up until the app is
-// actually on screen. Without this, the old splash faded out on a fixed 0.8s
-// timer and left a blank page for as long as the bundle took to arrive.
-function BootSignal() {
-  React.useEffect(() => {
-    window.__eiBoot?.ready?.()
-  }, [])
-  return null
-}
-
 // ─── Recovery from a failed code-split chunk ───────────────────────────────
 // After a deploy, a tab that is still open may ask for a chunk whose hashed
 // filename no longer exists. Vite raises `vite:preloadError`; we reload once so
@@ -62,6 +51,7 @@ if (typeof window !== 'undefined') {
     console.error('[global-error]', event.message, event.error)
   })
   window.addEventListener('unhandledrejection', (event) => {
+    if (event.reason && event.reason.name === 'AbortError') return
     console.error('[unhandledrejection]', event.reason)
   })
 }
@@ -110,10 +100,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     {/* HelmetProvider: manages document head tags */}
     <HelmetProvider>
-      {/* BootSignal sits outside the boundaries so the boot screen is always
-          released — a crash then shows a real error screen instead of a splash
-          (or a white page) that never goes away. */}
-      <BootSignal />
       <ErrorBoundary fallback={<FatalError />}>
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           {/* QueryClientProvider: makes React Query available anywhere */}

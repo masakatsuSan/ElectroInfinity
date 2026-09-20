@@ -81,12 +81,12 @@ export default function Gallery() {
 
         <ScrollReveal variant="fadeUp" delay={0.1}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
-            <div className="flex gap-2 overflow-x-auto pb-2 border-b border-hairline w-full sm:w-auto">
+            <div className="flex gap-3 overflow-x-auto pb-3 border-b border-hairline w-full sm:w-auto">
               {CATEGORIES.map((c) => (
                 <button
                   key={c}
                   onClick={() => setActive(c)}
-                  className={`font-sans text-[14px] font-medium px-4 py-2 rounded-sm whitespace-nowrap transition-colors ${
+                  className={`font-sans text-[14px] font-medium px-5 py-2.5 rounded-sm whitespace-nowrap transition-colors shrink-0 ${
                     active === c
                       ? 'bg-ink text-white'
                       : 'bg-surface-soft text-body'
@@ -120,41 +120,22 @@ export default function Gallery() {
             {filtered.map((img, i) => (
               <ScrollReveal key={i} variant="scaleIn" delay={i * 0.08}>
                 <div view-transition-name={`gallery-image-${i}`}>
-                  {user ? (
-                    <button
-                      onClick={() => setSelectedIndex(i)}
-                      className={`relative overflow-hidden group block w-full text-left rounded-md border border-divider-soft bg-white shadow-sm ${GALLERY_RATIOS[i % GALLERY_RATIOS.length]}`}
-                    >
-                      <img
-                        src={img.url}
-                        alt={img.label}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                        style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
-                      />
-                      <div className="absolute inset-0 bg-ink/55 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4" style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
-                        <p className="font-sans text-[13px] font-medium text-white">
-                          {img.label}
-                        </p>
-                      </div>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setSelectedIndex(i)}
-                      className={`relative overflow-hidden group block w-full text-left rounded-md border border-divider-soft bg-white shadow-sm ${GALLERY_RATIOS[i % GALLERY_RATIOS.length]}`}
-                    >
-                      <img
-                        src={img.url}
-                        alt={img.label}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                        style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
-                      />
-                      <div className="absolute inset-0 bg-ink/55 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4" style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
-                        <p className="font-sans text-[13px] font-medium text-white">
-                          {img.label}
-                        </p>
-                      </div>
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setSelectedIndex(i)}
+                    className={`relative overflow-hidden group block w-full text-left rounded-md border border-divider-soft bg-white shadow-sm ${GALLERY_RATIOS[i % GALLERY_RATIOS.length]}`}
+                  >
+                    <img
+                      src={img.url}
+                      alt={img.label}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                      style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
+                    />
+                    <div className="absolute inset-0 bg-ink/55 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4" style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
+                      <p className="font-sans text-[13px] font-medium text-white">
+                        {img.label}
+                      </p>
+                    </div>
+                  </button>
                   {img.uploadedBy && (
                     <UploaderInfo user={img.uploadedBy} size="w-6 h-6" className="mt-3 px-1 gap-2" />
                   )}

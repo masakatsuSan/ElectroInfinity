@@ -68,7 +68,7 @@ function MentionText({ text = '', mentions = [], onViewProfile }) {
               event.stopPropagation()
               onViewProfile?.(user._id)
             }}
-            className="text-[#1b61c9] font-medium hover:None"
+            className="text-[#1b61c9] font-medium hover:no-underline"
           >
             {part}
           </button>
@@ -508,7 +508,7 @@ export default function Forum() {
                         <button
                           type="button"
                           onClick={() => setFormData({ ...formData, pollOptions: [...formData.pollOptions, ''] })}
-                          className="text-[14px] font-medium text-[#1b61c9] hover:None"
+                          className="text-[14px] font-medium text-[#1b61c9] hover:no-underline"
                         >
                           + Add option
                         </button>
@@ -747,7 +747,7 @@ function PostCard({
         </button>
         <button
           onClick={(e) => onUserClick?.(post.author, e)}
-          className="font-medium text-[#181d26] hover:None"
+          className="font-medium text-[#181d26] hover:no-underline"
         >
           {post.author?.name}
         </button>
@@ -792,7 +792,7 @@ function PostCard({
           href={post.linkUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mb-3 inline-flex items-center gap-2 text-[13px] font-medium text-[#1b61c9] hover:None"
+          className="mb-3 inline-flex items-center gap-2 text-[13px] font-medium text-[#1b61c9] hover:no-underline"
           onClick={(e) => e.stopPropagation()}
         >
           <Link2 size={14} />
@@ -919,7 +919,7 @@ function PostCard({
                   <div className="mb-0.5 flex items-center gap-2">
                     <button
                       onClick={(e) => onUserClick?.(comment.author, e)}
-                      className="text-[13px] font-medium text-[#181d26] hover:None"
+                      className="text-[13px] font-medium text-[#181d26] hover:no-underline"
                     >
                       {comment.author?.name}
                     </button>
@@ -982,7 +982,7 @@ function PostCard({
                             <div className="mb-0.5 flex items-center gap-2">
                               <button
                                 onClick={(e) => onUserClick?.(reply.author, e)}
-                                className="text-[12px] font-medium text-[#181d26] hover:None"
+                                className="text-[12px] font-medium text-[#181d26] hover:no-underline"
                               >
                                 {reply.author?.name}
                               </button>
@@ -1003,3 +1003,4 @@ function PostCard({
     </div>
   )
 }
+

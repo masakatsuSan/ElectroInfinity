@@ -64,7 +64,7 @@ export default function Contact() {
                   </span>
                   <a
                     href="mailto:electroinfinity@agemc.edu"
-                    className="font-sans text-[15px] font-medium text-link hover:None"
+                    className="font-sans text-[15px] font-medium text-link hover:no-underline"
                   >
                     electroinfinity@agemc.edu
                   </a>
@@ -169,3 +169,4 @@ export default function Contact() {
     </div>
   )
 }
+

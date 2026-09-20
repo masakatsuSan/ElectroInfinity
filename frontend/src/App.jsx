@@ -1,5 +1,4 @@
 ﻿import { useEffect, useRef, useState, Suspense, lazy } from 'react'
-import { flushSync } from 'react-dom'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import Lenis from '@studio-freight/lenis'
@@ -126,9 +125,7 @@ export default function App() {
 
   useEffect(() => {
     const callback = () => {
-      flushSync(() => {
-        setPageKey(location.pathname)
-      })
+      setPageKey(location.pathname)
       if (lenisRef.current) {
         lenisRef.current.scrollTo(0, { duration: reduced ? 0 : 1.2 })
       } else {

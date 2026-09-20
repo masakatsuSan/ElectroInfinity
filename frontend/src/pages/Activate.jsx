@@ -363,7 +363,7 @@ export default function Activate() {
                   type="button"
                   onClick={handleResend}
                   disabled={resendTimer > 0}
-                  className={`font-semibold transition-colors ${resendTimer > 0 ? 'text-ink-muted-48 cursor-not-allowed' : 'text-primary hover:None'}`}
+                  className={`font-semibold transition-colors ${resendTimer > 0 ? 'text-ink-muted-48 cursor-not-allowed' : 'text-primary hover:no-underline'}`}
                 >
                   {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
                 </button>
@@ -459,3 +459,4 @@ export default function Activate() {
     </div>
   )
 }
+

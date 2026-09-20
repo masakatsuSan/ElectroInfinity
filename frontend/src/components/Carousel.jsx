@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
+import { useReducedMotion } from '../utils/motion'
 
 export default function Carousel({ slides, interval = 4000 }) {
   const [index, setIndex] = useState(0)
+  const reduced = useReducedMotion()
 
   const next = useCallback(() => {
     setIndex(i => (i + 1) % slides.length)
@@ -85,13 +87,13 @@ export default function Carousel({ slides, interval = 4000 }) {
             onClick={() => setIndex(i)}
             className="h-1.5 rounded-full bg-surface-strong"
             style={{ width: 24, transformOrigin: 'left' }}
-            initial={{ scaleX: i === 0 ? 1 : 0.25 }}
-            animate={{
-              scaleX: i === index ? 1 : 0.25,
-              backgroundColor: i === index ? '#181d26' : '#e0e2e6',
-            }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            whileHover={{ scale: 1.3 }}
+             initial={reduced ? false : { scaleX: i === 0 ? 1 : 0.25 }}
+             animate={reduced ? {} : {
+               scaleX: i === index ? 1 : 0.25,
+               backgroundColor: i === index ? '#181d26' : '#e0e2e6',
+             }}
+             transition={reduced ? { duration: 0 } : { duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+             whileHover={reduced ? {} : { scale: 1.3 }}
           />
         ))}
       </div>
