@@ -10,7 +10,7 @@ const resourceSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ['notes', 'pyq', 'assignment', 'lab_manual', 'syllabus', 'other'],
+      enum: ['notes', 'books', 'organisers', 'pyqs', 'yt playlist'],
       required: true,
     },
 

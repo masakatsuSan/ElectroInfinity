@@ -95,9 +95,9 @@ test('GET /api/resources clamps an unreasonable limit', async () => {
 
 test('GET /api/resources passes filters through to the query', async () => {
   calls = []
-  await request('/api/resources?type=pyq&semester=5&subject=Power%20System-I')
+  await request('/api/resources?type=pyqs&semester=5&subject=Power%20System-I')
   assert.deepEqual(calls.find((c) => c[0] === 'find')[1], {
-    type: 'pyq',
+    type: 'pyqs',
     semester: 5,
     subject: 'Power System-I',
   })

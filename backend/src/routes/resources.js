@@ -238,10 +238,10 @@ router.post(
         // Determine Cloudinary folder based on type
         const folderMap = {
           notes: 'notes',
-          pyq: 'previous-year-papers',
-          assignment: 'assignments',
-          lab_manual: 'lab-manuals',
-          syllabus: 'syllabus',
+          books: 'books',
+          organisers: 'organisers',
+          pyqs: 'pyqs',
+          'yt playlist': 'yt-playlist',
         }
         const folder = `electro-infinity/${folderMap[type] || 'resources'}`
 
@@ -355,10 +355,10 @@ router.put(
 
         const folderMap = {
           notes: 'notes',
-          pyq: 'previous-year-papers',
-          assignment: 'assignments',
-          lab_manual: 'lab-manuals',
-          syllabus: 'syllabus',
+          books: 'books',
+          organisers: 'organisers',
+          pyqs: 'pyqs',
+          'yt playlist': 'yt-playlist',
         }
         const folder = `electro-infinity/${folderMap[updates.type] || 'resources'}`
         const isPdf = req.file.mimetype === 'application/pdf'

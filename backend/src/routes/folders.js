@@ -294,7 +294,7 @@ async function uploadFromDriveLink(driveLink, fileType, title) {
     throw new Error('Invalid Google Drive link')
   }
 
-  const response = await axios.get(`https://drive.google.com/uc?id=${fileId}`, {
+  const response = await axios.get(`https://drive.google.com/uc?export=download&id=${fileId}`, {
     responseType: 'arraybuffer',
     maxContentLength: 20 * 1024 * 1024,
     maxBodyLength: 20 * 1024 * 1024,
@@ -306,10 +306,10 @@ async function uploadFromDriveLink(driveLink, fileType, title) {
 
   const folderMap = {
     notes: 'notes',
-    pyq: 'previous-year-papers',
-    assignment: 'assignments',
-    lab_manual: 'lab-manuals',
-    syllabus: 'syllabus',
+    books: 'books',
+    organisers: 'organisers',
+    pyqs: 'pyqs',
+    'yt playlist': 'yt-playlist',
   }
   const cloudFolder = `electro-infinity/${folderMap[fileType] || 'resources'}`
 
@@ -359,10 +359,10 @@ router.post('/:id/upload', protect, guard('cr', 'super_admin', 'admin'), upload.
 
       const folderMap = {
         notes: 'notes',
-        pyq: 'previous-year-papers',
-        assignment: 'assignments',
-        lab_manual: 'lab-manuals',
-        syllabus: 'syllabus',
+        books: 'books',
+        organisers: 'organisers',
+        pyqs: 'pyqs',
+        'yt playlist': 'yt-playlist',
       }
       const cloudFolder = `electro-infinity/${folderMap[fileType] || 'resources'}`
       const isPdf = req.file.mimetype === 'application/pdf'

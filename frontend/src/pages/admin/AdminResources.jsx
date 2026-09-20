@@ -6,7 +6,7 @@ import { getSubjects } from '../../api/subjects'
 import { Check } from 'lucide-react'
 import { useToast } from '../../context/ToastContext'
 
-const TYPES = ['notes','pyq','assignment','lab_manual','syllabus','other']
+const TYPES = ['notes','books','organisers','pyqs','yt playlist']
 const SEMS  = [1,2,3,4,5,6,7,8]
 
 export default function AdminResources() {
