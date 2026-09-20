@@ -72,9 +72,56 @@ router.get('/check-roll/:rollNo', async (req, res) => {
       })
     }
 
-    res.json({ success: true, name: user.name, batch: user.batch })
+    if (!user.email) {
+      return res.status(400).json({
+        success: false,
+        error: 'No email registered for this account. Contact your HOD.',
+      })
+    }
+
+    // Generate OTP — valid for 10 minutes
+    const otp = generateOTP()
+    user.otp = otp
+    user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000)
+    await user.save()
+
+    // Send OTP email
+    await sendEmail({
+      to: user.email,
+      subject: 'Electro Infinity — Account Activation OTP',
+      html: `
+        <div style="font-family:monospace; max-width:480px; margin:0 auto; padding:32px; background:#07060E; color:#F0EFF8; border:1px solid rgba(255,255,255,0.1);">
+          <h2 style="font-family:serif; font-size:22px; margin:0 0 8px;">Account Activation</h2>
+          <p style="opacity:0.6; font-size:14px; margin:0 0 24px;">Electro Infinity · EE Club, AGEMC</p>
+
+          <p style="font-size:14px; margin:0 0 16px;">Hi ${user.name},</p>
+          <p style="font-size:14px; opacity:0.8; margin:0 0 24px;">
+            Your OTP to activate your account:
+          </p>
+
+          <div style="background:rgba(102,87,245,0.15); border:1px solid rgba(102,87,245,0.4); padding:20px; text-align:center; margin:0 0 24px;">
+            <span style="font-size:36px; letter-spacing:12px; font-weight:bold; color:#9D90FA;">${otp}</span>
+          </div>
+
+          <p style="font-size:13px; opacity:0.5; margin:0 0 8px;">⏱ This OTP expires in 10 minutes.</p>
+          <p style="font-size:13px; opacity:0.5; margin:0;">If you didn't request this, ignore this email.</p>
+        </div>
+      `,
+    })
+
+    // Return masked email so user knows where OTP was sent
+    const maskedEmail = user.email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
+
+    res.json({
+      success: true,
+      name: user.name,
+      batch: user.batch,
+      message: `OTP sent to ${maskedEmail}`,
+      maskedEmail,
+      otpSent: true,
+    })
   } catch (err) {
-    res.status(500).json({ success: false, error: 'An internal server error occurred' })
+    res.status(500).json({ success: false, error: 'Failed to send OTP. Try again.' })
   }
 })
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, memo, useCallback } from 'react'
 import {
   ChevronLeft, ChevronRight, Maximize, Minus, PanelLeft, Plus,
 } from 'lucide-react'
@@ -12,8 +12,9 @@ pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 const MIN_SCALE = 0.5
 const MAX_SCALE = 3
 const SCALE_STEP = 0.25
-const PAGE_RENDER_BUFFER = 2
-const INITIAL_PAGE_WINDOW = 3
+const PAGE_RENDER_BUFFER = 5
+const PAGE_MOUNT_BUFFER = 8
+const INITIAL_PAGE_WINDOW = 5
 const MAX_DEVICE_PIXEL_RATIO = 2
 const DEVICE_PIXEL_RATIO = typeof window === 'undefined'
   ? 1
@@ -66,6 +67,51 @@ function PdfSkeleton({ progress = 0 }) {
   )
 }
 
+const PdfPageItem = memo(function PdfPageItem({
+  page,
+  pageWidth,
+  mountStart,
+  mountEnd,
+  renderStart,
+  renderEnd,
+  pageNumber,
+  estimatedPageHeight,
+  devicePixelRatio,
+  onFirstPageLoad,
+  pageRef,
+}) {
+  const isInMountRange = page >= mountStart && page <= mountEnd
+  const isInRenderRange = page >= renderStart && page <= renderEnd
+  const isNearCurrent = Math.abs(page - pageNumber) <= 1
+
+  return (
+    <div
+      ref={pageRef}
+      data-page={page}
+      className="rounded-lg border border-hairline bg-white p-2 shadow-sm"
+      style={{ minHeight: estimatedPageHeight + 16 }}
+    >
+      {isInMountRange && pageWidth ? (
+        <Page
+          pageNumber={page}
+          width={pageWidth}
+          devicePixelRatio={devicePixelRatio}
+          renderTextLayer={isNearCurrent && isInRenderRange}
+          renderAnnotationLayer={isNearCurrent && isInRenderRange}
+          renderForms={isNearCurrent && isInRenderRange}
+          loading={<PageSkeleton />}
+          onLoadSuccess={page === 1 ? onFirstPageLoad : undefined}
+          className="pdf-page"
+        />
+      ) : (
+        <div className="flex h-full items-center justify-center rounded border border-dashed border-hairline bg-white/40">
+          <span className="font-mono text-[11px] text-muted">Page {page}</span>
+        </div>
+      )}
+    </div>
+  )
+})
+
 export default function PdfViewer({ file, onReady }) {
   const scrollRef = useRef(null)
   const pageRefs = useRef({})
@@ -81,6 +127,10 @@ export default function PdfViewer({ file, onReady }) {
     start: 1,
     end: INITIAL_PAGE_WINDOW,
   })
+  const mountRange = useMemo(() =>
+    getRenderRange(pageNumber, numPages || 1, PAGE_MOUNT_BUFFER),
+    [pageNumber, numPages]
+  )
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
   const [firstPageSize, setFirstPageSize] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -157,7 +207,6 @@ export default function PdfViewer({ file, onReady }) {
       if (!Number.isFinite(nextPage) || visiblePage.current === nextPage) return
       visiblePage.current = nextPage
       setPageNumber(nextPage)
-      setRenderRange(getRenderRange(nextPage, numPages))
     }, {
       root: scrollRef.current,
       threshold: [0.2, 0.4, 0.6, 0.8],
@@ -221,13 +270,13 @@ export default function PdfViewer({ file, onReady }) {
     setError(loadError.message || 'Unable to load this PDF.')
   }
 
-  const handleFirstPageLoad = ({ width, height }) => {
+  const handleFirstPageLoad = useCallback(({ width, height }) => {
     setFirstPageSize({ width, height })
     if (!readyReported.current) {
       readyReported.current = true
       onReady?.()
     }
-  }
+  }, [onReady])
 
   const goToPage = (nextPage) => {
     if (!numPages) return
@@ -363,39 +412,25 @@ export default function PdfViewer({ file, onReady }) {
             onSourceError={handleDocumentError}
           >
             <div className="flex min-h-full flex-col items-center gap-4 px-3 py-4">
-              {Array.from({ length: numPages }, (_, index) => index + 1).map(page => {
-                const shouldRender = page >= renderRange.start && page <= renderRange.end
-                return (
-                  <div
-                    key={page}
-                    ref={(element) => {
-                      if (element) pageRefs.current[page] = element
-                      else delete pageRefs.current[page]
-                    }}
-                    data-page={page}
-                    className="rounded-lg border border-hairline bg-white p-2 shadow-sm"
-                    style={{ minHeight: estimatedPageHeight + 16 }}
-                  >
-                    {shouldRender && pageWidth ? (
-                      <Page
-                        pageNumber={page}
-                        width={pageWidth}
-                        devicePixelRatio={DEVICE_PIXEL_RATIO}
-                        renderTextLayer={page === pageNumber}
-                        renderAnnotationLayer={page === pageNumber}
-                        renderForms={page === pageNumber}
-                        loading={<PageSkeleton />}
-                        onLoadSuccess={page === 1 ? handleFirstPageLoad : undefined}
-                        className="pdf-page"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center rounded border border-dashed border-hairline bg-white/40">
-                        <span className="font-mono text-[11px] text-muted">Page {page}</span>
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
+              {Array.from({ length: numPages }, (_, index) => index + 1).map(page => (
+                <PdfPageItem
+                  key={page}
+                  page={page}
+                  pageWidth={pageWidth}
+                  mountStart={mountRange.start}
+                  mountEnd={mountRange.end}
+                  renderStart={renderRange.start}
+                  renderEnd={renderRange.end}
+                  pageNumber={pageNumber}
+                  estimatedPageHeight={estimatedPageHeight}
+                  devicePixelRatio={DEVICE_PIXEL_RATIO}
+                  onFirstPageLoad={handleFirstPageLoad}
+                  pageRef={(element) => {
+                    if (element) pageRefs.current[page] = element
+                    else delete pageRefs.current[page]
+                  }}
+                />
+              ))}
             </div>
           </Document>
         )}

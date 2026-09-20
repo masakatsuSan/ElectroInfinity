@@ -160,7 +160,7 @@ router.get('/', optionalAuth, async (req, res) => {
 })
 
 // ── GET /api/resources/:id/download ───────────────────────────────────────
-// Increments download count then streams the file as an attachment
+// Increments download count then redirects to the file URL for direct fast download
 router.get('/:id/download', async (req, res) => {
   try {
     const resource = await Resource.findByIdAndUpdate(
@@ -170,18 +170,21 @@ router.get('/:id/download', async (req, res) => {
     )
     if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
 
-    res.setHeader('Content-Disposition', `attachment; filename="${resource.fileName || 'download'}"`)
-
+    // Use redirect for fast direct download from CDN/storage provider
     if (isGoogleDriveUrl(resource.fileUrl)) {
       const normalizedUrl = normalizeGoogleDriveUrl(resource.fileUrl)
-      return await streamCloudinaryToResponse(req, res, normalizedUrl, resource.fileName)
+      res.setHeader('Content-Disposition', `attachment; filename="${resource.fileName || 'download'}"`)
+      return res.redirect(normalizedUrl)
     }
 
     if (isExternalUrl(resource.fileUrl)) {
+      res.setHeader('Content-Disposition', `attachment; filename="${resource.fileName || 'download'}"`)
       return res.redirect(resource.fileUrl)
     }
 
-    await streamCloudinaryToResponse(req, res, resource.fileUrl, resource.fileName)
+    // Cloudinary files - redirect directly to Cloudinary CDN
+    res.setHeader('Content-Disposition', `attachment; filename="${resource.fileName || 'download'}"`)
+    return res.redirect(resource.fileUrl)
   } catch (err) {
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
