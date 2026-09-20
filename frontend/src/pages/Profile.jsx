@@ -238,9 +238,9 @@ export default function Profile() {
     setSaving(true)
     try {
       await updateMyProfile({
-        skills: skillsForm.skills.split(',').map((s) => s.trim()).filter(Boolean),
-        interests: skillsForm.interests.split(',').map((s) => s.trim()).filter(Boolean),
-        languages: skillsForm.languages.split(',').map((s) => s.trim()).filter(Boolean),
+        skills: (skillsForm.skills || '').split(',').map((s) => s.trim()).filter(Boolean),
+        interests: (skillsForm.interests || '').split(',').map((s) => s.trim()).filter(Boolean),
+        languages: (skillsForm.languages || '').split(',').map((s) => s.trim()).filter(Boolean),
       })
       setEditingSkills(false)
       qc.invalidateQueries({ queryKey: ['profile', id] })
@@ -457,11 +457,13 @@ export default function Profile() {
               skillsForm={skillsForm}
               setSkillsForm={setSkillsForm}
               saveSkills={saveSkills}
+              startEditSkills={startEditSkills}
               editingSocial={editingSocial}
               setEditingSocial={setEditingSocial}
               socialForm={socialForm}
               setSocialForm={setSocialForm}
               saveSocial={saveSocial}
+              startEditSocial={startEditSocial}
               socialPlatforms={socialPlatforms}
               editingAbout={editingAbout}
               setEditingAbout={setEditingAbout}
@@ -736,8 +738,8 @@ function MainContent({
   createProject, saveAchievementMut, updateAchievementMut, deleteAchievementMut,
   createGalleryMut, updateGalleryMut, deleteGalleryMut,
   saving,
-  editingSkills, setEditingSkills, skillsForm, setSkillsForm, saveSkills,
-  editingSocial, setEditingSocial, socialForm, setSocialForm, saveSocial,
+  editingSkills, setEditingSkills, skillsForm, setSkillsForm, saveSkills, startEditSkills,
+  editingSocial, setEditingSocial, socialForm, setSocialForm, saveSocial, startEditSocial,
   socialPlatforms,
   editingAbout, setEditingAbout, aboutForm, setAboutForm, startEditAbout, saveAbout,
 }) {
@@ -806,6 +808,7 @@ function MainContent({
               setSkillsForm={setSkillsForm}
               saving={saving}
               saveSkills={saveSkills}
+              startEditSkills={startEditSkills}
             />
             <SocialLinksSection
               profile={profile}
@@ -816,6 +819,7 @@ function MainContent({
               setSocialForm={setSocialForm}
               saving={saving}
               saveSocial={saveSocial}
+              startEditSocial={startEditSocial}
               socialPlatforms={socialPlatforms}
             />
             {profile.badges?.length > 0 && (
@@ -1366,14 +1370,14 @@ function AboutSection({ profile, isOwn, editingAbout, setEditingAbout, aboutForm
   )
 }
 
-function SkillsSection({ profile, isOwn, editingSkills, setEditingSkills, skillsForm, setSkillsForm, saving, saveSkills }) {
+function SkillsSection({ profile, isOwn, editingSkills, setEditingSkills, skillsForm, setSkillsForm, saving, saveSkills, startEditSkills }) {
   return (
     <div className="bg-white rounded-xl shadow border border-hairline p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-display text-[18px] font-bold text-gray-900">Skills</h3>
         {isOwn && !editingSkills && (
           <button
-            onClick={() => setEditingSkills(true)}
+            onClick={startEditSkills}
             className="text-[12px] font-medium text-[#181d26] hover:no-underline inline-flex items-center gap-1"
           >
             <Edit3 size={12} /> Edit
@@ -1438,14 +1442,14 @@ function SkillsSection({ profile, isOwn, editingSkills, setEditingSkills, skills
   )
 }
 
-function SocialLinksSection({ profile, isOwn, editingSocial, setEditingSocial, socialForm, setSocialForm, saving, saveSocial, socialPlatforms }) {
+function SocialLinksSection({ profile, isOwn, editingSocial, setEditingSocial, socialForm, setSocialForm, saving, saveSocial, socialPlatforms, startEditSocial }) {
   return (
     <div className="bg-white rounded-xl shadow border border-hairline p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-display text-[18px] font-bold text-gray-900">Social Links</h3>
         {isOwn && !editingSocial && (
           <button
-            onClick={() => setEditingSocial(true)}
+            onClick={startEditSocial}
             className="text-[12px] font-medium text-[#181d26] hover:no-underline inline-flex items-center gap-1"
           >
             <Edit3 size={12} /> Edit
