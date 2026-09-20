@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { motion } from 'framer-motion'
 
 export default function Carousel({ slides, interval = 4000 }) {
   const [index, setIndex] = useState(0)
@@ -23,8 +24,10 @@ export default function Carousel({ slides, interval = 4000 }) {
       {/* Slides */}
       <div
         className="flex transition-transform duration-700 ease-in-out h-full"
-        style={{ transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }}
-        style={{ transform: `translateX(-${index * 100}%)` }}
+        style={{
+          transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+          transform: `translateX(-${index * 100}%)`
+        }}
       >
         {slides.map((slide, i) => (
           <div
@@ -76,14 +79,19 @@ export default function Carousel({ slides, interval = 4000 }) {
       {/* Dot indicators */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
         {slides.map((_, i) => (
-          <button
+          <motion.button
             key={i}
             type="button"
             onClick={() => setIndex(i)}
-            className={`h-1.5 rounded-full transition-all ${
-              i === index ? 'w-6 bg-ink' : 'w-1.5 bg-surface-strong'
-            }`}
-            style={{ transitionDuration: '0.25s', transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
+            className="h-1.5 rounded-full bg-surface-strong"
+            style={{ width: 24, transformOrigin: 'left' }}
+            initial={{ scaleX: i === 0 ? 1 : 0.25 }}
+            animate={{
+              scaleX: i === index ? 1 : 0.25,
+              backgroundColor: i === index ? '#181d26' : '#e0e2e6',
+            }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ scale: 1.3 }}
           />
         ))}
       </div>

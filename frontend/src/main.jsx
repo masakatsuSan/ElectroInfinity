@@ -59,7 +59,7 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
 // Global crash logging — keeps any white-screen bug debuggable in DevTools
 if (typeof window !== 'undefined') {
   window.addEventListener('error', (event) => {
-    console.error('[window:error]', event.message, event.error)
+    console.error('[global-error]', event.message, event.error)
   })
   window.addEventListener('unhandledrejection', (event) => {
     console.error('[unhandledrejection]', event.reason)

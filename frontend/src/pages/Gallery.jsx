@@ -6,6 +6,7 @@ import { useToast } from '../context/ToastContext'
 import SEO from '../components/SEO'
 import { Plus, X, Upload } from 'lucide-react'
 import UploaderInfo from '../components/UploaderInfo'
+import ScrollReveal from '../components/ScrollReveal'
 
 const CATEGORIES = ['All', 'Workshop', 'Event', 'Lab', 'Campus', 'Other']
 const GALLERY_RATIOS = ['lg:aspect-[4/5]', 'lg:aspect-[3/4]', 'lg:aspect-video']
@@ -39,6 +40,7 @@ export default function Gallery() {
     mutationFn: createGalleryPhoto,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['gallery'] })
+      if (user?._id) qc.invalidateQueries({ queryKey: ['profile', user._id] })
       setShowUpload(false)
       showToast('Photo uploaded successfully!')
     },
@@ -63,45 +65,49 @@ export default function Gallery() {
       <SEO title="Gallery | Electro Infinity" description="Visual archive of Electro Infinity workshops, events, lab sessions, and campus life." />
 
       <div className="max-w-[1280px] mx-auto px-6 md:px-12">
-        <div className="max-w-3xl mb-12 md:mb-16">
-          <span className="font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral block mb-3">
-            Visual Archive
-          </span>
-          <h1 className="font-display text-[40px] md:text-[56px] font-normal leading-[1.2] text-ink mb-4">
-            Department Gallery
-          </h1>
-          <p className="font-sans text-[14px] text-body leading-[1.25] max-w-2xl">
-            Moments from hands-on laboratory sessions, technical symposiums, robotic competitions, and student projects.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
-          <div className="flex gap-2 overflow-x-auto pb-2 border-b border-hairline w-full sm:w-auto">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c}
-                onClick={() => setActive(c)}
-                className={`font-sans text-[14px] font-medium px-4 py-2 rounded-sm whitespace-nowrap transition-colors ${
-                  active === c
-                    ? 'bg-ink text-white'
-                    : 'bg-surface-soft text-body'
-                }`}
-              >
-                {c}
-              </button>
-            ))}
+        <ScrollReveal variant="fadeUp">
+          <div className="max-w-3xl mb-12 md:mb-16">
+            <span className="font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral block mb-3">
+              Visual Archive
+            </span>
+            <h1 className="font-display text-[40px] md:text-[56px] font-normal leading-[1.2] text-ink mb-4">
+              Department Gallery
+            </h1>
+            <p className="font-sans text-[14px] text-body leading-[1.25] max-w-2xl">
+              Moments from hands-on laboratory sessions, technical symposiums, robotic competitions, and student projects.
+            </p>
           </div>
+        </ScrollReveal>
 
-          {user && (
-            <button
-              onClick={() => setShowUpload(true)}
-              className="inline-flex items-center gap-2 bg-ink text-white px-5 py-2.5 rounded-md text-[14px] font-medium shadow-sm"
-            >
-              <Plus size={16} />
-              Upload Photo
-            </button>
-          )}
-        </div>
+        <ScrollReveal variant="fadeUp" delay={0.1}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
+            <div className="flex gap-2 overflow-x-auto pb-2 border-b border-hairline w-full sm:w-auto">
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setActive(c)}
+                  className={`font-sans text-[14px] font-medium px-4 py-2 rounded-sm whitespace-nowrap transition-colors ${
+                    active === c
+                      ? 'bg-ink text-white'
+                      : 'bg-surface-soft text-body'
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+
+            {user && (
+              <button
+                onClick={() => setShowUpload(true)}
+                className="inline-flex items-center gap-2 bg-ink text-white px-5 py-2.5 rounded-md text-[14px] font-medium shadow-sm"
+              >
+                <Plus size={16} />
+                Upload Photo
+              </button>
+            )}
+          </div>
+        </ScrollReveal>
 
         {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -112,42 +118,48 @@ export default function Gallery() {
         ) : filtered.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((img, i) => (
-              <div key={i} className="flex flex-col">
-                {user ? (
-                  <button
-                    onClick={() => setSelectedIndex(i)}
-                    className={`relative overflow-hidden group block w-full text-left rounded-md border border-divider-soft bg-white shadow-sm ${GALLERY_RATIOS[i % GALLERY_RATIOS.length]}`}
-                  >
-                    <img
-                      src={img.url}
-                      alt={img.label}
-                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                       style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
-                    />
-                     <div className="absolute inset-0 bg-ink/55 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4" style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
-                      <p className="font-sans text-[13px] font-medium text-white">
-                        {img.label}
-                      </p>
-                    </div>
-                  </button>
-                ) : (
-                  <div className={`relative overflow-hidden rounded-md border border-divider-soft bg-surface-soft ${GALLERY_RATIOS[i % GALLERY_RATIOS.length]}`}>
-                    <img
-                      src={img.url}
-                      alt={img.label}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-ink/38 flex items-end p-4">
-                      <p className="font-sans text-[13px] font-medium text-white">
-                        {img.label}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                {img.uploadedBy && (
-                  <UploaderInfo user={img.uploadedBy} size="w-6 h-6" className="mt-3 px-1 gap-2" />
-                )}
-              </div>
+              <ScrollReveal key={i} variant="scaleIn" delay={i * 0.08}>
+                <div view-transition-name={`gallery-image-${i}`}>
+                  {user ? (
+                    <button
+                      onClick={() => setSelectedIndex(i)}
+                      className={`relative overflow-hidden group block w-full text-left rounded-md border border-divider-soft bg-white shadow-sm ${GALLERY_RATIOS[i % GALLERY_RATIOS.length]}`}
+                    >
+                      <img
+                        src={img.url}
+                        alt={img.label}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                        style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
+                      />
+                      <div className="absolute inset-0 bg-ink/55 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4" style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
+                        <p className="font-sans text-[13px] font-medium text-white">
+                          {img.label}
+                        </p>
+                      </div>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setSelectedIndex(i)}
+                      className={`relative overflow-hidden group block w-full text-left rounded-md border border-divider-soft bg-white shadow-sm ${GALLERY_RATIOS[i % GALLERY_RATIOS.length]}`}
+                    >
+                      <img
+                        src={img.url}
+                        alt={img.label}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                        style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
+                      />
+                      <div className="absolute inset-0 bg-ink/55 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4" style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
+                        <p className="font-sans text-[13px] font-medium text-white">
+                          {img.label}
+                        </p>
+                      </div>
+                    </button>
+                  )}
+                  {img.uploadedBy && (
+                    <UploaderInfo user={img.uploadedBy} size="w-6 h-6" className="mt-3 px-1 gap-2" />
+                  )}
+                </div>
+              </ScrollReveal>
             ))}
           </div>
         ) : (
@@ -287,12 +299,12 @@ function UploadModal({ onClose, onSubmit, loading }) {
             <div>
               <label className="block font-mono text-[13px] font-medium text-muted mb-1.5">Category</label>
                <select value={form.category} onChange={set('category')} className="input">
-                 <option value="campus">Campus</option>
-                 <option value="workshop">Workshop</option>
-                 <option value="event">Event</option>
-                 <option value="lab">Lab</option>
-                 <option value="other">Other</option>
-               </select>
+                <option value="campus">Campus</option>
+                <option value="workshop">Workshop</option>
+                <option value="event">Event</option>
+                <option value="lab">Lab</option>
+                <option value="other">Other</option>
+              </select>
             </div>
             <div>
               <label className="block font-mono text-[13px] font-medium text-muted mb-1.5">Date</label>

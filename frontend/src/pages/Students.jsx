@@ -107,7 +107,7 @@ export default function Students() {
   };
 
   return (
-    <div className="container min-h-screen pt-32 pb-20">
+    <div className="w-full px-4 min-h-screen pt-32 pb-20 sm:max-w-[1280px] sm:mx-auto sm:px-6 md:px-8 lg:px-10">
       {/* ── Profile header ── */}
       <div className="flex flex-col items-center gap-8 pb-12 mb-12 border-b md:flex-row md:items-start border-divider-soft">
         <div className="relative flex-shrink-0">
@@ -143,10 +143,10 @@ export default function Students() {
       </div>
 
       {/* ── Tabs (Pill style) ── */}
-      <div className="flex max-w-full gap-2 p-1 mb-10 overflow-x-auto bg-white border rounded-md border-divider-soft w-max">
+      <div className="flex w-full gap-2 px-4 py-3 mb-10 overflow-x-auto bg-white border rounded-md border-divider-soft scrollbar-thin scroll-smooth">
         {TABS.map(t => (
           <button key={t} onClick={() => setActiveTab(t)}
-            className={`font-sans text-[14px] font-medium uppercase tracking-[0.04em] px-6 py-3 flex-none rounded-md transition-all whitespace-nowrap ${
+            className={`font-sans text-[13px] sm:text-[14px] font-medium uppercase tracking-[0.02em] sm:tracking-[0.04em] px-5 py-3 shrink-0 rounded-md transition-all whitespace-nowrap ${
               activeTab === t ? 'bg-ink text-canvas shadow-sm' : 'text-[#696969] bg-transparent hover:text-ink hover:bg-[#f8fafc]'
             }`}
             style={{ transitionDuration: '0.22s', transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }}>
@@ -355,7 +355,7 @@ export default function Students() {
       )}
 
 {activeTab === 'password' && (
-  <div className="max-w-[400px] animate-in fade-in duration-300">
+  <div className="w-full max-w-[400px] mx-auto animate-in fade-in duration-300">
     <p className="font-sans text-[17px] font-normal text-ink-muted-80 mb-8">
       Change your account password.
     </p>
@@ -413,7 +413,7 @@ export default function Students() {
               onChange={e => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="000000"
               maxLength={6}
-              className="flex-1 bg-[#ffffff] border border-divider-soft text-ink px-4 py-3 text-[17px] text-center tracking-[0.3em] font-mono rounded-sm focus:outline-none focus:border-info-border focus:ring-1 focus:ring-info-border transition-all placeholder:text-ink-muted-48"
+              className="flex-1 w-full max-w-full box-border min-w-0 bg-[#ffffff] border border-divider-soft text-ink px-4 py-3 text-[15px] text-center tracking-[0.15em] font-mono rounded-sm focus:outline-none focus:border-info-border focus:ring-1 focus:ring-info-border transition-all placeholder:text-ink-muted-48"
             />
             <button
               disabled={otpLoading || otpInput.length !== 6}

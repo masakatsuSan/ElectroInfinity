@@ -1,3 +1,5 @@
+import { cn } from '../utils/cn'
+
 function Skeleton({ className = '' }) {
   return <div className={cn('bg-soft-stone rounded skeleton-shimmer', className)} />
 }

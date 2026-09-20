@@ -3,6 +3,7 @@ import { Bell, MessageCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
 import SEO from '../components/SEO'
+import ScrollReveal from '../components/ScrollReveal'
 
 function SkeletonCard() {
   return (
@@ -100,79 +101,89 @@ export default function Dashboard() {
       <SEO title="Dashboard" description="Your personal dashboard" />
 
       <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="font-display text-[28px] md:text-[32px] font-normal tracking-tight text-ink mb-1">
-            Dashboard
-          </h1>
-          <p className="text-muted text-[15px]">
-            Welcome back, <span className="text-ink font-medium">{user?.name || 'User'}</span>
-          </p>
-        </div>
+        <ScrollReveal variant="fadeUp">
+          <div className="mb-8">
+            <h1 className="font-display text-[28px] md:text-[32px] font-normal tracking-tight text-ink mb-1">
+              Dashboard
+            </h1>
+            <p className="text-muted text-[15px]">
+              Welcome back, <span className="text-ink font-medium">{user?.name || 'User'}</span>
+            </p>
+          </div>
+        </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
-          <StatCard
-            icon={Bell}
-            label="Announcements"
-            count={recentAnnouncements.length}
-            accent="text-ink bg-surface-soft"
-          />
-          <StatCard
-            icon={MessageCircle}
-            label="Discussions"
-            count={recentPosts.length}
-            accent="text-ink bg-surface-soft"
-          />
+          <ScrollReveal variant="scaleIn" delay={0}>
+            <StatCard
+              icon={Bell}
+              label="Announcements"
+              count={recentAnnouncements.length}
+              accent="text-ink bg-surface-soft"
+            />
+          </ScrollReveal>
+          <ScrollReveal variant="scaleIn" delay={0.1}>
+            <StatCard
+              icon={MessageCircle}
+              label="Discussions"
+              count={recentPosts.length}
+              accent="text-ink bg-surface-soft"
+            />
+          </ScrollReveal>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Section
-            title="Recent Announcements"
-            icon={Bell}
-            items={recentAnnouncements}
-            emptyMessage="No announcements yet."
-            renderItem={(a) => (
-              <div key={a._id} className="bg-white border border-hairline rounded-lg p-4 hover:border-ink transition-colors">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-[15px] font-medium text-ink leading-snug line-clamp-1">{a.title}</h3>
-                  {a.category && (
-                    <span className="text-[11px] font-medium uppercase tracking-wider text-muted bg-soft-stone px-2 py-0.5 rounded-sm flex-shrink-0">
-                      {a.category}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 text-[13px] text-muted">
-                  <span className="font-mono">{formatDate(a.createdAt || a.date)}</span>
-                </div>
-              </div>
-            )}
-          />
-
-          <Section
-            title="Recent Discussions"
-            icon={MessageCircle}
-            items={recentPosts}
-            emptyMessage="No discussions yet. Start the conversation!"
-            renderItem={(p) => (
-              <div key={p._id} className="bg-white border border-hairline rounded-lg p-4 hover:border-ink transition-colors">
-                <h3 className="text-[15px] font-medium text-ink leading-snug line-clamp-1 mb-2">{p.title}</h3>
-                <div className="flex items-center gap-3 text-[13px] text-muted">
-                  <span className="truncate">
-                    {p.author?.name || 'Unknown'}
-                    {p.room?.name && (
-                      <>
-                        <span className="text-muted mx-1">·</span>
-                        <span className="text-muted">{p.room.name}</span>
-                      </>
+          <ScrollReveal variant="fadeUp" delay={0.15}>
+            <Section
+              title="Recent Announcements"
+              icon={Bell}
+              items={recentAnnouncements}
+              emptyMessage="No announcements yet."
+              renderItem={(a) => (
+                <div key={a._id} className="bg-white border border-hairline rounded-lg p-4 hover:border-ink transition-colors">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-[15px] font-medium text-ink leading-snug line-clamp-1">{a.title}</h3>
+                    {a.category && (
+                      <span className="text-[11px] font-medium uppercase tracking-wider text-muted bg-soft-stone px-2 py-0.5 rounded-sm flex-shrink-0">
+                        {a.category}
+                      </span>
                     )}
-                  </span>
-                  <span className="flex items-center gap-1 ml-auto flex-shrink-0">
-                    <span className="text-[12px] font-medium text-ink">{(p.upvotes?.length || 0)}</span>
-                    <span className="text-[12px] text-muted">upvotes</span>
-                  </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[13px] text-muted">
+                    <span className="font-mono">{formatDate(a.createdAt || a.date)}</span>
+                  </div>
                 </div>
-              </div>
-            )}
-          />
+              )}
+            />
+          </ScrollReveal>
+
+          <ScrollReveal variant="fadeUp" delay={0.2}>
+            <Section
+              title="Recent Discussions"
+              icon={MessageCircle}
+              items={recentPosts}
+              emptyMessage="No discussions yet. Start the conversation!"
+              renderItem={(p) => (
+                <div key={p._id} className="bg-white border border-hairline rounded-lg p-4 hover:border-ink transition-colors">
+                  <h3 className="text-[15px] font-medium text-ink leading-snug line-clamp-1 mb-2">{p.title}</h3>
+                  <div className="flex items-center gap-3 text-[13px] text-muted">
+                    <span className="truncate">
+                      {p.author?.name || 'Unknown'}
+                      {p.room?.name && (
+                        <>
+                          <span className="text-muted mx-1">·</span>
+                          <span className="text-muted">{p.room.name}</span>
+                        </>
+                      )}
+                    </span>
+                    <span className="flex items-center gap-1 ml-auto flex-shrink-0">
+                      <span className="text-[12px] font-medium text-ink">{(p.upvotes?.length || 0)}</span>
+                      <span className="text-[12px] text-muted">upvotes</span>
+                    </span>
+                  </div>
+                </div>
+              )}
+            />
+          </ScrollReveal>
         </div>
       </div>
     </div>

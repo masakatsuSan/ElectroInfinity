@@ -10,6 +10,7 @@ import SEO from '../components/SEO'
 import ResourcePreviewDrawer from '../components/ResourcePreviewDrawer'
 import ResourceSplitView from '../components/ResourceSplitView'
 import UploaderInfo from '../components/UploaderInfo'
+import ScrollReveal from '../components/ScrollReveal'
 
 const TABS = [
   { id: 'notes',        label: 'Study Materials',  type: 'notes' },
@@ -90,7 +91,8 @@ export default function Resources() {
         path="/resources"
       />
 
-      <div className="max-w-[1280px] mx-auto px-6 md:px-12">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6">
+      <ScrollReveal variant="fadeUp">
         <div className="max-w-3xl mb-12">
           <span className="font-mono text-[12px] uppercase tracking-wider text-signature-coral font-medium block mb-2">
             Academic Vault
@@ -101,13 +103,14 @@ export default function Resources() {
           <p className="font-sans text-[17px] text-body leading-relaxed">
           Curated repository of previous year questions, class notes, laboratory manuals, and official departmental announcements.
         </p>
-        <Link to="/resources/folders" className="inline-flex items-center gap-2 font-sans text-[13px] font-semibold text-primary border border-primary rounded-full px-4 py-2 hover:bg-primary hover:text-white transition-colors duration-200 mt-2">
-          Browse by Folder (Series)
-          <ArrowRight size={14} />
-        </Link>
-      </div>
+          <Link to="/resources/folders" className="inline-flex items-center gap-2 font-sans text-[13px] font-semibold text-primary border border-primary rounded-full px-4 py-2 hover:bg-primary hover:text-white transition-colors duration-200 mt-2">
+            Browse by Folder (Series)
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+      </ScrollReveal>
 
-        <div className="flex gap-2 pb-4 mb-10 overflow-x-auto border-b border-hairline">
+        <div className="flex gap-2 px-4 pb-4 mb-10 overflow-x-auto border-b border-hairline scrollbar-thin">
           {TABS.map(tab => (
             <button
               key={tab.id}
@@ -116,7 +119,7 @@ export default function Resources() {
                 setSemesterFilter('')
                 setSubjectFilter('')
               }}
-              className={'font-sans text-[14px] font-medium px-5 py-2 rounded-full transition-all whitespace-nowrap ' +
+              className={'font-sans text-[13px] sm:text-[14px] font-medium px-4 py-2.5 rounded-full transition-all whitespace-nowrap ' +
                 (activeTab.id === tab.id
                   ? 'bg-primary text-white'
                   : 'bg-soft-stone text-muted hover:text-ink')}
@@ -126,8 +129,8 @@ export default function Resources() {
           ))}
         </div>
 
-        <div className="flex items-center gap-8 mb-6">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mb-6">
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 min-w-0">
             <label className="font-sans text-[13px] font-medium text-muted">Filter by Semester:</label>
             <FilterSelect
               value={semesterFilter}
@@ -136,7 +139,7 @@ export default function Resources() {
               placeholder="All Semesters"
             />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 min-w-0">
             <label className="font-sans text-[13px] font-medium text-muted">Filter by Subject:</label>
             <FilterSelect
               value={subjectFilter}
@@ -230,7 +233,7 @@ function FilterSelect({ value, onChange, options, placeholder }) {
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className={'flex items-center gap-2 rounded-lg border px-4 py-2.5 text-[14px] font-sans transition-all duration-150 cursor-pointer select-none ' +
+        className={'flex items-center gap-2 w-full min-w-0 rounded-lg border px-4 py-2.5 text-[14px] font-sans transition-all duration-150 cursor-pointer select-none ' +
           (open
             ? 'border-primary bg-soft-stone/40'
             : 'border-hairline bg-white text-ink hover:border-ink/30 hover:shadow-sm')}
@@ -245,14 +248,14 @@ function FilterSelect({ value, onChange, options, placeholder }) {
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-2 w-full min-w-[220px] bg-white border border-hairline rounded-lg shadow-lg py-1.5 animate-in fade-in duration-150 origin-top"
+        <div className="absolute left-0 z-50 mt-2 w-full max-w-[calc(100vw-32px)] min-w-[220px] bg-white border border-hairline rounded-lg shadow-lg py-1.5 animate-in fade-in duration-150 origin-top overflow-hidden"
           style={{ animationTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
           {options.map(option => (
             <button
               key={option.value}
               type="button"
               onClick={() => handleSelect(option)}
-              className={'w-full text-left px-4 py-2 text-[14px] font-sans transition-colors ' +
+              className={'w-full text-left px-4 py-2 text-[14px] font-sans transition-colors break-words ' +
                 (option.value === value
                   ? 'bg-primary text-white'
                   : 'text-ink hover:bg-soft-stone')}
@@ -388,7 +391,7 @@ function SkeletonGrid() {
 
 function Empty({ label, user }) {
   return (
-    <div className="py-16 text-center border col-span-full border-hairline bg-soft-stone rounded-lg">
+    <div className="py-16 text-center border col-span-full border-hairline bg-soft-stone rounded-lg px-4">
       <span className="font-mono text-[12px] font-medium uppercase tracking-wider text-muted block mb-2">
         No Content Available
       </span>

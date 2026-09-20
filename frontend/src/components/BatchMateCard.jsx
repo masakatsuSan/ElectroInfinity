@@ -1,6 +1,7 @@
 import AvatarGuard from './AvatarGuard'
 import FriendActionButton from './FriendActionButton'
 import { User } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 const SOCIAL_PLATFORMS = [
   { key: 'github', label: 'GitHub', color: '#333' },
@@ -22,9 +23,12 @@ export default function BatchMateCard({ mate, onClick }) {
     : mate.rollNumber?.substring(0, 2).toUpperCase() || 'S'
 
   return (
-    <div
+    <motion.div
       onClick={onClick}
       className="group relative flex flex-col items-center gap-3 p-4 transition-all border rounded-xl border-hairline bg-white hover:shadow-md cursor-pointer"
+      whileHover={{ y: -4 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
     >
       <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
         <AvatarGuard className="w-full h-full">
@@ -51,7 +55,12 @@ export default function BatchMateCard({ mate, onClick }) {
       </div>
 
       {activeSocials.length > 0 && (
-        <div className="flex items-center gap-1.5 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all" style={{ transitionDuration: '0.25s', transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
+        <motion.div
+          className="flex items-center gap-1.5"
+          initial={{ opacity: 0, y: 4 }}
+          whileHover={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+        >
           {activeSocials.map((platform) => (
             <a
               key={platform.key}
@@ -66,12 +75,12 @@ export default function BatchMateCard({ mate, onClick }) {
               {platform.label.charAt(0)}
             </a>
           ))}
-        </div>
+        </motion.div>
       )}
 
       <div className="mt-1" onClick={(e) => e.stopPropagation()}>
         <FriendActionButton userId={mate._id} friendStatus={mate.friendStatus} size="sm" showIcon={false} />
       </div>
-    </div>
+    </motion.div>
   )
 }

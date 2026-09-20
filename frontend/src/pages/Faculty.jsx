@@ -19,7 +19,7 @@ export default function Faculty() {
         description="Distinguished faculty members and researchers of Electrical Engineering at AGEMC."
       />
 
-      <div className="max-w-[1280px] mx-auto px-6 md:px-12">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6">
         {/* Header */}
         <div className="max-w-3xl mb-16">
           <span className="font-mono text-[12px] uppercase tracking-wider text-coral font-semibold block mb-2">

@@ -1,4 +1,5 @@
 import { ExternalLink } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 const platformConfig = {
   github:    { label: 'GitHub',    icon: 'github',    color: '#333' },
@@ -51,11 +52,13 @@ export default function SocialLinkCard({ platform, username, url }) {
   }
 
   return (
-    <a
+    <motion.a
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="flex items-center justify-between p-4 border border-hairline bg-white rounded-xl group hover:bg-black/5 transition-colors"
+      className="flex items-center justify-between p-4 border border-hairline bg-white rounded-xl group"
+      whileHover={{ y: -2 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
     >
       <div className="flex items-center gap-3">
         <div
@@ -72,6 +75,6 @@ export default function SocialLinkCard({ platform, username, url }) {
         </div>
       </div>
       <ExternalLink size={16} className="text-gray-400 group-hover:text-ink transition-colors" />
-    </a>
+    </motion.a>
   )
 }

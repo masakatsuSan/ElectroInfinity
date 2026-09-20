@@ -64,7 +64,7 @@ export default function Footer() {
     return null
   }
   return (
-    <footer className="bg-white text-body border-t border-hairline">
+    <footer view-transition-name="footer" className="bg-white text-body border-t border-hairline">
       <div className="w-full max-w-[1440px] mx-auto px-4 md:px-6 xl:px-10">
         <div className="py-10 sm:py-16 md:py-24 grid grid-cols-2 gap-6 sm:gap-8 md:gap-10 md:grid-cols-4">
           {FOOTER_LINKS.map((group) => (

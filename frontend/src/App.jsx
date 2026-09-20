@@ -1,4 +1,5 @@
-﻿import { useEffect, useRef, useState, lazy, Suspense } from 'react'
+﻿import { useEffect, useRef, useState, Suspense, lazy } from 'react'
+import { flushSync } from 'react-dom'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import Lenis from '@studio-freight/lenis'
@@ -12,11 +13,10 @@ import RouteFallback from './components/RouteFallback'
 import PageError from './components/PageError'
 import ErrorBoundary from './components/ErrorBoundary'
 import { NotificationProvider } from './context/NotificationContext'
+import { safeViewTransition } from './utils/motion'
+import { useReducedMotion } from './utils/motion'
 
 
-// Public pages — lazily loaded so the entry chunk only carries the app shell.
-// Each page's code (and its heavy dependencies) arrives when the route is
-// actually visited; see AnimatedRoute's <Suspense> fallback below.
 const Home          = lazy(() => import('./pages/Home'))
 const About         = lazy(() => import('./pages/About'))
 const Faculty       = lazy(() => import('./pages/Faculty'))
@@ -38,26 +38,16 @@ const ProjectDetails = lazy(() => import('./pages/ProjectDetails'))
 const Profile       = lazy(() => import('./pages/Profile'))
 const EditProfile   = lazy(() => import('./pages/EditProfile'))
 const Notifications = lazy(() => import('./pages/Notifications'))
-
-// MyProfile redirect component
 const MyProfile = lazy(() => import('./pages/MyProfile'))
-
-// Auth pages
 const Login           = lazy(() => import('./pages/Login'))
 const Activate        = lazy(() => import('./pages/Activate'))
 const ForgotPassword  = lazy(() => import('./pages/ForgotPassword'))
-
-// Student pages
 const Students  = lazy(() => import('./pages/Students'))
 const Forum     = lazy(() => import('./pages/Forum'))
 const Directory = lazy(() => import('./pages/Directory'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Search    = lazy(() => import('./pages/Search'))
-
-// Network page
 const Network = lazy(() => import('./pages/Network'))
-
-// Admin pages
 const AdminLayout    = lazy(() => import('./pages/admin/AdminLayout'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminResources = lazy(() => import('./pages/admin/AdminResources'))
@@ -78,8 +68,6 @@ const AdminAchievements = lazy(() => import('./pages/admin/AdminAchievements'))
 const AdminYTLectures = lazy(() => import('./pages/admin/AdminYTLectures'))
 const AdminLogin     = lazy(() => import('./pages/admin/AdminLogin'))
 const AdminProfile   = lazy(() => import('./pages/admin/AdminProfile'))
-
-// Faculty pages
 const FacultyDashboard = lazy(() => import('./pages/faculty/FacultyDashboard'))
 const FacultyLogin     = lazy(() => import('./pages/faculty/FacultyLogin'))
 const FacultyActivate  = lazy(() => import('./pages/faculty/FacultyActivate'))
@@ -90,13 +78,7 @@ const AnimatedRoute = ({ children }) => {
 
   return (
     <div className="flex flex-col flex-1 w-full h-full">
-      {/* Route code is fetched lazily; the skeleton replaces only the page area
-          while the chunk arrives, so the shell never blanks out. */}
       <Suspense fallback={<RouteFallback />}>
-        {/* A crash on one page now shows a retry card in the page area instead
-            of blanking the whole app, and it clears itself when you navigate
-            away (resetKey) — previously the boundary stayed latched until a
-            hard refresh. */}
         <ErrorBoundary resetKey={location.pathname} fallback={<PageError resetKey={location.pathname} />}>
           {children}
         </ErrorBoundary>
@@ -109,8 +91,9 @@ export default function App() {
   const location = useLocation()
   const lenisRef = useRef(null)
   const [forumFlip, setForumFlip] = useState(null)
+  const [pageKey, setPageKey] = useState(location.pathname)
+  const reduced = useReducedMotion()
 
-  // Initialize Lenis smooth scroll
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
@@ -135,20 +118,27 @@ export default function App() {
     frame = requestAnimationFrame(raf)
 
     return () => {
-      // Cancel the loop too — otherwise it kept running after unmount and
-      // piled up one loop per remount (visible as growing CPU in dev/HMR).
       if (frame) cancelAnimationFrame(frame)
       lenis.destroy()
       lenisRef.current = null
     }
   }, [])
 
-  // Scroll to top on route change
   useEffect(() => {
-    if (lenisRef.current) {
-      lenisRef.current.scrollTo(0, { duration: 1.2 })
+    const callback = () => {
+      flushSync(() => {
+        setPageKey(location.pathname)
+      })
+      if (lenisRef.current) {
+        lenisRef.current.scrollTo(0, { duration: reduced ? 0 : 1.2 })
+      } else {
+        window.scrollTo(0, 0)
+      }
+    }
+    if (reduced) {
+      callback()
     } else {
-      window.scrollTo(0, 0)
+      safeViewTransition(callback)
     }
   }, [location.pathname])
 
@@ -169,9 +159,8 @@ export default function App() {
         <Route path="*" element={<Navbar onForumFlip={(data) => setForumFlip(data)} />} />
       </Routes>
 
-        <main className="flex flex-col flex-1">
-          <Routes location={location} key={location.pathname}>
-            {/* â”€â”€ Public â”€â”€ */}
+        <main className="flex flex-col flex-1" style={{ viewTransitionName: 'main-content' }}>
+          <Routes location={location} key={pageKey}>
             <Route path="/"             element={<AnimatedRoute><Home /></AnimatedRoute>} />
             <Route path="/about"        element={<AnimatedRoute><About /></AnimatedRoute>} />
             <Route path="/faculty"      element={<AnimatedRoute><Faculty /></AnimatedRoute>} />
@@ -191,19 +180,18 @@ export default function App() {
             <Route path="/projects/:id" element={<AnimatedRoute><ProjectDetails /></AnimatedRoute>} />
             <Route path="/contact"      element={<AnimatedRoute><Contact /></AnimatedRoute>} />
             <Route path="/terms-and-conditions" element={<AnimatedRoute><TermsAndConditions /></AnimatedRoute>} />
-<Route path="/profile/:id"  element={<AnimatedRoute><Profile /></AnimatedRoute>} />
-<Route path="/profile/me" element={
-  <AnimatedRoute>
-    <ProtectedRoute><MyProfile /></ProtectedRoute>
-  </AnimatedRoute>
-} />
-<Route path="/profile/edit" element={
+            <Route path="/profile/:id"  element={<AnimatedRoute><Profile /></AnimatedRoute>} />
+            <Route path="/profile/me" element={
+              <AnimatedRoute>
+                <ProtectedRoute><MyProfile /></ProtectedRoute>
+              </AnimatedRoute>
+            } />
+            <Route path="/profile/edit" element={
               <AnimatedRoute>
                 <ProtectedRoute><EditProfile /></ProtectedRoute>
               </AnimatedRoute>
             } />
 
-            {/* â”€â”€ Auth â”€â”€ */}
             <Route path="/login"            element={<AnimatedRoute><Login /></AnimatedRoute>} />
             <Route path="/admin/login"      element={<AnimatedRoute><AdminLogin /></AnimatedRoute>} />
             <Route path="/faculty/login"    element={<AnimatedRoute><FacultyLogin /></AnimatedRoute>} />
@@ -211,14 +199,12 @@ export default function App() {
             <Route path="/faculty/activate" element={<AnimatedRoute><FacultyActivate /></AnimatedRoute>} />
             <Route path="/forgot-password"  element={<AnimatedRoute><ForgotPassword /></AnimatedRoute>} />
 
-            {/* â”€â”€ Forum â”€â”€ */}
             <Route path="/forum" element={
               <AnimatedRoute>
                 <ProtectedRoute><Forum /></ProtectedRoute>
               </AnimatedRoute>
             }/>
 
-            {/* â”€â”€ Student â”€â”€ */}
             <Route path="/students" element={
               <AnimatedRoute>
                 <ProtectedRoute><Students /></ProtectedRoute>
@@ -240,7 +226,6 @@ export default function App() {
               </AnimatedRoute>
             }/>
 
-                        {/* â”€â”€ Faculty â”€â”€ */}
             <Route path="/faculty/dashboard" element={
               <AnimatedRoute>
                 <ProtectedRoute role="faculty" loginPath="/faculty/login">
@@ -255,30 +240,29 @@ export default function App() {
               </AnimatedRoute>
             }/>
 
-            {/* â”€â”€ Admin â”€â”€ */}
             <Route path="/admin/*" element={
               <AnimatedRoute>
                 <ProtectedRoute role="cr, admin" loginPath="/admin/login">
                   <Routes>
-<Route element={<AdminLayout />}>
-  <Route index             element={<AdminDashboard />} />
-    <Route path="profile"          element={<AdminProfile />} />
-    <Route path="announcements" element={<AdminAnnouncements />} />
-    <Route path="resources"  element={<AdminResources />} />
-    <Route path="resource-folders" element={<AdminResourceFolders />} />
-                        <Route path="calendar"   element={<AdminCalendar />} />
-                        <Route path="projects"   element={<AdminProjects />} />
-                        <Route path="rooms"      element={<AdminRooms />} />
-                        <Route path="students"   element={<AdminStudents />} />
-                        <Route path="deadlines"  element={<AdminDeadlines />} />
-                        <Route path="routines"   element={<AdminRoutines />} />
-                        <Route path="faculty"   element={<AdminFaculty />} />
-                        <Route path="labs"      element={<AdminLabs />} />
-                        <Route path="courses"   element={<AdminCourses />} />
-                        <Route path="gallery"   element={<AdminGallery />} />
-                    <Route path="achievements" element={<AdminAchievements />} />
-                    <Route path="yt-lectures" element={<AdminYTLectures />} />
-                    <Route path="contact"   element={<AdminContact />} />
+                    <Route element={<AdminLayout />}>
+                      <Route index             element={<AdminDashboard />} />
+                      <Route path="profile"          element={<AdminProfile />} />
+                      <Route path="announcements" element={<AdminAnnouncements />} />
+                      <Route path="resources"  element={<AdminResources />} />
+                      <Route path="resource-folders" element={<AdminResourceFolders />} />
+                      <Route path="calendar"   element={<AdminCalendar />} />
+                      <Route path="projects"   element={<AdminProjects />} />
+                      <Route path="rooms"      element={<AdminRooms />} />
+                      <Route path="students"   element={<AdminStudents />} />
+                      <Route path="deadlines"  element={<AdminDeadlines />} />
+                      <Route path="routines"   element={<AdminRoutines />} />
+                      <Route path="faculty"   element={<AdminFaculty />} />
+                      <Route path="labs"      element={<AdminLabs />} />
+                      <Route path="courses"   element={<AdminCourses />} />
+                      <Route path="gallery"   element={<AdminGallery />} />
+                      <Route path="achievements" element={<AdminAchievements />} />
+                      <Route path="yt-lectures" element={<AdminYTLectures />} />
+                      <Route path="contact"   element={<AdminContact />} />
                     </Route>
                   </Routes>
                 </ProtectedRoute>
@@ -287,7 +271,7 @@ export default function App() {
 
             <Route path="*" element={<AnimatedRoute><NotFound /></AnimatedRoute>} />
           </Routes>
-      </main>
+        </main>
 
       <Routes>
         <Route path="/admin/*" element={null} />

@@ -44,7 +44,7 @@ export default function Courses() {
         description="Semester-wise subjects under the MAKAUT-affiliated B.Tech Electrical Engineering curriculum."
       />
 
-      <div className="max-w-[1280px] mx-auto px-6 md:px-12">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6">
         <div className="max-w-3xl mb-12">
           <span className="font-mono text-[12px] uppercase tracking-wider text-signature-coral font-medium block mb-2">
             Academic Curriculum
@@ -57,7 +57,7 @@ export default function Courses() {
           </p>
         </div>
 
-         <div className="flex gap-2 overflow-x-auto pb-4 mb-10 border-b border-hairline">
+         <div className="flex gap-2 px-4 pb-4 mb-10 overflow-x-auto border-b border-hairline scrollbar-thin">
           {SEMESTER_PILLS.map((sem) => (
             <button
               key={sem}
@@ -73,7 +73,7 @@ export default function Courses() {
           <SkeletonGrid />
         ) : (
           <div className="border border-hairline bg-white rounded-lg overflow-hidden">
-            <div className="p-6 bg-white border-b border-hairline flex items-center justify-between">
+            <div className="p-4 md:p-6 bg-white border-b border-hairline flex items-center justify-between">
               <h2 className="font-display text-[20px] font-medium text-ink">
                 Semester {selectedSem} Course List
               </h2>
@@ -88,7 +88,7 @@ export default function Courses() {
                   <div
                     key={sub._id || sub.code}
                     onClick={() => navigate('/subject/' + encodeURIComponent(sub._id))}
-                    className="p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-soft-stone/40 cursor-pointer transition-colors"
+                    className="p-4 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-soft-stone/40 cursor-pointer transition-colors"
                   >
                     <div className="flex items-center gap-4 min-w-0">
                       <span className="font-mono text-[12px] font-medium uppercase tracking-wider px-3 py-1 rounded-md bg-soft-stone text-ink border border-hairline flex-shrink-0">
@@ -111,7 +111,7 @@ export default function Courses() {
                   </div>
                 ))
               ) : (
-                <div className="p-12 text-center text-muted font-sans">
+                <div className="p-6 text-center text-muted font-sans">
                   No courses scheduled for this semester yet.
                 </div>
               )}

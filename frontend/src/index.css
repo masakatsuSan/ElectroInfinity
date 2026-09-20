@@ -46,6 +46,11 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* min-w-0 on flex/grid children that contain inputs, selects or text */
+  .flex > *, .grid > * {
+    min-width: 0;
+  }
+
   html, body {
     background-color: var(--color-canvas);
     color: var(--color-ink);
@@ -56,6 +61,7 @@
     font-weight: 400;
     line-height: 1.25;
     letter-spacing: 0;
+    overflow-x: hidden;
   }
 
   @media (max-width: 768px) {
@@ -167,7 +173,7 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    transition: all 0.22s cubic-bezier(0.25, 0.1, 0.25, 1);
+    transition: background-color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1), border-color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1), transform 0.1s cubic-bezier(0.25, 0.1, 0.25, 1);
     cursor: pointer;
     text-decoration: none;
     -webkit-tap-highlight-color: transparent;
@@ -202,7 +208,7 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    transition: all 0.22s cubic-bezier(0.25, 0.1, 0.25, 1);
+    transition: background-color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1), border-color 0.22s cubic-bezier(0.25, 0.1, 0.25, 1), transform 0.1s cubic-bezier(0.25, 0.1, 0.25, 1);
     cursor: pointer;
     text-decoration: none;
     -webkit-tap-highlight-color: transparent;
@@ -399,14 +405,12 @@
   /* ── Core Pillars Bento Grid ─────────────────────────────────── */
   .bento-card {
     transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1),
-                box-shadow 0.4s cubic-bezier(0.25, 0.1, 0.25, 1),
-                border-color 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+                box-shadow 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
     will-change: transform, box-shadow;
   }
   .bento-card:hover {
-    transform:scale(1.005);
+    transform: translateY(-3px) scale(1.005);
     box-shadow: 0 20px 44px -18px rgba(0, 0, 0, 0.5);
-    border-color: rgba(255, 255, 255, 0.22);
   }
 
   /* ── Inputs & Forms ─────────────────────────────────────────── */
@@ -603,6 +607,26 @@
   display: none;
 }
 
+/* Visible thin scrollbar for horizontal scroll areas */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+  display: block;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-strong);
+  border-radius: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-muted);
+}
+
 /* ── Typography Scale ─────────────────────────────────────────── */
 .display-xl {
   font-family: "Haas Groot Disp", "Haas", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -777,4 +801,18 @@
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .skeleton-shimmer,
+  .skeleton-shimmer-dark,
+  .skeleton-shimmer-soft {
+    animation: none !important;
+  }
 }

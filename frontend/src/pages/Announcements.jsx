@@ -73,7 +73,7 @@ function SkeletonGrid() {
 
 function EmptyState({ message }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center border border-hairline border-dashed rounded-lg bg-soft-stone/20">
+    <div className="flex flex-col items-center justify-center py-16 text-center border border-hairline border-dashed rounded-lg bg-soft-stone/20 px-4">
       <div className="w-12 h-12 rounded-full bg-soft-stone flex items-center justify-center mb-4">
         <Bell size={22} className="text-muted" />
       </div>
@@ -109,7 +109,7 @@ function AnnouncementCard({ ann, onClick }) {
           onClick()
         }
       }}
-      className={`group cursor-pointer bg-white border border-hairline rounded-lg p-5 transition-all duration-200 hover:border-muted/40 hover:shadow-card-hover focus:outline-none focus:ring-1 focus:ring-primary ${
+      className={`group cursor-pointer bg-white border border-hairline rounded-lg p-4 md:p-5 transition-all duration-200 hover:border-muted/40 hover:shadow-card-hover focus:outline-none focus:ring-1 focus:ring-primary ${
         isPinned ? 'border-l-4 border-l-signature-coral' : ''
       }`}
       style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
@@ -349,7 +349,7 @@ export default function Announcements() {
         </header>
 
         <nav
-          className="flex items-center gap-2 mb-6 overflow-x-auto pb-1"
+          className="flex items-center gap-2 px-4 pb-4 mb-6 overflow-x-auto scrollbar-thin"
           aria-label="Filter announcements"
         >
           {CATEGORIES.map((c) => {

@@ -310,6 +310,7 @@ export default function Profile() {
     mutationFn: createGalleryPhoto,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['myGallery', id] })
+      qc.invalidateQueries({ queryKey: ['profile', id] })
       setShowGalleryModal(false)
       showToast('Photo uploaded successfully!')
     },
