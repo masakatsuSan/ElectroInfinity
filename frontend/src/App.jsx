@@ -1,6 +1,6 @@
 ﻿import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import Lenis from '@studio-freight/lenis'
 import Navbar         from './components/Navbar'
 import Footer         from './components/Footer'
@@ -12,7 +12,7 @@ import RouteFallback from './components/RouteFallback'
 import PageError from './components/PageError'
 import ErrorBoundary from './components/ErrorBoundary'
 import { NotificationProvider } from './context/NotificationContext'
-import { PAGE_VARIANTS, PAGE_TRANSITION } from './utils/motion'
+
 
 // Public pages — lazily loaded so the entry chunk only carries the app shell.
 // Each page's code (and its heavy dependencies) arrives when the route is
@@ -89,14 +89,7 @@ const AnimatedRoute = ({ children }) => {
   const location = useLocation()
 
   return (
-    <motion.div
-      initial="initial"
-      animate="in"
-      exit="out"
-      variants={PAGE_VARIANTS}
-      transition={PAGE_TRANSITION}
-      className="flex flex-col flex-1 w-full h-full"
-    >
+    <div className="flex flex-col flex-1 w-full h-full">
       {/* Route code is fetched lazily; the skeleton replaces only the page area
           while the chunk arrives, so the shell never blanks out. */}
       <Suspense fallback={<RouteFallback />}>
@@ -108,7 +101,7 @@ const AnimatedRoute = ({ children }) => {
           {children}
         </ErrorBoundary>
       </Suspense>
-    </motion.div>
+    </div>
   )
 };
 
@@ -177,7 +170,6 @@ export default function App() {
       </Routes>
 
         <main className="flex flex-col flex-1">
-        <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             {/* â”€â”€ Public â”€â”€ */}
             <Route path="/"             element={<AnimatedRoute><Home /></AnimatedRoute>} />
@@ -295,7 +287,6 @@ export default function App() {
 
             <Route path="*" element={<AnimatedRoute><NotFound /></AnimatedRoute>} />
           </Routes>
-        </AnimatePresence>
       </main>
 
       <Routes>

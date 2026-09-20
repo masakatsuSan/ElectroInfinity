@@ -23,7 +23,7 @@ export default function AchievementDetails() {
     return (
       <div className="min-h-screen bg-white text-ink pt-24 pb-24">
         <div className="max-w-[1280px] mx-auto px-6 md:px-12">
-          <div className="animate-pulse space-y-4">
+          <div className="skeleton-shimmer space-y-4">
             <div className="h-4 w-48 bg-surface-soft rounded-sm mb-6" />
             <div className="h-10 w-3/4 bg-surface-soft rounded-sm mb-4" />
             <div className="h-64 bg-surface-soft rounded-md mb-6" />

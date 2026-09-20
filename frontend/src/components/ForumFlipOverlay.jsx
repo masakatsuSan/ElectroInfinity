@@ -1,18 +1,14 @@
 import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import { MessagesSquare } from 'lucide-react'
 import ProtectedRoute from './ProtectedRoute'
 import ForumFlipContext from '../context/ForumFlipContext'
-import { EASE, DURATION } from '../utils/motion'
 
 // Forum is a large page. Loading it lazily here (instead of a static import)
 // keeps it out of the entry chunk — the overlay shows a spinner while the
 // chunk streams in, and Vite can then split Forum into its own file.
 const Forum = lazy(() => import('../pages/Forum'))
 
-const OPEN_SPRING = { type: 'spring', stiffness: 420, damping: 38, mass: 0.9 }
-const CLOSE_SPRING = { type: 'spring', stiffness: 380, damping: 44, mass: 1.0 }
 const CROSSFADE_DURATION = 220
 
 export default function ForumFlipOverlay({ triggerRect, borderRadius: borderRadiusProp, onClose }) {
@@ -79,42 +75,17 @@ export default function ForumFlipOverlay({ triggerRect, borderRadius: borderRadi
 
   return createPortal(
     <>
-      <motion.div
-        className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[2px]"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1, transition: { duration: DURATION.overlay, ease: EASE.mac } }}
-        exit={{ opacity: 0, transition: { duration: DURATION.overlay * 0.66, ease: EASE.mac } }}
-      />
-      <motion.div
+      <div className="fixed inset-0 z-[9998] bg-black/30 backdrop-blur-[2px]" />
+      <div
         ref={overlayRef}
         className="fixed z-[9999] bg-white overflow-hidden"
-        initial={{
-          top: triggerRect.top,
-          left: triggerRect.left,
-          width: triggerRect.width,
-          height: triggerRect.height,
-          borderRadius: radius,
-          opacity: 1,
-        }}
-        animate={{
+        style={{
           top: 0,
           left: 0,
           width: '100vw',
           height: '100vh',
           borderRadius: '0px',
-          opacity: 1,
-          transition: OPEN_SPRING,
         }}
-        exit={{
-          top: triggerRect.top,
-          left: triggerRect.left,
-          width: triggerRect.width,
-          height: triggerRect.height,
-          borderRadius: radius,
-          opacity: 0,
-          transition: CLOSE_SPRING,
-        }}
-        style={{ willChange: 'top, left, width, height, border-radius' }}
       >
         <div className="absolute inset-0 flex items-center justify-center gap-2.5 bg-surface-soft" style={{ opacity: previewOpacity, transition: 'opacity ' + CROSSFADE_DURATION + 'ms ease', pointerEvents: 'none' }}>
           <MessagesSquare size={16} strokeWidth={1.75} className="text-ink" />
@@ -135,7 +106,7 @@ export default function ForumFlipOverlay({ triggerRect, borderRadius: borderRadi
             </ProtectedRoute>
           </ForumFlipContext.Provider>
         </div>
-      </motion.div>
+      </div>
     </>,
     document.body
   )

@@ -12,6 +12,10 @@ export const fetchPreviewBlobUrl = async (id) => {
   return URL.createObjectURL(response.data)
 }
 
+// Build the in-app preview URL for a resource (used by the PDF viewer)
+export const getPreviewUrl = (id) =>
+  `${import.meta.env.VITE_API_URL || '/api'}/resources/${id}/preview`
+
 // Download a resource (increments count, streams as attachment)
 export const downloadResource = (id) =>
   `${import.meta.env.VITE_API_URL || '/api'}/resources/${id}/download`

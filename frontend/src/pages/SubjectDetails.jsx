@@ -17,34 +17,34 @@ export default function SubjectDetails() {
   if (isLoading) return (
     <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
       <div className="max-w-[1280px] mx-auto px-6 md:px-12">
-        <div className="h-4 w-32 bg-soft-stone rounded animate-pulse mb-8" />
+        <div className="h-4 w-32 bg-soft-stone rounded skeleton-shimmer mb-8" />
         <div className="mb-12">
-          <div className="h-5 w-24 bg-soft-stone rounded animate-pulse mb-2" />
-          <div className="h-12 w-full max-w-lg bg-soft-stone rounded animate-pulse mb-6" />
+          <div className="h-5 w-24 bg-soft-stone rounded skeleton-shimmer mb-2" />
+          <div className="h-12 w-full max-w-lg bg-soft-stone rounded skeleton-shimmer mb-6" />
           <div className="flex flex-wrap gap-4">
-            <div className="h-16 w-32 bg-soft-stone rounded-2xl animate-pulse" />
-            <div className="h-16 w-40 bg-soft-stone rounded-2xl animate-pulse" />
+            <div className="h-16 w-32 bg-soft-stone rounded-2xl skeleton-shimmer" />
+            <div className="h-16 w-40 bg-soft-stone rounded-2xl skeleton-shimmer" />
           </div>
         </div>
         <div className="grid lg:grid-cols-[1fr_350px] gap-12">
           <div className="space-y-12">
             <div>
-              <div className="h-8 w-48 bg-soft-stone rounded animate-pulse mb-6" />
+              <div className="h-8 w-48 bg-soft-stone rounded skeleton-shimmer mb-6" />
               <div className="space-y-4">
-                <div className="h-5 w-full bg-soft-stone rounded animate-pulse" />
-                <div className="h-5 w-full bg-soft-stone rounded animate-pulse" />
-                <div className="h-5 w-3/4 bg-soft-stone rounded animate-pulse" />
+                <div className="h-5 w-full bg-soft-stone rounded skeleton-shimmer" />
+                <div className="h-5 w-full bg-soft-stone rounded skeleton-shimmer" />
+                <div className="h-5 w-3/4 bg-soft-stone rounded skeleton-shimmer" />
               </div>
             </div>
             <div>
-              <div className="h-8 w-40 bg-soft-stone rounded animate-pulse mb-6" />
+              <div className="h-8 w-40 bg-soft-stone rounded skeleton-shimmer mb-6" />
               <div className="space-y-6">
-                <div className="h-40 bg-soft-stone rounded-3xl animate-pulse" />
-                <div className="h-40 bg-soft-stone rounded-3xl animate-pulse" />
+                <div className="h-40 bg-soft-stone rounded-3xl skeleton-shimmer" />
+                <div className="h-40 bg-soft-stone rounded-3xl skeleton-shimmer" />
               </div>
             </div>
           </div>
-          <aside className="h-64 bg-soft-stone rounded-3xl animate-pulse" />
+          <aside className="h-64 bg-soft-stone rounded-3xl skeleton-shimmer" />
         </div>
       </div>
     </div>

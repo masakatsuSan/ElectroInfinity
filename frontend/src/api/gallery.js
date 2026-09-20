@@ -10,7 +10,7 @@ export const createGalleryPhoto = (data) =>
   api.post('/gallery', data)
 
 export const updateGalleryPhoto = (id, data) =>
-  api.put(`/gallery/${id}`, data)
+  api.patch(`/gallery/${id}`, data)
 
 export const patchGalleryPhoto = (id, data) =>
   api.patch(`/gallery/${id}`, data)

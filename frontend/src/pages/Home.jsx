@@ -264,10 +264,10 @@ export default function Home() {
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="flex flex-col justify-between gap-4 p-6 border-b border-hairline last:border-b-0">
                     <div className="flex items-center gap-4">
-                      <div className="w-16 h-5 rounded bg-surface-soft animate-pulse" />
-                      <div className="w-48 h-4 rounded bg-surface-soft animate-pulse" />
+                      <div className="w-16 h-5 rounded bg-surface-soft skeleton-shimmer" />
+                      <div className="w-48 h-4 rounded bg-surface-soft skeleton-shimmer" />
                     </div>
-                    <div className="w-24 h-4 rounded bg-surface-soft animate-pulse" />
+                    <div className="w-24 h-4 rounded bg-surface-soft skeleton-shimmer" />
                   </div>
                 ))}
               </div>

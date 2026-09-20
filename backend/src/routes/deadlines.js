@@ -70,7 +70,7 @@ router.post('/', protect, guard('cr', 'super_admin', 'admin'), async (req, res) 
 
     res.status(201).json({ success: true, data: deadline })
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message })
+    res.status(400).json({ success: false, error: 'Request could not be completed.' })
   }
 })
 
@@ -92,7 +92,7 @@ router.patch('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, r
     deadline = await Deadline.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
     res.json({ success: true, data: deadline })
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message })
+    res.status(400).json({ success: false, error: 'Request could not be completed.' })
   }
 })
 
@@ -113,7 +113,7 @@ router.delete('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, 
     await deadline.deleteOne()
     res.json({ success: true, data: {} })
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message })
+    res.status(400).json({ success: false, error: 'Request could not be completed.' })
   }
 })
 
@@ -139,7 +139,7 @@ router.put('/:id/submit', protect, async (req, res) => {
     await deadline.save();
     res.json({ success: true, data: deadline.submittedBy });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message })
+    res.status(400).json({ success: false, error: 'Request could not be completed.' })
   }
 })
 

@@ -36,9 +36,9 @@ function getRenderRange(page, pages, buffer = PAGE_RENDER_BUFFER) {
 function PageSkeleton() {
   return (
     <div className="flex h-64 w-full flex-col items-center justify-center gap-3 rounded bg-soft-stone p-4">
-      <div className="h-3 w-16 rounded bg-surface-strong animate-pulse" />
-      <div className="h-40 w-2/3 rounded bg-surface-strong animate-pulse" />
-      <div className="h-3 w-1/2 rounded bg-surface-strong animate-pulse" />
+      <div className="h-3 w-16 rounded bg-surface-strong skeleton-shimmer" />
+      <div className="h-40 w-2/3 rounded bg-surface-strong skeleton-shimmer" />
+      <div className="h-3 w-1/2 rounded bg-surface-strong skeleton-shimmer" />
     </div>
   )
 }
@@ -48,11 +48,11 @@ function PdfSkeleton({ progress = 0 }) {
     <div className="absolute inset-0 z-10 flex items-center justify-center bg-soft-stone/60 p-5">
       <div className="flex w-full max-w-xl flex-col items-center gap-5">
         <div className="w-full max-w-sm space-y-3">
-          <div className="h-4 w-32 rounded bg-surface-strong animate-pulse" />
-          <div className="h-3 w-48 rounded bg-surface-strong animate-pulse" />
+          <div className="h-4 w-32 rounded bg-surface-strong skeleton-shimmer" />
+          <div className="h-3 w-48 rounded bg-surface-strong skeleton-shimmer" />
         </div>
         <div className="w-full rounded-lg border border-hairline bg-white p-3 shadow-sm">
-          <div className="aspect-[1/1.35] w-full max-w-xs rounded bg-soft-stone animate-pulse" />
+          <div className="aspect-[1/1.35] w-full max-w-xs rounded bg-soft-stone skeleton-shimmer" />
         </div>
         <div className="h-1.5 w-full max-w-sm overflow-hidden rounded-full bg-surface-strong">
           <div

@@ -36,7 +36,7 @@ router.post('/rooms', protect, guard('cr', 'admin', 'super_admin'), async (req, 
     if (error.code === 11000) {
       return res.status(400).json({ success: false, error: 'Room name already exists' });
     }
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, error: 'Request could not be completed.' });
   }
 });
 
@@ -56,7 +56,7 @@ router.patch('/rooms/:id', protect, guard('cr', 'admin', 'super_admin'), async (
     if (error.name === 'CastError') {
       return res.status(404).json({ success: false, error: 'Room not found' });
     }
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, error: 'Request could not be completed.' });
   }
 });
 
@@ -327,7 +327,7 @@ router.post('/', protect, async (req, res) => {
 
     res.status(201).json({ success: true, data: post });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, error: 'Request could not be completed.' });
   }
 });
 
@@ -490,7 +490,7 @@ router.post('/:id/comments', protect, async (req, res) => {
 
     res.status(201).json({ success: true, data: comment });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, error: 'Request could not be completed.' });
   }
 });
 

@@ -12,10 +12,10 @@ export default function RouteFallback() {
       aria-busy="true"
       aria-live="polite"
     >
-      <div className="animate-pulse space-y-4">
-        <div className="h-8 w-2/3 max-w-md rounded bg-surface-strong" />
-        <div className="h-4 w-1/2 max-w-sm rounded bg-soft-stone" />
-        <div className="h-4 w-1/3 max-w-xs rounded bg-soft-stone" />
+      <div className="skeleton-shimmer space-y-4">
+        <div className="h-8 w-2/3 max-w-md rounded bg-transparent" />
+        <div className="h-4 w-1/2 max-w-sm rounded bg-transparent" />
+        <div className="h-4 w-1/3 max-w-xs rounded bg-transparent" />
       </div>
     </div>
   )

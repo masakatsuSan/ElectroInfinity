@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { motion } from 'framer-motion'
 
 export default function AdminLogin() {
   const navigate = useNavigate()
@@ -24,7 +23,6 @@ export default function AdminLogin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError('')
     setLoading(true)
 
     try {
@@ -74,11 +72,7 @@ export default function AdminLogin() {
         </div>
 
         <div className="px-6 py-10 md:px-12 md:py-14 flex flex-col justify-center">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          >
+          <div>
             <div className="md:hidden mb-6">
               <Link to="/" className="font-[Inter,system-ui,sans-serif] font-medium text-[18px] tracking-tight" style={{ fontFamily: '"Instagram Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
                 Electro Infinity
@@ -157,7 +151,7 @@ export default function AdminLogin() {
                 Sign in here
               </Link>
             </p>
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>

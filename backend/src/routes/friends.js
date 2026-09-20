@@ -69,7 +69,7 @@ router.post('/request', protect, async (req, res) => {
 
     res.status(201).json({ success: true, message: 'Friend request sent' })
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message })
+    res.status(400).json({ success: false, error: 'Request could not be completed.' })
   }
 })
 

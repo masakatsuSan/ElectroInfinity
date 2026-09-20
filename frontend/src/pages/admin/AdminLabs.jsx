@@ -23,7 +23,7 @@ export default function AdminLabs() {
     mutationFn: (fd) => editing ? updateLab(editing._id, fd) : createLab(fd),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['labs'] })
-      setForm(BLANK); setEditing(null); setShowForm(false); setFile(null); setPreview(''); setError('')
+      setForm(BLANK); setEditing(null); setShowForm(false); setFile(null); setPreview('')
     },
     onError: (err) => setError(err.response?.data?.error || 'Save failed'),
   })
@@ -132,18 +132,18 @@ export default function AdminLabs() {
                 </div>
               )}
               {editing && !file && preview && (
-                <p className="font-[Inter,system-ui,sans-serif] text-[12px] text-ink-muted-80 mt-2">Existing image retained — upload a new file to replace.</p>
+                <p className="font-[Inter,system-ui,sans-serif] text-[12px] text-ink-muted-80 mt-2">Existing image retained ï¿½ upload a new file to replace.</p>
               )}
             </div>
           </div>
           {error && <p className="font-[Inter,system-ui,sans-serif] text-red-500 text-[14px] font-medium mt-4">{error}</p>}
           <button onClick={handleSave} disabled={saveMut.isPending || !form.name} className="button-primary mt-6">
-            {saveMut.isPending ? 'Saving…' : (editing ? 'Update Lab' : 'Add Lab')}
+            {saveMut.isPending ? 'Savingï¿½' : (editing ? 'Update Lab' : 'Add Lab')}
           </button>
         </div>
       )}
 
-      {isLoading ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">Loading laboratories…</p>
+      {isLoading ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">Loading laboratoriesï¿½</p>
         : labs.length === 0 ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">No labs added yet. Add one above.</p>
         : (
           <div className="border border-divider-soft bg-white rounded-xl overflow-hidden shadow-sm divide-y divide-hairline">

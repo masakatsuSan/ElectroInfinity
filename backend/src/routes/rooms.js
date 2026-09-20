@@ -45,7 +45,7 @@ router.post('/', protect, guard('cr', 'admin', 'super_admin'), async (req, res) 
     if (error.code === 11000) {
       return res.status(400).json({ success: false, error: 'Room name already exists' });
     }
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, error: 'Request could not be completed.' });
   }
 });
 
@@ -65,7 +65,7 @@ router.patch('/:id', protect, guard('cr', 'admin', 'super_admin'), async (req, r
     if (error.name === 'CastError') {
       return res.status(404).json({ success: false, error: 'Room not found' });
     }
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, error: 'Request could not be completed.' });
   }
 });
 

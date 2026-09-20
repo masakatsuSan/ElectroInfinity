@@ -32,6 +32,10 @@ export const checkFacultyEmail = (email) =>
 export const login = (data) =>
   api.post('/auth/login', data)
 
+// Student registration — creates a pending account awaiting HOD approval
+export const register = (data) =>
+  api.post('/auth/register', data)
+
 // Forgot password Step 1 — send OTP to registered email
 // Student: { rollNumber } | Faculty: { email }
 export const forgotPassword = (data) =>

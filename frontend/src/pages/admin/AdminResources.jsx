@@ -4,24 +4,28 @@ import { getResources, uploadResource, updateResource, deleteResource } from '..
 import ResourcePreviewDrawer from '../../components/ResourcePreviewDrawer'
 import { getSubjects } from '../../api/subjects'
 import { Check } from 'lucide-react'
+import { useToast } from '../../context/ToastContext'
 
 const TYPES = ['notes','pyq','assignment','lab_manual','syllabus','other']
-const SEMS  = [3,4,5,6,7,8]
+const SEMS  = [1,2,3,4,5,6,7,8]
 
 export default function AdminResources() {
   const qc = useQueryClient()
+  const { showToast } = useToast()
   const [filterType, setFilterType] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({ title: '', type: 'notes', semester: '', subject: '' })
   const [editFile, setEditFile] = useState(null)
-  const [editError, setEditError] = useState('')
-  const [editSaving, setEditSaving] = useState(false)
-  const [form, setForm] = useState({ title: '', type: 'notes', semester: '', subject: '' })
-  const [file, setFile] = useState(null)
-  const [previewResource, setPreviewResource] = useState(null)
   const [error, setError] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [form, setForm] = useState({ title: '', type: 'notes', semester: '', subject: '' })
+  const [file, setFile] = useState(null)
+  const [fileUrl, setFileUrl] = useState('')
+  const [sourceType, setSourceType] = useState('file')
+  const [editError, setEditError] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
+  const [previewResource, setPreviewResource] = useState(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['resources', filterType],
@@ -47,6 +51,7 @@ export default function AdminResources() {
       setEditForm({ title: '', type: 'notes', semester: '', subject: '' })
       setEditFile(null)
       setEditSaving(false)
+      showToast('Resource updated successfully!')
     },
   })
 
@@ -78,24 +83,31 @@ export default function AdminResources() {
   }
 
   const handleUpload = async () => {
-    if (!file || !form.title) return setError('Title and file are required')
-    setError('')
+    if (!form.title) return setError('Title is required')
+    if (sourceType === 'file' && !file) return setError('File is required')
+    if (sourceType === 'link' && !fileUrl) return setError('Drive link is required')
     setUploading(true)
 
-    // Build FormData — this is how we send files + text together
     const fd = new FormData()
-    fd.append('file', file)
     fd.append('title', form.title)
     fd.append('type', form.type)
     if (form.semester) fd.append('semester', form.semester)
     if (form.subject)  fd.append('subject', form.subject)
+    if (sourceType === 'file') {
+      fd.append('file', file)
+    } else {
+      fd.append('fileUrl', fileUrl)
+    }
 
     try {
       await uploadResource(fd)
       qc.invalidateQueries({ queryKey: ['resources'] })
       setForm({ title: '', type: 'notes', semester: '', subject: '' })
       setFile(null)
+      setFileUrl('')
+      setSourceType('file')
       setShowForm(false)
+      showToast('Resource uploaded successfully!')
     } catch (err) {
       setError(err.response?.data?.error || 'Upload failed')
     } finally {
@@ -218,17 +230,57 @@ export default function AdminResources() {
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">File (PDF or image) *</label>
-              <input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.webp"
-                onChange={e => setFile(e.target.files[0])}
-                className="mt-1 font-[Inter,system-ui,sans-serif] text-[14px] text-ink-muted-80 file:mr-4 file:bg-[#fff]-parchment file:text-ink file:border file:border-divider-soft file:rounded-lg file:px-4 file:py-2 file:cursor-pointer"
-              />
+            <div className="sm:col-span-2">
+              <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-2">Source *</label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => { setSourceType('file'); setFile(null); setFileUrl('') }}
+                  className={`font-[Inter,system-ui,sans-serif] text-[14px] font-medium px-5 py-2.5 rounded-lg border transition-all duration-150 ${
+                    sourceType === 'file'
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-white text-ink border-divider-soft hover:border-ink/30'
+                  }`}
+                >
+                  Upload File
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setSourceType('link'); setFile(null); setFileUrl('') }}
+                  className={`font-[Inter,system-ui,sans-serif] text-[14px] font-medium px-5 py-2.5 rounded-lg border transition-all duration-150 ${
+                    sourceType === 'link'
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-white text-ink border-divider-soft hover:border-ink/30'
+                  }`}
+                >
+                  Drive Link
+                </button>
+              </div>
             </div>
+            {sourceType === 'file' ? (
+              <div>
+                <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">File (PDF or image) *</label>
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.webp"
+                  onChange={e => setFile(e.target.files[0])}
+                  className="mt-1 font-[Inter,system-ui,sans-serif] text-[14px] text-ink-muted-80 file:mr-4 file:bg-[#fff]-parchment file:text-ink file:border file:border-divider-soft file:rounded-lg file:px-4 file:py-2 file:cursor-pointer"
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Drive Link *</label>
+                <input
+                  type="url"
+                  value={fileUrl}
+                  onChange={e => setFileUrl(e.target.value)}
+                  placeholder="https://drive.google.com/..."
+                  className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                />
+              </div>
+            )}
           </div>
-          {file && (
+          {sourceType === 'file' && file && (
             <p className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-green-500 mt-3 truncate">
               <Check size={14} /> {file.name} ({(file.size / 1024).toFixed(0)} KB)
             </p>
@@ -236,7 +288,7 @@ export default function AdminResources() {
           {error && <p className="font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-red-500 mt-3">{error}</p>}
           <button
             onClick={handleUpload}
-            disabled={uploading || !file || !form.title}
+            disabled={uploading || (sourceType === 'file' ? !file : !fileUrl) || !form.title}
             className="button-primary mt-6"
           >
             {uploading ? 'Uploading to Cloudinary…' : 'Upload'}

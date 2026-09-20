@@ -1,11 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
-import { X } from 'lucide-react'
-import { fetchPreviewBlobUrl } from '../api/resources'
-
-// react-pdf pulls in a ~1.4 MB PDF.js worker, so it is only downloaded when a
-// user actually opens a PDF preview rather than on every page load.
-const PdfViewer = lazy(() => import('./PdfViewer'))
-
+import { Component, useEffect, lazy, Suspense, useState, useRef } from 'react'
 export default function ResourceSplitView({ selectedResource, resources, onSelectResource, onClose }) {
   if (!selectedResource) return null
 
@@ -22,6 +15,14 @@ export default function ResourceSplitView({ selectedResource, resources, onSelec
     setLoading(true)
     setPreviewUrl(null)
     setPreviewError('')
+
+    if (isPdf) {
+      if (active) {
+        setPreviewUrl(getPreviewUrl(selectedResource._id))
+        setLoading(false)
+      }
+      return
+    }
 
     fetchPreviewBlobUrl(selectedResource._id)
       .then(url => {

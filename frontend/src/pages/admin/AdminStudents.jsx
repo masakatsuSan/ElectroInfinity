@@ -46,7 +46,6 @@ function AddTab({ qc }) {
       qc.invalidateQueries({ queryKey: ['students'] })
       setForm(BLANK)
       setMsg(<span><Check size={14} /> {form.name} ({form.rollNumber}) added. They can now activate at /activate</span>)
-      setError('')
     },
     onError: (err) => setError(err.response?.data?.error || 'Failed to add student'),
   })
@@ -57,7 +56,6 @@ function AddTab({ qc }) {
       qc.invalidateQueries({ queryKey: ['students'] })
       setMsg(<span><Check size={14} /> {res.data.message}</span>)
       setCsvRows([])
-      setError('')
     },
     onError: (err) => setError(err.response?.data?.error || 'Bulk import failed'),
   })
@@ -83,7 +81,6 @@ function AddTab({ qc }) {
       }).filter(r => r.rollNumber)
       setCsvRows(rows)
       setMsg('')
-      setError('')
     }
     reader.readAsText(file)
   }

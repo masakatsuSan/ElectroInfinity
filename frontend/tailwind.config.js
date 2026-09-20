@@ -107,10 +107,7 @@ export default {
         modal: '0 12px 32px -12px rgba(24, 29, 38, 0.16)',
         'card-hover': '0 4px 12px rgba(24, 29, 38, 0.08)',
       },
-      animation: {
-        'fade-in': 'fadeIn 0.3s ease-out',
-        'in': 'fadeIn 0.35s ease-out',
-      },
+      animation: {},
     },
   },
   plugins: [],

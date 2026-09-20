@@ -8,6 +8,11 @@ const axios = require('axios')
 
 const router = express.Router()
 
+function isExternalUrl(url) {
+  if (!url) return false
+  return /^https?:\/\/(?!.*\.cloudinary\.com)/.test(url)
+}
+
 const EXTENSION_TO_MIME = {
   pdf: 'application/pdf',
   png: 'image/png',
@@ -24,21 +29,34 @@ function resolveMimeType(fileName) {
   return EXTENSION_TO_MIME[extension] || 'application/octet-stream'
 }
 
-async function streamCloudinaryToResponse(res, cloudinaryUrl, fileName) {
+async function streamCloudinaryToResponse(req, res, cloudinaryUrl, fileName) {
   try {
-    const response = await axios.get(cloudinaryUrl, {
+    const range = req.headers.range
+    const requestConfig = {
       responseType: 'stream',
       timeout: 30000,
       maxRedirects: 5,
       validateStatus: (status) => status >= 200 && status < 400,
-    })
+    }
+    if (range) {
+      requestConfig.headers = { Range: range }
+    }
+
+    const response = await axios.get(cloudinaryUrl, requestConfig)
 
     const mimeType = response.headers['content-type'] || resolveMimeType(fileName)
     res.setHeader('Content-Type', mimeType)
+    res.setHeader('Accept-Ranges', 'bytes')
 
     if (response.headers['content-length']) {
       res.setHeader('Content-Length', response.headers['content-length'])
     }
+    if (response.headers['content-range']) {
+      res.setHeader('Content-Range', response.headers['content-range'])
+    }
+
+    const isRange = range && response.status === 206
+    res.status(isRange ? 206 : 200)
 
     response.data.on('error', (err) => {
       console.error('Stream error while fetching from Cloudinary:', {
@@ -129,7 +147,12 @@ router.get('/:id/download', async (req, res) => {
     if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
 
     res.setHeader('Content-Disposition', `attachment; filename="${resource.fileName || 'download'}"`)
-    await streamCloudinaryToResponse(res, resource.fileUrl, resource.fileName)
+
+    if (isExternalUrl(resource.fileUrl)) {
+      return res.redirect(resource.fileUrl)
+    }
+
+    await streamCloudinaryToResponse(req, res, resource.fileUrl, resource.fileName)
   } catch (err) {
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
@@ -143,7 +166,12 @@ router.get('/:id/preview', async (req, res) => {
     if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
 
     res.setHeader('Content-Disposition', `inline; filename="${resource.fileName || 'preview'}"`)
-    await streamCloudinaryToResponse(res, resource.fileUrl, resource.fileName)
+
+    if (isExternalUrl(resource.fileUrl)) {
+      return res.redirect(resource.fileUrl)
+    }
+
+    await streamCloudinaryToResponse(req, res, resource.fileUrl, resource.fileName)
   } catch (err) {
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
@@ -159,33 +187,46 @@ router.post(
   upload.single('file'),   // multer processes the file first
   async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ success: false, error: 'No file uploaded' })
+      const { title, type, semester, subject, dueDate, fileUrl } = req.body
+
+      if (!fileUrl && !req.file) {
+        return res.status(400).json({ success: false, error: 'No file uploaded and no link provided' })
       }
 
-      const { title, type, semester, subject, dueDate } = req.body
+      let url = null
+      let publicId = ''
+      let fileName = ''
 
-      // Determine Cloudinary folder based on type
-      const folderMap = {
-        notes: 'notes',
-        pyq: 'previous-year-papers',
-        assignment: 'assignments',
-        lab_manual: 'lab-manuals',
-        syllabus: 'syllabus',
+      if (req.file) {
+        // Determine Cloudinary folder based on type
+        const folderMap = {
+          notes: 'notes',
+          pyq: 'previous-year-papers',
+          assignment: 'assignments',
+          lab_manual: 'lab-manuals',
+          syllabus: 'syllabus',
+        }
+        const folder = `electro-infinity/${folderMap[type] || 'resources'}`
+
+        const isPdf = req.file.mimetype === 'application/pdf';
+        const resourceType = isPdf ? 'raw' : 'auto';
+
+        // Upload the file buffer to Cloudinary
+        const { url: cloudUrl, publicId: cloudId } = await uploadToCloudinary(req.file.buffer, {
+          folder,
+          resource_type: resourceType,
+          // Use original filename (cleaned) as the Cloudinary public ID
+          public_id: req.file.originalname.replace(/\.[^/.]+$/, ''),
+          overwrite: false,
+        })
+
+        url = cloudUrl
+        publicId = cloudId
+        fileName = req.file.originalname
+      } else {
+        url = fileUrl
+        fileName = (fileUrl && fileUrl.split('/').pop()) || 'external-link'
       }
-      const folder = `electro-infinity/${folderMap[type] || 'resources'}`
-
-      const isPdf = req.file.mimetype === 'application/pdf';
-      const resourceType = isPdf ? 'raw' : 'auto';
-
-      // Upload the file buffer to Cloudinary
-      const { url, publicId } = await uploadToCloudinary(req.file.buffer, {
-        folder,
-        resource_type: resourceType,
-        // Use original filename (cleaned) as the Cloudinary public ID
-        public_id: req.file.originalname.replace(/\.[^/.]+$/, ''),
-        overwrite: false,
-      })
 
       const resource = await Resource.create({
         title,
@@ -195,7 +236,7 @@ router.post(
         dueDate: dueDate || null,
         fileUrl: url,
         filePublicId: publicId,
-        fileName: req.file.originalname,
+        fileName,
         uploadedBy: req.user._id,
         batchId: req.user.role === 'cr' ? req.user.batch : (req.body.batchId || ''),
         visibility: 'GLOBAL',
@@ -258,7 +299,7 @@ router.put(
         return res.status(403).json({ success: false, error: 'Not your upload' })
       }
 
-      const { title, type, semester, subject, dueDate, visibility } = req.body
+      const { title, type, semester, subject, dueDate, visibility, fileUrl } = req.body
       const updates = {
         title:      title      || resource.title,
         type:       type       || resource.type,
@@ -295,6 +336,14 @@ router.put(
         updates.fileUrl      = url
         updates.filePublicId = publicId
         updates.fileName     = req.file.originalname
+      } else if (fileUrl) {
+        if (resource.filePublicId) {
+          const isRaw = resource.fileUrl.includes('/raw/upload/')
+          await deleteFromCloudinary(resource.filePublicId, isRaw ? 'raw' : 'image')
+        }
+        updates.fileUrl      = fileUrl
+        updates.filePublicId = ''
+        updates.fileName     = (fileUrl && fileUrl.split('/').pop()) || 'external-link'
       }
 
       const updated = await Resource.findByIdAndUpdate(req.params.id, updates, { new: true })

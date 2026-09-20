@@ -33,7 +33,7 @@ export default function PageError({ resetKey }) {
         </p>
 
         <div className="flex flex-wrap gap-3 justify-center">
-          <button type="button" onClick={() => window.location.reload()} className="button-primary">
+          <button type="button" onClick={() => resetErrorBoundary?.()} className="button-primary">
             Retry
           </button>
           <a href="/" className="button-secondary">

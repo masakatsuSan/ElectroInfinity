@@ -4,22 +4,26 @@ import { useAuth } from '../../context/AuthContext';
 import { getDeadlines, createDeadline, deleteDeadline } from '../../api/deadlines';
 import { getBatchStudents } from '../../api/students';
 import { CheckCircle2, X } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 
 export default function AdminDeadlines() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { showToast } = useToast();
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ title: '', description: '', subject: '', type: 'CA', deadline: '', driveLink: '' });
 
   const { data: deadlinesData, isLoading } = useQuery({
     queryKey: ['deadlines', user?.batch],
     queryFn: () => getDeadlines({ batch: user?.batch }).then(r => r.data),
+    onError: () => console.error('Failed to load deadlines'),
   });
 
   const { data: batchData } = useQuery({
     queryKey: ['batchRoster', user?.batch],
     queryFn: () => getBatchStudents(user?.batch).then(r => r.data),
     enabled: !!user?.batch,
+    onError: () => console.error('Failed to load batch roster'),
   });
 
   const createMut = useMutation({
@@ -28,12 +32,15 @@ export default function AdminDeadlines() {
       qc.invalidateQueries({ queryKey: ['deadlines'] });
       setShowModal(false);
       setForm({ title: '', description: '', subject: '', type: 'CA', deadline: '', driveLink: '' });
-    }
+      showToast('Deadline posted successfully!')
+    },
+    onError: () => console.error('Failed to post deadline')
   });
 
   const deleteMut = useMutation({
     mutationFn: (id) => deleteDeadline(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['deadlines'] }),
+    onError: () => console.error('Failed to delete deadline'),
   });
 
   const deadlines = deadlinesData?.data || [];
@@ -52,7 +59,7 @@ export default function AdminDeadlines() {
       {isLoading ? (
         <div className="grid gap-6">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="p-6 border-2 border-divider-soft rounded-[24px] bg-white flex flex-col md:flex-row md:items-start justify-between gap-6 animate-pulse">
+            <div key={i} className="p-6 border-2 border-divider-soft rounded-[24px] bg-white flex flex-col md:flex-row md:items-start justify-between gap-6 skeleton-shimmer">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="h-6 w-16 bg-soft-stone rounded-full" />

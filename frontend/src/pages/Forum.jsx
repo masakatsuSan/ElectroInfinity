@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
-import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import BackButton from '../components/BackButton'
 import {
   getPosts, createPost, upvotePost, downvotePost,
@@ -80,6 +80,7 @@ function MentionText({ text = '', mentions = [], onViewProfile }) {
 
 export default function Forum() {
   const { user } = useAuth()
+  const { showToast } = useToast()
   const navigate = useNavigate()
   const [posts, setPosts] = useState([])
   const [rooms, setRooms] = useState([])
@@ -115,6 +116,12 @@ export default function Forum() {
     setPage(1)
     fetchPosts(1)
   }, [selectedRoom, sort])
+
+  useEffect(() => {
+    if (selectedRoom) {
+      setCreateRoom(selectedRoom)
+    }
+  }, [selectedRoom])
 
   const fetchRooms = async () => {
     try {
@@ -190,6 +197,7 @@ export default function Forum() {
       setCreateType('text')
       setPage(1)
       fetchPosts(1)
+      showToast('Post created successfully!')
     } catch (err) {
       setCreateError(err.response?.data?.error || 'Unable to create post. Please try again.')
     }
@@ -226,6 +234,7 @@ export default function Forum() {
       setReplyingTo(null)
       setPage(1)
       fetchPosts(1)
+      showToast('Comment added!')
     } catch (err) {
       console.error(err)
     }
@@ -547,7 +556,7 @@ export default function Forum() {
             {loading ? (
               <div className="space-y-4">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="animate-pulse rounded-lg border border-[#dddddd] bg-[#ffffff] p-5">
+                  <div key={i} className="rounded-lg border border-[#dddddd] bg-[#ffffff] p-5 skeleton-shimmer">
                     <div className="mb-4 flex items-center gap-2">
                       <div className="h-7 w-7 rounded-full bg-[#e0e2e6]" />
                       <div className="h-3 w-24 rounded bg-[#e0e2e6]" />

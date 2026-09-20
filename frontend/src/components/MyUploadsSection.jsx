@@ -98,7 +98,7 @@ export default function MyUploadsSection({ enabled }) {
     return (
       <div className="space-y-3">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-24 rounded-xl bg-gray-200 animate-pulse" />
+          <div key={i} className="h-24 rounded-xl bg-gray-200 skeleton-shimmer" />
         ))}
       </div>
     )

@@ -2,17 +2,15 @@ import { useState, useEffect, lazy, Suspense } from 'react'
 import { X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { MODAL_VARIANTS, MODAL_TRANSITION } from '../utils/motion'
-import { fetchPreviewBlobUrl } from '../api/resources'
+import { fetchPreviewBlobUrl, getPreviewUrl } from '../api/resources'
 
 // react-pdf pulls in a ~1.4 MB PDF.js worker, so it is only downloaded when a
 // user actually opens a PDF preview rather than on every page load.
 const PdfViewer = lazy(() => import('./PdfViewer'))
 
 export default function ResourcePreviewDrawer({ resource, onClose }) {
-  if (!resource) return null
-
-  const isPdf = /\.pdf($|[?#])/i.test(resource.fileUrl || '')
-  const isImage = /\.(png|jpe?g|webp|gif|svg)($|[?#])/i.test(resource.fileUrl || '')
+  const isPdf = resource ? /\.pdf($|[?#])/i.test(resource.fileUrl || '') : false
+  const isImage = resource ? /\.(png|jpe?g|webp|gif|svg)($|[?#])/i.test(resource.fileUrl || '') : false
   const [loading, setLoading] = useState(true)
   const [previewUrl, setPreviewUrl] = useState(null)
   const [previewError, setPreviewError] = useState('')
@@ -29,9 +27,22 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
     let active = true
     let objectUrl = null
 
+    if (!resource) {
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     setPreviewUrl(null)
     setPreviewError('')
+
+    if (isPdf) {
+      if (active) {
+        setPreviewUrl(getPreviewUrl(resource._id))
+        setLoading(false)
+      }
+      return
+    }
 
     fetchPreviewBlobUrl(resource._id)
       .then(url => {
@@ -58,7 +69,9 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
       active = false
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [resource._id])
+  }, [resource?._id, isPdf, isImage])
+
+  if (!resource) return null
 
   return (
     <div className="fixed inset-0 z-[100] flex">

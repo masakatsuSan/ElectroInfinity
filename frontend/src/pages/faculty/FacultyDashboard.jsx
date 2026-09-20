@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import ProtectedRoute from '../../components/ProtectedRoute'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
 import SEO from '../../components/SEO'
 import { getMyAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement } from '../../api/announcements'
 import { BATCHES } from '../../data/batches'
@@ -21,6 +22,7 @@ export default function FacultyDashboard() {
 
 function FacultyDashboardInner() {
   const qc = useQueryClient()
+  const { showToast } = useToast()
 
   const [tab, setTab] = useState('announcements')
   const [showForm, setShowForm] = useState(false);
@@ -49,6 +51,7 @@ function FacultyDashboardInner() {
       qc.invalidateQueries({ queryKey: ['my-announcements'] })
       qc.invalidateQueries({ queryKey: ['announcements'] })
       resetForm()
+      showToast('Announcement posted successfully!')
     },
     onError: (err) => setError(err.response?.data?.error || 'Failed to post announcement'),
   })
@@ -59,6 +62,7 @@ function FacultyDashboardInner() {
       qc.invalidateQueries({ queryKey: ['my-announcements'] })
       qc.invalidateQueries({ queryKey: ['announcements'] })
       resetForm()
+      showToast('Announcement updated successfully!')
     },
     onError: (err) => setError(err.response?.data?.error || 'Failed to update announcement'),
   })

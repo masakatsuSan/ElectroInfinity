@@ -5,6 +5,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { ToastProvider } from './context/ToastContext'
 import ErrorBoundary from './components/ErrorBoundary'
 import FatalError from './components/FatalError'
 import App from './App'
@@ -120,11 +121,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             {/* AuthProvider: makes login state available anywhere */}
             <AuthProvider>
               <ThemeProvider>
+                <ToastProvider>
                 {/* Inner boundary: catches route/component crashes and can use
                     router + context for its recovery UI. */}
                 <ErrorBoundary>
                   <App />
                 </ErrorBoundary>
+                </ToastProvider>
               </ThemeProvider>
             </AuthProvider>
           </QueryClientProvider>

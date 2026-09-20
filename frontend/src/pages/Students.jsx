@@ -2,7 +2,8 @@ import { useState, useRef } from 'react';
 import { Check, AlertTriangle, XCircle, CheckCircle2, Mail, ShieldCheck, ArrowRight, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext';
 import { changePassword, forgotPassword, verifyOtp, resetPassword } from '../api/auth';
 import { getAnnouncements } from '../api/announcements';
 import { uploadPhoto, getBatchStudents } from '../api/students';
@@ -11,6 +12,7 @@ import { getRoutine } from '../api/routines';
 
 export default function Students() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const fileRef = useRef(null);
@@ -60,6 +62,7 @@ export default function Students() {
     mutationFn: (id) => submitDeadline(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['deadlines'] });
+      showToast('Deadline submitted successfully!')
     }
   });
 
@@ -72,6 +75,7 @@ export default function Students() {
       localStorage.setItem('ei_user', JSON.stringify(updated));
       qc.invalidateQueries({ queryKey: ['me'] });
       setPhotoError('');
+      showToast('Profile photo updated successfully!')
     },
     onError: (err) => setPhotoError(err.response?.data?.error || 'Upload failed'),
   });
@@ -161,7 +165,7 @@ export default function Students() {
             <h2 className="font-sans text-[28px] font-medium tracking-[-0.02em] text-ink">Assignments & Deadlines</h2>
           </div>
           
-          {deadlinesLoading ? <div className="space-y-4 animate-pulse"><div className="h-40 bg-[#f8fafc] rounded-[10px]"></div></div> : !user?.batch ? (
+          {deadlinesLoading ? <div className="space-y-4 skeleton-shimmer"><div className="h-40 bg-[#f8fafc] rounded-[10px]" /></div> : !user?.batch ? (
             <div className="py-16 text-center bg-white border rounded-md border-divider-soft">
               <p className="text-ink-muted-80 font-sans text-[16px] font-[450] mb-4">No batch assigned yet.</p>
               <p className="text-slate font-sans text-[14px] mb-6">Please set your batch in <Link to="/profile/edit" className="underline text-link hover:text-link-active">Edit Profile</Link> to see your deadlines and routine.</p>
@@ -281,7 +285,7 @@ export default function Students() {
       {activeTab === 'routine' && (
         <div className="overflow-x-auto duration-300 text-ink animate-in fade-in">
           {routineLoading ? (
-             <div className="space-y-4 animate-pulse"><div className="h-40 bg-[#f8fafc] rounded-[10px]"></div></div>
+             <div className="space-y-4 skeleton-shimmer"><div className="h-40 bg-[#f8fafc] rounded-[10px]" /></div>
           ) : !user?.batch ? (
             <div className="py-16 text-center bg-white border rounded-md border-divider-soft">
               <p className="text-ink-muted-80 font-sans text-[16px] font-[450] mb-4">No batch assigned yet.</p>
@@ -324,7 +328,7 @@ export default function Students() {
       {activeTab === 'announcements' && (
         <div className="space-y-4 duration-300 animate-in fade-in">
           {announcementsLoading ? (
-            <div className="h-40 rounded-md animate-pulse bg-[#f8fafc]"></div>
+            <div className="h-40 rounded-md skeleton-shimmer bg-[#f8fafc]"></div>
           ) : announcementsData?.data?.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2">
               {announcementsData.data.map(a => (

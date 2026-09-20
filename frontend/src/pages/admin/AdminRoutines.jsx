@@ -22,7 +22,8 @@ export default function AdminRoutines() {
   const { data: routineData, isLoading } = useQuery({
     queryKey: ['routine', user?.batch],
     queryFn: () => getRoutine(user?.batch).then(r => r.data),
-    enabled: !!user?.batch
+    enabled: !!user?.batch,
+    onError: () => console.error('Failed to load routine'),
   });
 
   useEffect(() => {
@@ -38,7 +39,8 @@ export default function AdminRoutines() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['routine'] });
       setIsEditing(false);
-    }
+    },
+    onError: () => console.error('Failed to save routine')
   });
 
   const handleCellChange = (rowIndex, day, value) => {
@@ -59,10 +61,10 @@ export default function AdminRoutines() {
   if (isLoading) return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <div className="h-8 w-48 bg-soft-stone rounded animate-pulse" />
-        <div className="h-10 w-32 bg-soft-stone rounded-full animate-pulse" />
+        <div className="h-8 w-48 bg-soft-stone rounded skeleton-shimmer" />
+        <div className="h-10 w-32 bg-soft-stone rounded-full skeleton-shimmer" />
       </div>
-      <div className="overflow-x-auto border border-divider-soft rounded-[20px] bg-white animate-pulse">
+      <div className="overflow-x-auto border border-divider-soft rounded-[20px] bg-white skeleton-shimmer">
         <div className="p-4 border-b border-divider-soft flex gap-4">
           <div className="h-4 w-32 bg-soft-stone rounded" />
           <div className="h-4 flex-1 bg-soft-stone rounded" />

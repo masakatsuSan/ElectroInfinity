@@ -4,11 +4,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { GitBranch, ExternalLink, Heart, Code2, Plus, Search, X } from 'lucide-react'
 import { getProjects, likeProject, createProject } from '../api/projects'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import SEO from '../components/SEO'
 import UploaderInfo from '../components/UploaderInfo'
 
 export default function Projects() {
   const { user } = useAuth()
+  const { showToast } = useToast()
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
@@ -41,6 +43,7 @@ export default function Projects() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['projects'] })
       setShowModal(false)
+      showToast('Project uploaded successfully!')
     },
   })
 
@@ -103,7 +106,7 @@ export default function Projects() {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="border border-hairline bg-surface-soft rounded-lg h-[240px] animate-pulse" />
+              <div key={i} className="border border-hairline bg-surface-soft rounded-lg h-[240px] skeleton-shimmer" />
             ))}
           </div>
         ) : filtered.length > 0 ? (

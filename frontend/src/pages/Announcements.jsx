@@ -57,14 +57,14 @@ function SkeletonGrid() {
   return (
     <div className="space-y-4">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="bg-white border border-hairline rounded-lg p-5 animate-pulse">
+        <div key={i} className="bg-white border border-hairline rounded-lg p-5 skeleton-shimmer">
           <div className="flex items-center gap-2 mb-3">
-            <div className="h-3 w-24 bg-soft-stone rounded" />
-            <div className="h-3 w-12 bg-soft-stone rounded" />
+            <div className="h-3 w-24 bg-transparent" />
+            <div className="h-3 w-12 bg-transparent" />
           </div>
-          <div className="h-4 w-full bg-soft-stone rounded mb-2" />
-          <div className="h-3 w-full bg-soft-stone rounded mb-1.5" />
-          <div className="h-3 w-5/6 bg-soft-stone rounded" />
+          <div className="h-4 w-full bg-transparent mb-2" />
+          <div className="h-3 w-full bg-transparent mb-1.5" />
+          <div className="h-3 w-5/6 bg-transparent" />
         </div>
       ))}
     </div>

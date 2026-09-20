@@ -56,13 +56,14 @@ app.use('/api/notifications', require('./src/routes/notifications'))
 app.use('/api/subjects',   require('./src/routes/subjects'))
 app.use('/api/folders',    require('./src/routes/folders'))
 
+app.use('/api/attendance', require('./src/routes/attendance'))
 app.get('/api/health', (req, res) =>
   res.json({ success: true, message: 'Electro Infinity API is running ⚡' })
 )
 
 app.use((req, res) => res.status(404).json({ success: false, error: 'Not found' }))
 app.use((err, req, res, next) => {
-  console.error('[ServerError]', err.message, err.stack)
+  console.error('[ServerError] Request failed')
   res.status(500).json({ success: false, error: 'An internal server error occurred' })
 })
 
@@ -83,7 +84,7 @@ server.on('error', (err) => {
     console.error('   Run "npm run free-port" to see which one and stop it, then start again.\n')
     process.exit(1)
   }
-  console.error(`❌ Server error: ${err.message}`)
+  console.error('Server error')
   process.exit(1)
 })
 server.listen(PORT, () => {

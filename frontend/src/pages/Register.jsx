@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../api/auth'
-import { motion } from 'framer-motion'
 import { BATCHES, DEFAULT_BATCH } from '../data/batches'
 import TermsCheckbox from '../components/TermsCheckbox'
 
@@ -172,12 +171,7 @@ export default function Register() {
   if (success) {
     return (
       <div className="flex min-h-screen items-center justify-center px-6 py-28" style={pageStyle}>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          style={cardStyle}
-        >
+        <div style={cardStyle}>
           <div className="mb-6 flex h-14 w-14 items-center justify-center mx-auto border" style={{ borderRadius: 9999, backgroundColor: COLORS.successSurface, borderColor: COLORS.successBorder }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={COLORS.success} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 6 9 17l-5-5"/>
@@ -195,19 +189,14 @@ export default function Register() {
           <Link to="/login" className="block" style={submitButtonStyle}>
             Back to Sign In →
           </Link>
-        </motion.div>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center px-6 py-28" style={pageStyle}>
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        style={cardStyle}
-      >
+      <div style={cardStyle}>
         <div className="mb-8">
           <span className="mb-2 block" style={eyebrowStyle}>
             New Student Onboarding
@@ -357,7 +346,7 @@ export default function Register() {
             Sign in
           </Link>
         </p>
-      </motion.div>
+      </div>
     </div>
   )
 }

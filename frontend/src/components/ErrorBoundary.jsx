@@ -40,13 +40,17 @@ export default class ErrorBoundary extends React.Component {
     }
   }
 
-  handleReload = () => {
-    window.location.reload()
+  resetErrorBoundary = () => {
+    this.setState({ error: null })
   }
 
   render() {
     if (this.state.error) {
-      if (this.props.fallback) return this.props.fallback
+      if (this.props.fallback) {
+        return React.cloneElement(this.props.fallback, {
+          resetErrorBoundary: this.resetErrorBoundary,
+        })
+      }
 
       return <FatalError />
     }

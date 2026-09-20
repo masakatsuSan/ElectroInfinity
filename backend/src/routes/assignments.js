@@ -78,7 +78,7 @@ router.post('/', protect, guard('cr', 'admin', 'super_admin'), async (req, res) 
 
     res.status(201).json({ success: true, data: assignment });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, error: 'Request could not be completed.' });
   }
 });
 

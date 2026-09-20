@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check, Trash2, Pencil, Plus, ExternalLink, ChevronDown } from 'lucide-react'
 import { getYTLectures, createYTLecture, updateYTLecture, deleteYTLecture } from '../../api/ytLectures'
 import { getSubjects } from '../../api/subjects'
+import { useToast } from '../../context/ToastContext'
 
 const SEMS = [1,2,3,4,5,6,7,8]
 
@@ -67,16 +68,17 @@ function FilterSelect({ value, onChange, options, placeholder }) {
 
 export default function AdminYTLectures() {
   const qc = useQueryClient()
+  const { showToast } = useToast()
   const [filterSemester, setFilterSemester] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
 
   const [form, setForm] = useState({ title: '', lectureNumber: '', youtubeUrl: '', semester: '', subject: '' })
   const [editForm, setEditForm] = useState({ title: '', lectureNumber: '', youtubeUrl: '', semester: '', subject: '' })
-  const [error, setError] = useState('')
-  const [editError, setEditError] = useState('')
   const [saving, setSaving] = useState(false)
   const [editSaving, setEditSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [editError, setEditError] = useState('')
 
   const { data, isLoading } = useQuery({
     queryKey: ['yt-lectures', filterSemester],
@@ -94,7 +96,7 @@ export default function AdminYTLectures() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['yt-lectures'] })
     },
-    onError: (err) => setError(err.response?.data?.error || 'Delete failed'),
+    onError: () => console.error('Failed to delete lecture'),
   })
 
   const editMut = useMutation({
@@ -104,10 +106,10 @@ export default function AdminYTLectures() {
       setEditingId(null)
       setEditForm({ title: '', lectureNumber: '', youtubeUrl: '', semester: '', subject: '' })
       setEditSaving(false)
-      setEditError('')
+      showToast('Lecture updated successfully!')
     },
-    onError: (err) => {
-      setEditError(err.response?.data?.error || 'Update failed')
+    onError: () => {
+      console.error('Failed to update lecture')
       setEditSaving(false)
     },
   })
@@ -118,20 +120,17 @@ export default function AdminYTLectures() {
       qc.invalidateQueries({ queryKey: ['yt-lectures'] })
       setForm({ title: '', lectureNumber: '', youtubeUrl: '', semester: '', subject: '' })
       setShowForm(false)
-      setError('')
+      showToast('Lecture created successfully!')
     },
-    onError: (err) => {
-      setError(err.response?.data?.error || 'Create failed')
+    onError: () => {
+      console.error('Failed to create lecture')
       setSaving(false)
     },
   })
 
   const handleCreate = () => {
-    if (!form.title || !form.lectureNumber || !form.youtubeUrl) {
-      return setError('Title, lecture number, and YouTube URL are required')
-    }
+    if (!form.title || !form.lectureNumber || !form.youtubeUrl) return
     setSaving(true)
-    setError('')
     createMut.mutate({
       title: form.title,
       lectureNumber: form.lectureNumber,
@@ -142,11 +141,8 @@ export default function AdminYTLectures() {
   }
 
   const handleEdit = () => {
-    if (!editForm.title || !editForm.lectureNumber || !editForm.youtubeUrl) {
-      return setEditError('Title, lecture number, and YouTube URL are required')
-    }
+    if (!editForm.title || !editForm.lectureNumber || !editForm.youtubeUrl) return
     setEditSaving(true)
-    setEditError('')
     editMut.mutate({
       id: editingId,
       data: {
@@ -168,7 +164,6 @@ export default function AdminYTLectures() {
       semester: l.semester || '',
       subject: l.subject || '',
     })
-    setEditError('')
   }
 
   const lectures = data?.data || []

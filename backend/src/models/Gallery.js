@@ -7,7 +7,7 @@ const gallerySchema = new mongoose.Schema(
 
     imagePublicId: { type: String, default: '' },
 
-    category: { type: String, enum: ['lab', 'event', 'campus', 'other'], default: 'campus' },
+    category: { type: String, enum: ['lab', 'event', 'campus', 'workshop', 'other'], default: 'campus' },
     date: { type: Date, default: Date.now },
 
     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },

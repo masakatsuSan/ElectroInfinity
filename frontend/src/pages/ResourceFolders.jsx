@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Play, FileText, Download, FolderOpen,
+  Play, FileText, Download, FolderOpen, ChevronRight, ArrowLeft,
 } from 'lucide-react'
 import { getFolders, getFolder } from '../api/folders'
 import { downloadResource } from '../api/resources'
@@ -60,6 +60,14 @@ export default function ResourceFolders() {
           </>
         ) : (
           <>
+            <Link
+              to="/resources"
+              className="inline-flex items-center gap-2 px-4 py-2 mb-10 rounded-lg border border-hairline bg-white text-ink hover:border-ink transition-colors font-sans text-[14px] font-medium"
+            >
+              <ArrowLeft size={16} />
+              Back to Resources
+            </Link>
+
             <div className="max-w-2xl mb-12">
               <span className="font-mono text-[12px] uppercase tracking-wider text-signature-coral font-medium block mb-2">
                 Study Vault
@@ -80,7 +88,7 @@ export default function ResourceFolders() {
             {listLoading ? (
               <div className="space-y-8">
                 {Array.from({ length: 2 }).map((_, i) => (
-                  <div key={i} className="w-40 h-6 rounded bg-soft-stone/40 animate-pulse" />
+                  <div key={i} className="w-40 h-6 rounded bg-soft-stone/40 skeleton-shimmer" />
                 ))}
               </div>
             ) : semesters.length === 0 ? (
