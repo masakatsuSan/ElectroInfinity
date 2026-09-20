@@ -8,6 +8,11 @@ const axios = require('axios')
 
 const router = express.Router()
 
+function isExternalUrl(url) {
+  if (!url) return false
+  return /^https?:\/\/(?!.*\.cloudinary\.com)/.test(url)
+}
+
 const EXTENSION_TO_MIME = {
   pdf: 'application/pdf',
   png: 'image/png',
@@ -24,16 +29,64 @@ function resolveMimeType(fileName) {
   return EXTENSION_TO_MIME[extension] || 'application/octet-stream'
 }
 
-async function streamCloudinaryToResponse(res, cloudinaryUrl, fileName) {
+async function streamCloudinaryToResponse(req, res, cloudinaryUrl, fileName) {
   try {
-    const response = await axios.get(cloudinaryUrl, { responseType: 'stream' })
-    res.setHeader('Content-Type', response.headers['content-type'] || resolveMimeType(fileName))
+    const range = req.headers.range
+    const requestConfig = {
+      responseType: 'stream',
+      timeout: 30000,
+      maxRedirects: 5,
+      validateStatus: (status) => status >= 200 && status < 400,
+    }
+    if (range) {
+      requestConfig.headers = { Range: range }
+    }
+
+    const response = await axios.get(cloudinaryUrl, requestConfig)
+
+    const mimeType = response.headers['content-type'] || resolveMimeType(fileName)
+    res.setHeader('Content-Type', mimeType)
+    res.setHeader('Accept-Ranges', 'bytes')
+
     if (response.headers['content-length']) {
       res.setHeader('Content-Length', response.headers['content-length'])
     }
+    if (response.headers['content-range']) {
+      res.setHeader('Content-Range', response.headers['content-range'])
+    }
+
+    const isRange = range && response.status === 206
+    res.status(isRange ? 206 : 200)
+
+    response.data.on('error', (err) => {
+      console.error('Stream error while fetching from Cloudinary:', {
+        url: cloudinaryUrl,
+        error: err.message,
+      })
+      if (!res.headersSent) {
+        res.status(500).json({ success: false, error: 'Failed to fetch the file.' })
+      }
+    })
+
     response.data.pipe(res)
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Failed to fetch the file.' })
+    console.error('Failed to fetch file from Cloudinary:', {
+      url: cloudinaryUrl,
+      error: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      code: error.code,
+    })
+
+    if (!res.headersSent) {
+      if (error.response?.status === 404) {
+        res.status(404).json({ success: false, error: 'File not found.' })
+      } else if (error.code === 'ECONNABORTED') {
+        res.status(504).json({ success: false, error: 'File request timed out.' })
+      } else {
+        res.status(500).json({ success: false, error: 'Failed to fetch the file.' })
+      }
+    }
   }
 }
 
@@ -48,13 +101,37 @@ router.get('/', optionalAuth, async (req, res) => {
     if (semester) filter.semester = Number(semester)
     if (subject) filter.subject = subject
 
-    const resources = await Resource.find(filter)
+    // Optional pagination. Only applied when the caller sends ?page / ?limit,
+    // so the existing "return everything" response shape stays byte-identical
+    // for the live frontend (which calls this without any params).
+    const wantsPaging = req.query.page !== undefined || req.query.limit !== undefined
+    const page  = Math.max(1, parseInt(req.query.page, 10) || 1)
+    const limit = Math.min(200, Math.max(1, parseInt(req.query.limit, 10) || 50))
+
+    let query = Resource.find(filter)
       .populate('uploadedBy', 'name photo')
       .sort({ createdAt: -1 })
+      .lean()
 
-    res.json({ success: true, data: resources })
+    if (wantsPaging) query = query.skip((page - 1) * limit).limit(limit)
+
+    const resources = await query
+
+    if (!wantsPaging) {
+      return res.json({ success: true, data: resources })
+    }
+
+    const total = await Resource.countDocuments(filter)
+    res.json({
+      success: true,
+      data: resources,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -70,23 +147,33 @@ router.get('/:id/download', async (req, res) => {
     if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
 
     res.setHeader('Content-Disposition', `attachment; filename="${resource.fileName || 'download'}"`)
-    await streamCloudinaryToResponse(res, resource.fileUrl, resource.fileName)
+
+    if (isExternalUrl(resource.fileUrl)) {
+      return res.redirect(resource.fileUrl)
+    }
+
+    await streamCloudinaryToResponse(req, res, resource.fileUrl, resource.fileName)
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
 // ── GET /api/resources/:id/preview ────────────────────────────────────────
-// Streams the file inline so it can be rendered in a preview drawer/iframe
+// Streams the file inline for the application PDF viewer
 router.get('/:id/preview', async (req, res) => {
   try {
     const resource = await Resource.findById(req.params.id)
     if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
 
     res.setHeader('Content-Disposition', `inline; filename="${resource.fileName || 'preview'}"`)
-    await streamCloudinaryToResponse(res, resource.fileUrl, resource.fileName)
+
+    if (isExternalUrl(resource.fileUrl)) {
+      return res.redirect(resource.fileUrl)
+    }
+
+    await streamCloudinaryToResponse(req, res, resource.fileUrl, resource.fileName)
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -100,33 +187,46 @@ router.post(
   upload.single('file'),   // multer processes the file first
   async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ success: false, error: 'No file uploaded' })
+      const { title, type, semester, subject, dueDate, fileUrl } = req.body
+
+      if (!fileUrl && !req.file) {
+        return res.status(400).json({ success: false, error: 'No file uploaded and no link provided' })
       }
 
-      const { title, type, semester, subject, dueDate } = req.body
+      let url = null
+      let publicId = ''
+      let fileName = ''
 
-      // Determine Cloudinary folder based on type
-      const folderMap = {
-        notes: 'notes',
-        pyq: 'previous-year-papers',
-        assignment: 'assignments',
-        lab_manual: 'lab-manuals',
-        syllabus: 'syllabus',
+      if (req.file) {
+        // Determine Cloudinary folder based on type
+        const folderMap = {
+          notes: 'notes',
+          pyq: 'previous-year-papers',
+          assignment: 'assignments',
+          lab_manual: 'lab-manuals',
+          syllabus: 'syllabus',
+        }
+        const folder = `electro-infinity/${folderMap[type] || 'resources'}`
+
+        const isPdf = req.file.mimetype === 'application/pdf';
+        const resourceType = isPdf ? 'raw' : 'auto';
+
+        // Upload the file buffer to Cloudinary
+        const { url: cloudUrl, publicId: cloudId } = await uploadToCloudinary(req.file.buffer, {
+          folder,
+          resource_type: resourceType,
+          // Use original filename (cleaned) as the Cloudinary public ID
+          public_id: req.file.originalname.replace(/\.[^/.]+$/, ''),
+          overwrite: false,
+        })
+
+        url = cloudUrl
+        publicId = cloudId
+        fileName = req.file.originalname
+      } else {
+        url = fileUrl
+        fileName = (fileUrl && fileUrl.split('/').pop()) || 'external-link'
       }
-      const folder = `electro-infinity/${folderMap[type] || 'resources'}`
-
-      const isPdf = req.file.mimetype === 'application/pdf';
-      const resourceType = isPdf ? 'raw' : 'auto';
-
-      // Upload the file buffer to Cloudinary
-      const { url, publicId } = await uploadToCloudinary(req.file.buffer, {
-        folder,
-        resource_type: resourceType,
-        // Use original filename (cleaned) as the Cloudinary public ID
-        public_id: req.file.originalname.replace(/\.[^/.]+$/, ''),
-        overwrite: false,
-      })
 
       const resource = await Resource.create({
         title,
@@ -136,7 +236,7 @@ router.post(
         dueDate: dueDate || null,
         fileUrl: url,
         filePublicId: publicId,
-        fileName: req.file.originalname,
+        fileName,
         uploadedBy: req.user._id,
         batchId: req.user.role === 'cr' ? req.user.batch : (req.body.batchId || ''),
         visibility: 'GLOBAL',
@@ -177,7 +277,7 @@ router.post(
 
       res.status(201).json({ success: true, data: resource })
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message })
+      res.status(500).json({ success: false, error: 'An internal server error occurred' })
     }
   }
 )
@@ -199,7 +299,7 @@ router.put(
         return res.status(403).json({ success: false, error: 'Not your upload' })
       }
 
-      const { title, type, semester, subject, dueDate, visibility } = req.body
+      const { title, type, semester, subject, dueDate, visibility, fileUrl } = req.body
       const updates = {
         title:      title      || resource.title,
         type:       type       || resource.type,
@@ -236,12 +336,20 @@ router.put(
         updates.fileUrl      = url
         updates.filePublicId = publicId
         updates.fileName     = req.file.originalname
+      } else if (fileUrl) {
+        if (resource.filePublicId) {
+          const isRaw = resource.fileUrl.includes('/raw/upload/')
+          await deleteFromCloudinary(resource.filePublicId, isRaw ? 'raw' : 'image')
+        }
+        updates.fileUrl      = fileUrl
+        updates.filePublicId = ''
+        updates.fileName     = (fileUrl && fileUrl.split('/').pop()) || 'external-link'
       }
 
       const updated = await Resource.findByIdAndUpdate(req.params.id, updates, { new: true })
       res.json({ success: true, data: updated })
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message })
+      res.status(500).json({ success: false, error: 'An internal server error occurred' })
     }
   }
 )
@@ -269,7 +377,7 @@ router.delete('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, 
     await resource.deleteOne()
     res.json({ success: true, message: 'Resource deleted' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

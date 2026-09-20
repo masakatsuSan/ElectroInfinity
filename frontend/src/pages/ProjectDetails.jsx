@@ -23,14 +23,14 @@ export default function ProjectDetails() {
     return (
       <div className="min-h-screen bg-white text-ink pt-24 pb-24">
         <div className="max-w-[1280px] mx-auto px-6 md:px-12">
-          <div className="animate-pulse space-y-4">
+          <div className="skeleton-shimmer space-y-4">
             <div className="h-4 w-40 bg-surface-soft rounded-sm mb-6" />
             <div className="h-10 w-3/4 bg-surface-soft rounded-sm mb-4" />
             <div className="h-4 w-full bg-surface-soft rounded-sm mb-2" />
             <div className="h-4 w-full bg-surface-soft rounded-sm mb-2" />
             <div className="h-4 w-2/3 bg-surface-soft rounded-sm mb-6" />
             <div className="flex gap-2">
-              {[1,2,3,4].map(i => <div key={i} className="h-8 w-20 bg-surface-soft rounded-sm" />)}
+              {[1,2,3,4].map(i => <div key={i} className="h-8 w-20 bg-surface-soft rounded-sm skeleton-shimmer" />)}
             </div>
           </div>
         </div>

@@ -46,7 +46,7 @@ router.get('/', protect, async (req, res) => {
       },
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -57,7 +57,7 @@ router.get('/unread-count', protect, async (req, res) => {
     const count = await getUnreadCount(req.user._id)
     res.json({ success: true, data: { count } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -72,7 +72,7 @@ router.put('/:id/read', protect, async (req, res) => {
     const unreadCount = await getUnreadCount(req.user._id)
     res.json({ success: true, data: { notification, unreadCount } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -83,7 +83,7 @@ router.put('/mark-all-read', protect, async (req, res) => {
     await markAllAsRead(req.user._id)
     res.json({ success: true, data: { unreadCount: 0 } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -101,7 +101,7 @@ router.delete('/:id', protect, async (req, res) => {
     const unreadCount = await getUnreadCount(req.user._id)
     res.json({ success: true, data: { unreadCount } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

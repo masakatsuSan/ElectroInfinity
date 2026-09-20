@@ -110,9 +110,10 @@ router.get('/', optionalAuth, async (req, res) => {
     const subjects = await Subject.find(filter)
       .populate('updatedBy', 'name')
       .sort({ semester: 1, code: 1, name: 1 })
+      .lean()
     res.json({ success: true, count: subjects.length, data: subjects })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -125,7 +126,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
     }
     res.json({ success: true, data: subject })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -162,7 +163,7 @@ router.post('/', protect, guard('admin', 'super_admin'), async (req, res) => {
     })
     res.status(201).json({ success: true, data: subject })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -175,7 +176,7 @@ router.patch('/:id/approve', protect, guard('admin', 'super_admin'), async (req,
     await subject.save()
     res.json({ success: true, data: subject })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -204,7 +205,7 @@ router.patch('/:id', protect, guard('admin', 'super_admin', 'faculty'), async (r
     await subject.save()
     res.json({ success: true, data: subject })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -213,7 +214,7 @@ router.delete('/:id', protect, guard('admin', 'super_admin'), async (req, res) =
     await Subject.findByIdAndDelete(req.params.id)
     res.json({ success: true, message: 'Subject deleted' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

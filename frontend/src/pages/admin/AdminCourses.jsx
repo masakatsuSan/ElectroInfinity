@@ -17,8 +17,8 @@ export default function AdminCourses() {
   const [form, setForm] = useState(BLANK)
   const [editing, setEditing] = useState(null)
   const [showForm, setShowForm] = useState(false)
-  const [error, setError] = useState('')
 
+  const [error, setError] = useState('')
   const { data, isLoading } = useQuery({
     queryKey: ['subjects', 'admin'],
     queryFn: () => getSubjects({}).then(r => r.data),
@@ -26,13 +26,13 @@ export default function AdminCourses() {
 
   const createMut = useMutation({
     mutationFn: (d) => createSubject(d),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['subjects'] }); setForm(BLANK); setEditing(null); setShowForm(false); setError('') },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['subjects'] }); setForm(BLANK); setEditing(null); setShowForm(false) },
     onError: (err) => setError(err.response?.data?.error || 'Save failed'),
   })
 
   const updateMut = useMutation({
     mutationFn: ({ id, ...d }) => updateSubject(id, d),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['subjects'] }); setEditing(null); setShowForm(false); setError('') },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['subjects'] }); setEditing(null); setShowForm(false) },
     onError: (err) => setError(err.response?.data?.error || 'Save failed'),
   })
 
@@ -106,7 +106,7 @@ export default function AdminCourses() {
     }
   }
 
-  const openCreate = () => { setEditing(null); setForm(BLANK); setShowForm(true); setError('') }
+  const openCreate = () => { setEditing(null); setForm(BLANK); setShowForm(true) }
   const openEdit = (s) => {
     setEditing(s)
     setForm({
@@ -123,7 +123,7 @@ export default function AdminCourses() {
       t: s.t || 0,
       p: s.p || 0,
     })
-    setShowForm(true); setError('')
+    setShowForm(true)
   }
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
@@ -235,7 +235,7 @@ export default function AdminCourses() {
             <button onClick={handleSave} disabled={createMut.isPending || updateMut.isPending || !form.name || !form.code} className="button-primary">
               {createMut.isPending || updateMut.isPending ? 'Saving…' : (editing ? 'Update Course' : 'Create Course')}
             </button>
-            <button onClick={() => { setShowForm(false); setEditing(null); setForm(BLANK); setError('') }} className="button-pill-outline">Cancel</button>
+            <button onClick={() => { setShowForm(false); setEditing(null); setForm(BLANK) }} className="button-pill-outline">Cancel</button>
           </div>
         </div>
       )}

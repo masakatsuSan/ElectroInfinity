@@ -17,7 +17,7 @@ export default function GalleryLightbox({ images, initialIndex = 0, onClose }) {
   if (!images || images.length === 0) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-gray-900 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
       <button
         onClick={onClose}
         className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-colors z-10"

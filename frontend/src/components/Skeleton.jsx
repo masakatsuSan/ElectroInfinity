@@ -1,7 +1,5 @@
-import { cn } from '../utils/cn'
-
 function Skeleton({ className = '' }) {
-  return <div className={cn('bg-soft-stone rounded animate-pulse', className)} />
+  return <div className={cn('bg-soft-stone rounded skeleton-shimmer', className)} />
 }
 
 function SkeletonText({ className = '', width = 'w-full' }) {
@@ -92,7 +90,7 @@ function SkeletonRowList({ count = 6, className = '' }) {
 
 function SkeletonAnnouncement({ className = '' }) {
   return (
-    <div className={cn('bg-white border border-hairline rounded-xl p-5 animate-pulse', className)}>
+    <div className={cn('bg-white border border-hairline rounded-xl p-5 skeleton-shimmer', className)}>
       <div className="flex items-center gap-2 mb-3">
         <Skeleton className="h-3 w-24" />
         <Skeleton className="h-3 w-12" />
@@ -142,7 +140,7 @@ function SkeletonFacultyList({ count = 4, className = '' }) {
 
 function SkeletonPost({ className = '' }) {
   return (
-    <div className={cn('bg-white border border-hairline rounded-xl p-4', className)}>
+    <div className={cn('bg-white border border-hairline rounded-xl p-4 skeleton-shimmer', className)}>
       <div className="flex items-center gap-2 mb-3">
         <Skeleton className="w-6 h-6 rounded-full" />
         <Skeleton className="h-3 w-24" />
@@ -172,7 +170,7 @@ function SkeletonPostList({ count = 3, className = '' }) {
 
 function SkeletonResource({ className = '' }) {
   return (
-    <div className={cn('border border-hairline bg-white rounded-2xl p-6', className)}>
+    <div className={cn('border border-hairline bg-white rounded-2xl p-6 skeleton-shimmer', className)}>
       <div className="flex items-center justify-between gap-2 mb-3">
         <Skeleton className="h-5 w-24" />
         <Skeleton className="h-5 w-16 rounded-full" />
@@ -294,7 +292,7 @@ function SkeletonBatchMates({ count = 4, className = '' }) {
   return (
     <div className={cn('grid gap-3 sm:grid-cols-2 lg:grid-cols-4', className)}>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3 p-3 border rounded-2xl border-divider-soft bg-white animate-pulse">
+        <div key={i} className="flex items-center gap-3 p-3 border rounded-2xl border-divider-soft bg-white skeleton-shimmer">
           <SkeletonAvatar size="md" />
           <div className="min-w-0 flex-1">
             <Skeleton className="h-4 w-24 mb-1" />

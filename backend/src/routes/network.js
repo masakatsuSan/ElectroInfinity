@@ -83,7 +83,7 @@ router.get('/college', protect, async (req, res) => {
 
     res.json({ success: true, data: formatted })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement } from '../../api/announcements'
 import { BATCHES } from '../../data/batches'
 import { Edit2, Trash2, Pin, PinOff } from 'lucide-react'
+import { useToast } from '../../context/ToastContext'
 
 const CATS = ['general', 'academic', 'class', 'exam', 'urgent']
 const AUDIENCES = [
@@ -28,6 +29,7 @@ const CAT_COLORS = {
 
 export default function AdminAnnouncements() {
   const qc = useQueryClient()
+  const { showToast } = useToast()
   const [form, setForm] = useState(BLANK)
   const [editing, setEditing] = useState(null)
   const [showForm, setShowForm] = useState(false)
@@ -42,7 +44,8 @@ export default function AdminAnnouncements() {
     mutationFn: (d) => createAnnouncement(d),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['announcements'] })
-      setForm(BLANK); setEditing(null); setShowForm(false); setError('')
+      setForm(BLANK); setEditing(null); setShowForm(false)
+      showToast('Announcement created successfully!')
     },
     onError: (err) => setError(err.response?.data?.error || 'Save failed'),
   })
@@ -51,7 +54,8 @@ export default function AdminAnnouncements() {
     mutationFn: ({ id, ...d }) => updateAnnouncement(id, d),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['announcements'] })
-      setEditing(null); setShowForm(false); setError('')
+      setEditing(null); setShowForm(false)
+      showToast('Announcement updated successfully!')
     },
     onError: (err) => setError(err.response?.data?.error || 'Save failed'),
   })
@@ -73,11 +77,11 @@ export default function AdminAnnouncements() {
     }
   }
 
-  const openCreate = () => { setEditing(null); setForm(BLANK); setShowForm(true); setError('') }
+  const openCreate = () => { setEditing(null); setForm(BLANK); setShowForm(true) }
   const openEdit = (a) => {
     setEditing(a)
     setForm({ title: a.title || '', content: a.content || '', category: a.category || 'general', isPinned: !!a.isPinned, targetAudience: a.targetAudience || 'all', batchId: a.batchId || '', expiresAt: toDateTimeLocal(a.expiresAt) })
-    setShowForm(true); setError('')
+    setShowForm(true)
   }
 
   const togglePin = (a) => {
@@ -149,7 +153,7 @@ export default function AdminAnnouncements() {
             <button onClick={handleSave} disabled={createMut.isPending || updateMut.isPending || !form.title || !form.content} className="button-primary">
               {createMut.isPending || updateMut.isPending ? 'Saving…' : (editing ? 'Update Announcement' : 'Post Announcement')}
             </button>
-            <button onClick={() => { setShowForm(false); setEditing(null); setForm(BLANK); setError('') }} className="button-pill-outline">Cancel</button>
+            <button onClick={() => { setShowForm(false); setEditing(null); setForm(BLANK) }} className="button-pill-outline">Cancel</button>
           </div>
         </div>
       )}

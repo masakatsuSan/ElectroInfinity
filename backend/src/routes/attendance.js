@@ -31,7 +31,7 @@ router.get('/admin/faculty', protect, guard('admin', 'super_admin'), async (req,
       .sort({ createdAt: -1 })
     res.json({ success: true, count: faculty.length, data: faculty })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -74,7 +74,7 @@ router.post('/admin/faculty', protect, guard('admin', 'super_admin'), async (req
     faculty.password = undefined
     res.status(201).json({ success: true, data: faculty })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -115,7 +115,7 @@ router.put('/admin/faculty/:id', protect, guard('admin', 'super_admin'), async (
     const updated = await User.findById(faculty._id).select('-password')
     res.json({ success: true, data: updated })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -137,7 +137,7 @@ router.patch('/admin/faculty/:id/toggle-active', protect, guard('admin', 'super_
       message: `Faculty account ${faculty.isActive ? 'activated' : 'deactivated'} successfully`,
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -152,7 +152,7 @@ router.delete('/admin/faculty/:id', protect, guard('admin', 'super_admin'), asyn
     await User.findByIdAndDelete(req.params.id)
     res.json({ success: true, message: 'Faculty account deleted' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -162,7 +162,7 @@ router.get('/faculty', protect, guard('admin', 'super_admin'), async (req, res) 
     const faculty = await User.find({ role: 'faculty' }).select('-password').sort({ name: 1 })
     res.json({ success: true, data: faculty })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 router.post('/faculty', protect, guard('admin', 'super_admin'), async (req, res) => {
@@ -179,7 +179,7 @@ router.get('/rooms', protect, async (req, res) => {
     const rooms = await Room.find().sort({ name: 1 })
     res.json({ success: true, data: rooms })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -197,7 +197,7 @@ router.post('/rooms', protect, guard('admin', 'super_admin'), async (req, res) =
     })
     res.status(201).json({ success: true, data: room })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -206,7 +206,7 @@ router.delete('/rooms/:id', protect, guard('admin', 'super_admin'), async (req, 
     await Room.findByIdAndDelete(req.params.id)
     res.json({ success: true, message: 'Room removed' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -311,7 +311,7 @@ router.post('/sessions/start', protect, guard('faculty'), async (req, res) => {
       message: `Session started for ${targetSubject} (${targetBatch}${targetSection ? ` - Sec ${targetSection}` : ''})`,
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -324,7 +324,7 @@ router.get('/sessions/active', protect, guard('faculty'), async (req, res) => {
       .populate('room', 'name')
     res.json({ success: true, data: session })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -367,7 +367,7 @@ router.put('/sessions/:id/gps', protect, guard('faculty'), async (req, res) => {
       },
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -392,7 +392,7 @@ router.delete('/sessions/:id', protect, guard('faculty', 'admin', 'super_admin')
       message: `Deleted session ${session.subject} and all associated attendance records.`,
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -417,7 +417,7 @@ router.post('/sessions/:id/end', protect, guard('faculty', 'admin', 'super_admin
     const ended = await endSession(session._id, io)
     res.json({ success: true, data: ended, message: 'Session ended successfully' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -439,7 +439,7 @@ router.post('/sessions/:id/trigger-checkpoint', protect, guard('faculty'), async
 
     res.json({ success: true, message: `Checkpoint ${nextCpNum} triggered!` })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -459,7 +459,7 @@ router.get('/sessions/:id/feed', protect, async (req, res) => {
     const feed = await buildSessionFeed(session._id)
     res.json({ success: true, data: feed })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -508,7 +508,7 @@ router.get('/faculty/my-classes', protect, guard('faculty'), async (req, res) =>
 
     res.json({ success: true, count: enriched.length, data: enriched })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -522,7 +522,7 @@ router.get('/sessions/:id/roster', protect, async (req, res) => {
     const feed = await buildSessionFeed(session._id)
     res.json({ success: true, data: feed })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -556,7 +556,7 @@ router.delete('/records/:recordId', protect, guard('faculty'), async (req, res) 
       studentId: record.student,
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -589,7 +589,7 @@ router.get('/sessions/active/batch', protect, guard('student', 'cr'), async (req
 
     res.json({ success: true, data: matchingSession })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -827,7 +827,7 @@ router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
     if (err.code === 11000) {
       return res.status(400).json({ success: false, error: 'Attendance already marked for this checkpoint' })
     }
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -904,7 +904,7 @@ router.post('/sessions/:id/manual-present', protect, guard('faculty', 'admin', '
       message: `${student.name} marked present (manual verification by faculty).`,
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -1004,7 +1004,7 @@ router.get('/student/history', protect, guard('student', 'cr'), async (req, res)
       },
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -1046,7 +1046,7 @@ router.get('/stats/me', protect, guard('student', 'cr'), async (req, res) => {
       },
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -1087,7 +1087,7 @@ router.get('/stats/batch/:batch', protect, guard('cr', 'admin', 'super_admin'), 
     stats.sort((a, b) => a.percentage - b.percentage)
     res.json({ success: true, data: stats })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -1110,7 +1110,7 @@ router.get('/sessions', protect, async (req, res) => {
 
     res.json({ success: true, data: sessions })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

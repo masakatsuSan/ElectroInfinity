@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
-import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import BackButton from '../components/BackButton'
 import {
   getPosts, createPost, upvotePost, downvotePost,
@@ -68,7 +68,7 @@ function MentionText({ text = '', mentions = [], onViewProfile }) {
               event.stopPropagation()
               onViewProfile?.(user._id)
             }}
-            className="text-[#1b61c9] font-medium hover:underline"
+            className="text-[#1b61c9] font-medium hover:None"
           >
             {part}
           </button>
@@ -80,6 +80,7 @@ function MentionText({ text = '', mentions = [], onViewProfile }) {
 
 export default function Forum() {
   const { user } = useAuth()
+  const { showToast } = useToast()
   const navigate = useNavigate()
   const [posts, setPosts] = useState([])
   const [rooms, setRooms] = useState([])
@@ -115,6 +116,12 @@ export default function Forum() {
     setPage(1)
     fetchPosts(1)
   }, [selectedRoom, sort])
+
+  useEffect(() => {
+    if (selectedRoom) {
+      setCreateRoom(selectedRoom)
+    }
+  }, [selectedRoom])
 
   const fetchRooms = async () => {
     try {
@@ -188,7 +195,9 @@ export default function Forum() {
       setFormData({ title: '', content: '', links: '', linkUrl: '', pollOptions: ['', ''] })
       setShowCreate(false)
       setCreateType('text')
-      fetchPosts(page)
+      setPage(1)
+      fetchPosts(1)
+      showToast('Post created successfully!')
     } catch (err) {
       setCreateError(err.response?.data?.error || 'Unable to create post. Please try again.')
     }
@@ -223,7 +232,9 @@ export default function Forum() {
       })
       setCommentDrafts((current) => ({ ...current, [postId]: '' }))
       setReplyingTo(null)
-      fetchPosts(page)
+      setPage(1)
+      fetchPosts(1)
+      showToast('Comment added!')
     } catch (err) {
       console.error(err)
     }
@@ -497,7 +508,7 @@ export default function Forum() {
                         <button
                           type="button"
                           onClick={() => setFormData({ ...formData, pollOptions: [...formData.pollOptions, ''] })}
-                          className="text-[14px] font-medium text-[#1b61c9] hover:underline"
+                          className="text-[14px] font-medium text-[#1b61c9] hover:None"
                         >
                           + Add option
                         </button>
@@ -545,7 +556,7 @@ export default function Forum() {
             {loading ? (
               <div className="space-y-4">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="animate-pulse rounded-lg border border-[#dddddd] bg-[#ffffff] p-5">
+                  <div key={i} className="rounded-lg border border-[#dddddd] bg-[#ffffff] p-5 skeleton-shimmer">
                     <div className="mb-4 flex items-center gap-2">
                       <div className="h-7 w-7 rounded-full bg-[#e0e2e6]" />
                       <div className="h-3 w-24 rounded bg-[#e0e2e6]" />
@@ -736,7 +747,7 @@ function PostCard({
         </button>
         <button
           onClick={(e) => onUserClick?.(post.author, e)}
-          className="font-medium text-[#181d26] hover:underline"
+          className="font-medium text-[#181d26] hover:None"
         >
           {post.author?.name}
         </button>
@@ -781,7 +792,7 @@ function PostCard({
           href={post.linkUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mb-3 inline-flex items-center gap-2 text-[13px] font-medium text-[#1b61c9] hover:underline"
+          className="mb-3 inline-flex items-center gap-2 text-[13px] font-medium text-[#1b61c9] hover:None"
           onClick={(e) => e.stopPropagation()}
         >
           <Link2 size={14} />
@@ -908,7 +919,7 @@ function PostCard({
                   <div className="mb-0.5 flex items-center gap-2">
                     <button
                       onClick={(e) => onUserClick?.(comment.author, e)}
-                      className="text-[13px] font-medium text-[#181d26] hover:underline"
+                      className="text-[13px] font-medium text-[#181d26] hover:None"
                     >
                       {comment.author?.name}
                     </button>
@@ -971,7 +982,7 @@ function PostCard({
                             <div className="mb-0.5 flex items-center gap-2">
                               <button
                                 onClick={(e) => onUserClick?.(reply.author, e)}
-                                className="text-[12px] font-medium text-[#181d26] hover:underline"
+                                className="text-[12px] font-medium text-[#181d26] hover:None"
                               >
                                 {reply.author?.name}
                               </button>

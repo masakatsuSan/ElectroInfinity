@@ -7,7 +7,7 @@ const gallerySchema = new mongoose.Schema(
 
     imagePublicId: { type: String, default: '' },
 
-    category: { type: String, enum: ['lab', 'event', 'campus', 'other'], default: 'campus' },
+    category: { type: String, enum: ['lab', 'event', 'campus', 'workshop', 'other'], default: 'campus' },
     date: { type: Date, default: Date.now },
 
     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
@@ -18,5 +18,12 @@ const gallerySchema = new mongoose.Schema(
   },
   { timestamps: true }
 )
+
+// ── Indexes ────────────────────────────────────────────────────────────────
+// Public list is sorted by date/createdAt (routes/gallery.js) and can be
+// filtered by category or uploader; profile pages query by uploadedBy too.
+gallerySchema.index({ date: -1, createdAt: -1 })
+gallerySchema.index({ category: 1, date: -1 })
+gallerySchema.index({ uploadedBy: 1, createdAt: -1 })
 
 module.exports = mongoose.model('Gallery', gallerySchema)

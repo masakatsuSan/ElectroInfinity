@@ -6,7 +6,7 @@ import SEO from '../components/SEO'
 
 function SkeletonCard() {
   return (
-    <div className="bg-white border border-hairline rounded-lg p-5 animate-pulse">
+    <div className="bg-white border border-hairline rounded-lg p-5 skeleton-shimmer">
       <div className="h-3 w-20 bg-soft-stone rounded mb-3" />
       <div className="h-5 w-full bg-soft-stone rounded mb-2" />
       <div className="h-3 w-32 bg-soft-stone rounded" />
@@ -16,7 +16,7 @@ function SkeletonCard() {
 
 function StatSkeleton() {
   return (
-    <div className="bg-white border border-hairline rounded-lg p-6 animate-pulse">
+    <div className="bg-white border border-hairline rounded-lg p-6 skeleton-shimmer">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 bg-soft-stone rounded-lg" />
         <div className="h-3 w-24 bg-soft-stone rounded" />
@@ -75,8 +75,8 @@ export default function Dashboard() {
       <div className="min-h-screen bg-white text-ink pt-28 pb-24">
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
           <div className="mb-8">
-            <div className="h-8 w-40 bg-soft-stone rounded animate-pulse mb-2" />
-            <div className="h-4 w-64 bg-soft-stone rounded animate-pulse" />
+            <div className="h-8 w-40 bg-soft-stone rounded skeleton-shimmer mb-2" />
+            <div className="h-4 w-64 bg-soft-stone rounded skeleton-shimmer" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
             <StatSkeleton />

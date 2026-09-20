@@ -15,24 +15,24 @@ export default function Placements() {
         <SEO title="Placements & Career | Electro Infinity" />
         <div className="mx-auto max-w-[1280px] px-6 md:px-12">
           <div className="mb-14 max-w-3xl">
-            <div className="mb-2 h-4 w-24 rounded bg-surface-soft animate-pulse" />
-            <div className="mb-4 h-12 w-64 rounded bg-surface-soft animate-pulse" />
-            <div className="h-5 w-96 rounded bg-surface-soft animate-pulse" />
+            <div className="mb-2 h-4 w-24 rounded bg-surface-soft skeleton-shimmer" />
+            <div className="mb-4 h-12 w-64 rounded bg-surface-soft skeleton-shimmer" />
+            <div className="h-5 w-96 rounded bg-surface-soft skeleton-shimmer" />
           </div>
           <div className="mb-16 grid grid-cols-2 gap-6 sm:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="border border-hairline bg-white rounded-lg p-8 text-center animate-pulse">
+              <div key={i} className="border border-hairline bg-white rounded-lg p-8 text-center skeleton-shimmer">
                 <div className="mx-auto mb-2 h-12 w-16 rounded bg-surface-soft" />
                 <div className="mx-auto h-3 w-20 rounded bg-surface-soft" />
               </div>
             ))}
           </div>
           <div className="mb-16">
-            <div className="mb-2 h-4 w-28 rounded bg-surface-soft animate-pulse" />
-            <div className="mb-6 h-7 w-48 rounded bg-surface-soft animate-pulse" />
+            <div className="mb-2 h-4 w-28 rounded bg-surface-soft skeleton-shimmer" />
+            <div className="mb-6 h-7 w-48 rounded bg-surface-soft skeleton-shimmer" />
             <div className="border border-hairline bg-white rounded-lg overflow-hidden">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex items-center justify-between gap-4 p-5 animate-pulse md:p-6">
+                <div key={i} className="flex items-center justify-between gap-4 p-5 skeleton-shimmer md:p-6">
                   <div className="flex items-center gap-4">
                     <div className="rounded-lg bg-surface-soft h-12 w-12" />
                     <div>

@@ -160,7 +160,7 @@ export default function GlobalSearch({ onClose }) {
             {loading ? (
               <div className="flex flex-col gap-2 py-2">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="h-9 bg-white rounded animate-pulse border border-divider-soft" />
+                  <div key={i} className="h-9 bg-white rounded skeleton-shimmer border border-divider-soft" />
                 ))}
               </div>
             ) : (

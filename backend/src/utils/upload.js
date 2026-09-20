@@ -47,7 +47,7 @@ async function deleteFromCloudinary(publicId, resourceType = 'image') {
   try {
     await cloudinary.uploader.destroy(publicId, { resource_type: resourceType })
   } catch (err) {
-    console.error('Cloudinary delete error:', err.message)
+    console.error('Cloudinary delete operation failed')
   }
 }
 

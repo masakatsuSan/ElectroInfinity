@@ -38,7 +38,7 @@ export default function AdminCalendar() {
     mutationFn: (d) => createCalendarEntry(d),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['calendar'] })
-      setForm(BLANK); setEditing(null); setShowForm(false); setError('')
+      setForm(BLANK); setEditing(null); setShowForm(false)
     },
     onError: (err) => setError(err.response?.data?.error || 'Save failed'),
   })
@@ -47,7 +47,7 @@ export default function AdminCalendar() {
     mutationFn: ({ id, ...d }) => updateCalendarEntry(id, d),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['calendar'] })
-      setEditing(null); setShowForm(false); setError('')
+      setEditing(null); setShowForm(false)
     },
     onError: (err) => setError(err.response?.data?.error || 'Save failed'),
   })
@@ -68,11 +68,11 @@ export default function AdminCalendar() {
     }
   }
 
-  const openCreate = () => { setEditing(null); setForm(BLANK); setShowForm(true); setError('') }
+  const openCreate = () => { setEditing(null); setForm(BLANK); setShowForm(true) }
   const openEdit = (c) => {
     setEditing(c)
     setForm({ title: c.title || '', date: toDateTimeLocal(c.date), type: c.type || 'event', description: c.description || '', batch: c.batch || '' })
-    setShowForm(true); setError('')
+    setShowForm(true)
   }
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
@@ -119,7 +119,7 @@ export default function AdminCalendar() {
             <button onClick={handleSave} disabled={createMut.isPending || updateMut.isPending || !form.title || !form.date} className="button-primary">
               {createMut.isPending || updateMut.isPending ? 'Saving…' : (editing ? 'Update Entry' : 'Create Entry')}
             </button>
-            <button onClick={() => { setShowForm(false); setEditing(null); setForm(BLANK); setError('') }} className="button-pill-outline">Cancel</button>
+            <button onClick={() => { setShowForm(false); setEditing(null); setForm(BLANK) }} className="button-pill-outline">Cancel</button>
           </div>
         </div>
       )}

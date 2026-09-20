@@ -22,7 +22,7 @@ async function createActivity(userId, type, title, description = '', link = '', 
       metadata,
     })
   } catch (err) {
-    console.error('Activity creation error:', err.message)
+    console.error('Activity operation failed')
   }
 }
 

@@ -96,7 +96,7 @@ export default function Notifications() {
           {loading && notifications.length === 0 ? (
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex gap-3 p-4 rounded-md border border-hairline animate-pulse">
+                <div key={i} className="flex gap-3 p-4 rounded-md border border-hairline skeleton-shimmer">
                   <div className="w-10 h-10 rounded-md bg-soft-stone" />
                   <div className="flex-1 space-y-2">
                     <div className="h-3.5 w-3/4 bg-soft-stone rounded" />

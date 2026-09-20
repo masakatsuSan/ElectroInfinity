@@ -54,4 +54,13 @@ const resourceSchema = new mongoose.Schema(
   { timestamps: true }
 )
 
+// ── Indexes ────────────────────────────────────────────────────────────────
+// GET /api/resources is public and filtered by type / semester / subject, then
+// sorted newest-first (routes/resources.js). Without these the collection was
+// scanned end-to-end on every visit.
+resourceSchema.index({ createdAt: -1 })
+resourceSchema.index({ type: 1, semester: 1, subject: 1, createdAt: -1 })
+// Batch-scoped reads (visibility BATCH + batchId) used by folder/batch views.
+resourceSchema.index({ visibility: 1, batchId: 1, createdAt: -1 })
+
 module.exports = mongoose.model('Resource', resourceSchema)

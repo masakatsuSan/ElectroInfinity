@@ -2,15 +2,17 @@ import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getGallery, createGalleryPhoto, getGalleryImageUrl } from '../api/gallery'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import SEO from '../components/SEO'
 import { Plus, X, Upload } from 'lucide-react'
 import UploaderInfo from '../components/UploaderInfo'
 
-const CATEGORIES = ['All', 'Workshops', 'Events', 'Lab', 'Campus']
+const CATEGORIES = ['All', 'Workshop', 'Event', 'Lab', 'Campus', 'Other']
 const GALLERY_RATIOS = ['lg:aspect-[4/5]', 'lg:aspect-[3/4]', 'lg:aspect-video']
 
 export default function Gallery() {
   const { user } = useAuth()
+  const { showToast } = useToast()
   const qc = useQueryClient()
   const [active, setActive] = useState('All')
   const [selectedIndex, setSelectedIndex] = useState(null)
@@ -38,6 +40,7 @@ export default function Gallery() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['gallery'] })
       setShowUpload(false)
+      showToast('Photo uploaded successfully!')
     },
     onError: (err) => {
       alert(err.response?.data?.error || err.message || 'Upload failed')
@@ -103,7 +106,7 @@ export default function Gallery() {
         {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="aspect-video rounded-md border border-hairline bg-surface-soft animate-pulse" />
+              <div key={i} className="aspect-video rounded-md border border-hairline skeleton-shimmer" />
             ))}
           </div>
         ) : filtered.length > 0 ? (
@@ -160,7 +163,7 @@ export default function Gallery() {
 
         {selectedIndex !== null && (
           <div
-            className="fixed inset-0 z-50 bg-ink/88 flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-ink/70 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={(e) => {
               if (e.target === e.currentTarget) setSelectedIndex(null)
             }}
@@ -283,12 +286,13 @@ function UploadModal({ onClose, onSubmit, loading }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-mono text-[13px] font-medium text-muted mb-1.5">Category</label>
-              <select value={form.category} onChange={set('category')} className="input">
-                <option value="campus">Campus</option>
-                <option value="event">Event</option>
-                <option value="lab">Lab</option>
-                <option value="other">Other</option>
-              </select>
+               <select value={form.category} onChange={set('category')} className="input">
+                 <option value="campus">Campus</option>
+                 <option value="workshop">Workshop</option>
+                 <option value="event">Event</option>
+                 <option value="lab">Lab</option>
+                 <option value="other">Other</option>
+               </select>
             </div>
             <div>
               <label className="block font-mono text-[13px] font-medium text-muted mb-1.5">Date</label>

@@ -1,7 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { ChevronDown, Play } from 'lucide-react'
+import { ChevronDown, Play, ArrowRight } from 'lucide-react'
 import { getResources, downloadResource } from '../api/resources'
 import { getSubjects } from '../api/subjects'
 import { getYTLectures } from '../api/ytLectures'
@@ -101,8 +101,9 @@ export default function Resources() {
           <p className="font-sans text-[17px] text-body leading-relaxed">
           Curated repository of previous year questions, class notes, laboratory manuals, and official departmental announcements.
         </p>
-        <Link to="/resources/folders" className="inline-flex items-center gap-2 font-sans text-[13px] font-medium text-primary hover:underline mt-2">
+        <Link to="/resources/folders" className="inline-flex items-center gap-2 font-sans text-[13px] font-semibold text-primary border border-primary rounded-full px-4 py-2 hover:bg-primary hover:text-white transition-colors duration-200 mt-2">
           Browse by Folder (Series)
+          <ArrowRight size={14} />
         </Link>
       </div>
 
@@ -285,7 +286,7 @@ function ResourceCard({ resource: r, onView, onDownload }) {
           )}
         </div>
 
-        <h3 className="font-sans text-[16px] font-medium text-ink leading-snug group-hover:text-link transition-colors">
+        <h3 className="font-sans text-[16px] font-medium text-ink leading-snug truncate">
           {r.title}
         </h3>
         {r.subject && (
@@ -295,24 +296,13 @@ function ResourceCard({ resource: r, onView, onDownload }) {
       </div>
 
       <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-hairline text-[12px]">
-        {onView ? (
-          <button
-            type="button"
-            onClick={() => onView(r)}
-            className="button-primary !py-1 !px-3 !text-[12px] !bg-soft-stone !text-ink border border-hairline hover:bg-hairline"
-          >
-            View
-          </button>
-        ) : (
-          <a
-            href={r.fileUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="button-primary !py-1 !px-3 !text-[12px] !bg-soft-stone !text-ink border border-hairline hover:bg-hairline"
-          >
-            View
-          </a>
-        )}
+        <button
+          type="button"
+          onClick={() => onView ? onView(r) : null}
+          className="button-primary !py-1 !px-3 !text-[12px] !bg-soft-stone !text-ink border border-hairline hover:bg-hairline"
+        >
+          View
+        </button>
         {onDownload ? (
           <button
             type="button"
@@ -390,7 +380,7 @@ function SkeletonGrid() {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="border border-hairline bg-soft-stone/40 rounded-lg h-[160px] animate-pulse" />
+        <div key={i} className="border border-hairline bg-soft-stone/40 rounded-lg h-[160px] skeleton-shimmer" />
       ))}
     </div>
   )

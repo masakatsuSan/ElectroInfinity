@@ -9,15 +9,16 @@ import { Hash, Code2, Megaphone, MessageCircle } from 'lucide-react'
 import api from '../../api/axios'
 
 export default function AdminDashboard() {
-  const { data: aData } = useQuery({ queryKey: ['announcements'], queryFn: () => getAnnouncements({ limit: 100 }).then(r => r.data) })
-  const { data: sData } = useQuery({ queryKey: ['students'],  queryFn: () => getStudents().then(r => r.data) })
-  const { data: rData } = useQuery({ queryKey: ['resources'], queryFn: () => getResources().then(r => r.data) })
-  const { data: dData } = useQuery({ queryKey: ['deadlines'], queryFn: () => getDeadlines().then(r => r.data) })
-  const { data: fData } = useQuery({ queryKey: ['faculty'], queryFn: () => getFaculty().then(r => r.data) })
+  const { data: aData } = useQuery({ queryKey: ['announcements'], queryFn: () => getAnnouncements({ limit: 100 }).then(r => r.data), onError: () => console.error('Failed to load announcements') })
+  const { data: sData } = useQuery({ queryKey: ['students'],  queryFn: () => getStudents().then(r => r.data), onError: () => console.error('Failed to load students') })
+  const { data: rData } = useQuery({ queryKey: ['resources'], queryFn: () => getResources().then(r => r.data), onError: () => console.error('Failed to load resources') })
+  const { data: dData } = useQuery({ queryKey: ['deadlines'], queryFn: () => getDeadlines().then(r => r.data), onError: () => console.error('Failed to load deadlines') })
+  const { data: fData } = useQuery({ queryKey: ['faculty'], queryFn: () => getFaculty().then(r => r.data), onError: () => console.error('Failed to load faculty') })
   const { data: adminStats } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: () => api.get('/admin/stats').then(r => r.data),
     staleTime: 2 * 60 * 1000,
+    onError: () => console.error('Failed to load dashboard stats'),
   })
 
   const stats = [

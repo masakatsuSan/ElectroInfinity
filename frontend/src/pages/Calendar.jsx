@@ -153,7 +153,7 @@ export default function Calendar() {
         {isLoading ? (
           <div className="space-y-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-28 bg-black/5 rounded-2xl animate-pulse" />
+              <div key={i} className="h-28 skeleton-shimmer rounded-2xl" />
             ))}
           </div>
         ) : entries.length > 0 ? (

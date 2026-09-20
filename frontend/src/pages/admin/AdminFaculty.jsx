@@ -24,7 +24,7 @@ export default function AdminFaculty() {
     mutationFn: (payload) => editing ? updateFaculty(editing._id, payload) : createFaculty(payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['faculty'] })
-      setForm(BLANK); setEditing(null); setShowForm(false); setError('')
+      setForm(BLANK); setEditing(null); setShowForm(false)
     },
     onError: (err) => setError(err.response?.data?.error || 'Save failed'),
   })
@@ -34,11 +34,11 @@ export default function AdminFaculty() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['faculty'] }),
   })
 
-  const openCreate = () => { setEditing(null); setForm(BLANK); setShowForm(true); setError('') }
+  const openCreate = () => { setEditing(null); setForm(BLANK); setShowForm(true) }
   const openEdit = (f) => {
     setEditing(f)
     setForm({ name: f.name || '', designation: f.designation || '', qualification: f.qualification || '', specialization: f.specialization || '', email: f.email || '', photo: f.photo || '', isHOD: !!f.isHOD })
-    setShowForm(true); setError('')
+    setShowForm(true)
   }
 
   const handleSave = () => {
@@ -96,12 +96,12 @@ export default function AdminFaculty() {
           </div>
           {error && <p className="font-[Inter,system-ui,sans-serif] text-red-500 text-[14px] font-medium mt-4">{error}</p>}
           <button onClick={handleSave} disabled={saveMut.isPending || !form.name} className="button-primary mt-6">
-            {saveMut.isPending ? 'Saving…' : (editing ? 'Update Faculty' : 'Add Faculty')}
+            {saveMut.isPending ? 'Savingï¿½' : (editing ? 'Update Faculty' : 'Add Faculty')}
           </button>
         </div>
       )}
 
-      {isLoading ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">Loading faculty…</p>
+      {isLoading ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">Loading facultyï¿½</p>
         : faculty.length === 0 ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">No faculty profiles yet. Add one above.</p>
         : (
           <div className="border border-divider-soft bg-white rounded-xl overflow-hidden shadow-sm">

@@ -54,17 +54,17 @@ function ProfileGridLightbox({ item, onClose }) {
             <p className="font-mono text-[12px] text-gray-500">{dateLabel}</p>
             <div className="flex items-center gap-3">
               {item.kind === 'project' && item.meta?.githubLink && (
-                <a href={item.meta.githubLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] font-semibold text-ink hover:underline">
+                <a href={item.meta.githubLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] font-semibold text-ink hover:None">
                   <GitBranch size={12} /> GitHub
                 </a>
               )}
               {item.kind === 'project' && item.meta?.demoLink && (
-                <a href={item.meta.demoLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] font-semibold text-ink hover:underline">
+                <a href={item.meta.demoLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] font-semibold text-ink hover:None">
                   <ExternalLink size={12} /> Demo
                 </a>
               )}
               {item.kind === 'achievement' && item.certificatePdf && (
-                <a href={item.certificatePdf} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] font-semibold text-ink hover:underline">
+                <a href={item.certificatePdf} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] font-semibold text-ink hover:None">
                   <ExternalLink size={12} /> View Certificate
                 </a>
               )}

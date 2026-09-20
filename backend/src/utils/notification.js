@@ -59,7 +59,7 @@ async function createNotification({
 
     return populated
   } catch (err) {
-    console.error('Notification creation error:', err.message)
+    console.error('Notification operation failed')
     return null
   }
 }
@@ -106,7 +106,7 @@ async function createNotificationBulk({
 
     return notifications.length
   } catch (err) {
-    console.error('Bulk notification creation error:', err.message)
+    console.error('Bulk notification operation failed')
     return 0
   }
 }
@@ -131,7 +131,7 @@ async function markAsRead(notificationId, userId) {
     )
     return notification
   } catch (err) {
-    console.error('Mark notification read error:', err.message)
+    console.error('Notification read operation failed')
     return null
   }
 }
@@ -143,7 +143,7 @@ async function markAllAsRead(userId) {
       { isRead: true }
     )
   } catch (err) {
-    console.error('Mark all notifications read error:', err.message)
+    console.error('Notification read-all operation failed')
   }
 }
 

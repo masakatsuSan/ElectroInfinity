@@ -16,7 +16,7 @@ export default function AdminContact() {
 
   const updateMut = useMutation({
     mutationFn: ({ id, ...d }) => updateContact(id, d),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['contacts'] }); setError('') },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['contacts'] }) },
     onError: (err) => setError(err.response?.data?.error || 'Update failed'),
   })
 
@@ -50,7 +50,7 @@ export default function AdminContact() {
 
       {error && <p className="font-[Inter,system-ui,sans-serif] text-red-500 text-[14px] font-medium mb-4">{error}</p>}
 
-      {isLoading ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">Loading messages…</p>
+      {isLoading ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">Loading messagesï¿½</p>
         : contacts.length === 0 ? <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">No messages in this view.</p>
         : (
           <div className="border border-divider-soft bg-white rounded-xl overflow-hidden shadow-sm divide-y divide-hairline">
@@ -65,7 +65,7 @@ export default function AdminContact() {
                   {c.subject && <p className="font-[Inter,system-ui,sans-serif] text-[13px] font-semibold text-ink mt-1">{c.subject}</p>}
                   <p className="font-[Inter,system-ui,sans-serif] text-[14px] text-ink-muted-80 mt-2 leading-relaxed line-clamp-3">{c.message.replace(/\n/g, ' ')}</p>
                   <div className="flex items-center gap-4 mt-3 text-[12px] text-slate">
-                    <span>• {new Date(c.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    <span>ï¿½ {new Date(c.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                     {c.isReplied && <span className="text-deep-green font-semibold">Replied</span>}
                   </div>
                 </div>

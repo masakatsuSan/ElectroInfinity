@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { updateMyProfile, uploadCoverPhoto, uploadProfilePhoto } from '../../api/profile'
 import { getMe } from '../../api/auth'
 import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
 import ProfileHeader from '../../components/ProfileHeader'
 import { Camera, Save, User, Settings } from 'lucide-react'
 
@@ -17,6 +18,7 @@ const TABS = [
 
 export default function AdminProfile() {
   const { user, setUser } = useAuth()
+  const { showToast } = useToast()
   const navigate = useNavigate()
   const qc = useQueryClient()
   const [activeTab, setActiveTab] = useState('general')
@@ -88,6 +90,7 @@ export default function AdminProfile() {
         localStorage.setItem('ei_user', JSON.stringify(updated))
         setUser(updated)
       }
+      showToast('Profile saved successfully!')
     },
     onError: () => setSaving(false),
   })
@@ -135,6 +138,7 @@ export default function AdminProfile() {
     try {
       const res = await uploadCoverPhoto(fd)
       setCoverPreview(res.data.data.coverPhoto)
+      showToast('Cover photo updated successfully!')
     } catch (err) {
       console.error(err)
     }
@@ -148,6 +152,7 @@ export default function AdminProfile() {
     try {
       const res = await uploadProfilePhoto(fd)
       setPhotoPreview(res.data.data.photo)
+      showToast('Profile photo updated successfully!')
     } catch (err) {
       console.error(err)
     }

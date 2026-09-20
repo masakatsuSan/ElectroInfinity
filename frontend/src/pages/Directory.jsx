@@ -78,7 +78,7 @@ export default function Directory() {
       {isLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="p-5 bg-white border border-hairline rounded-2xl animate-pulse">
+            <div key={i} className="p-5 bg-white border border-hairline rounded-2xl skeleton-shimmer">
               <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-soft-stone" />
               <div className="h-3 mx-auto mb-2 rounded w-24 bg-soft-stone" />
               <div className="h-2 mx-auto rounded w-16 bg-soft-stone" />

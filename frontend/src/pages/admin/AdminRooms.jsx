@@ -21,7 +21,7 @@ export default function AdminRooms() {
     mutationFn: (d) => createRoom(d),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['rooms'] })
-      setForm(BLANK); setEditing(null); setShowForm(false); setError('')
+      setForm(BLANK); setEditing(null); setShowForm(false)
     },
     onError: (err) => setError(err.response?.data?.error || 'Save failed'),
   })
@@ -30,7 +30,7 @@ export default function AdminRooms() {
     mutationFn: ({ id, ...d }) => updateRoom(id, d),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['rooms'] })
-      setEditing(null); setShowForm(false); setError('')
+      setEditing(null); setShowForm(false)
     },
     onError: (err) => setError(err.response?.data?.error || 'Save failed'),
   })
@@ -51,11 +51,11 @@ export default function AdminRooms() {
     }
   }
 
-  const openCreate = () => { setEditing(null); setForm(BLANK); setShowForm(true); setError('') }
+  const openCreate = () => { setEditing(null); setForm(BLANK); setShowForm(true) }
   const openEdit = (r) => {
     setEditing(r)
     setForm({ name: r.name || '', description: r.description || '', icon: r.icon || '', color: r.color || '#4F46E5', isPopular: !!r.isPopular, isActive: r.isActive !== false })
-    setShowForm(true); setError('')
+    setShowForm(true)
   }
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
@@ -109,7 +109,7 @@ export default function AdminRooms() {
             <button onClick={handleSave} disabled={createMut.isPending || updateMut.isPending || !form.name} className="button-primary">
               {createMut.isPending || updateMut.isPending ? 'Saving…' : (editing ? 'Update Room' : 'Create Room')}
             </button>
-            <button onClick={() => { setShowForm(false); setEditing(null); setForm(BLANK); setError('') }} className="button-pill-outline">Cancel</button>
+            <button onClick={() => { setShowForm(false); setEditing(null); setForm(BLANK) }} className="button-pill-outline">Cancel</button>
           </div>
         </div>
       )}

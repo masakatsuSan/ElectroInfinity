@@ -62,7 +62,7 @@ function AchCard({ item, badgeText }) {
 
 function SkeletonAchCard() {
   return (
-    <div className="flex flex-col overflow-hidden border bg-white border-hairline rounded-md animate-pulse">
+    <div className="flex flex-col overflow-hidden border bg-white border-hairline rounded-md skeleton-shimmer">
       <div className="h-48 sm:h-56 bg-surface-soft" />
       <div className="flex flex-col flex-grow p-5">
         <div className="h-5 w-3/4 bg-surface-soft rounded-sm mb-2" />
@@ -78,7 +78,7 @@ function SkeletonSection() {
   return (
     <div className="mb-24">
       <div className="flex items-center gap-4 mb-8">
-        <div className="h-7 w-48 bg-surface-soft rounded-sm animate-pulse" />
+        <div className="h-7 w-48 bg-surface-soft rounded-sm skeleton-shimmer" />
         <div className="flex-grow mt-2 border-t border-hairline" />
       </div>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -102,9 +102,9 @@ export default function Achievements() {
       <div className="min-h-screen pb-24 bg-white pt-24">
         <div className="px-6 mx-auto max-w-[1280px]">
           <div className="max-w-2xl mx-auto mb-16 text-center">
-            <div className="h-4 w-40 bg-surface-soft rounded-sm animate-pulse mx-auto mb-3" />
-            <div className="h-12 w-64 bg-surface-soft rounded-sm animate-pulse mx-auto mb-4" />
-            <div className="h-5 w-96 bg-surface-soft rounded-sm animate-pulse mx-auto" />
+            <div className="h-4 w-40 bg-surface-soft rounded-sm skeleton-shimmer mx-auto mb-3" />
+            <div className="h-12 w-64 bg-surface-soft rounded-sm skeleton-shimmer mx-auto mb-4" />
+            <div className="h-5 w-96 bg-surface-soft rounded-sm skeleton-shimmer mx-auto" />
           </div>
           <SkeletonSection />
           <SkeletonSection />

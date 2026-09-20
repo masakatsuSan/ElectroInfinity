@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAchievements, createAchievement, updateAchievement, deleteAchievement } from '../../api/achievements'
 import { Check, X } from 'lucide-react'
+import { useToast } from '../../context/ToastContext'
 
 const CATS = [
   { value: 'student', label: 'Student Achievements' },
@@ -20,12 +21,13 @@ function toDateTimeLocal(iso) {
 
 export default function AdminAchievements() {
   const qc = useQueryClient()
+  const { showToast } = useToast()
   const [form, setForm] = useState(BLANK)
   const [editing, setEditing] = useState(null)
   const [showForm, setShowForm] = useState(false)
+  const [error, setError] = useState('')
   const [file, setFile] = useState(null)
   const [preview, setPreview] = useState('')
-  const [error, setError] = useState('')
 
   const { data, isLoading } = useQuery({
     queryKey: ['achievements'],
@@ -36,7 +38,8 @@ export default function AdminAchievements() {
     mutationFn: (fd) => editing ? updateAchievement(editing._id, fd) : createAchievement(fd),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['achievements'] })
-      setForm(BLANK); setEditing(null); setShowForm(false); setFile(null); setPreview(''); setError('')
+      setForm(BLANK); setEditing(null); setShowForm(false); setFile(null); setPreview('')
+      showToast(editing ? 'Achievement updated successfully!' : 'Achievement created successfully!')
     },
     onError: (err) => setError(err.response?.data?.error || 'Save failed'),
   })

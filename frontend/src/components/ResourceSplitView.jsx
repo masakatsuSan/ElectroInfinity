@@ -1,7 +1,4 @@
-import { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
-import { getPreviewUrl, fetchPreviewBlobUrl } from '../api/resources'
-
+import { Component, useEffect, lazy, Suspense, useState, useRef } from 'react'
 export default function ResourceSplitView({ selectedResource, resources, onSelectResource, onClose }) {
   if (!selectedResource) return null
 
@@ -9,30 +6,50 @@ export default function ResourceSplitView({ selectedResource, resources, onSelec
   const isImage = /\.(png|jpe?g|webp|gif|svg)($|[?#])/i.test(selectedResource.fileUrl || '')
   const [loading, setLoading] = useState(true)
   const [previewUrl, setPreviewUrl] = useState(null)
+  const [previewError, setPreviewError] = useState('')
 
   useEffect(() => {
+    let active = true
     let objectUrl = null
+
     setLoading(true)
+    setPreviewUrl(null)
+    setPreviewError('')
+
+    if (isPdf) {
+      if (active) {
+        setPreviewUrl(getPreviewUrl(selectedResource._id))
+        setLoading(false)
+      }
+      return
+    }
+
     fetchPreviewBlobUrl(selectedResource._id)
       .then(url => {
+        if (!active) {
+          URL.revokeObjectURL(url)
+          return
+        }
         objectUrl = url
         setPreviewUrl(url)
       })
-      .catch(() => {
-        setPreviewUrl(getPreviewUrl(selectedResource._id))
+      .catch(error => {
+        if (!active) return
+        setPreviewError(
+          error.response?.status === 404
+            ? 'This file is no longer available.'
+            : 'Preview could not be loaded.'
+        )
       })
       .finally(() => {
-        setLoading(false)
+        if (active) setLoading(false)
       })
+
     return () => {
+      active = false
       if (objectUrl) URL.revokeObjectURL(objectUrl)
-      const onKey = (e) => {
-        if (e.key === 'Escape') onClose()
-      }
-      window.addEventListener('keydown', onKey)
-      window.removeEventListener('keydown', onKey)
     }
-  }, [selectedResource._id, onClose])
+  }, [selectedResource._id])
 
   useEffect(() => {
     const onKey = (e) => {
@@ -45,9 +62,9 @@ export default function ResourceSplitView({ selectedResource, resources, onSelec
   const otherResources = resources.filter(r => r._id !== selectedResource._id)
 
   return (
-    <div className="flex flex-1 h-[calc(100vh-12rem)] overflow-hidden">
-      {/* Left Panel — PDF/Image Viewer */}
-      <div className="flex-[3] flex flex-col bg-white border-r border-hairline overflow-hidden">
+    <div className="flex h-full w-full overflow-hidden">
+      {/* Left Panel — PDF/Image Viewer (50%) */}
+      <div className="flex-1 flex flex-col bg-white border-r border-hairline overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-hairline shrink-0">
           <div className="min-w-0">
             <h3 className="font-display text-[18px] font-semibold text-ink truncate">
@@ -73,14 +90,24 @@ export default function ResourceSplitView({ selectedResource, resources, onSelec
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           )}
+          {previewError && !loading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center p-6 bg-soft-stone/40">
+              <div className="max-w-sm rounded-xl border border-hairline bg-white p-6 text-center shadow-sm">
+                <p className="font-sans text-[15px] font-medium text-ink">Preview unavailable</p>
+                <p className="mt-2 font-sans text-[13px] text-body-muted">{previewError}</p>
+              </div>
+            </div>
+          )}
           {previewUrl && isPdf ? (
-            <iframe
-              src={previewUrl}
-              title={selectedResource.title || 'Preview'}
-              className="w-full h-full"
-              onLoad={() => setLoading(false)}
-              style={{ visibility: loading ? 'hidden' : 'visible' }}
-            />
+            <Suspense
+              fallback={
+                <div className="absolute inset-0 flex items-center justify-center bg-soft-stone/40">
+                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              }
+            >
+              <PdfViewer key={previewUrl} file={previewUrl} />
+            </Suspense>
           ) : previewUrl && isImage ? (
             <img
               src={previewUrl}
@@ -93,15 +120,15 @@ export default function ResourceSplitView({ selectedResource, resources, onSelec
           ) : !previewUrl && !loading ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 p-6 text-center">
               <p className="font-sans text-[15px] text-body-muted">
-                Preview is not available for this file type.
+                {previewError || 'Preview is not available for this file type.'}
               </p>
             </div>
           ) : null}
         </div>
       </div>
 
-      {/* Right Panel — Other Resources Sidebar */}
-      <div className="w-72 flex flex-col bg-white overflow-hidden shrink-0">
+      {/* Right Panel — Other Resources Sidebar (50%) */}
+      <div className="flex-1 flex flex-col bg-white overflow-hidden shrink-0 min-w-0">
         <div className="px-4 py-3 border-b border-hairline shrink-0">
           <span className="font-mono text-[11px] uppercase tracking-wider text-muted">
             Other Resources
@@ -128,7 +155,7 @@ export default function ResourceSplitView({ selectedResource, resources, onSelec
                     </span>
                   )}
                 </div>
-                <h4 className="font-sans text-[14px] font-medium text-ink leading-snug group-hover:text-link transition-colors line-clamp-2">
+                <h4 className="font-sans text-[14px] font-medium text-ink leading-snug line-clamp-2">
                   {item.title}
                 </h4>
                 {item.subject && (

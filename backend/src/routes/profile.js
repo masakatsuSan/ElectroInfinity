@@ -128,7 +128,7 @@ router.get('/search', optionalAuth, async (req, res) => {
       },
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -188,7 +188,7 @@ router.get('/trending', optionalAuth, async (req, res) => {
 
     res.json({ success: true, data: formatted })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -262,7 +262,7 @@ router.get('/suggested', optionalAuth, async (req, res) => {
 
     res.json({ success: true, data: formatted })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -272,7 +272,7 @@ router.get('/badges', async (req, res) => {
     const badges = await Badge.find().sort({ createdAt: -1 })
     res.json({ success: true, data: badges })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -282,7 +282,7 @@ router.post('/badges', protect, guard('super_admin', 'admin'), async (req, res) 
     const badge = await Badge.create(req.body)
     res.status(201).json({ success: true, data: badge })
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message })
+    res.status(400).json({ success: false, error: 'Request could not be completed.' })
   }
 })
 
@@ -295,7 +295,7 @@ router.get('/me/completeness', protect, async (req, res) => {
     const { percentage, missing } = computeCompleteness(user)
     res.json({ success: true, data: { percentage, missing } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -354,7 +354,7 @@ router.get('/me/uploads', protect, async (req, res) => {
 
     res.json({ success: true, data: all })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -377,7 +377,7 @@ router.get('/me/views', protect, async (req, res) => {
 
     res.json({ success: true, data: formatted })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -423,7 +423,7 @@ router.post('/:id/view', protect, async (req, res) => {
 
     res.json({ success: true, data: { message: 'Profile view recorded' } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -465,7 +465,7 @@ department: user.profile?.department || '',
       },
     })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -496,7 +496,7 @@ router.post('/:userId/badges', protect, async (req, res) => {
 
     res.json({ success: true, data: targetUser })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -510,10 +510,19 @@ router.get('/:id', optionalAuth, async (req, res) => {
     const viewer = req.user || null
     const isOwn = viewer && viewer._id.toString() === user._id.toString()
 
-    const [projectCount, postCount, resourceCount] = await Promise.all([
+    const [projectCount, postCount, resourceCount, photosCount, likesReceived] = await Promise.all([
       Project.countDocuments({ author: user._id, ...(isOwn ? {} : { isApproved: true }) }),
       ForumPost.countDocuments({ author: user._id }),
       Resource.countDocuments({ uploadedBy: user._id }),
+      Gallery.countDocuments({ uploadedBy: user._id }),
+      Promise.all([
+        Project.find({ author: user._id }).select('likes'),
+        ForumPost.find({ author: user._id }).select('upvotes'),
+      ]).then(([projects, posts]) => {
+        const projectLikes = projects.reduce((sum, p) => sum + (p.likes?.length || 0), 0)
+        const postLikes = posts.reduce((sum, p) => sum + (p.upvotes?.length || 0), 0)
+        return projectLikes + postLikes
+      }),
     ])
 
     const profile = {
@@ -539,9 +548,14 @@ router.get('/:id', optionalAuth, async (req, res) => {
       collegeEmail: user.collegeEmail || '',
       personalEmail: user.personalEmail || '',
       phone: user.phone || '',
+      status: user.status || { text: '', expiresAt: null },
+      highlights: user.highlights || [],
+      featuredProject: user.featuredProject || null,
       projects: projectCount,
       forumPosts: postCount,
       resourcesUploaded: resourceCount,
+      photosCount,
+      likesReceived,
       isOwn,
     }
 
@@ -602,7 +616,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 
     res.json({ success: true, data: profile })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -640,7 +654,7 @@ router.patch('/me', protect, async (req, res) => {
     await createActivity(req.user._id, 'profile_updated', 'Updated profile', '', `/profile/${user._id}`)
     res.json({ success: true, data: user.toObject() })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -671,7 +685,7 @@ router.post('/me/cover', protect, upload.single('cover'), async (req, res) => {
 
     res.json({ success: true, data: { coverPhoto: result.url, coverPhotoPublicId: result.publicId } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -695,7 +709,117 @@ router.post('/me/photo', protect, upload.single('photo'), async (req, res) => {
 
     res.json({ success: true, data: { photo: result.url } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
+  }
+})
+
+// ── POST /api/profile/me/status ────────────────────────────────────────────
+// Set a custom status text (visible on profile)
+router.post('/me/status', protect, async (req, res) => {
+  try {
+    const { text } = req.body
+    if (text && text.length > 100) {
+      return res.status(400).json({ success: false, error: 'Status text too long (max 100 chars)' })
+    }
+
+    const user = await User.findById(req.user._id)
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
+
+    user.status = { text: text || '', expiresAt: null }
+    await user.save()
+    await createActivity(req.user._id, 'status_updated', 'Updated status', '', `/profile/${user._id}`)
+
+    res.json({ success: true, data: { text: user.status.text, expiresAt: user.status.expiresAt } })
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
+  }
+})
+
+// ── DELETE /api/profile/me/status ───────────────────────────────────────────
+// Clear the custom status text
+router.delete('/me/status', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id)
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
+
+    user.status = { text: '', expiresAt: null }
+    await user.save()
+
+    res.json({ success: true, data: { text: '', expiresAt: null } })
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
+  }
+})
+
+// ── POST /api/profile/me/highlight ──────────────────────────────────────────
+// Create a profile highlight section
+router.post('/me/highlight', protect, async (req, res) => {
+  try {
+    const { title, coverImage, items } = req.body
+    if (!title || title.length > 30) {
+      return res.status(400).json({ success: false, error: 'Title is required (max 30 chars)' })
+    }
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, error: 'At least one highlight item is required' })
+    }
+
+    const user = await User.findById(req.user._id)
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
+
+    user.highlights = user.highlights || []
+    const newHighlight = { title, coverImage: coverImage || '', items }
+    user.highlights.push(newHighlight)
+    await user.save()
+
+    res.status(201).json({ success: true, data: user.highlights[user.highlights.length - 1] })
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
+  }
+})
+
+// ── DELETE /api/profile/me/highlight/:id ──────────────────────────────────────
+// Delete a profile highlight section
+router.delete('/me/highlight/:id', protect, async (req, res) => {
+  try {
+    const { id } = req.params
+    const user = await User.findById(req.user._id)
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
+
+    user.highlights = (user.highlights || []).filter(h => h._id.toString() !== id)
+    await user.save()
+
+    res.json({ success: true, data: user.highlights })
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
+  }
+})
+
+// ── PATCH /api/profile/me/featured ───────────────────────────────────────────
+// Set or clear the featured project on profile
+router.patch('/me/featured', protect, async (req, res) => {
+  try {
+    const { projectId } = req.body
+
+    const user = await User.findById(req.user._id)
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
+
+    if (!projectId) {
+      user.featuredProject = null
+    } else {
+      const project = await Project.findById(projectId)
+      if (!project) return res.status(404).json({ success: false, error: 'Project not found' })
+      if (project.author.toString() !== user._id.toString()) {
+        return res.status(403).json({ success: false, error: 'Not authorized to feature this project' })
+      }
+      user.featuredProject = projectId
+    }
+
+    await user.save()
+    await createActivity(req.user._id, 'featured_project', 'Updated featured project', '', `/profile/${user._id}`)
+
+    res.json({ success: true, data: { featuredProject: user.featuredProject } })
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

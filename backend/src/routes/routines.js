@@ -13,7 +13,7 @@ router.get('/', protect, async (req, res) => {  try {
     const routine = await Routine.findOne({ batch })
     res.json({ data: routine ? routine.schedule : [] })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'An internal server error occurred' })
   }
 })
 
@@ -37,7 +37,7 @@ router.put('/:batch', protect, guard('admin', 'super_admin'), async (req, res) =
     
     res.json({ data: routine })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'An internal server error occurred' })
   }
 })
 

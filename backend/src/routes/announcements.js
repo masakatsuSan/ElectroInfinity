@@ -104,7 +104,7 @@ router.get('/faculty/mine', protect, guard('faculty'), async (req, res) => {
       .sort({ createdAt: -1 });
     res.json({ success: true, count: announcements.length, data: announcements });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -140,7 +140,7 @@ router.get('/', optionalAuth, async (req, res) => {
       data: announcements
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -203,7 +203,7 @@ router.post('/', protect, guard('cr', 'faculty', 'admin', 'super_admin'), async 
 
     res.status(201).json({ success: true, data: announcement });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, error: 'Request could not be completed.' });
   }
 });
 
@@ -236,7 +236,7 @@ router.patch('/:id', protect, guard('cr', 'faculty', 'admin', 'super_admin'), as
 
     res.json({ success: true, data: announcement });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, error: 'Request could not be completed.' });
   }
 });
 
@@ -257,7 +257,7 @@ router.delete('/:id', protect, guard('cr', 'faculty', 'admin', 'super_admin'), a
     await announcement.deleteOne();
     res.json({ success: true, data: {} });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -279,7 +279,7 @@ router.put('/:id/read', protect, async (req, res) => {
 
     res.json({ success: true, data: announcement });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -320,7 +320,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 
     res.json({ success: true, data: announcement });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 

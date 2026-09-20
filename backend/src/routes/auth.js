@@ -24,11 +24,8 @@ async function sendEmail({ to, subject, html }) {
   const apiKey = process.env.BREVO_API_KEY?.trim();
   
   if (!apiKey) {
-    console.error('❌ BREVO_API_KEY is missing or empty');
-    throw new Error("BREVO_API_KEY is not defined in environment variables");
+    throw new Error('Email service unavailable')
   }
-
-  console.log('🔍 Debug: Using Brevo API Key (first 20 chars):', apiKey.substring(0, 20));
   
   const payload = {
     sender: { 
@@ -41,21 +38,14 @@ async function sendEmail({ to, subject, html }) {
   }
 
   try {
-    console.log('📧 Sending email to:', to);
     const response = await axios.post('https://api.brevo.com/v3/smtp/email', payload, {
       headers: {
         'api-key': apiKey,
         'Content-Type': 'application/json',
       }
     });
-    console.log('✅ Email sent successfully via Brevo API. ID: ' + response.data?.messageId)
-  } catch (error) {
-    console.error('❌ Error sending email via Brevo API:');
-    console.error('   Status:', error.response?.status);
-    console.error('   Message:', error.response?.data?.message || error.message);
-    console.error('   Error Code:', error.response?.data?.code);
-    console.error('   Full Response:', error.response?.data);
-    throw new Error(error.response?.data?.message || error.message)
+  } catch {
+    throw new Error('Email service unavailable')
   }
 }
 
@@ -84,7 +74,7 @@ router.get('/check-roll/:rollNo', async (req, res) => {
 
     res.json({ success: true, name: user.name, batch: user.batch })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -125,7 +115,7 @@ router.post('/verify-activation-otp', async (req, res) => {
 
     res.json({ success: true, activationToken })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -176,7 +166,7 @@ router.post('/activate', async (req, res) => {
 
     res.json({ success: true, message: 'Account activated!', token, user })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -228,7 +218,7 @@ router.post('/faculty/activate', async (req, res) => {
 
     res.json({ success: true, message: 'Account activated!', token, user })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -289,7 +279,7 @@ router.get('/check-faculty/:email', async (req, res) => {
 
     res.json({ success: true, name: user.name, maskedEmail })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -333,7 +323,7 @@ router.post('/faculty/verify-otp', async (req, res) => {
 
     res.json({ success: true, activationToken })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -416,7 +406,6 @@ router.post('/forgot-password', async (req, res) => {
       maskedEmail,
     })
   } catch (err) {
-    console.error('OTP email error:', err.message)
     res.status(500).json({ success: false, error: 'Failed to send OTP. Try again.' })
   }
 })
@@ -471,7 +460,7 @@ router.post('/verify-otp', async (req, res) => {
 
     res.json({ success: true, resetToken })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -509,7 +498,55 @@ router.post('/reset-password', async (req, res) => {
 
     res.json({ success: true, message: 'Password reset successfully! You can now log in.' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
+  }
+})
+
+// ── POST /api/auth/register ─────────────────────────────────────────────────
+// Student self-registration — creates a pending account awaiting HOD verification
+// Body: { name, email, password, rollNumber, regNumber, batch }
+router.post('/register', async (req, res) => {
+  try {
+    const { name, email, password, rollNumber, regNumber, batch } = req.body
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, error: 'Name, email, and password required' })
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' })
+    }
+
+    const existing = await User.findOne({ email: email.toLowerCase() })
+    if (existing) {
+      return res.status(409).json({ success: false, error: 'An account with this email already exists' })
+    }
+
+    const user = await User.create({
+      name: name.trim(),
+      email: email.toLowerCase(),
+      password,
+      rollNumber: rollNumber ? rollNumber.toUpperCase() : '',
+      regNumber: regNumber || '',
+      batch: batch || '',
+      role: 'student',
+      isVerified: false,
+      isActivated: false,
+    })
+
+    res.status(201).json({
+      success: true,
+      message: 'Registration submitted. Your account is pending HOD approval.',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        rollNumber: user.rollNumber,
+        batch: user.batch,
+        isVerified: user.isVerified,
+      },
+    })
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -546,7 +583,7 @@ router.post('/login', async (req, res) => {
     user.password = undefined
     res.json({ success: true, token, user })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -576,7 +613,7 @@ router.post('/change-password', protect, async (req, res) => {
     await user.save()
     res.json({ success: true, message: 'Password changed successfully' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -604,7 +641,7 @@ router.patch('/me', protect, async (req, res) => {
     await createActivity(req.user._id, 'profile_updated', 'Updated profile', '', `/profile/${user._id}`)
     res.json({ success: true, user: user.toObject() })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

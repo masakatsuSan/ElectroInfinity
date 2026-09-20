@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { motion } from 'framer-motion'
 import { EASE, DURATION } from '../utils/motion'
 
 const COLORS = {
@@ -472,11 +471,7 @@ export default function Login() {
           </div>
 
           <div className="flex min-h-[640px] flex-col justify-center px-6 py-10 md:px-12 md:py-14">
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            >
+            <div>
               <h1 style={{ margin: 0, color: COLORS.ink, fontFamily: DISPLAY_FONT, fontSize: 28, fontWeight: 400, lineHeight: 1.2, letterSpacing: 0 }}>
                 Sign in
               </h1>
@@ -587,7 +582,7 @@ export default function Login() {
                   {tab === 'student' ? 'Activate now' : 'Activate account'}
                 </Link>
               </p>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

@@ -47,7 +47,7 @@ router.get('/', optionalAuth, async (req, res) => {
       data: entries
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -64,7 +64,7 @@ router.get('/:id', async (req, res) => {
     }
     res.json({ success: true, data: entry });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -103,7 +103,7 @@ router.post('/', protect, guard('cr', 'admin', 'super_admin', 'faculty'), async 
 
     res.status(201).json({ success: true, data: entry });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, error: 'Request could not be completed.' });
   }
 });
 
@@ -120,7 +120,7 @@ router.patch('/:id', protect, guard('cr', 'admin', 'super_admin'), async (req, r
     await entry.save();
     res.json({ success: true, data: entry });
   } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, error: 'Request could not be completed.' });
   }
 });
 
@@ -136,7 +136,7 @@ router.delete('/:id', protect, guard('cr', 'admin', 'super_admin'), async (req, 
     await entry.deleteOne();
     res.json({ success: true, data: {} });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 

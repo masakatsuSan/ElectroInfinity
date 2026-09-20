@@ -15,9 +15,6 @@ export const upvotePost = (id) =>
 export const downvotePost = (id) =>
   api.put(`/forum/${id}/downvote`)
 
-export const getComments = (postId) =>
-  api.get(`/forum/${postId}/comments`)
-
 export const createComment = (postId, data) =>
   api.post(`/forum/${postId}/comments`, data)
 

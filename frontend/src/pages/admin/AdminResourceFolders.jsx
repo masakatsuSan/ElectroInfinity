@@ -10,7 +10,8 @@ import {
   removeFolderItem, getFolder,
 } from '../../api/folders'
 import { getSubjects } from '../../api/subjects'
-import { downloadResource, getPreviewUrl } from '../../api/resources'
+import { downloadResource } from '../../api/resources'
+import ResourcePreviewDrawer from '../../components/ResourcePreviewDrawer'
 
 const TYPES = ['notes', 'pyq', 'assignment', 'lab_manual', 'syllabus', 'other']
 const SEMS = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -24,15 +25,18 @@ export default function AdminResourceFolders() {
   const [selectedFolder, setSelectedFolder] = useState(null)
   const [orderedItems, setOrderedItems] = useState([])
   const [uploadFile, setUploadFile] = useState(null)
+  const [uploadMode, setUploadMode] = useState('file')
+  const [driveLink, setDriveLink] = useState('')
   const [uploadMeta, setUploadMeta] = useState({ title: '', type: 'notes', dueDate: '' })
   const [playlistInput, setPlaylistInput] = useState('')
   const [playlistPrefix, setPlaylistPrefix] = useState('')
-  const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
   const [uploading, setUploading] = useState(false)
   const [importing, setImporting] = useState(false)
   const [savingOrder, setSavingOrder] = useState(false)
   const dragIndex = useRef(null)
+  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
+  const [previewResource, setPreviewResource] = useState(null)
 
   const { data: foldersData, isLoading } = useQuery({
     queryKey: ['folders'],
@@ -56,14 +60,12 @@ export default function AdminResourceFolders() {
     setShowForm(false)
     setEditingFolder(null)
     setForm({ title: '', slug: '', description: '', semester: '', subject: '', visibility: 'BATCH' })
-    setError('')
   }
 
   const openCreate = () => {
     setEditingFolder(null)
     setForm({ title: '', slug: '', description: '', semester: '', subject: '', visibility: 'BATCH' })
     setShowForm(true)
-    setError('')
   }
 
   const openEdit = (folder) => {
@@ -77,12 +79,10 @@ export default function AdminResourceFolders() {
       visibility: folder.visibility || 'BATCH',
     })
     setShowForm(true)
-    setError('')
   }
 
   const handleSaveFolder = async () => {
     if (!form.title) return setError('Title is required')
-    setError('')
     setMessage('')
     try {
       if (editingFolder) {
@@ -99,7 +99,6 @@ export default function AdminResourceFolders() {
 
   const handleDeleteFolder = async (folder) => {
     if (!window.confirm(`Delete folder "${folder.title}"? Resources uploaded to this folder will be removed from the folder view.`)) return
-    setError('')
     setMessage('')
     try {
       await deleteFolder(folder._id)
@@ -111,7 +110,6 @@ export default function AdminResourceFolders() {
   }
 
   const openFolder = async (folder) => {
-    setError('')
     setMessage('')
     setSelectedFolder(folder)
     try {
@@ -122,19 +120,26 @@ export default function AdminResourceFolders() {
       setPlaylistInput('')
       setPlaylistPrefix('')
       setUploadFile(null)
+      setDriveLink('')
+      setUploadMode('file')
     } catch (err) {
       setError(err.response?.data?.error || 'Could not open folder')
     }
   }
 
   const handleUpload = async () => {
-    if (!uploadFile || !uploadMeta.title) return
+    if (uploadMode === 'file' && !uploadFile) return
+    if (uploadMode === 'link' && !driveLink.trim()) return
+    if (!uploadMeta.title) return
     setUploading(true)
-    setError('')
     setMessage('')
     try {
       const fd = new FormData()
-      fd.append('file', uploadFile)
+      if (uploadMode === 'file') {
+        fd.append('file', uploadFile)
+      } else {
+        fd.append('driveLink', driveLink.trim())
+      }
       fd.append('title', uploadMeta.title)
       fd.append('type', uploadMeta.type)
       if (uploadMeta.dueDate) fd.append('dueDate', uploadMeta.dueDate)
@@ -145,6 +150,7 @@ export default function AdminResourceFolders() {
       setSelectedFolder(detail)
       setOrderedItems(detail.items || [])
       setUploadFile(null)
+      setDriveLink('')
       setUploadMeta({ title: '', type: 'notes', dueDate: '' })
     } catch (err) {
       setError(err.response?.data?.error || 'Upload failed')
@@ -156,7 +162,6 @@ export default function AdminResourceFolders() {
   const handleImportPlaylist = async () => {
     if (!playlistInput) return
     setImporting(true)
-    setError('')
     setMessage('')
     try {
       const res = await importPlaylistToFolder(selectedFolder._id, {
@@ -194,7 +199,6 @@ export default function AdminResourceFolders() {
 
   const handleSaveOrder = async () => {
     setSavingOrder(true)
-    setError('')
     try {
       await reorderFolderItems(selectedFolder._id, orderedItems.map(i => ({ ref: i.ref, type: i.type })))
       qc.invalidateQueries({ queryKey: ['folder', selectedFolder._id] })
@@ -211,7 +215,6 @@ export default function AdminResourceFolders() {
 
   const handleRemoveItem = async (item) => {
     if (!window.confirm('Remove this item from the folder? (the file/lecture itself is kept)')) return
-    setError('')
     setMessage('')
     try {
       await removeFolderItem(selectedFolder._id, item.ref)
@@ -394,9 +397,9 @@ export default function AdminResourceFolders() {
                     )}
                     {item.type === 'resource' && item.data?._id && (
                       <>
-                        <a href={getPreviewUrl(item.data._id)} target="_blank" rel="noreferrer" className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-blue-500/70 hover:text-blue-500 transition-colors bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded-md flex items-center gap-1">
+                        <button type="button" onClick={() => setPreviewResource(item.data)} className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-blue-500/70 hover:text-blue-500 transition-colors bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded-md flex items-center gap-1">
                           <FileText size={12} /> Preview
-                        </a>
+                        </button>
                         <a href={downloadResource(item.data._id)} className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-ink-muted-80 hover:text-ink transition-colors bg-soft-stone hover:bg-soft-stone/50 px-3 py-1.5 rounded-md flex items-center gap-1">
                           Download
                         </a>
@@ -414,6 +417,30 @@ export default function AdminResourceFolders() {
           <div className="grid sm:grid-cols-2 gap-8 pt-6 border-t border-divider-soft">
             <div className="border border-divider-soft bg-[#fff]-parchment/40 rounded-xl p-5">
               <h3 className="font-[Inter,system-ui,sans-serif] font-semibold text-[16px] text-ink mb-4 flex items-center gap-2"><Upload size={16} /> Add File to Folder</h3>
+              <div className="flex gap-1 mb-4">
+                <button
+                  type="button"
+                  onClick={() => { setUploadMode('file'); setUploadFile(null) }}
+                  className={`flex-1 font-[Inter,system-ui,sans-serif] text-[13px] font-medium px-3 py-2 rounded-md transition-colors ${
+                    uploadMode === 'file'
+                      ? 'bg-primary text-white'
+                      : 'bg-soft-stone text-ink-muted-80 hover:text-ink'
+                  }`}
+                >
+                  Upload
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setUploadMode('link'); setDriveLink('') }}
+                  className={`flex-1 font-[Inter,system-ui,sans-serif] text-[13px] font-medium px-3 py-2 rounded-md transition-colors ${
+                    uploadMode === 'link'
+                      ? 'bg-primary text-white'
+                      : 'bg-soft-stone text-ink-muted-80 hover:text-ink'
+                  }`}
+                >
+                  Drive Link
+                </button>
+              </div>
               <div className="space-y-4">
                 <div>
                   <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Title *</label>
@@ -425,20 +452,36 @@ export default function AdminResourceFolders() {
                     {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
-                <div>
-                  <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">File (PDF or image) *</label>
-                  <input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png,.webp"
-                    onChange={e => setUploadFile(e.target.files[0])}
-                    className="mt-1 font-[Inter,system-ui,sans-serif] text-[14px] text-ink-muted-80 file:mr-4 file:bg-[#fff]-parchment file:text-ink file:border file:border-divider-soft file:rounded-lg file:px-4 file:py-2 file:cursor-pointer"
-                  />
-                  {uploadFile && <p className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-green-500 mt-2 truncate"><Check size={14} className="inline mr-1" />{uploadFile.name} ({(uploadFile.size / 1024).toFixed(0)} KB)</p>}
-                </div>
+                {uploadMode === 'file' ? (
+                  <div>
+                    <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">File (PDF or image) *</label>
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png,.webp"
+                      onChange={e => setUploadFile(e.target.files[0])}
+                      className="mt-1 font-[Inter,system-ui,sans-serif] text-[14px] text-ink-muted-80 file:mr-4 file:bg-[#fff]-parchment file:text-ink file:border file:border-divider-soft file:rounded-lg file:px-4 file:py-2 file:cursor-pointer"
+                    />
+                    {uploadFile && <p className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-green-500 mt-2 truncate"><Check size={14} className="inline mr-1" />{uploadFile.name} ({(uploadFile.size / 1024).toFixed(0)} KB)</p>}
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">Google Drive Link *</label>
+                    <input
+                      type="url"
+                      value={driveLink}
+                      onChange={e => setDriveLink(e.target.value)}
+                      className="input w-full"
+                      placeholder="https://drive.google.com/file/d/..."
+                    />
+                    <p className="font-[Inter,system-ui,sans-serif] text-[12px] text-ink-muted-80 mt-1">
+                      Downloads the file from Google Drive and uploads it to the folder.
+                    </p>
+                  </div>
+                )}
               </div>
               <button
                 onClick={handleUpload}
-                disabled={uploading || !uploadFile || !uploadMeta.title}
+                disabled={uploading || (uploadMode === 'file' && !uploadFile) || (uploadMode === 'link' && !driveLink.trim()) || !uploadMeta.title}
                 className="button-primary mt-4"
               >
                 {uploading ? 'Uploading…' : 'Upload to Folder'}
@@ -471,6 +514,10 @@ export default function AdminResourceFolders() {
           </div>
         </div>
       )}
+      <ResourcePreviewDrawer
+        resource={previewResource}
+        onClose={() => setPreviewResource(null)}
+      />
     </div>
   )
 }

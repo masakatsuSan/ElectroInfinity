@@ -1,7 +1,6 @@
-﻿import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+﻿import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import Lenis from '@studio-freight/lenis'
 import Navbar         from './components/Navbar'
 import Footer         from './components/Footer'
@@ -9,90 +8,102 @@ import ProtectedRoute from './components/ProtectedRoute'
 import OrganicBlobs   from './components/OrganicBlobs'
 import ForumFlipOverlay from './components/ForumFlipOverlay'
 import OhmNo from './components/OhmNo'
+import RouteFallback from './components/RouteFallback'
+import PageError from './components/PageError'
+import ErrorBoundary from './components/ErrorBoundary'
 import { NotificationProvider } from './context/NotificationContext'
-import { PAGE_VARIANTS, PAGE_TRANSITION, MODAL_VARIANTS, MODAL_TRANSITION } from './utils/motion'
 
-// Public pages
-import Home         from './pages/Home'
-import About        from './pages/About'
-import Faculty      from './pages/Faculty'
-import Resources    from './pages/Resources'
-import ResourceFolders from './pages/ResourceFolders'
-import Courses      from './pages/Courses'
-import SubjectDetails from './pages/SubjectDetails'
-import Labs         from './pages/Labs'
-import Contact      from './pages/Contact'
-import TermsAndConditions from './pages/TermsAndConditions'
-import Placements   from './pages/Placements'
-import Achievements from './pages/Achievements'
-import AchievementDetails from './pages/AchievementDetails'
-import Announcements  from './pages/Announcements'
-import Calendar     from './pages/Calendar'
-import Gallery      from './pages/Gallery'
-import Projects     from './pages/Projects'
-import ProjectDetails from './pages/ProjectDetails'
-import Profile      from './pages/Profile'
-import EditProfile  from './pages/EditProfile'
-import Notifications from './pages/Notifications'
+
+// Public pages — lazily loaded so the entry chunk only carries the app shell.
+// Each page's code (and its heavy dependencies) arrives when the route is
+// actually visited; see AnimatedRoute's <Suspense> fallback below.
+const Home          = lazy(() => import('./pages/Home'))
+const About         = lazy(() => import('./pages/About'))
+const Faculty       = lazy(() => import('./pages/Faculty'))
+const Resources     = lazy(() => import('./pages/Resources'))
+const ResourceFolders = lazy(() => import('./pages/ResourceFolders'))
+const Courses       = lazy(() => import('./pages/Courses'))
+const SubjectDetails = lazy(() => import('./pages/SubjectDetails'))
+const Labs          = lazy(() => import('./pages/Labs'))
+const Contact       = lazy(() => import('./pages/Contact'))
+const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'))
+const Placements    = lazy(() => import('./pages/Placements'))
+const Achievements  = lazy(() => import('./pages/Achievements'))
+const AchievementDetails = lazy(() => import('./pages/AchievementDetails'))
+const Announcements = lazy(() => import('./pages/Announcements'))
+const Calendar      = lazy(() => import('./pages/Calendar'))
+const Gallery       = lazy(() => import('./pages/Gallery'))
+const Projects      = lazy(() => import('./pages/Projects'))
+const ProjectDetails = lazy(() => import('./pages/ProjectDetails'))
+const Profile       = lazy(() => import('./pages/Profile'))
+const EditProfile   = lazy(() => import('./pages/EditProfile'))
+const Notifications = lazy(() => import('./pages/Notifications'))
 
 // MyProfile redirect component
-import MyProfile from './pages/MyProfile'
+const MyProfile = lazy(() => import('./pages/MyProfile'))
 
 // Auth pages
-import Login    from './pages/Login'
-import Activate        from './pages/Activate'
-import ForgotPassword  from './pages/ForgotPassword'
+const Login           = lazy(() => import('./pages/Login'))
+const Activate        = lazy(() => import('./pages/Activate'))
+const ForgotPassword  = lazy(() => import('./pages/ForgotPassword'))
 
 // Student pages
-import Students  from './pages/Students'
-import Forum     from './pages/Forum'
-import Directory from './pages/Directory'
-import Dashboard from './pages/Dashboard'
-import Search    from './pages/Search'
+const Students  = lazy(() => import('./pages/Students'))
+const Forum     = lazy(() => import('./pages/Forum'))
+const Directory = lazy(() => import('./pages/Directory'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Search    = lazy(() => import('./pages/Search'))
 
 // Network page
-import Network from './pages/Network'
+const Network = lazy(() => import('./pages/Network'))
 
 // Admin pages
-import AdminLayout    from './pages/admin/AdminLayout'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import AdminResources from './pages/admin/AdminResources'
-import AdminResourceFolders from './pages/admin/AdminResourceFolders'
-import AdminStudents  from './pages/admin/AdminStudents'
-import AdminDeadlines from './pages/admin/AdminDeadlines'
-import AdminRoutines  from './pages/admin/AdminRoutines'
-import AdminFaculty from './pages/admin/AdminFaculty'
-import AdminLabs from './pages/admin/AdminLabs'
-import AdminCourses from './pages/admin/AdminCourses'
-import AdminGallery from './pages/admin/AdminGallery'
-import AdminContact from './pages/admin/AdminContact'
-import AdminRooms from './pages/admin/AdminRooms'
-import AdminProjects from './pages/admin/AdminProjects'
-import AdminCalendar from './pages/admin/AdminCalendar'
-import AdminAnnouncements from './pages/admin/AdminAnnouncements'
-import AdminAchievements from './pages/admin/AdminAchievements'
-import AdminYTLectures from './pages/admin/AdminYTLectures'
-import AdminLogin    from './pages/admin/AdminLogin'
-import AdminProfile  from './pages/admin/AdminProfile'
+const AdminLayout    = lazy(() => import('./pages/admin/AdminLayout'))
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+const AdminResources = lazy(() => import('./pages/admin/AdminResources'))
+const AdminResourceFolders = lazy(() => import('./pages/admin/AdminResourceFolders'))
+const AdminStudents  = lazy(() => import('./pages/admin/AdminStudents'))
+const AdminDeadlines = lazy(() => import('./pages/admin/AdminDeadlines'))
+const AdminRoutines  = lazy(() => import('./pages/admin/AdminRoutines'))
+const AdminFaculty   = lazy(() => import('./pages/admin/AdminFaculty'))
+const AdminLabs      = lazy(() => import('./pages/admin/AdminLabs'))
+const AdminCourses   = lazy(() => import('./pages/admin/AdminCourses'))
+const AdminGallery   = lazy(() => import('./pages/admin/AdminGallery'))
+const AdminContact   = lazy(() => import('./pages/admin/AdminContact'))
+const AdminRooms     = lazy(() => import('./pages/admin/AdminRooms'))
+const AdminProjects  = lazy(() => import('./pages/admin/AdminProjects'))
+const AdminCalendar  = lazy(() => import('./pages/admin/AdminCalendar'))
+const AdminAnnouncements = lazy(() => import('./pages/admin/AdminAnnouncements'))
+const AdminAchievements = lazy(() => import('./pages/admin/AdminAchievements'))
+const AdminYTLectures = lazy(() => import('./pages/admin/AdminYTLectures'))
+const AdminLogin     = lazy(() => import('./pages/admin/AdminLogin'))
+const AdminProfile   = lazy(() => import('./pages/admin/AdminProfile'))
 
 // Faculty pages
-import FacultyDashboard    from './pages/faculty/FacultyDashboard'
-import FacultyLogin      from './pages/faculty/FacultyLogin'
-import FacultyActivate   from './pages/faculty/FacultyActivate'
+const FacultyDashboard = lazy(() => import('./pages/faculty/FacultyDashboard'))
+const FacultyLogin     = lazy(() => import('./pages/faculty/FacultyLogin'))
+const FacultyActivate  = lazy(() => import('./pages/faculty/FacultyActivate'))
 const NotFound = () => <OhmNo />
 
-const AnimatedRoute = ({ children }) => (
-  <motion.div
-    initial="initial"
-    animate="in"
-    exit="out"
-    variants={PAGE_VARIANTS}
-    transition={PAGE_TRANSITION}
-    className="flex flex-col flex-1 w-full h-full"
-  >
-    {children}
-  </motion.div>
-);
+const AnimatedRoute = ({ children }) => {
+  const location = useLocation()
+
+  return (
+    <div className="flex flex-col flex-1 w-full h-full">
+      {/* Route code is fetched lazily; the skeleton replaces only the page area
+          while the chunk arrives, so the shell never blanks out. */}
+      <Suspense fallback={<RouteFallback />}>
+        {/* A crash on one page now shows a retry card in the page area instead
+            of blanking the whole app, and it clears itself when you navigate
+            away (resetKey) — previously the boundary stayed latched until a
+            hard refresh. */}
+        <ErrorBoundary resetKey={location.pathname} fallback={<PageError resetKey={location.pathname} />}>
+          {children}
+        </ErrorBoundary>
+      </Suspense>
+    </div>
+  )
+};
 
 export default function App() {
   const location = useLocation()
@@ -108,22 +119,27 @@ export default function App() {
       gestureDirection: 'vertical',
       smooth: true,
       mouseMultiplier: 1,
-      smoothTouch: false,
+      smoothTouch: true,
       touchMultiplier: 2,
       infinite: false,
     })
 
     lenisRef.current = lenis
 
+    let frame
     function raf(time) {
       lenis.raf(time)
-      requestAnimationFrame(raf)
+      frame = requestAnimationFrame(raf)
     }
 
-    requestAnimationFrame(raf)
+    frame = requestAnimationFrame(raf)
 
     return () => {
+      // Cancel the loop too — otherwise it kept running after unmount and
+      // piled up one loop per remount (visible as growing CPU in dev/HMR).
+      if (frame) cancelAnimationFrame(frame)
       lenis.destroy()
+      lenisRef.current = null
     }
   }, [])
 
@@ -154,7 +170,6 @@ export default function App() {
       </Routes>
 
         <main className="flex flex-col flex-1">
-        <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             {/* â”€â”€ Public â”€â”€ */}
             <Route path="/"             element={<AnimatedRoute><Home /></AnimatedRoute>} />
@@ -272,7 +287,6 @@ export default function App() {
 
             <Route path="*" element={<AnimatedRoute><NotFound /></AnimatedRoute>} />
           </Routes>
-        </AnimatePresence>
       </main>
 
       <Routes>

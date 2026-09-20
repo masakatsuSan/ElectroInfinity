@@ -39,7 +39,7 @@ export default function Laboratory() {
         <div className="border border-hairline bg-white rounded-lg overflow-hidden">
           {isLoading ? (
             Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="flex flex-col sm:flex-row gap-6 p-6 md:p-8 animate-pulse">
+              <div key={i} className="flex flex-col sm:flex-row gap-6 p-6 md:p-8 skeleton-shimmer">
                 <div className="w-full sm:w-48 h-48 rounded-md bg-surface-soft" />
                 <div className="flex-1">
                   <div className="h-6 w-48 bg-surface-soft rounded-sm mb-3" />

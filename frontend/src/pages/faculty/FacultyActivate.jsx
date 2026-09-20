@@ -3,7 +3,6 @@ import { Check } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { activateFaculty, checkFacultyEmail, facultyVerifyOtp } from '../../api/auth'
-import { motion } from 'framer-motion'
 import TermsCheckbox from '../../components/TermsCheckbox'
 
 export default function FacultyActivate() {
@@ -30,6 +29,7 @@ export default function FacultyActivate() {
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [termsError, setTermsError] = useState('')
   const [step, setStep] = useState(1)
@@ -231,7 +231,7 @@ export default function FacultyActivate() {
                 <button type="button" onClick={() => { setStep(1); setResendSuccess(false); setError('') }} className="text-muted hover:text-ink">
                   ← Wrong email?
                 </button>
-                <button type="button" onClick={handleResend} disabled={resending} className="text-action-blue font-medium hover:underline">
+                <button type="button" onClick={handleResend} disabled={resending} className="text-action-blue font-medium hover:None">
                   {resending ? 'Sending…' : 'Resend OTP'}
                 </button>
               </div>
@@ -317,7 +317,7 @@ export default function FacultyActivate() {
         )}
 
         <div className="mt-8 pt-4 border-t border-[#dddddd] text-center text-[13px] font-sans">
-          <Link to="/faculty/login" className="text-action-blue hover:underline font-medium">
+          <Link to="/faculty/login" className="text-action-blue hover:None font-medium">
             Already activated? Sign in
           </Link>
         </div>

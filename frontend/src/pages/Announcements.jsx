@@ -57,14 +57,14 @@ function SkeletonGrid() {
   return (
     <div className="space-y-4">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="bg-white border border-hairline rounded-lg p-5 animate-pulse">
+        <div key={i} className="bg-white border border-hairline rounded-lg p-5 skeleton-shimmer">
           <div className="flex items-center gap-2 mb-3">
-            <div className="h-3 w-24 bg-soft-stone rounded" />
-            <div className="h-3 w-12 bg-soft-stone rounded" />
+            <div className="h-3 w-24 bg-transparent" />
+            <div className="h-3 w-12 bg-transparent" />
           </div>
-          <div className="h-4 w-full bg-soft-stone rounded mb-2" />
-          <div className="h-3 w-full bg-soft-stone rounded mb-1.5" />
-          <div className="h-3 w-5/6 bg-soft-stone rounded" />
+          <div className="h-4 w-full bg-transparent mb-2" />
+          <div className="h-3 w-full bg-transparent mb-1.5" />
+          <div className="h-3 w-5/6 bg-transparent" />
         </div>
       ))}
     </div>
@@ -156,7 +156,7 @@ function AnnouncementCard({ ann, onClick }) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-1 text-link hover:underline"
+            className="inline-flex items-center gap-1 text-link hover:None"
             aria-label="View attachment"
           >
             <Paperclip size={12} />
@@ -258,7 +258,7 @@ function AnnouncementDetail({ detail, loading, error, user, onClose }) {
                     href={detail.attachmentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-[14px] font-medium text-link hover:underline"
+                    className="inline-flex items-center gap-1.5 text-[14px] font-medium text-link hover:None"
                   >
                     <Paperclip size={14} />
                     View Attachment

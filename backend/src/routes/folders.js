@@ -1,5 +1,6 @@
 const express = require('express')
 const mongoose = require('mongoose')
+const axios = require('axios')
 const Folder = require('../models/Folder')
 const Resource = require('../models/Resource')
 const YTLecture = require('../models/YTLecture')
@@ -132,7 +133,7 @@ router.get('/', optionalAuth, async (req, res) => {
 
     res.json({ success: true, count: folders.length, data: folders })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -153,7 +154,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
     const items = await resolveItems(folder.items)
     res.json({ success: true, data: { ...folder.toObject(), items } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -196,7 +197,7 @@ router.post('/', protect, guard('cr', 'super_admin', 'admin'), async (req, res) 
     if (err.code === 11000) {
       return res.status(409).json({ success: false, error: 'Folder with this slug already exists for this batch' })
     }
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -232,7 +233,7 @@ router.put('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, res
     if (err.code === 11000) {
       return res.status(409).json({ success: false, error: 'Folder with this slug already exists for this batch' })
     }
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -277,9 +278,54 @@ router.delete('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, 
     await folder.deleteOne()
     res.json({ success: true, message: 'Folder deleted' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
+
+async function uploadFromDriveLink(driveLink, fileType, title) {
+  let fileId
+  const idMatch = driveLink.match(/[?&]id=([^&]+)/)
+  const dMatch = driveLink.match(/\/d\/([^/]+)/)
+  if (idMatch) {
+    fileId = idMatch[1]
+  } else if (dMatch) {
+    fileId = dMatch[1]
+  } else {
+    throw new Error('Invalid Google Drive link')
+  }
+
+  const response = await axios.get(`https://drive.google.com/uc?id=${fileId}`, {
+    responseType: 'arraybuffer',
+    maxContentLength: 20 * 1024 * 1024,
+    maxBodyLength: 20 * 1024 * 1024,
+  })
+
+  const buffer = Buffer.from(response.data)
+  const isPdf = (response.headers['content-type'] || '').includes('pdf') || (title || '').toLowerCase().endsWith('.pdf')
+  const resourceType = isPdf ? 'raw' : 'auto'
+
+  const folderMap = {
+    notes: 'notes',
+    pyq: 'previous-year-papers',
+    assignment: 'assignments',
+    lab_manual: 'lab-manuals',
+    syllabus: 'syllabus',
+  }
+  const cloudFolder = `electro-infinity/${folderMap[fileType] || 'resources'}`
+
+  const { url, publicId } = await uploadToCloudinary(buffer, {
+    folder: cloudFolder,
+    resource_type: resourceType,
+    public_id: `drive-${fileId}`,
+    overwrite: false,
+  })
+
+  return {
+    url,
+    publicId,
+    fileName: (title || `drive-file-${fileId}`).replace(/[^a-zA-Z0-9._-]/g, '_'),
+  }
+}
 
 router.post('/:id/upload', protect, guard('cr', 'super_admin', 'admin'), upload.single('file'), async (req, res) => {
   try {
@@ -294,39 +340,54 @@ router.post('/:id/upload', protect, guard('cr', 'super_admin', 'admin'), upload.
       return res.status(403).json({ success: false, error: 'Not your folder' })
     }
 
-    if (!req.file) return res.status(400).json({ success: false, error: 'No file uploaded' })
+    if (!req.file && !req.body.driveLink) {
+      return res.status(400).json({ success: false, error: 'No file uploaded' })
+    }
 
     const { title, type, dueDate } = req.body
     const fileType = type || 'notes'
-    const resolvedTitle = title || req.file.originalname.replace(/\.[^/.]+$/, '')
 
-    const folderMap = {
-      notes: 'notes',
-      pyq: 'previous-year-papers',
-      assignment: 'assignments',
-      lab_manual: 'lab-manuals',
-      syllabus: 'syllabus',
+    let url, publicId, fileName
+
+    if (req.body.driveLink) {
+      const driveResult = await uploadFromDriveLink(req.body.driveLink, fileType, title)
+      url = driveResult.url
+      publicId = driveResult.publicId
+      fileName = driveResult.fileName
+    } else {
+      const resolvedTitle = title || req.file.originalname.replace(/\.[^/.]+$/, '')
+
+      const folderMap = {
+        notes: 'notes',
+        pyq: 'previous-year-papers',
+        assignment: 'assignments',
+        lab_manual: 'lab-manuals',
+        syllabus: 'syllabus',
+      }
+      const cloudFolder = `electro-infinity/${folderMap[fileType] || 'resources'}`
+      const isPdf = req.file.mimetype === 'application/pdf'
+      const resourceType = isPdf ? 'raw' : 'auto'
+
+      const uploadResult = await uploadToCloudinary(req.file.buffer, {
+        folder: cloudFolder,
+        resource_type: resourceType,
+        public_id: req.file.originalname.replace(/\.[^/.]+$/, ''),
+        overwrite: false,
+      })
+      url = uploadResult.url
+      publicId = uploadResult.publicId
+      fileName = req.file.originalname
     }
-    const cloudFolder = `electro-infinity/${folderMap[fileType] || 'resources'}`
-    const isPdf = req.file.mimetype === 'application/pdf'
-    const resourceType = isPdf ? 'raw' : 'auto'
-
-    const { url, publicId } = await uploadToCloudinary(req.file.buffer, {
-      folder: cloudFolder,
-      resource_type: resourceType,
-      public_id: req.file.originalname.replace(/\.[^/.]+$/, ''),
-      overwrite: false,
-    })
 
     const resource = await Resource.create({
-      title: resolvedTitle,
+      title: title || fileName,
       type: fileType,
       semester: folder.semester,
       subject: folder.subject,
       dueDate: dueDate || null,
       fileUrl: url,
       filePublicId: publicId,
-      fileName: req.file.originalname,
+      fileName,
       uploadedBy: req.user._id,
       batchId: folder.batchId,
       visibility: folder.visibility,
@@ -354,7 +415,7 @@ router.post('/:id/upload', protect, guard('cr', 'super_admin', 'admin'), upload.
     const item = { ref: resource._id, type: 'resource', title: resource.title, thumbnail: '', data: resource.toObject() }
     res.status(201).json({ success: true, data: { folder, item } })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -430,9 +491,9 @@ router.post('/:id/playlist', protect, guard('cr', 'super_admin', 'admin'), async
     res.status(201).json({ success: true, count: created.length, data: created })
   } catch (err) {
     if (err.code === 'NO_YOUTUBE_KEY' || err.code === 'PLAYLIST_NOT_FOUND' || err.code === 'PLAYLIST_EMPTY' || err.code === 'YOUTUBE_API_ERROR') {
-      return res.status(400).json({ success: false, error: err.message })
+      return res.status(400).json({ success: false, error: 'Request could not be completed.' })
     }
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -500,7 +561,7 @@ router.put('/:id/items', protect, guard('cr', 'super_admin', 'admin'), async (re
 
     res.json({ success: true, data: folder })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -529,7 +590,7 @@ router.delete('/:id/items/:itemId', protect, guard('cr', 'super_admin', 'admin')
 
     res.json({ success: true, message: 'Item removed from folder' })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

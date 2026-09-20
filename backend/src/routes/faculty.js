@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
     const faculty = await Faculty.find().sort({ isHOD: -1, createdAt: 1 })
     res.json({ success: true, data: faculty })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -20,7 +20,7 @@ router.post('/', protect, guard('super_admin', 'admin'), async (req, res) => {
     const faculty = await Faculty.create(req.body)
     res.status(201).json({ success: true, data: faculty })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -31,7 +31,7 @@ router.put('/:id', protect, guard('super_admin', 'admin'), async (req, res) => {
     if (!faculty) return res.status(404).json({ success: false, error: 'Not found' })
     res.json({ success: true, data: faculty })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 
@@ -42,7 +42,7 @@ router.delete('/:id', protect, guard('super_admin', 'admin'), async (req, res) =
     if (!faculty) return res.status(404).json({ success: false, error: 'Not found' })
     res.json({ success: true, data: {} })
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message })
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
 

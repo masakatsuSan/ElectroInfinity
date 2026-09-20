@@ -148,7 +148,7 @@ export default function ProfileHeader({
       </div>
 
       <div className="mx-auto max-w-[1440px] px-4 md:px-6 xl:px-10">
-        <div className="relative flex flex-col lg:flex-row lg:items-end lg:gap-8 -mt-14 sm:-mt-16 lg:-mt-20">
+        <div className="relative flex flex-col lg:flex-row lg:items-center lg:gap-8 -mt-14 sm:-mt-16 lg:-mt-20">
           <div className="relative z-10 flex-shrink-0">
             <div className={`relative h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-white p-0.5 shadow-xl sm:h-32 sm:w-32 lg:h-36 lg:w-36 ${isOwn ? 'cursor-pointer group' : ''}`}>
               {profile.photo ? (
@@ -177,7 +177,7 @@ export default function ProfileHeader({
             )}
           </div>
 
-          <div className="mt-5 min-w-0 flex-1 lg:mt-0">
+          <div className="mt-5 min-w-0 w-full lg:mt-0">
             <div className="rounded-2xl border border-hairline bg-white p-5 shadow-sm lg:p-6">
               <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                 <div className="min-w-0 flex-1">

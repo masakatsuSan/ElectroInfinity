@@ -9,6 +9,7 @@ import { getAchievements, createAchievement, updateAchievement, deleteAchievemen
 import { getGallery, createGalleryPhoto, updateGalleryPhoto, deleteGalleryPhoto } from '../api/gallery'
 import { getAllStudents } from '../api/students'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import SEO from '../components/SEO'
 import ProfileHeader from '../components/ProfileHeader'
 import SocialLinkCard from '../components/SocialLinkCard'
@@ -38,6 +39,7 @@ export default function Profile() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { user: currentUser } = useAuth()
+  const { showToast } = useToast()
   const qc = useQueryClient()
   const [activeTab, setActiveTab] = useState(() => {
     const t = searchParams.get('tab')
@@ -127,7 +129,7 @@ export default function Profile() {
   useEffect(() => {
     if (profileData) {
       setProfile(profileData)
-      setStatusText(profileData.status || '')
+      setStatusText(profileData.status?.text || '')
     }
   }, [profileData])
 
@@ -145,6 +147,8 @@ export default function Profile() {
     forumPosts: profile?.forumPosts || 0,
     resources: profile?.resourcesUploaded || 0,
     friends: profile?.friends || 0,
+    photos: profile?.photosCount || 0,
+    likes: profile?.likesReceived || 0,
     achievements: profile?.achievements || 0,
     profileViews: profile?.profileViews || 0,
   }
@@ -154,7 +158,8 @@ export default function Profile() {
     setStatusSaving(true)
     try {
       const res = await setStatusApi(statusText.trim())
-      setProfile((p) => ({ ...p, status: res.data.data.text }))
+      setProfile((p) => ({ ...p, status: { text: res.data.data.text, expiresAt: res.data.data.expiresAt } }))
+      showToast('Status updated!')
     } catch (err) {
       console.error(err)
     } finally {
@@ -167,7 +172,7 @@ export default function Profile() {
     try {
       await clearStatusApi()
       setStatusText('')
-      setProfile((p) => ({ ...p, status: '' }))
+      setProfile((p) => ({ ...p, status: { text: '', expiresAt: null } }))
     } catch (err) {
       console.error(err)
     } finally {
@@ -221,6 +226,7 @@ export default function Profile() {
       })
       setEditingAbout(false)
       qc.invalidateQueries({ queryKey: ['profile', id] })
+      showToast('Profile updated successfully!')
     } catch (err) {
       console.error(err)
     } finally {
@@ -238,6 +244,7 @@ export default function Profile() {
       })
       setEditingSkills(false)
       qc.invalidateQueries({ queryKey: ['profile', id] })
+      showToast('Skills updated successfully!')
     } catch (err) {
       console.error(err)
     } finally {
@@ -253,6 +260,7 @@ export default function Profile() {
       })
       setEditingSocial(false)
       qc.invalidateQueries({ queryKey: ['profile', id] })
+      showToast('Social links updated successfully!')
     } catch (err) {
       console.error(err)
     } finally {
@@ -277,6 +285,7 @@ export default function Profile() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['myAchievements', id] })
       qc.invalidateQueries({ queryKey: ['profile', id] })
+      showToast('Achievement posted successfully!')
     },
   })
 
@@ -302,6 +311,7 @@ export default function Profile() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['myGallery', id] })
       setShowGalleryModal(false)
+      showToast('Photo uploaded successfully!')
     },
   })
 
@@ -324,7 +334,7 @@ export default function Profile() {
     return (
       <div className="min-h-screen bg-gray-50 pt-16">
         <div className="max-w-[1280px] mx-auto px-4 md:px-12">
-          <div className="animate-pulse">
+          <div className="skeleton-shimmer">
             <div className="h-[170px] bg-gray-300 rounded-t-lg" />
             <div className="h-24 bg-gray-300 rounded-full -mt-10 mx-4" />
           </div>
@@ -489,6 +499,7 @@ export default function Profile() {
             setShowProjectModal(false)
             qc.invalidateQueries({ queryKey: ['userProjects', id] })
             qc.invalidateQueries({ queryKey: ['profile', id] })
+            showToast('Project uploaded successfully!')
             return res.data
           }}
         />
@@ -551,7 +562,7 @@ function LeftSidebar({
               onClick={() => setActiveTab('about')}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
                 activeTab === 'about'
-                  ? 'bg-[#181d26] text-white'
+                  ? 'bg-[#181d26] text-white hover:text-white'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
@@ -563,7 +574,7 @@ function LeftSidebar({
               onClick={() => setActiveTab('posts')}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
                 activeTab === 'posts'
-                  ? 'bg-[#181d26] text-white'
+                  ? 'bg-[#181d26] text-white hover:text-white'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
@@ -576,7 +587,7 @@ function LeftSidebar({
                 onClick={() => setActiveTab('uploads')}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
                   activeTab === 'uploads'
-                    ? 'bg-[#181d26] text-white'
+                    ? 'bg-[#181d26] text-white hover:text-white'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -590,7 +601,7 @@ function LeftSidebar({
                 onClick={() => setActiveTab('directory')}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${
                   activeTab === 'directory'
-                    ? 'bg-[#181d26] text-white'
+                    ? 'bg-[#181d26] text-white hover:text-white'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -1151,7 +1162,7 @@ function AchievementsList({ achievements, isOwn, onEdit, onDelete }) {
                   href={achievement.certificatePdf}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-[12px] font-medium text-[#181d26] hover:underline"
+                  className="inline-flex items-center gap-1 text-[12px] font-medium text-[#181d26] hover:None"
                 >
                   View Certificate
                 </a>
@@ -1244,7 +1255,7 @@ function AboutSection({ profile, isOwn, editingAbout, setEditingAbout, aboutForm
         {isOwn && !editingAbout && (
           <button
             onClick={startEditAbout}
-            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#181d26] hover:underline"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#181d26] hover:None"
           >
             <Edit3 size={14} /> Edit
           </button>
@@ -1362,7 +1373,7 @@ function SkillsSection({ profile, isOwn, editingSkills, setEditingSkills, skills
         {isOwn && !editingSkills && (
           <button
             onClick={() => setEditingSkills(true)}
-            className="text-[12px] font-medium text-[#181d26] hover:underline inline-flex items-center gap-1"
+            className="text-[12px] font-medium text-[#181d26] hover:None inline-flex items-center gap-1"
           >
             <Edit3 size={12} /> Edit
           </button>
@@ -1434,7 +1445,7 @@ function SocialLinksSection({ profile, isOwn, editingSocial, setEditingSocial, s
         {isOwn && !editingSocial && (
           <button
             onClick={() => setEditingSocial(true)}
-            className="text-[12px] font-medium text-[#181d26] hover:underline inline-flex items-center gap-1"
+            className="text-[12px] font-medium text-[#181d26] hover:None inline-flex items-center gap-1"
           >
             <Edit3 size={12} /> Edit
           </button>
@@ -1526,7 +1537,7 @@ function DirectoryPanel({ data, loading, search, setSearch, batch, setBatch, sel
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 p-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="p-5 border border-hairline rounded-xl bg-white animate-pulse">
+              <div key={i} className="p-5 border border-hairline rounded-xl bg-white skeleton-shimmer">
                 <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-gray-200" />
                 <div className="h-3 mx-auto mb-2 rounded bg-gray-200 w-28" />
                 <div className="h-2 mx-auto rounded bg-gray-200 w-16" />

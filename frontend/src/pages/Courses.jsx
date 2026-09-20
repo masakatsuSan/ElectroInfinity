@@ -129,10 +129,10 @@ function SkeletonGrid() {
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="p-5 md:p-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-7 bg-soft-stone rounded animate-pulse"></div>
-            <div className="h-4 w-48 bg-soft-stone rounded animate-pulse"></div>
+            <div className="w-16 h-7 bg-surface-soft rounded skeleton-shimmer" />
+            <div className="h-4 w-48 bg-surface-soft rounded skeleton-shimmer" />
           </div>
-          <div className="h-4 w-20 bg-soft-stone rounded animate-pulse"></div>
+          <div className="h-4 w-20 bg-surface-soft rounded skeleton-shimmer" />
         </div>
       ))}
     </div>

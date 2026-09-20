@@ -1,16 +1,19 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { MODAL_VARIANTS, MODAL_TRANSITION } from '../utils/motion'
-import { getPreviewUrl, fetchPreviewBlobUrl } from '../api/resources'
+import { fetchPreviewBlobUrl, getPreviewUrl } from '../api/resources'
+
+// react-pdf pulls in a ~1.4 MB PDF.js worker, so it is only downloaded when a
+// user actually opens a PDF preview rather than on every page load.
+const PdfViewer = lazy(() => import('./PdfViewer'))
 
 export default function ResourcePreviewDrawer({ resource, onClose }) {
-  if (!resource) return null
-
-  const isPdf = /\.pdf($|[?#])/i.test(resource.fileUrl || '')
-  const isImage = /\.(png|jpe?g|webp|gif|svg)($|[?#])/i.test(resource.fileUrl || '')
+  const isPdf = resource ? /\.pdf($|[?#])/i.test(resource.fileUrl || '') : false
+  const isImage = resource ? /\.(png|jpe?g|webp|gif|svg)($|[?#])/i.test(resource.fileUrl || '') : false
   const [loading, setLoading] = useState(true)
   const [previewUrl, setPreviewUrl] = useState(null)
+  const [previewError, setPreviewError] = useState('')
 
   useEffect(() => {
     const onKey = (e) => {
@@ -21,23 +24,54 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
   }, [onClose])
 
   useEffect(() => {
+    let active = true
     let objectUrl = null
+
+    if (!resource) {
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
+    setPreviewUrl(null)
+    setPreviewError('')
+
+    if (isPdf) {
+      if (active) {
+        setPreviewUrl(getPreviewUrl(resource._id))
+        setLoading(false)
+      }
+      return
+    }
+
     fetchPreviewBlobUrl(resource._id)
       .then(url => {
+        if (!active) {
+          URL.revokeObjectURL(url)
+          return
+        }
         objectUrl = url
         setPreviewUrl(url)
       })
-      .catch(() => {
-        setPreviewUrl(getPreviewUrl(resource._id))
+      .catch(error => {
+        if (!active) return
+        setPreviewError(
+          error.response?.status === 404
+            ? 'This file is no longer available.'
+            : 'Preview could not be loaded.'
+        )
       })
       .finally(() => {
-        setLoading(false)
+        if (active) setLoading(false)
       })
+
     return () => {
+      active = false
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [resource._id])
+  }, [resource?._id, isPdf, isImage])
+
+  if (!resource) return null
 
   return (
     <div className="fixed inset-0 z-[100] flex">
@@ -75,14 +109,24 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           )}
+          {previewError && !loading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center p-6 bg-soft-stone/40">
+              <div className="max-w-sm rounded-xl border border-hairline bg-white p-6 text-center shadow-sm">
+                <p className="font-sans text-[15px] font-medium text-ink">Preview unavailable</p>
+                <p className="mt-2 font-sans text-[13px] text-body-muted">{previewError}</p>
+              </div>
+            </div>
+          )}
           {previewUrl && isPdf ? (
-            <iframe
-              src={previewUrl}
-              title={resource.title || 'Preview'}
-              className="w-full h-full"
-              onLoad={() => setLoading(false)}
-              style={{ visibility: loading ? 'hidden' : 'visible' }}
-            />
+            <Suspense
+              fallback={
+                <div className="absolute inset-0 flex items-center justify-center bg-soft-stone/40">
+                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              }
+            >
+              <PdfViewer key={previewUrl} file={previewUrl} />
+            </Suspense>
           ) : previewUrl && isImage ? (
             <img
               src={previewUrl}
@@ -95,7 +139,7 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
           ) : !previewUrl && !loading ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 p-6 text-center">
               <p className="font-sans text-[15px] text-body-muted">
-                Preview is not available for this file type.
+                {previewError || 'Preview is not available for this file type.'}
               </p>
             </div>
           ) : null}

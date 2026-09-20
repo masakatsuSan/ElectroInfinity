@@ -2,7 +2,8 @@ import { useState, useRef } from 'react';
 import { Check, AlertTriangle, XCircle, CheckCircle2, Mail, ShieldCheck, ArrowRight, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext';
 import { changePassword, forgotPassword, verifyOtp, resetPassword } from '../api/auth';
 import { getAnnouncements } from '../api/announcements';
 import { uploadPhoto, getBatchStudents } from '../api/students';
@@ -11,6 +12,7 @@ import { getRoutine } from '../api/routines';
 
 export default function Students() {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const fileRef = useRef(null);
@@ -60,6 +62,7 @@ export default function Students() {
     mutationFn: (id) => submitDeadline(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['deadlines'] });
+      showToast('Deadline submitted successfully!')
     }
   });
 
@@ -72,6 +75,7 @@ export default function Students() {
       localStorage.setItem('ei_user', JSON.stringify(updated));
       qc.invalidateQueries({ queryKey: ['me'] });
       setPhotoError('');
+      showToast('Profile photo updated successfully!')
     },
     onError: (err) => setPhotoError(err.response?.data?.error || 'Upload failed'),
   });
@@ -114,7 +118,7 @@ export default function Students() {
             {user?.photo ? (
               <img src={user.photo} alt={user.name} className="object-cover w-full h-full" />
             ) : (
-              <span className="text-4xl font-sans text-ink-muted-48 group-hover:text-ink">{user?.name?.charAt(0)}</span>
+              <span className="font-sans text-4xl text-ink-muted-48 group-hover:text-ink">{user?.name?.charAt(0)}</span>
             )}
             <div className="absolute inset-0 flex items-center justify-center transition-opacity opacity-0 bg-black/40 group-hover:opacity-100">
               <span className="text-xs font-medium text-white">Edit</span>
@@ -139,7 +143,7 @@ export default function Students() {
       </div>
 
       {/* ── Tabs (Pill style) ── */}
-      <div className="flex gap-2 mb-10 overflow-x-auto p-1 bg-white border border-divider-soft rounded-md w-max max-w-full">
+      <div className="flex max-w-full gap-2 p-1 mb-10 overflow-x-auto bg-white border rounded-md border-divider-soft w-max">
         {TABS.map(t => (
           <button key={t} onClick={() => setActiveTab(t)}
             className={`font-sans text-[14px] font-medium uppercase tracking-[0.04em] px-6 py-3 flex-none rounded-md transition-all whitespace-nowrap ${
@@ -161,8 +165,13 @@ export default function Students() {
             <h2 className="font-sans text-[28px] font-medium tracking-[-0.02em] text-ink">Assignments & Deadlines</h2>
           </div>
           
-          {deadlinesLoading ? <div className="space-y-4 animate-pulse"><div className="h-40 bg-[#f8fafc] rounded-[10px]"></div></div> : deadlines.length === 0 ? (
-            <div className="py-16 text-center border border-divider-soft rounded-md bg-white">
+          {deadlinesLoading ? <div className="space-y-4 skeleton-shimmer"><div className="h-40 bg-[#f8fafc] rounded-[10px]" /></div> : !user?.batch ? (
+            <div className="py-16 text-center bg-white border rounded-md border-divider-soft">
+              <p className="text-ink-muted-80 font-sans text-[16px] font-[450] mb-4">No batch assigned yet.</p>
+              <p className="text-slate font-sans text-[14px] mb-6">Please set your batch in <Link to="/profile/edit" className="underline text-link hover:text-link-active">Edit Profile</Link> to see your deadlines and routine.</p>
+            </div>
+          ) : deadlines.length === 0 ? (
+            <div className="py-16 text-center bg-white border rounded-md border-divider-soft">
               <p className="text-ink-muted-80 font-sans text-[16px] font-[450]">No upcoming deadlines.</p>
             </div>
           ) : (
@@ -238,7 +247,7 @@ export default function Students() {
                             </div>
                             <div className="w-full h-2 mb-4 overflow-hidden rounded-md bg-[#f8fafc]">
                               <div 
-                                className="h-full transition-all duration-500 bg-link rounded-md"
+                                className="h-full transition-all duration-500 rounded-md bg-link"
                                 style={{ width: `${totalStudents > 0 ? (submitCount/totalStudents)*100 : 0}%` }}
                               ></div>
                             </div>
@@ -276,7 +285,12 @@ export default function Students() {
       {activeTab === 'routine' && (
         <div className="overflow-x-auto duration-300 text-ink animate-in fade-in">
           {routineLoading ? (
-             <div className="space-y-4 animate-pulse"><div className="h-40 bg-[#f8fafc] rounded-[10px]"></div></div>
+             <div className="space-y-4 skeleton-shimmer"><div className="h-40 bg-[#f8fafc] rounded-[10px]" /></div>
+          ) : !user?.batch ? (
+            <div className="py-16 text-center bg-white border rounded-md border-divider-soft">
+              <p className="text-ink-muted-80 font-sans text-[16px] font-[450] mb-4">No batch assigned yet.</p>
+              <p className="text-slate font-sans text-[14px] mb-6">Please set your batch in <Link to="/profile/edit" className="underline text-link hover:text-link-active">Edit Profile</Link> to see your class routine.</p>
+            </div>
           ) : routineData?.data?.length > 0 ? (
             <table className="w-full min-w-[600px] border-collapse text-[14px] font-sans border border-divider-soft rounded-md bg-white">
               <thead>
@@ -301,7 +315,7 @@ export default function Students() {
               </tbody>
             </table>
           ) : (
-            <div className="py-16 text-center border border-divider-soft rounded-md bg-white">
+            <div className="py-16 text-center bg-white border rounded-md border-divider-soft">
               <p className="text-ink-muted-80 font-sans text-[16px] font-[450]">No class routine published yet.</p>
             </div>
           )}
@@ -314,7 +328,7 @@ export default function Students() {
       {activeTab === 'announcements' && (
         <div className="space-y-4 duration-300 animate-in fade-in">
           {announcementsLoading ? (
-            <div className="h-40 rounded-md animate-pulse bg-[#f8fafc]"></div>
+            <div className="h-40 rounded-md skeleton-shimmer bg-[#f8fafc]"></div>
           ) : announcementsData?.data?.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2">
               {announcementsData.data.map(a => (

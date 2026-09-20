@@ -37,13 +37,13 @@ export default function Faculty() {
         <div className="border border-hairline bg-white rounded-2xl overflow-hidden shadow-card divide-y divide-hairline">
           {isLoading ? (
             Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div key={i} className="p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 skeleton-shimmer">
                 <div className="flex items-center gap-5">
                   <SkeletonAvatar size="lg" />
                   <div>
-                    <div className="h-5 w-40 bg-soft-stone rounded animate-pulse mb-2" />
-                    <div className="h-3 w-28 bg-soft-stone rounded animate-pulse mb-1" />
-                    <div className="h-3 w-56 bg-soft-stone rounded animate-pulse" />
+                    <div className="h-5 w-40 bg-soft-stone rounded skeleton-shimmer mb-2" />
+                    <div className="h-3 w-28 bg-soft-stone rounded skeleton-shimmer mb-1" />
+                    <div className="h-3 w-56 bg-soft-stone rounded skeleton-shimmer" />
                   </div>
                 </div>
                 <SkeletonButton />

@@ -48,4 +48,9 @@ const ytLectureSchema = new mongoose.Schema(
   { timestamps: true }
 )
 
+// ── Indexes ────────────────────────────────────────────────────────────────
+// GET /api/yt-lectures filters by semester/subject then orders by lecture
+// number (routes/yt-lectures.js).
+ytLectureSchema.index({ semester: 1, subject: 1, lectureNumber: 1 })
+
 module.exports = mongoose.model('YTLecture', ytLectureSchema)

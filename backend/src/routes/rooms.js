@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
       .select('name description icon color isPopular postCount lastActivity createdAt')
     res.json({ success: true, count: rooms.length, data: rooms });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -29,7 +29,7 @@ router.get('/:id', async (req, res) => {
     }
     res.json({ success: true, data: room });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
@@ -45,7 +45,7 @@ router.post('/', protect, guard('cr', 'admin', 'super_admin'), async (req, res) 
     if (error.code === 11000) {
       return res.status(400).json({ success: false, error: 'Room name already exists' });
     }
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, error: 'Request could not be completed.' });
   }
 });
 
@@ -65,7 +65,7 @@ router.patch('/:id', protect, guard('cr', 'admin', 'super_admin'), async (req, r
     if (error.name === 'CastError') {
       return res.status(404).json({ success: false, error: 'Room not found' });
     }
-    res.status(400).json({ success: false, error: error.message });
+    res.status(400).json({ success: false, error: 'Request could not be completed.' });
   }
 });
 
@@ -82,7 +82,7 @@ router.delete('/:id', protect, guard('cr', 'admin', 'super_admin'), async (req, 
     await room.save();
     res.json({ success: true, data: {} });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'An internal server error occurred' });
   }
 });
 
