@@ -10,7 +10,13 @@ const resourceSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ['notes', 'books', 'organisers', 'pyqs', 'yt playlist'],
+      // Accept every value the frontend sends (Resources.jsx tabs + admin
+      // upload form). A stale enum here is what turned every upload into a
+      // 500 — mongoose rejected the value before any handler ran.
+      enum: [
+        'notes', 'books', 'organisers', 'pyqs', 'yt playlist',
+        'pyq', 'assignment', 'lab_manual', 'syllabus', 'other',
+      ],
       required: true,
     },
 

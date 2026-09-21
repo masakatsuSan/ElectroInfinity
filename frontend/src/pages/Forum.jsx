@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -105,6 +105,10 @@ export default function Forum() {
   const [openComments, setOpenComments] = useState({})
   const [commentDrafts, setCommentDrafts] = useState({})
   const [replyingTo, setReplyingTo] = useState(null)
+  // Monotonic id — only the latest fetchPosts() response may write to
+  // state. Without it, a slow in-flight request can overwrite the fresh
+  // list (with your new post) and the post "disappears" after posting.
+  const fetchSeqRef = useRef(0)
 
   const [activePopover, setActivePopover] = useState(null)
 
@@ -136,18 +140,25 @@ export default function Forum() {
     }
   }
 
-  const fetchPosts = async (pageNum = 1) => {
+  const fetchPosts = async (pageNum = 1, opts = {}) => {
+    const room = opts.room !== undefined ? opts.room : selectedRoom
+    const sortBy = opts.sort || sort
+    // Claim this fetch as the latest — stale responses are discarded.
+    const mySeq = ++fetchSeqRef.current
     try {
       setLoading(true)
-      const params = { sort, page: pageNum, limit: 20 }
-      if (selectedRoom) params.room = selectedRoom
+      const params = { sort: sortBy, page: pageNum, limit: 20 }
+      if (room) params.room = room
       const res = await getPosts(params)
-      setPosts(res.data.data)
-      setTotalPages(res.data.totalPages || 1)
+      // Drop this response if a newer fetch started after it.
+      if (mySeq === fetchSeqRef.current) {
+        setPosts(res.data.data)
+        setTotalPages(res.data.totalPages || 1)
+      }
     } catch (err) {
       console.error(err)
     } finally {
-      setLoading(false)
+      if (mySeq === fetchSeqRef.current) setLoading(false)
     }
   }
 
@@ -191,12 +202,28 @@ export default function Forum() {
         payload.pollOptions = formData.pollOptions.filter(o => o.trim()).map(text => ({ text: text.trim(), votes: 0 }))
       }
 
-      await createPost(payload)
+      const res = await createPost(payload)
+      const created = res.data?.data
       setFormData({ title: '', content: '', links: '', linkUrl: '', pollOptions: ['', ''] })
       setShowCreate(false)
       setCreateType('text')
       setPage(1)
-      fetchPosts(1)
+      // The new post may live in a different room than the one currently
+      // selected (the composer has its OWN room dropdown). Jump the feed to
+      // that room and to "Latest" sort — otherwise the post is created fine
+      // on the server but stays invisible under the old filter.
+      if (createRoom !== selectedRoom) setSelectedRoom(createRoom)
+      if (sort !== 'latest') setSort('latest')
+      if (created?._id) {
+        // Show it instantly from the populated POST response — no waiting
+        // for the refetch (which also guards against race conditions).
+        setPosts((prev) => {
+          if (prev.some((p) => p._id === created._id)) return prev
+          return [created, ...prev]
+        })
+      }
+      // Reconcile with the server (latest + the room the post went to).
+      fetchPosts(1, { room: createRoom, sort: 'latest' })
       showToast('Post created successfully!')
     } catch (err) {
       setCreateError(err.response?.data?.error || 'Unable to create post. Please try again.')

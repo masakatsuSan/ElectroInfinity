@@ -6,7 +6,7 @@ const Resource = require('../models/Resource')
 const YTLecture = require('../models/YTLecture')
 const User = require('../models/User')
 const { protect, guard, optionalAuth } = require('../middleware/auth')
-const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
+const { uploadSingle, uploadToCloudinary, deleteFromCloudinary, toSafePublicId } = require('../utils/upload')
 const { createActivity } = require('../utils/activity')
 const { createNotificationBulk } = require('../utils/notification')
 const { extractPlaylistId, importPlaylist } = require('../services/youtube')
@@ -291,17 +291,34 @@ async function uploadFromDriveLink(driveLink, fileType, title) {
   } else if (dMatch) {
     fileId = dMatch[1]
   } else {
-    throw new Error('Invalid Google Drive link')
+    throw new Error('Invalid Google Drive link — copy the "Anyone with the link" share URL')
   }
 
-  const response = await axios.get(`https://drive.google.com/uc?export=download&id=${fileId}`, {
-    responseType: 'arraybuffer',
-    maxContentLength: 20 * 1024 * 1024,
-    maxBodyLength: 20 * 1024 * 1024,
-  })
+  let response
+  try {
+    response = await axios.get(`https://drive.google.com/uc?export=download&id=${fileId}`, {
+      responseType: 'arraybuffer',
+      maxContentLength: 20 * 1024 * 1024,
+      maxBodyLength: 20 * 1024 * 1024,
+      timeout: 25000,
+      maxRedirects: 5,
+    })
+  } catch (err) {
+    if (err?.code === 'ECONNABORTED') throw new Error('Google Drive took too long to respond — try again')
+    throw new Error('Could not download from Google Drive — make sure link sharing is ON ("Anyone with the link")')
+  }
 
+  // Drive returns an HTML warning page (not the file) for private files,
+  // large files needing virus-scan confirmation, or bad IDs.
+  // Uploading that HTML to Cloudinary is what produced the 500 before.
+  const contentType = String(response.headers['content-type'] || '').toLowerCase()
   const buffer = Buffer.from(response.data)
-  const isPdf = (response.headers['content-type'] || '').includes('pdf') || (title || '').toLowerCase().endsWith('.pdf')
+  if (contentType.includes('text/html') || (buffer.length < 2000 && /^[\s\S]*<html/i.test(buffer.toString('utf8', 0, 1500)))) {
+    throw new Error('Google Drive blocked the download — set sharing to "Anyone with the link" (Viewer) and try again')
+  }
+  if (!buffer.length) throw new Error('Downloaded file from Drive is empty')
+
+  const isPdf = contentType.includes('pdf') || (title || '').toLowerCase().endsWith('.pdf')
   const resourceType = isPdf ? 'raw' : 'auto'
 
   const folderMap = {
@@ -316,8 +333,8 @@ async function uploadFromDriveLink(driveLink, fileType, title) {
   const { url, publicId } = await uploadToCloudinary(buffer, {
     folder: cloudFolder,
     resource_type: resourceType,
-    public_id: `drive-${fileId}`,
-    overwrite: false,
+    public_id: `drive-${fileId}-${Date.now()}`,
+    overwrite: true,
   })
 
   return {
@@ -327,7 +344,7 @@ async function uploadFromDriveLink(driveLink, fileType, title) {
   }
 }
 
-router.post('/:id/upload', protect, guard('cr', 'super_admin', 'admin'), upload.single('file'), async (req, res) => {
+router.post('/:id/upload', protect, guard('cr', 'super_admin', 'admin'), uploadSingle('file'), async (req, res) => {
   try {
     const folder = await Folder.findById(req.params.id)
     if (!folder) return res.status(404).json({ success: false, error: 'Folder not found' })
@@ -371,8 +388,8 @@ router.post('/:id/upload', protect, guard('cr', 'super_admin', 'admin'), upload.
       const uploadResult = await uploadToCloudinary(req.file.buffer, {
         folder: cloudFolder,
         resource_type: resourceType,
-        public_id: req.file.originalname.replace(/\.[^/.]+$/, ''),
-        overwrite: false,
+        public_id: toSafePublicId(req.file.originalname),
+        overwrite: true,
       })
       url = uploadResult.url
       publicId = uploadResult.publicId
@@ -415,7 +432,17 @@ router.post('/:id/upload', protect, guard('cr', 'super_admin', 'admin'), upload.
     const item = { ref: resource._id, type: 'resource', title: resource.title, thumbnail: '', data: resource.toObject() }
     res.status(201).json({ success: true, data: { folder, item } })
   } catch (err) {
-    res.status(500).json({ success: false, error: 'An internal server error occurred' })
+    console.error('[FOLDERS UPLOAD ERROR]', err?.message, err?.stack)
+    // Multer errors (too large / wrong type) and Drive/Cloudinary errors
+    // land here — surface the real message instead of a blanket 500.
+    if (err?.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ success: false, error: 'File is too large (max 20MB)' })
+    }
+    const message =
+      err?.name === 'ValidationError'
+        ? Object.values(err.errors).map((e) => e.message).join(' · ')
+        : (err?.message || 'Upload failed')
+    res.status(400).json({ success: false, error: message })
   }
 })
 

@@ -197,10 +197,11 @@ export default function Profile() {
 
   const startEditSkills = () => {
     if (!profile) return
+    const safeJoin = (val) => (Array.isArray(val) ? val.join(', ') : '')
     setSkillsForm({
-      skills: (profile.skills || []).join(', '),
-      interests: (profile.interests || []).join(', '),
-      languages: (profile.languages || []).join(', '),
+      skills: safeJoin(profile.skills),
+      interests: safeJoin(profile.interests),
+      languages: safeJoin(profile.languages),
     })
     setEditingSkills(true)
   }

@@ -14,7 +14,7 @@ import ScrollReveal from '../components/ScrollReveal'
 
 const TABS = [
   { id: 'notes',        label: 'Study Materials',  type: 'notes' },
-  { id: 'pyq',          label: 'PYQs',             type: 'pyq' },
+  { id: 'pyqs',         label: 'PYQs',             type: 'pyqs' },
   { id: 'assignment',   label: 'Assignments',      type: 'assignment' },
   { id: 'lab_manual',   label: 'Lab Manuals',      type: 'lab_manual' },
   { id: 'yt_lectures',  label: 'YT Lectures',      type: 'yt_lectures' },

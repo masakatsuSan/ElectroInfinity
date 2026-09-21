@@ -44,11 +44,12 @@ export default function AdminLabs() {
 
   const openEdit = (l) => {
     setEditing(l)
+    const safeJoin = (val) => (Array.isArray(val) ? val.join(', ') : '')
     setForm({
       name: l.name || '',
       icon: l.icon || '??',
       desc: l.desc || '',
-      equip: (l.equip || []).join(', ')
+      equip: safeJoin(l.equip)
     })
     setPreview(l.image || '')
     setShowForm(true)

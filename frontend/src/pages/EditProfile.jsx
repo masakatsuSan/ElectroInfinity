@@ -56,14 +56,15 @@ export default function EditProfile() {
     if (profileData) {
       const u = profileData
       const p = u.profile || {}
+      const safeJoin = (val) => (Array.isArray(val) ? val.join(', ') : '')
       setForm({
         name: u.name || '',
         bio: p.bio || '',
         department: p.department || '',
         location: p.location || '',
-        skills: (p.skills || []).join(', '),
-        interests: (p.interests || []).join(', '),
-        languages: (p.languages || []).join(', '),
+        skills: safeJoin(p.skills),
+        interests: safeJoin(p.interests),
+        languages: safeJoin(p.languages),
         collegeEmail: u.collegeEmail || '',
         personalEmail: u.personalEmail || '',
         phone: u.phone || '',
@@ -187,6 +188,9 @@ export default function EditProfile() {
               coverPhoto: coverPreview,
               friends: 0,
               friendStatus: 'none',
+              skills: form.skills ? form.skills.split(',').map((s) => s.trim()).filter(Boolean) : [],
+              interests: form.interests ? form.interests.split(',').map((s) => s.trim()).filter(Boolean) : [],
+              languages: form.languages ? form.languages.split(',').map((s) => s.trim()).filter(Boolean) : [],
             }}
             isOwn={true}
             onUpdate={() => {}}

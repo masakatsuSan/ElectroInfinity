@@ -21,11 +21,51 @@ const upload = multer({
   },
 })
 
+// ── Sanitize a filename into a Cloudinary-safe public_id ────────────────────
+// Cloudinary rejects public_ids with spaces, slashes or special chars.
+// We also append a timestamp so re-uploading the same filename does NOT
+// fail with "already exists" (overwrite:false + same public_id = 500).
+function toSafePublicId(originalName = 'file') {
+  const base = String(originalName).replace(/\.[^/.]+$/, '').trim() || 'file'
+  const safe = base
+    .normalize('NFKD')
+    .replace(/[^\w\-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80) || 'file'
+  return `${safe}-${Date.now()}`
+}
+
+// ── Multer single-file wrapper with clean 400 errors ─────────────────────────
+// upload.single('file') throws via next(err). Without this wrapper those
+// errors fall through to server.js's generic 500 handler ("internal server
+// error"). This converts them to a 400 with the real reason instead.
+function uploadSingle(field) {
+  return (req, res, next) => {
+    upload.single(field)(req, res, (err) => {
+      if (!err) return next()
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ success: false, error: 'File is too large (max 20MB)' })
+      }
+      // Wrong mimetype from fileFilter, busboy "Unexpected end of form"
+      // (happens when the client forces Content-Type without a boundary),
+      // or any other upload problem.
+      return res.status(400).json({ success: false, error: err.message || 'File upload failed' })
+    })
+  }
+}
+
 // ── Upload buffer to Cloudinary ─────────────────────────────────────────────
 // Takes a file buffer (from multer) and uploads it to Cloudinary
 // Returns { url, publicId }
 function uploadToCloudinary(buffer, options = {}) {
   return new Promise((resolve, reject) => {
+    if (!buffer || buffer.length === 0) {
+      return reject(new Error('Empty file buffer — upload aborted'))
+    }
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      return reject(new Error('Cloudinary is not configured on the server (missing CLOUDINARY_* env vars)'))
+    }
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: options.folder || 'electro-infinity',
@@ -34,11 +74,15 @@ function uploadToCloudinary(buffer, options = {}) {
       },
       (error, result) => {
         if (error) return reject(error)
+        if (!result || !result.secure_url) return reject(new Error('Cloudinary upload failed (no URL returned)'))
         resolve({ url: result.secure_url, publicId: result.public_id })
       }
     )
-    // Convert buffer to readable stream and pipe to cloudinary
-    Readable.from(buffer).pipe(uploadStream)
+    uploadStream.on('error', reject)
+    // NOTE: must wrap buffer in an array — Readable.from(buffer) would
+    // iterate the Buffer byte-by-byte (numbers), corrupting the upload
+    // and making EVERY local PDF upload fail.
+    Readable.from([buffer]).pipe(uploadStream)
   })
 }
 
@@ -51,4 +95,4 @@ async function deleteFromCloudinary(publicId, resourceType = 'image') {
   }
 }
 
-module.exports = { upload, uploadToCloudinary, deleteFromCloudinary }
+module.exports = { upload, uploadSingle, uploadToCloudinary, deleteFromCloudinary, toSafePublicId }

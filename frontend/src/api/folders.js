@@ -16,9 +16,7 @@ export const deleteFolder = (id, opts = {}) =>
   api.delete(`/folders/${id}`, { params: { cascade: opts.cascade ? 1 : 0 } })
 
 export const uploadToFolder = (folderId, formData) =>
-  api.post(`/folders/${folderId}/upload`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  api.post(`/folders/${folderId}/upload`, formData)
 
 export const importPlaylistToFolder = (folderId, data) =>
   api.post(`/folders/${folderId}/playlist`, data)

@@ -287,7 +287,6 @@ router.post('/', protect, async (req, res) => {
       $inc: { postCount: 1 },
       $set: { lastActivity: new Date() }
     });
-
     const io = req.app.get('io');
     const room = await CommunityRoom.findById(req.body.room).select('name members');
     if (room?.members?.length > 0) {
@@ -325,7 +324,15 @@ router.post('/', protect, async (req, res) => {
       });
     }
 
-    res.status(201).json({ success: true, data: post });
+    // Return the post fully populated (author / room / mentions) so the
+    // client can render it immediately — an unpopulated post shows up as a
+    // blank/orphan card (no author name, no room pill) after posting.
+    const populated = await ForumPost.findById(post._id)
+      .populate('author', 'name role photo rollNumber batch semester friends')
+      .populate('room', 'name icon color isPopular')
+      .populate('mentions', 'name rollNumber photo')
+
+    res.status(201).json({ success: true, data: populated || post });
   } catch (error) {
     res.status(400).json({ success: false, error: 'Request could not be completed.' });
   }

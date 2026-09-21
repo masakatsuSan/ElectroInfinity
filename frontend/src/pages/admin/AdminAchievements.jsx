@@ -60,12 +60,13 @@ export default function AdminAchievements() {
 
   const openEdit = (a) => {
     setEditing(a)
+    const safeJoin = (val) => (Array.isArray(val) ? val.join(', ') : '')
     setForm({
       title: a.title || '',
       description: a.description || '',
       date: toDateTimeLocal(a.date),
       category: a.category || 'student',
-      students: (a.students || []).join(', ')
+      students: safeJoin(a.students)
     })
     setPreview(a.image || '')
     setShowForm(true)

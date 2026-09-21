@@ -21,16 +21,15 @@ export const downloadResource = (id) =>
   `${import.meta.env.VITE_API_URL || '/api'}/resources/${id}/download`
 
 // Upload a new resource — sends as FormData (has a file attached)
+// NOTE: do NOT set Content-Type manually — the browser/axios must set
+// multipart/form-data WITH the boundary, otherwise multer can't parse it
+// and every upload fails.
 export const uploadResource = (formData) =>
-  api.post('/resources', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  api.post('/resources', formData)
 
 // Update a resource — sends as FormData (optionally with a new file)
 export const updateResource = (id, formData) =>
-  api.put(`/resources/${id}`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  api.put(`/resources/${id}`, formData)
 
 // Delete a resource
 export const deleteResource = (id) =>

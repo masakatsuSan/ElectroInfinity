@@ -1,7 +1,7 @@
 const express = require('express')
 const Resource = require('../models/Resource')
 const { protect, guard, optionalAuth } = require('../middleware/auth')
-const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
+const { uploadSingle, uploadToCloudinary, deleteFromCloudinary, toSafePublicId } = require('../utils/upload')
 const { createActivity } = require('../utils/activity')
 const { createNotificationBulk } = require('../utils/notification')
 const axios = require('axios')
@@ -234,7 +234,7 @@ router.post(
   '/',
   protect,
   guard('cr', 'super_admin', 'admin'),
-  upload.single('file'),   // multer processes the file first
+  uploadSingle('file'),   // multer processes the file first (400s, not 500s, on error)
   async (req, res) => {
     try {
       const { title, type, semester, subject, dueDate, fileUrl } = req.body
@@ -265,9 +265,10 @@ router.post(
         const { url: cloudUrl, publicId: cloudId } = await uploadToCloudinary(req.file.buffer, {
           folder,
           resource_type: resourceType,
-          // Use original filename (cleaned) as the Cloudinary public ID
-          public_id: req.file.originalname.replace(/\.[^/.]+$/, ''),
-          overwrite: false,
+          // Sanitized + timestamped so re-uploads never clash
+          // (overwrite:false + raw filename with spaces = 500 before).
+          public_id: toSafePublicId(req.file.originalname),
+          overwrite: true,
         })
 
         url = cloudUrl
@@ -328,7 +329,13 @@ router.post(
       res.status(201).json({ success: true, data: resource })
     } catch (err) {
       console.error('[RESOURCES POST ERROR]', err?.message, err?.stack)
-      res.status(500).json({ success: false, error: 'An internal server error occurred' })
+      // Surface the real problem (validation, duplicate, etc.) instead of a
+      // blanket "internal server error" so uploads can actually be debugged.
+      const message =
+        err?.name === 'ValidationError'
+          ? Object.values(err.errors).map((e) => e.message).join(' · ')
+          : (err?.code === 11000 ? 'A resource with that title already exists' : null)
+      res.status(400).json({ success: false, error: message || err?.message || 'Upload failed' })
     }
   }
 )
@@ -339,7 +346,7 @@ router.put(
   '/:id',
   protect,
   guard('cr', 'super_admin', 'admin'),
-  upload.single('file'),
+  uploadSingle('file'),
   async (req, res) => {
     try {
       const resource = await Resource.findById(req.params.id)
@@ -380,8 +387,8 @@ router.put(
         const { url, publicId } = await uploadToCloudinary(req.file.buffer, {
           folder,
           resource_type: resourceType,
-          public_id: req.file.originalname.replace(/\.[^/.]+$/, ''),
-          overwrite: false,
+          public_id: toSafePublicId(req.file.originalname),
+          overwrite: true,
         })
 
         updates.fileUrl      = url
@@ -400,7 +407,12 @@ router.put(
       const updated = await Resource.findByIdAndUpdate(req.params.id, updates, { new: true })
       res.json({ success: true, data: updated })
     } catch (err) {
-      res.status(500).json({ success: false, error: 'An internal server error occurred' })
+      console.error('[RESOURCES PUT ERROR]', err?.message, err?.stack)
+      const message =
+        err?.name === 'ValidationError'
+          ? Object.values(err.errors).map((e) => e.message).join(' · ')
+          : null
+      res.status(400).json({ success: false, error: message || err?.message || 'Update failed' })
     }
   }
 )
