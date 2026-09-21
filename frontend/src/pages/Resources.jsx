@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { ChevronDown, Play, ArrowRight } from 'lucide-react'
-import { getResources, downloadResource, incrementDownloadCount, isGoogleDriveUrl, getGoogleDriveDownloadUrl } from '../api/resources'
+import { getResources, downloadResource } from '../api/resources'
 import { getSubjects } from '../api/subjects'
 import { getYTLectures } from '../api/ytLectures'
 import { useAuth } from '../context/AuthContext'
@@ -154,45 +154,6 @@ export default function Resources() {
                       : <ResourceCard
                           key={item._id}
                           resource={item}
-                          onDownload={async (resource) => {
-                            try {
-                              // Increment download count on backend
-                              await incrementDownloadCount(resource._id)
-                              
-                              // Check if it's a Google Drive link and use direct download URL
-                              if (isGoogleDriveUrl(resource.fileUrl)) {
-                                const directUrl = getGoogleDriveDownloadUrl(resource.fileUrl)
-                                if (directUrl) {
-                                  const link = document.createElement('a')
-                                  link.href = directUrl
-                                  link.download = resource.fileName || 'download'
-                                  link.target = '_blank'
-                                  link.rel = 'noreferrer'
-                                  document.body.appendChild(link)
-                                  link.click()
-                                  document.body.removeChild(link)
-                                  return
-                                }
-                              }
-                              
-                              // Fallback to regular download
-                              const link = document.createElement('a')
-                              link.href = downloadResource(resource._id)
-                              link.download = resource.fileName || 'download'
-                              document.body.appendChild(link)
-                              link.click()
-                              document.body.removeChild(link)
-                            } catch (error) {
-                              console.error('Download failed:', error)
-                              // Fallback to regular download
-                              const link = document.createElement('a')
-                              link.href = downloadResource(resource._id)
-                              link.download = resource.fileName || 'download'
-                              document.body.appendChild(link)
-                              link.click()
-                              document.body.removeChild(link)
-                            }
-                          }}
                         />
                   )
                 : <Empty label={activeTab.label.toLowerCase()} user={user} />}
@@ -272,7 +233,7 @@ function FilterSelect({ value, onChange, options, placeholder }) {
   )
 }
 
-function ResourceCard({ resource: r, onDownload }) {
+function ResourceCard({ resource: r }) {
   const date = new Date(r.createdAt).toLocaleDateString('en-IN', {
     day: '2-digit', month: 'short', year: 'numeric',
   })
@@ -301,24 +262,14 @@ function ResourceCard({ resource: r, onDownload }) {
       </div>
 
       <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-hairline text-[12px]">
-        {onDownload ? (
-          <button
-            type="button"
-            onClick={() => onDownload(r)}
-            className="button-primary !py-1 !px-3 !text-[12px] !bg-primary text-white"
-          >
-            Download ↓
-          </button>
-        ) : (
-          <a
-            href={downloadResource(r._id)}
-            target="_blank"
-            rel="noreferrer"
-            className="button-primary !py-1 !px-3 !text-[12px] !bg-primary text-white"
-          >
-            Download ↓
-          </a>
-        )}
+        <a
+          href={downloadResource(r._id)}
+          target="_blank"
+          rel="noreferrer"
+          className="button-primary !py-1 !px-3 !text-[12px] !bg-primary text-white"
+        >
+          Download ↓
+        </a>
       </div>
     </div>
   )

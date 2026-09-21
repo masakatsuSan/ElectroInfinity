@@ -88,3 +88,6 @@ export const getFriendList = (userId) =>
 
 export const getFriendRequests = (status = 'pending') =>
   api.get(`/friends/requests?status=${status}`)
+
+export const getLikedPosts = (userId) =>
+  api.get(`/profile/${userId}/likes`)

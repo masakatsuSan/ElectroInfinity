@@ -118,6 +118,68 @@ async function streamCloudinaryToResponse(req, res, cloudinaryUrl, fileName, dis
   }
 }
 
+// Stream a Google Drive file through the server, handling Drive's
+// HTML confirmation page for large/private files.
+async function streamGoogleDriveToResponse(req, res, driveUrl, fileName, disposition = 'attachment') {
+  const fileId = extractGoogleDriveFileId(driveUrl)
+  if (!fileId) {
+    return res.status(400).json({ success: false, error: 'Invalid Google Drive URL' })
+  }
+
+  const downloadUrl = `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`
+
+  try {
+    const response = await axios.get(downloadUrl, {
+      responseType: 'stream',
+      timeout: 30000,
+      maxRedirects: 5,
+      validateStatus: (status) => status >= 200 && status < 400,
+    })
+
+    const contentType = String(response.headers['content-type'] || '').toLowerCase()
+
+    // Drive returns an HTML warning page for private files, large files
+    // needing virus-scan confirmation, or bad IDs. Check the first chunk
+    // and surface a clear error instead of saving HTML as a PDF.
+    if (contentType.includes('text/html')) {
+      return res.status(400).json({
+        success: false,
+        error: 'Google Drive blocked the download — set sharing to "Anyone with the link" (Viewer) and try again',
+      })
+    }
+
+    const isPdf = contentType.includes('pdf') || (fileName && fileName.toLowerCase().endsWith('.pdf'))
+    res.setHeader('Content-Type', contentType || 'application/pdf')
+    res.setHeader('Accept-Ranges', 'bytes')
+
+    const safeName = (fileName && fileName.replace(/"/g, '')) || 'download'
+    res.setHeader('Content-Disposition', `${disposition}; filename="${safeName}"`)
+
+    if (response.headers['content-length']) {
+      res.setHeader('Content-Length', response.headers['content-length'])
+    }
+
+    res.status(200)
+
+    response.data.pipe(res)
+  } catch (error) {
+    console.error('Failed to fetch file from Google Drive:', {
+      url: downloadUrl,
+      error: error.message,
+      status: error.response?.status,
+      code: error.code,
+    })
+
+    if (!res.headersSent) {
+      if (error.code === 'ECONNABORTED') {
+        res.status(504).json({ success: false, error: 'Google Drive took too long to respond' })
+      } else {
+        res.status(500).json({ success: false, error: 'Failed to fetch the file from Google Drive' })
+      }
+    }
+  }
+}
+
 // ── GET /api/resources ─────────────────────────────────────────────────────
 // Public — supports ?type=notes&semester=5&subject=Power+System-I
 // All resources are visible to all users; semester/subject are only for filtering
@@ -177,11 +239,10 @@ router.get('/:id/download', async (req, res) => {
 
     const fileName = resource.fileName || 'download'
 
-    // Google Drive / external links — let the browser/CDN handle the download
+    // Google Drive files — stream through the server so Drive's HTML
+    // confirmation page is detected and the real PDF is saved, not HTML.
     if (isGoogleDriveUrl(resource.fileUrl)) {
-      const normalizedUrl = normalizeGoogleDriveUrl(resource.fileUrl)
-      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
-      return res.redirect(normalizedUrl)
+      return streamGoogleDriveToResponse(req, res, resource.fileUrl, resource.fileName, 'attachment')
     }
 
     if (isExternalUrl(resource.fileUrl)) {

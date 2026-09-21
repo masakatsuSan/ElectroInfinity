@@ -823,4 +823,90 @@ router.patch('/me/featured', protect, async (req, res) => {
   }
 })
 
+// ── GET /api/profile/:id/likes ──────────────────────────────────────────────
+// @desc    Posts this user has liked (projects liked + forum posts upvoted)
+// @access  Public
+router.get('/:id/likes', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('_id name photo rollNumber batch role')
+    if (!user) return res.status(404).json({ success: false, error: 'User not found' })
+
+    const viewer = req.user || null
+    const isOwn = viewer && viewer._id.toString() === user._id.toString()
+
+    const [projects, posts] = await Promise.all([
+      Project.find({ likes: user._id, isApproved: true })
+        .sort({ createdAt: -1 })
+        .limit(50)
+        .populate('author', 'name role batch photo profile.profileVisibility'),
+      ForumPost.find({ upvotes: user._id })
+        .sort({ createdAt: -1 })
+        .limit(50)
+        .populate('author', 'name role photo rollNumber batch semester friends')
+        .populate('room', 'name icon color isPopular'),
+    ])
+
+    const formattedProjects = projects.map(p => ({
+      _id: p._id,
+      kind: 'project',
+      title: p.title,
+      description: p.description,
+      techStack: p.techStack || [],
+      thumbnail: p.thumbnail || '',
+      images: p.images || [],
+      githubLink: p.githubLink || '',
+      demoLink: p.demoLink || '',
+      createdAt: p.createdAt,
+      date: p.createdAt,
+      author: p.author && typeof p.author === 'object'
+        ? {
+            _id: p.author._id,
+            name: p.author.name,
+            photo: p.author.photo,
+            rollNumber: p.author.rollNumber,
+            batch: p.author.batch,
+            role: p.author.role,
+            department: p.author.profile?.department || '',
+          }
+        : null,
+    }))
+
+    const formattedPosts = posts.map(p => ({
+      _id: p._id,
+      kind: 'forum',
+      title: p.title,
+      content: p.content || '',
+      postType: p.postType || 'text',
+      upvotes: p.upvotes?.length || 0,
+      createdAt: p.createdAt,
+      date: p.createdAt,
+      room: p.room
+        ? { _id: p.room._id, name: p.room.name, icon: p.room.icon, color: p.room.color }
+        : null,
+      author: p.author && typeof p.author === 'object'
+        ? {
+            _id: p.author._id,
+            name: p.author.name,
+            photo: p.author.photo,
+            rollNumber: p.author.rollNumber,
+            batch: p.author.batch,
+            role: p.author.role,
+            department: p.author.profile?.department || '',
+          }
+        : null,
+    }))
+
+    res.json({
+      success: true,
+      data: {
+        projects: formattedProjects,
+        posts: formattedPosts,
+        isOwn,
+      },
+    })
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
+  }
+})
+
 module.exports = router

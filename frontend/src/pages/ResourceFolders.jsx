@@ -5,7 +5,7 @@ import {
   Play, Download, FolderOpen, ChevronRight, ArrowLeft,
 } from 'lucide-react'
 import { getFolders, getFolder } from '../api/folders'
-import { downloadResource, incrementDownloadCount, isGoogleDriveUrl, getGoogleDriveDownloadUrl } from '../api/resources'
+import { downloadResource } from '../api/resources'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
 
@@ -277,45 +277,12 @@ function FolderDetail({ folder, onPreview }) {
 
                   <div className="flex items-center flex-shrink-0 gap-1">
                     {item.type === 'resource' && item.data?._id ? (
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          try {
-                            await incrementDownloadCount(item.data._id)
-                            if (isGoogleDriveUrl(item.data.fileUrl)) {
-                              const directUrl = getGoogleDriveDownloadUrl(item.data.fileUrl)
-                              if (directUrl) {
-                                const link = document.createElement('a')
-                                link.href = directUrl
-                                link.download = item.data.fileName || 'download'
-                                link.target = '_blank'
-                                link.rel = 'noreferrer'
-                                document.body.appendChild(link)
-                                link.click()
-                                document.body.removeChild(link)
-                                return
-                              }
-                            }
-                            const link = document.createElement('a')
-                            link.href = downloadResource(item.data._id)
-                            link.download = item.data.fileName || 'download'
-                            document.body.appendChild(link)
-                            link.click()
-                            document.body.removeChild(link)
-                          } catch (error) {
-                            console.error('Download failed:', error)
-                            const link = document.createElement('a')
-                            link.href = downloadResource(item.data._id)
-                            link.download = item.data.fileName || 'download'
-                            document.body.appendChild(link)
-                            link.click()
-                            document.body.removeChild(link)
-                          }
-                        }}
+                      <a
+                        href={downloadResource(item.data._id)}
                         className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-ink-muted-80 hover:text-ink transition-colors bg-soft-stone hover:bg-soft-stone/50 px-3 py-1.5 rounded-md flex items-center gap-1"
                       >
                         <Download size={12} /> Download
-                      </button>
+                      </a>
                     ) : null}
                     {item.type === 'lecture' && item.data?.youtubeVideoId ? (
                       <a
