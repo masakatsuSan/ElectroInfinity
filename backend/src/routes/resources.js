@@ -68,7 +68,8 @@ async function streamCloudinaryToResponse(req, res, cloudinaryUrl, fileName) {
 
     const response = await axios.get(cloudinaryUrl, requestConfig)
 
-    const mimeType = response.headers['content-type'] || resolveMimeType(fileName)
+    const isPdf = fileName && fileName.toLowerCase().endsWith('.pdf')
+    const mimeType = isPdf ? 'application/pdf' : (response.headers['content-type'] || resolveMimeType(fileName))
     res.setHeader('Content-Type', mimeType)
     res.setHeader('Accept-Ranges', 'bytes')
 
@@ -200,8 +201,11 @@ router.get('/:id/preview', async (req, res) => {
     res.setHeader('Content-Disposition', `inline; filename="${resource.fileName || 'preview'}"`)
 
     if (isGoogleDriveUrl(resource.fileUrl)) {
-      const normalizedUrl = normalizeGoogleDriveUrl(resource.fileUrl)
-      return await streamCloudinaryToResponse(req, res, normalizedUrl, resource.fileName)
+      const fileId = extractGoogleDriveFileId(resource.fileUrl)
+      if (fileId) {
+        return res.redirect(`https://drive.google.com/file/d/${fileId}/preview`)
+      }
+      return res.status(400).json({ success: false, error: 'Invalid Google Drive URL' })
     }
 
     if (isExternalUrl(resource.fileUrl)) {
@@ -213,6 +217,15 @@ router.get('/:id/preview', async (req, res) => {
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
+
+function extractGoogleDriveFileId(url) {
+  if (!url) return null
+  const idMatch = url.match(/[?&]id=([^&]+)/)
+  if (idMatch) return idMatch[1]
+  const dMatch = url.match(/\/d\/([^/]+)/)
+  if (dMatch) return dMatch[1]
+  return null
+}
 
 // ── POST /api/resources ────────────────────────────────────────────────────
 // Upload a file — CR, and admin
@@ -314,6 +327,7 @@ router.post(
 
       res.status(201).json({ success: true, data: resource })
     } catch (err) {
+      console.error('[RESOURCES POST ERROR]', err?.message, err?.stack)
       res.status(500).json({ success: false, error: 'An internal server error occurred' })
     }
   }

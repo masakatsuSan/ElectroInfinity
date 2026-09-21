@@ -63,7 +63,7 @@ app.get('/api/health', (req, res) =>
 
 app.use((req, res) => res.status(404).json({ success: false, error: 'Not found' }))
 app.use((err, req, res, next) => {
-  console.error('[ServerError] Request failed')
+  console.error('[ServerError]', req.method, req.path, err?.message, err?.stack)
   res.status(500).json({ success: false, error: 'An internal server error occurred' })
 })
 

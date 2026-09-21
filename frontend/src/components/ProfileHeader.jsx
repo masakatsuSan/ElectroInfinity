@@ -1,10 +1,10 @@
 import { useState, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Camera, Share2, Edit3, X, QrCode, MessageCircle, Star, Activity } from 'lucide-react'
+import { Camera, Share2, Edit3, QrCode, MessageCircle, Star, Activity } from 'lucide-react'
 import { uploadCoverPhoto, uploadProfilePhoto, getProfileQr } from '../api/profile'
 import FriendActionButton from './FriendActionButton'
-import { QRCodeSVG } from 'qrcode.react'
+import ShareProfileModal from './ShareProfileModal'
 import ScrollReveal from '../components/ScrollReveal'
 
 function timeAgo(date) {
@@ -327,41 +327,14 @@ export default function ProfileHeader({
           </div>
         </div>
 
-        {qrOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setQrOpen(false)}>
-            <div className="w-full max-w-md overflow-hidden bg-white border shadow-2xl border-hairline rounded-xl" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between p-5 border-b border-hairline">
-                <div>
-                  <h3 className="font-display text-[20px] font-bold text-gray-900">Share Profile</h3>
-                  <p className="font-sans text-[13px] text-gray-500">
-                    Scan this QR code to open {profile?.name}'s profile.
-                  </p>
-                </div>
-                <button onClick={() => setQrOpen(false)} className="flex items-center justify-center w-8 h-8 text-gray-500 transition-colors rounded-full hover:bg-gray-100">
-                  <X size={18} />
-                </button>
-              </div>
-              <div className="flex flex-col items-center p-8">
-                {qrLoading ? (
-                  <div className="w-[260px] h-[260px] flex items-center justify-center">
-                    <div className="w-10 h-10 border-b-2 border-gray-500 rounded-full animate-spin" />
-                  </div>
-                ) : qrData ? (
-                  <div className="p-4 bg-white border shadow-sm rounded-xl border-hairline">
-                    <QRCodeSVG
-                      value={qrData.profileUrl}
-                      size={240}
-                      level="M"
-                      includeMargin
-                    />
-                  </div>
-                ) : (
-                  <p className="text-gray-400 text-[14px]">Failed to load QR code.</p>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+        <ShareProfileModal
+          open={qrOpen}
+          onClose={() => setQrOpen(false)}
+          profile={profile}
+          username={displayUsername}
+          qrData={qrData}
+          qrLoading={qrLoading}
+        />
       </div>
     </ScrollReveal>
   )

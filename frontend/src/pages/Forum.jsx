@@ -736,7 +736,7 @@ function PostCard({
       {/* Author & Meta */}
       <div className="mb-3 flex items-center gap-2 text-[13px] font-normal text-[#41454d]">
         <button
-          onClick={(e) => onUserClick?.(post.author, e)}
+          onClick={() => onViewProfile?.(post.author?._id)}
           className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#dddddd] bg-[#f8fafc] text-[11px] font-medium text-[#41454d] transition-colors hover:border-[#9297a0]"
         >
           {post.author?.photo ? (
@@ -746,7 +746,7 @@ function PostCard({
           )}
         </button>
         <button
-          onClick={(e) => onUserClick?.(post.author, e)}
+          onClick={() => onViewProfile?.(post.author?._id)}
           className="font-medium text-[#181d26] hover:no-underline"
         >
           {post.author?.name}
@@ -904,9 +904,9 @@ function PostCard({
               <p className="text-[13px] font-normal italic text-[#41454d]">No comments yet.</p>
             )}
             {topLevelComments.map(comment => (
-              <div key={comment._id} className="flex gap-3">
+<div key={comment._id} className="flex gap-3">
                 <button
-                  onClick={(e) => onUserClick?.(comment.author, e)}
+                  onClick={() => onViewProfile(comment.author._id)}
                   className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#dddddd] bg-[#f8fafc] text-[11px] font-medium text-[#41454d] transition-colors hover:border-[#9297a0]"
                 >
                   {comment.author?.photo ? (
@@ -918,7 +918,7 @@ function PostCard({
                 <div className="min-w-0 flex-1">
                   <div className="mb-0.5 flex items-center gap-2">
                     <button
-                      onClick={(e) => onUserClick?.(comment.author, e)}
+                      onClick={() => onViewProfile(comment.author._id)}
                       className="text-[13px] font-medium text-[#181d26] hover:no-underline"
                     >
                       {comment.author?.name}
@@ -969,7 +969,7 @@ function PostCard({
                       {replyMap[comment._id].map(reply => (
                         <div key={reply._id} className="flex gap-2">
                           <button
-                            onClick={(e) => onUserClick?.(reply.author, e)}
+                            onClick={() => onViewProfile(reply.author._id)}
                             className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#dddddd] bg-[#f8fafc] text-[10px] font-medium text-[#41454d] transition-colors hover:border-[#9297a0]"
                           >
                             {reply.author?.photo ? (
@@ -981,7 +981,7 @@ function PostCard({
                           <div className="min-w-0 flex-1">
                             <div className="mb-0.5 flex items-center gap-2">
                               <button
-                                onClick={(e) => onUserClick?.(reply.author, e)}
+                                onClick={() => onViewProfile(reply.author._id)}
                                 className="text-[12px] font-medium text-[#181d26] hover:no-underline"
                               >
                                 {reply.author?.name}

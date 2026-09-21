@@ -111,9 +111,9 @@ export default function AdminProfile() {
     bio: form.bio,
     department: form.department,
     location: form.location,
-    skills: form.skills.split(',').map((s) => s.trim()).filter(Boolean),
-    interests: form.interests.split(',').map((s) => s.trim()).filter(Boolean),
-    languages: form.languages.split(',').map((s) => s.trim()).filter(Boolean),
+    skills: (form.skills || '').split(',').map((s) => s.trim()).filter(Boolean),
+    interests: (form.interests || '').split(',').map((s) => s.trim()).filter(Boolean),
+    languages: (form.languages || '').split(',').map((s) => s.trim()).filter(Boolean),
     collegeEmail: form.collegeEmail,
     personalEmail: form.personalEmail,
     phone: form.phone,
@@ -127,7 +127,11 @@ export default function AdminProfile() {
 
   const handleSave = () => {
     setSaving(true)
-    updateMut.mutate(prepareSaveData())
+    try {
+      updateMut.mutate(prepareSaveData())
+    } catch {
+      setSaving(false)
+    }
   }
 
   const handleCoverUpload = async (e) => {
