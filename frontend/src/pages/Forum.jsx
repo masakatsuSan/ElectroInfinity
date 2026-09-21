@@ -248,7 +248,7 @@ export default function Forum() {
     }
   }
 
-  const handleCommentSubmit = async (e, postId, content = commentDrafts[postId]?.content) => {
+  const handleCommentSubmit = async (e, postId, content = commentDrafts[postId]) => {
     e.preventDefault()
     if (!content?.trim()) return
 
@@ -260,7 +260,7 @@ export default function Forum() {
       setCommentDrafts((current) => ({ ...current, [postId]: '' }))
       setReplyingTo(null)
       setPage(1)
-      fetchPosts(1)
+      fetchPosts(1, { room: selectedRoom, sort })
       showToast('Comment added!')
     } catch (err) {
       console.error(err)
@@ -628,6 +628,8 @@ export default function Forum() {
                     onUserClick={handleUserClick}
                     onViewProfile={handleViewProfile}
                     onUpvoteComment={upvoteComment}
+                    fetchPosts={fetchPosts}
+                    page={page}
                   />
                 ))}
               </div>
@@ -637,7 +639,7 @@ export default function Forum() {
             {totalPages > 1 && (
             <div className="mt-8 flex items-center justify-center gap-2">
               <button
-                onClick={() => { setPage(p => p - 1); fetchPosts(page - 1) }}
+                onClick={() => { setPage(p => { const next = p - 1; fetchPosts(next, { room: selectedRoom, sort }); return next; }) }}
                 disabled={page === 1}
                 className="h-10 rounded-sm border border-[#dddddd] bg-[#ffffff] px-4 text-[13px] font-medium text-[#181d26] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -647,7 +649,7 @@ export default function Forum() {
                 Page {page} of {totalPages}
               </span>
               <button
-                onClick={() => { setPage(p => p + 1); fetchPosts(page + 1) }}
+                onClick={() => { setPage(p => { const next = p + 1; fetchPosts(next, { room: selectedRoom, sort }); return next; }) }}
                 disabled={page === totalPages}
                 className="h-10 rounded-sm border border-[#dddddd] bg-[#ffffff] px-4 text-[13px] font-medium text-[#181d26] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -720,13 +722,14 @@ function PostCard({
   post, user, userVote, onUpvote, onDownvote,
   onToggleComments, openComments, commentDrafts, setCommentDrafts,
   onCommentSubmit, replyingTo, setReplyingTo, formatTimeAgo,
-  onUserClick, onViewProfile, onUpvoteComment
+  onUserClick, onViewProfile, onUpvoteComment,
+  fetchPosts, page
 }) {
   const [localDraft, setLocalDraft] = useState('')
   const [replyDraft, setReplyDraft] = useState('')
 
   const handleCommentDraft = (postId, value) => {
-    setCommentDrafts({ ...commentDrafts, [postId]: value })
+    setCommentDrafts(current => ({ ...current, [postId]: value }))
   }
 
   const handleReplyDraft = (value) => {

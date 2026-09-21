@@ -53,7 +53,7 @@ function resolveMimeType(fileName) {
   return EXTENSION_TO_MIME[extension] || 'application/octet-stream'
 }
 
-async function streamCloudinaryToResponse(req, res, cloudinaryUrl, fileName) {
+async function streamCloudinaryToResponse(req, res, cloudinaryUrl, fileName, disposition = 'inline') {
   try {
     const range = req.headers.range
     const requestConfig = {
@@ -72,6 +72,9 @@ async function streamCloudinaryToResponse(req, res, cloudinaryUrl, fileName) {
     const mimeType = isPdf ? 'application/pdf' : (response.headers['content-type'] || resolveMimeType(fileName))
     res.setHeader('Content-Type', mimeType)
     res.setHeader('Accept-Ranges', 'bytes')
+
+    const safeName = (fileName && fileName.replace(/"/g, '')) || 'download'
+    res.setHeader('Content-Disposition', `${disposition}; filename="${safeName}"`)
 
     if (response.headers['content-length']) {
       res.setHeader('Content-Length', response.headers['content-length'])
@@ -161,7 +164,8 @@ router.get('/', optionalAuth, async (req, res) => {
 })
 
 // ── GET /api/resources/:id/download ───────────────────────────────────────
-// Increments download count then redirects to the file URL for direct fast download
+// Increments download count and streams the file as an attachment
+// (forces a "Save As" dialog instead of opening inline in the browser).
 router.get('/:id/download', async (req, res) => {
   try {
     const resource = await Resource.findByIdAndUpdate(
@@ -171,21 +175,24 @@ router.get('/:id/download', async (req, res) => {
     )
     if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
 
-    // Use redirect for fast direct download from CDN/storage provider
+    const fileName = resource.fileName || 'download'
+
+    // Google Drive / external links — let the browser/CDN handle the download
     if (isGoogleDriveUrl(resource.fileUrl)) {
       const normalizedUrl = normalizeGoogleDriveUrl(resource.fileUrl)
-      res.setHeader('Content-Disposition', `attachment; filename="${resource.fileName || 'download'}"`)
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
       return res.redirect(normalizedUrl)
     }
 
     if (isExternalUrl(resource.fileUrl)) {
-      res.setHeader('Content-Disposition', `attachment; filename="${resource.fileName || 'download'}"`)
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
       return res.redirect(resource.fileUrl)
     }
 
-    // Cloudinary files - redirect directly to Cloudinary CDN
-    res.setHeader('Content-Disposition', `attachment; filename="${resource.fileName || 'download'}"`)
-    return res.redirect(resource.fileUrl)
+    // Cloudinary files — stream the file through the server so the
+    // Content-Disposition: attachment header is honored, forcing a
+    // download instead of opening the PDF inline in the browser.
+    await streamCloudinaryToResponse(req, res, resource.fileUrl, resource.fileName, 'attachment')
   } catch (err) {
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
@@ -197,8 +204,6 @@ router.get('/:id/preview', async (req, res) => {
   try {
     const resource = await Resource.findById(req.params.id)
     if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
-
-    res.setHeader('Content-Disposition', `inline; filename="${resource.fileName || 'preview'}"`)
 
     if (isGoogleDriveUrl(resource.fileUrl)) {
       const fileId = extractGoogleDriveFileId(resource.fileUrl)
@@ -212,7 +217,7 @@ router.get('/:id/preview', async (req, res) => {
       return res.redirect(resource.fileUrl)
     }
 
-    await streamCloudinaryToResponse(req, res, resource.fileUrl, resource.fileName)
+    await streamCloudinaryToResponse(req, res, resource.fileUrl, resource.fileName, 'inline')
   } catch (err) {
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
