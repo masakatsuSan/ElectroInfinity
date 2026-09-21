@@ -198,6 +198,38 @@ router.get('/:id/download', async (req, res) => {
   }
 })
 
+// ── POST /api/resources/:id/download/increment ─────────────────────────────
+// Increments download count without redirecting (for direct Google Drive downloads)
+router.post('/:id/download/increment', async (req, res) => {
+  try {
+    const resource = await Resource.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { downloadCount: 1 } },
+      { new: true }
+    )
+    if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
+
+    const isGDrive = isGoogleDriveUrl(resource.fileUrl)
+    let directUrl = null
+    if (isGDrive) {
+      directUrl = normalizeGoogleDriveUrl(resource.fileUrl)
+    } else if (isExternalUrl(resource.fileUrl)) {
+      directUrl = resource.fileUrl
+    }
+
+    res.json({
+      success: true,
+      data: {
+        downloadCount: resource.downloadCount,
+        isGoogleDrive: isGDrive,
+        directUrl,
+      },
+    })
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
+  }
+})
+
 // ── GET /api/resources/:id/preview ────────────────────────────────────────
 // Streams the file inline for the application PDF viewer
 router.get('/:id/preview', async (req, res) => {

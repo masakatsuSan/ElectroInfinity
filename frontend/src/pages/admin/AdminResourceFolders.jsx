@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Check, Trash2, Pencil, Plus, ExternalLink, GripVertical, X,
-  Upload, Play, FileText, FolderOpen,
+  Upload, Play, FolderOpen,
 } from 'lucide-react'
 import {
   getFolders, createFolder, updateFolder, deleteFolder,
@@ -11,7 +11,6 @@ import {
 } from '../../api/folders'
 import { getSubjects } from '../../api/subjects'
 import { downloadResource } from '../../api/resources'
-import ResourcePreviewDrawer from '../../components/ResourcePreviewDrawer'
 
 const TYPES = ['notes', 'books', 'organisers', 'pyqs', 'yt playlist']
 const SEMS = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -36,7 +35,6 @@ export default function AdminResourceFolders() {
   const dragIndex = useRef(null)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
-  const [previewResource, setPreviewResource] = useState(null)
 
   const { data: foldersData, isLoading } = useQuery({
     queryKey: ['folders'],
@@ -396,14 +394,9 @@ export default function AdminResourceFolders() {
                       </a>
                     )}
                     {item.type === 'resource' && item.data?._id && (
-                      <>
-                        <button type="button" onClick={() => setPreviewResource(item.data)} className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-blue-500/70 hover:text-blue-500 transition-colors bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded-md flex items-center gap-1">
-                          <FileText size={12} /> Preview
-                        </button>
-                        <a href={downloadResource(item.data._id)} className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-ink-muted-80 hover:text-ink transition-colors bg-soft-stone hover:bg-soft-stone/50 px-3 py-1.5 rounded-md flex items-center gap-1">
-                          Download
-                        </a>
-                      </>
+                      <a href={downloadResource(item.data._id)} className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-ink-muted-80 hover:text-ink transition-colors bg-soft-stone hover:bg-soft-stone/50 px-3 py-1.5 rounded-md flex items-center gap-1">
+                        Download
+                      </a>
                     )}
                     <button onClick={() => handleRemoveItem(item)} className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-red-500/70 hover:text-red-500 transition-colors bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-md flex items-center gap-1">
                       <Trash2 size={12} /> Remove
@@ -514,10 +507,6 @@ export default function AdminResourceFolders() {
           </div>
         </div>
       )}
-      <ResourcePreviewDrawer
-        resource={previewResource}
-        onClose={() => setPreviewResource(null)}
-      />
     </div>
   )
 }

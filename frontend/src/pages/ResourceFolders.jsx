@@ -2,20 +2,18 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Play, FileText, Download, FolderOpen, ChevronRight, ArrowLeft,
+  Play, Download, FolderOpen, ChevronRight, ArrowLeft,
 } from 'lucide-react'
 import { getFolders, getFolder } from '../api/folders'
-import { downloadResource } from '../api/resources'
+import { downloadResource, incrementDownloadCount, isGoogleDriveUrl, getGoogleDriveDownloadUrl } from '../api/resources'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
-import ResourcePreviewDrawer from '../components/ResourcePreviewDrawer'
 
 const SEM_LABELS = { 0: 'General', 1: 'Semester 1', 2: 'Semester 2', 3: 'Semester 3', 4: 'Semester 4', 5: 'Semester 5', 6: 'Semester 6', 7: 'Semester 7', 8: 'Semester 8' }
 
 export default function ResourceFolders() {
   const { id } = useParams()
   const { user } = useAuth()
-  const [previewResource, setPreviewResource] = useState(null)
 
   const { data: foldersData, isLoading: listLoading } = useQuery({
     queryKey: ['folders', 'public'],
@@ -111,10 +109,6 @@ export default function ResourceFolders() {
           </>
         )}
       </div>
-      <ResourcePreviewDrawer
-        resource={previewResource}
-        onClose={() => setPreviewResource(null)}
-      />
     </div>
   )
 }
@@ -283,21 +277,45 @@ function FolderDetail({ folder, onPreview }) {
 
                   <div className="flex items-center flex-shrink-0 gap-1">
                     {item.type === 'resource' && item.data?._id ? (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => onPreview(item.data)}
-                          className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-blue-500/70 hover:text-blue-500 transition-colors bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded-md flex items-center gap-1"
-                        >
-                          <FileText size={12} /> Preview
-                        </button>
-                        <a
-                          href={downloadResource(item.data._id)}
-                          className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-ink-muted-80 hover:text-ink transition-colors bg-soft-stone hover:bg-soft-stone/50 px-3 py-1.5 rounded-md flex items-center gap-1"
-                        >
-                          <Download size={12} /> Download
-                        </a>
-                      </>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await incrementDownloadCount(item.data._id)
+                            if (isGoogleDriveUrl(item.data.fileUrl)) {
+                              const directUrl = getGoogleDriveDownloadUrl(item.data.fileUrl)
+                              if (directUrl) {
+                                const link = document.createElement('a')
+                                link.href = directUrl
+                                link.download = item.data.fileName || 'download'
+                                link.target = '_blank'
+                                link.rel = 'noreferrer'
+                                document.body.appendChild(link)
+                                link.click()
+                                document.body.removeChild(link)
+                                return
+                              }
+                            }
+                            const link = document.createElement('a')
+                            link.href = downloadResource(item.data._id)
+                            link.download = item.data.fileName || 'download'
+                            document.body.appendChild(link)
+                            link.click()
+                            document.body.removeChild(link)
+                          } catch (error) {
+                            console.error('Download failed:', error)
+                            const link = document.createElement('a')
+                            link.href = downloadResource(item.data._id)
+                            link.download = item.data.fileName || 'download'
+                            document.body.appendChild(link)
+                            link.click()
+                            document.body.removeChild(link)
+                          }
+                        }}
+                        className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-ink-muted-80 hover:text-ink transition-colors bg-soft-stone hover:bg-soft-stone/50 px-3 py-1.5 rounded-md flex items-center gap-1"
+                      >
+                        <Download size={12} /> Download
+                      </button>
                     ) : null}
                     {item.type === 'lecture' && item.data?.youtubeVideoId ? (
                       <a

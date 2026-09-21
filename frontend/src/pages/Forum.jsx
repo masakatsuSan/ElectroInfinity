@@ -117,8 +117,10 @@ export default function Forum() {
   }, [])
 
   useEffect(() => {
-    setPage(1)
-    fetchPosts(1)
+    if (selectedRoom) {
+      setPage(1)
+      fetchPosts(1)
+    }
   }, [selectedRoom, sort])
 
   useEffect(() => {
