@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Camera, Share2, Edit3, MessageCircle, Star, Activity, X } from 'lucide-react'
+import { Camera, Share2, Edit3, MessageCircle, Star, Activity, X, QrCode } from 'lucide-react'
 import { uploadCoverPhoto, uploadProfilePhoto, getProfileQr } from '../api/profile'
 import FriendActionButton from './FriendActionButton'
 import ShareProfileModal from './ShareProfileModal'
@@ -22,6 +22,7 @@ export default function ProfileHeader({
   profile,
   isOwn,
   onUpdate,
+  onShare,
   stats = {},
   onStatClick,
   onMessageClick,
@@ -102,6 +103,23 @@ export default function ProfileHeader({
       console.error(err)
     } finally {
       setQrLoading(false)
+    }
+  }
+
+  // Was referenced by the "Copy Link" menu item but never defined, so
+  // clicking it threw "handleCopyLink is not defined".
+  const handleCopyLink = async () => {
+    const url = window.location.href
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      // Clipboard API needs a secure context; fall back for plain http://
+      const input = document.createElement('input')
+      input.value = url
+      document.body.appendChild(input)
+      input.select()
+      try { document.execCommand('copy') } catch { /* nothing else to try */ }
+      document.body.removeChild(input)
     }
   }
 

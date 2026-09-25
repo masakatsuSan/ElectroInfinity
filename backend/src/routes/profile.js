@@ -1,4 +1,5 @@
 const express = require('express')
+const mongoose = require('mongoose')
 const router = express.Router()
 const User = require('../models/User')
 const Activity = require('../models/Activity')
@@ -10,7 +11,7 @@ const ForumPost = require('../models/ForumPost')
 const Resource = require('../models/Resource')
 const FriendRequest = require('../models/FriendRequest')
 const { protect, guard, optionalAuth } = require('../middleware/auth')
-const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
+const { upload, uploadSingle, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
 const { createActivity } = require('../utils/activity')
 const { createNotification } = require('../utils/notification')
 
@@ -200,11 +201,22 @@ router.get('/suggested', optionalAuth, async (req, res) => {
 
     if (viewerId) {
       const viewer = await User.findById(viewerId).select('friends')
-      const friendIds = (viewer?.friends || []).map(id => id.toString())
+      const friendIds = (viewer?.friends || []).map((id) => id.toString())
 
-      pipeline.push(
-        { $match: { _id: { $ne: viewerId, $nin: friendIds.map(id => require('mongoose').Types.ObjectId(id)) } } }
-      )
+      // mongoose.Types.ObjectId is a class — it must be constructed with
+      // `new`. Calling it as a function throws
+      // "Class constructor ObjectId cannot be invoked without 'new'", which
+      // made this endpoint 500 for every signed-in user (Suggested panel on
+      // the Network page). It only worked signed-out because viewerId was
+      // null and this branch never ran.
+      pipeline.push({
+        $match: {
+          _id: {
+            $ne: viewerId,
+            $nin: friendIds.map((id) => new mongoose.Types.ObjectId(id)),
+          },
+        },
+      })
     }
 
     pipeline.push(
@@ -659,7 +671,7 @@ router.patch('/me', protect, async (req, res) => {
 })
 
 // ── POST /api/profile/me/cover ────────────────────────────────────────────
-router.post('/me/cover', protect, upload.single('cover'), async (req, res) => {
+router.post('/me/cover', protect, uploadSingle('cover'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, error: 'No cover photo uploaded' })
 
@@ -690,7 +702,7 @@ router.post('/me/cover', protect, upload.single('cover'), async (req, res) => {
 })
 
 // ── POST /api/profile/me/photo ────────────────────────────────────────────
-router.post('/me/photo', protect, upload.single('photo'), async (req, res) => {
+router.post('/me/photo', protect, uploadSingle('photo'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, error: 'No photo uploaded' })
 

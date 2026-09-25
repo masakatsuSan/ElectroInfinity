@@ -6,15 +6,15 @@ export const getPublicProfile = (id) =>
 export const updateMyProfile = (data) =>
   api.patch('/profile/me', data)
 
+// NOTE: do NOT set Content-Type manually here. Axios must generate
+// `multipart/form-data; boundary=...` itself — forcing the header strips the
+// boundary, so multer cannot parse the body and every profile photo/cover
+// upload fails. This mirrors the same constraint in api/resources.js.
 export const uploadCoverPhoto = (formData) =>
-  api.post('/profile/me/cover', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  api.post('/profile/me/cover', formData)
 
 export const uploadProfilePhoto = (formData) =>
-  api.post('/profile/me/photo', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  api.post('/profile/me/photo', formData)
 
 export const getProfileCompleteness = () =>
   api.get('/profile/me/completeness')
