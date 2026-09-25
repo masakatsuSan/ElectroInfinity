@@ -15,7 +15,7 @@ function isExternalUrl(url) {
 
 function isGoogleDriveUrl(url) {
   if (!url) return false
-  return /^https?:\/\/(?:drive\.google\.com|drive\.usercontent\.google\.com)/i.test(url)
+  return /^https?:\/\/(?:drive\.google\.com|drive\.userdata\.google\.com|drive\.googleusercontent\.com)/i.test(url)
 }
 
 function normalizeGoogleDriveUrl(url) {
@@ -128,56 +128,81 @@ async function streamGoogleDriveToResponse(req, res, driveUrl, fileName, disposi
 
   const downloadUrl = `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`
 
+  let response
   try {
-    const response = await axios.get(downloadUrl, {
+    response = await axios.get(downloadUrl, {
       responseType: 'stream',
       timeout: 30000,
       maxRedirects: 5,
-      validateStatus: (status) => status >= 200 && status < 400,
+      validateStatus: () => true, // Drive returns 404/403/confirm pages — handle below
     })
-
-    const contentType = String(response.headers['content-type'] || '').toLowerCase()
-
-    // Drive returns an HTML warning page for private files, large files
-    // needing virus-scan confirmation, or bad IDs. Check the first chunk
-    // and surface a clear error instead of saving HTML as a PDF.
-    if (contentType.includes('text/html')) {
-      return res.status(400).json({
-        success: false,
-        error: 'Google Drive blocked the download — set sharing to "Anyone with the link" (Viewer) and try again',
-      })
-    }
-
-    const isPdf = contentType.includes('pdf') || (fileName && fileName.toLowerCase().endsWith('.pdf'))
-    res.setHeader('Content-Type', contentType || 'application/pdf')
-    res.setHeader('Accept-Ranges', 'bytes')
-
-    const safeName = (fileName && fileName.replace(/"/g, '')) || 'download'
-    res.setHeader('Content-Disposition', `${disposition}; filename="${safeName}"`)
-
-    if (response.headers['content-length']) {
-      res.setHeader('Content-Length', response.headers['content-length'])
-    }
-
-    res.status(200)
-
-    response.data.pipe(res)
   } catch (error) {
-    console.error('Failed to fetch file from Google Drive:', {
+    console.error('Failed to fetch file from Google Drive (network):', {
       url: downloadUrl,
       error: error.message,
-      status: error.response?.status,
       code: error.code,
     })
-
-    if (!res.headersSent) {
-      if (error.code === 'ECONNABORTED') {
-        res.status(504).json({ success: false, error: 'Google Drive took too long to respond' })
-      } else {
-        res.status(500).json({ success: false, error: 'Failed to fetch the file from Google Drive' })
-      }
+    if (error.code === 'ECONNABORTED') {
+      return res.status(504).json({ success: false, error: 'Google Drive took too long to respond' })
     }
+    return res.status(502).json({ success: false, error: 'Could not reach Google Drive' })
   }
+
+  const status = response.status
+  const contentType = String(response.headers['content-type'] || '').toLowerCase()
+
+  // Drive serves an HTML error/confirmation page for bad IDs, private files,
+  // or files needing a virus-scan confirmation. Detect it and surface a clear
+  // message instead of piping HTML to the client as a "PDF".
+  if (status < 200 || status >= 300 || contentType.includes('text/html')) {
+    // Drain the response body so the underlying socket can be reused/released
+    // — otherwise the connection hangs and the next request times out.
+    response.data.resume()
+
+    if (status === 404) {
+      return res.status(404).json({
+        success: false,
+        error: 'Google Drive file not found — check the link and that it is set to "Anyone with the link"',
+      })
+    }
+    if (status === 403 || status === 401) {
+      return res.status(403).json({
+        success: false,
+        error: 'Google Drive denied access — set file sharing to "Anyone with the link" (Viewer) and try again',
+      })
+    }
+    if (status >= 300 && status < 400 && response.headers.location) {
+      return res.redirect(response.headers.location)
+    }
+    return res.status(400).json({
+      success: false,
+      error: 'Google Drive blocked the download — set sharing to "Anyone with the link" (Viewer) and try again',
+    })
+  }
+
+  const isPdf = contentType.includes('pdf') || (fileName && fileName.toLowerCase().endsWith('.pdf'))
+  res.setHeader('Content-Type', contentType || 'application/pdf')
+  res.setHeader('Accept-Ranges', 'bytes')
+
+  const safeName = (fileName && fileName.replace(/"/g, '')) || 'download'
+  res.setHeader('Content-Disposition', `${disposition}; filename="${safeName}"`)
+
+  if (response.headers['content-length']) {
+    res.setHeader('Content-Length', response.headers['content-length'])
+  }
+
+  res.status(200)
+
+  response.data.pipe(res)
+  response.data.on('error', (err) => {
+    console.error('Stream error while fetching from Google Drive:', {
+      url: downloadUrl,
+      error: err.message,
+    })
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: 'Failed to fetch the file from Google Drive' })
+    }
+  })
 }
 
 // ── GET /api/resources ─────────────────────────────────────────────────────
@@ -229,20 +254,27 @@ router.get('/', optionalAuth, async (req, res) => {
 // Increments download count and streams the file as an attachment
 // (forces a "Save As" dialog instead of opening inline in the browser).
 router.get('/:id/download', async (req, res) => {
+  let resource
   try {
-    const resource = await Resource.findByIdAndUpdate(
+    resource = await Resource.findByIdAndUpdate(
       req.params.id,
       { $inc: { downloadCount: 1 } },
       { new: true }
     )
-    if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
+  } catch (err) {
+    console.error('[RESOURCES DOWNLOAD] DB lookup failed:', err?.message)
+    return res.status(500).json({ success: false, error: 'An internal server error occurred' })
+  }
 
-    const fileName = resource.fileName || 'download'
+  if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
 
+  const fileName = resource.fileName || 'download'
+
+  try {
     // Google Drive files — stream through the server so Drive's HTML
     // confirmation page is detected and the real PDF is saved, not HTML.
     if (isGoogleDriveUrl(resource.fileUrl)) {
-      return streamGoogleDriveToResponse(req, res, resource.fileUrl, resource.fileName, 'attachment')
+      return await streamGoogleDriveToResponse(req, res, resource.fileUrl, resource.fileName, 'attachment')
     }
 
     if (isExternalUrl(resource.fileUrl)) {
@@ -255,7 +287,10 @@ router.get('/:id/download', async (req, res) => {
     // download instead of opening the PDF inline in the browser.
     await streamCloudinaryToResponse(req, res, resource.fileUrl, resource.fileName, 'attachment')
   } catch (err) {
-    res.status(500).json({ success: false, error: 'An internal server error occurred' })
+    console.error('[RESOURCES DOWNLOAD] failed:', err?.message)
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: 'An internal server error occurred' })
+    }
   }
 })
 
@@ -325,6 +360,35 @@ function extractGoogleDriveFileId(url) {
   return null
 }
 
+// Turn any upload/update failure into a message the admin can act on.
+// Mongoose validation, duplicate keys, Cloudinary rejections and plain network
+// errors all land here — the point is that the client never receives a bare
+// "internal server error" for a failed PDF upload.
+function describeWriteError(err) {
+  if (!err) return 'Upload failed'
+  if (err.name === 'ValidationError') {
+    return Object.values(err.errors || {}).map((e) => e.message).join(' · ') || 'Validation failed'
+  }
+  if (err.code === 11000) return 'A resource with that title already exists'
+  if (err.name === 'MulterError' || err.code?.startsWith?.('LIMIT_')) {
+    return err.message || 'File upload failed'
+  }
+  return err.message || 'Upload failed'
+}
+
+// Cloudinary/network failures are server-side, so they are logged loudly and
+// reported as a 502 so the admin can tell "my file was rejected" apart from
+// "the server is broken".
+function writeErrorStatus(err) {
+  const message = describeWriteError(err)
+  const isServerSide =
+    !err?.name?.includes?.('Validation') &&
+    err?.code !== 11000 &&
+    !err?.name?.includes?.('MulterError') &&
+    !(typeof message === 'string' && /required|already exists/i.test(message))
+  return { status: isServerSide ? 502 : 400, message }
+}
+
 // ── POST /api/resources ────────────────────────────────────────────────────
 // Upload a file — CR, and admin
 // The file comes as multipart/form-data with field name "file"
@@ -373,8 +437,25 @@ router.post(
         publicId = cloudId
         fileName = req.file.originalname
       } else {
-        url = fileUrl
-        fileName = (fileUrl && fileUrl.split('/').pop()) || 'external-link'
+        const link = String(fileUrl).trim()
+
+        // Reject links we can never serve, instead of storing a resource that
+        // is guaranteed to fail on download for every user who clicks it.
+        if (!/^https?:\/\//i.test(link)) {
+          return res.status(400).json({ success: false, error: 'Link must start with http:// or https://' })
+        }
+        if (isGoogleDriveUrl(link) && !extractGoogleDriveFileId(link)) {
+          return res.status(400).json({
+            success: false,
+            error: 'Could not read a Google Drive file ID from that link — copy the "Share" link from Drive',
+          })
+        }
+
+        url = link
+        // A Drive share link ends in "/view" or "/preview", which would be
+        // saved as the download filename. Use the resource title instead so
+        // the file the user receives is named something recognisable.
+        fileName = isGoogleDriveUrl(link) ? `${title || 'document'}.pdf` : (link.split('/').pop() || 'external-link')
       }
 
       const resource = await Resource.create({
@@ -427,13 +508,10 @@ router.post(
       res.status(201).json({ success: true, data: resource })
     } catch (err) {
       console.error('[RESOURCES POST ERROR]', err?.message, err?.stack)
-      // Surface the real problem (validation, duplicate, etc.) instead of a
-      // blanket "internal server error" so uploads can actually be debugged.
-      const message =
-        err?.name === 'ValidationError'
-          ? Object.values(err.errors).map((e) => e.message).join(' · ')
-          : (err?.code === 11000 ? 'A resource with that title already exists' : null)
-      res.status(400).json({ success: false, error: message || err?.message || 'Upload failed' })
+      // Surface the real problem (validation, Cloudinary rejection, network)
+      // instead of a blanket "internal server error" so uploads can be debugged.
+      const { status, message } = writeErrorStatus(err)
+      res.status(status).json({ success: false, error: message })
     }
   }
 )
@@ -497,20 +575,20 @@ router.put(
           const isRaw = resource.fileUrl.includes('/raw/upload/')
           await deleteFromCloudinary(resource.filePublicId, isRaw ? 'raw' : 'image')
         }
-        updates.fileUrl      = fileUrl
+        const link = String(fileUrl).trim()
+        updates.fileUrl      = link
         updates.filePublicId = ''
-        updates.fileName     = (fileUrl && fileUrl.split('/').pop()) || 'external-link'
+        updates.fileName     = isGoogleDriveUrl(link)
+          ? `${updates.title || resource.title || 'document'}.pdf`
+          : (link.split('/').pop() || 'external-link')
       }
 
       const updated = await Resource.findByIdAndUpdate(req.params.id, updates, { new: true })
       res.json({ success: true, data: updated })
     } catch (err) {
       console.error('[RESOURCES PUT ERROR]', err?.message, err?.stack)
-      const message =
-        err?.name === 'ValidationError'
-          ? Object.values(err.errors).map((e) => e.message).join(' · ')
-          : null
-      res.status(400).json({ success: false, error: message || err?.message || 'Update failed' })
+      const { status, message } = writeErrorStatus(err)
+      res.status(status).json({ success: false, error: message })
     }
   }
 )

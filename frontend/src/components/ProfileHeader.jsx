@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Camera, Share2, Edit3, QrCode, MessageCircle, Star, Activity } from 'lucide-react'
+import { Camera, Share2, Edit3, MessageCircle, Star, Activity, X } from 'lucide-react'
 import { uploadCoverPhoto, uploadProfilePhoto, getProfileQr } from '../api/profile'
 import FriendActionButton from './FriendActionButton'
 import ShareProfileModal from './ShareProfileModal'
@@ -23,7 +23,8 @@ export default function ProfileHeader({
   isOwn,
   onUpdate,
   stats = {},
-  onShare,
+  onStatClick,
+  onMessageClick,
 }) {
   const { user: currentUser } = useAuth()
   const navigate = useNavigate()
@@ -34,6 +35,7 @@ export default function ProfileHeader({
   const [qrOpen, setQrOpen] = useState(false)
   const [qrData, setQrData] = useState(null)
   const [qrLoading, setQrLoading] = useState(false)
+  const [messageOpen, setMessageOpen] = useState(false)
 
   const mutualCount = useMemo(() => {
     if (!currentUser?._id || !profile?.friends?.length) return 0
@@ -103,13 +105,7 @@ export default function ProfileHeader({
     }
   }
 
-  const handleCopyLink = async () => {
-    const url = window.location.href
-    await navigator.clipboard.writeText(url)
-    alert('Profile link copied to clipboard!')
-  }
-
-  const totalPosts = (profile?.projects || 0) + (profile?.forumPosts || 0) + (profile?.resourcesUploaded || 0)
+  const totalPosts = stats.posts ?? ((profile?.projects || 0) + (profile?.forumPosts || 0) + (profile?.resourcesUploaded || 0))
 
   return (
     <ScrollReveal variant="fadeUp">

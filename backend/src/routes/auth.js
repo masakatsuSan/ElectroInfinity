@@ -19,34 +19,88 @@ function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString()
 }
 
-// ── Helper: send email via Brevo API // Standardized Email Sender using Axios and Brevo API
+// ── Email sender identity ────────────────────────────────────────────────
+// The From address must be a sender authenticated for this Brevo account.
+// Brevo queues the message either way, so an unauthenticated sender looks
+// like success and then dies in the recipient's spam filter.
+// NOTE: the ee.agemc.ac.in subdomain publishes no SPF/DKIM (MX is Google
+// Workspace only), so it cannot be used as a sending domain. Keep EMAIL_SENDER
+// pointed at a sender verified in the Brevo dashboard.
+const SENDER_NAME = 'Electro Infinity | AGEMC'
+
+function senderAddress() {
+  return process.env.EMAIL_SENDER?.trim() || process.env.EMAIL_USER?.trim() || 'noreply@electroinfinity.com'
+}
+
+// ── Helper: send email via Brevo API ─────────────────────────────────────
 async function sendEmail({ to, subject, html }) {
-  const apiKey = process.env.BREVO_API_KEY?.trim();
-  
+  const apiKey = process.env.BREVO_API_KEY?.trim()
+
   if (!apiKey) {
+    console.error('[email] BREVO_API_KEY is not set')
     throw new Error('Email service unavailable')
   }
-  
+
   const payload = {
-    sender: { 
-      name: "Electro Infinity | AGEMC", 
-      email: process.env.EMAIL_USER || "noreply@electroinfinity.com" 
-    },
+    sender: { name: SENDER_NAME, email: senderAddress() },
     to: [{ email: to }],
     subject: subject,
-    htmlContent: html
+    htmlContent: html,
   }
 
   try {
-    const response = await axios.post('https://api.brevo.com/v3/smtp/email', payload, {
+    const { data, status } = await axios.post('https://api.brevo.com/v3/smtp/email', payload, {
       headers: {
         'api-key': apiKey,
         'Content-Type': 'application/json',
-      }
-    });
-  } catch {
+        Accept: 'application/json',
+      },
+      timeout: 15000,
+    })
+
+    // 201 + messageId means the message actually entered the relay. Any other
+    // outcome means it was never sent, so we must not report it as delivered.
+    if (status !== 201 || !data?.messageId) {
+      console.error('[email] Brevo returned no messageId', status, data)
+      throw new Error('Email service unavailable')
+    }
+
+    console.log(`[email] queued "${subject}" -> ${to} (${data.messageId})`)
+    return data.messageId
+  } catch (err) {
+    // Keep the real reason (unauthorized sender, bad recipient, quota) in the
+    // logs — collapsing every failure into one opaque error is what made this
+    // undiagnosable in the first place.
+    console.error('[email] send failed ->', to, {
+      status: err.response?.status,
+      code: err.response?.data?.code,
+      detail: err.response?.data?.message || err.message,
+    })
     throw new Error('Email service unavailable')
   }
+}
+
+// ── Helper: resolve the mailbox an OTP should be delivered to ────────────
+// Institutional @ee.agemc.ac.in mailboxes are the least reliable destination
+// here, so prefer a personal mailbox when one is on file and fall back to the
+// account email.
+function otpRecipient(user) {
+  const personal = user.personalEmail?.trim()
+  if (personal) return personal
+  return user.email?.trim() || ''
+}
+
+function maskEmail(email) {
+  return email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
+}
+
+// Opt-in diagnostic: echo the code to the server log so a send that Brevo
+// queued but a provider dropped can still be verified. Deliberately opt-in via
+// OTP_DEBUG rather than gated on NODE_ENV, which this project never sets — an
+// unset NODE_ENV must not silently start printing live OTPs.
+function logOtpForDev(purpose, user, otp) {
+  if (process.env.OTP_DEBUG !== '1') return
+  console.log(`[otp] ${purpose} → ${otpRecipient(user)} · code ${otp}`)
 }
 
 // ── GET /api/auth/check-roll/:rollNo ──────────────────────────────────────
@@ -72,7 +126,8 @@ router.get('/check-roll/:rollNo', async (req, res) => {
       })
     }
 
-    if (!user.email) {
+    const recipient = otpRecipient(user)
+    if (!recipient) {
       return res.status(400).json({
         success: false,
         error: 'No email registered for this account. Contact your HOD.',
@@ -87,7 +142,7 @@ router.get('/check-roll/:rollNo', async (req, res) => {
 
     // Send OTP email
     await sendEmail({
-      to: user.email,
+      to: recipient,
       subject: 'Electro Infinity — Account Activation OTP',
       html: `
         <div style="font-family:monospace; max-width:480px; margin:0 auto; padding:32px; background:#07060E; color:#F0EFF8; border:1px solid rgba(255,255,255,0.1);">
@@ -109,8 +164,10 @@ router.get('/check-roll/:rollNo', async (req, res) => {
       `,
     })
 
+    logOtpForDev('account activation', user, otp)
+
     // Return masked email so user knows where OTP was sent
-    const maskedEmail = user.email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
+    const maskedEmail = maskEmail(recipient)
 
     res.json({
       success: true,
@@ -292,6 +349,14 @@ router.get('/check-faculty/:email', async (req, res) => {
       })
     }
 
+    const recipient = otpRecipient(user)
+    if (!recipient) {
+      return res.status(400).json({
+        success: false,
+        error: 'No email registered for this account. Contact your HOD.',
+      })
+    }
+
     // Generate OTP — valid for 10 minutes
     const otp = generateOTP()
     user.otp       = otp
@@ -300,7 +365,7 @@ router.get('/check-faculty/:email', async (req, res) => {
 
     // Send OTP email
     await sendEmail({
-      to: user.email,
+      to: recipient,
       subject: 'Electro Infinity — Faculty Activation OTP',
       html: `
         <div style="font-family:monospace; max-width:480px; margin:0 auto; padding:32px; background:#07060E; color:#F0EFF8; border:1px solid rgba(255,255,255,0.1);">
@@ -322,7 +387,9 @@ router.get('/check-faculty/:email', async (req, res) => {
       `,
     })
 
-    const maskedEmail = user.email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
+    logOtpForDev('faculty activation', user, otp)
+
+    const maskedEmail = maskEmail(recipient)
 
     res.json({ success: true, name: user.name, maskedEmail })
   } catch (err) {
@@ -400,14 +467,19 @@ router.post('/forgot-password', async (req, res) => {
         })
       }
     } else if (email) {
-      user = await User.findOne({ email: email.toLowerCase() })
+      // Accept either the account email or the personal mailbox the OTP is
+      // actually delivered to, so the user can type whichever they were sent to.
+      user = await User.findOne({
+        $or: [{ email: email.toLowerCase() }, { personalEmail: email.toLowerCase() }],
+      })
 
       if (!user) {
         return res.status(404).json({ success: false, error: 'No account found with this email' })
       }
     }
 
-    if (!user.email) {
+    const recipient = otpRecipient(user)
+    if (!recipient) {
       return res.status(400).json({
         success: false,
         error: 'No email registered for this account. Contact your HOD.',
@@ -422,7 +494,7 @@ router.post('/forgot-password', async (req, res) => {
 
     // Send OTP email
     await sendEmail({
-      to: user.email,
+      to: recipient,
       subject: 'Electro Infinity — Password Reset OTP',
       html: `
         <div style="font-family:monospace; max-width:480px; margin:0 auto; padding:32px; background:#07060E; color:#F0EFF8; border:1px solid rgba(255,255,255,0.1);">
@@ -444,8 +516,10 @@ router.post('/forgot-password', async (req, res) => {
       `,
     })
 
+    logOtpForDev('password reset', user, otp)
+
     // Return masked email so user knows where OTP was sent
-    const maskedEmail = user.email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
+    const maskedEmail = maskEmail(recipient)
 
     res.json({
       success: true,
@@ -476,7 +550,9 @@ router.post('/verify-otp', async (req, res) => {
     if (rollNumber) {
       user = await User.findOne({ rollNumber: rollNumber.toUpperCase(), role: { $in: ['student', 'cr'] } })
     } else if (email) {
-      user = await User.findOne({ email: email.toLowerCase() })
+      user = await User.findOne({
+        $or: [{ email: email.toLowerCase() }, { personalEmail: email.toLowerCase() }],
+      })
     }
 
     if (!user) return res.status(404).json({ success: false, error: 'User not found' })

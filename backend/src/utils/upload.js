@@ -36,22 +36,51 @@ function toSafePublicId(originalName = 'file') {
   return `${safe}-${Date.now()}`
 }
 
-// ── Multer single-file wrapper with clean 400 errors ─────────────────────────
-// upload.single('file') throws via next(err). Without this wrapper those
-// errors fall through to server.js's generic 500 handler ("internal server
-// error"). This converts them to a 400 with the real reason instead.
+// ── Multer single-file wrapper with clean, explained errors ─────────────────
+// upload.single('file') reports problems via next(err). Without this wrapper
+// those errors fall through to server.js's generic 500 handler and the client
+// only ever sees "An internal server error occurred" — which is what made PDF
+// uploads from the admin panel look broken. This converts every failure mode
+// into a 4xx carrying the real reason.
+//
+// A malformed multipart body (truncated upload, forced Content-Type without a
+// boundary, aborted connection) can make multer/busboy throw synchronously
+// rather than call back, so the call is wrapped in try/catch too — otherwise
+// that throw escapes to Express and becomes a 500 again.
 function uploadSingle(field) {
   return (req, res, next) => {
-    upload.single(field)(req, res, (err) => {
-      if (!err) return next()
-      if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ success: false, error: 'File is too large (max 20MB)' })
+    let settled = false
+
+    const fail = (err) => {
+      if (settled || res.headersSent) return
+      settled = true
+
+      const code = err?.code
+      if (code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ success: false, error: 'File is too large (max 20MB)' })
+      }
+      if (code === 'LIMIT_UNEXPECTED_FILE') {
+        return res.status(400).json({ success: false, error: `Unexpected file field "${err.field || field}"` })
+      }
+      if (code === 'LIMIT_FILE_COUNT' || code === 'LIMIT_PART_COUNT') {
+        return res.status(400).json({ success: false, error: 'Too many files or form parts in one upload' })
       }
       // Wrong mimetype from fileFilter, busboy "Unexpected end of form"
       // (happens when the client forces Content-Type without a boundary),
       // or any other upload problem.
-      return res.status(400).json({ success: false, error: err.message || 'File upload failed' })
-    })
+      res.status(400).json({ success: false, error: err?.message || 'File upload failed' })
+    }
+
+    try {
+      upload.single(field)(req, res, (err) => {
+        if (err) return fail(err)
+        if (settled) return
+        settled = true
+        next()
+      })
+    } catch (err) {
+      fail(err)
+    }
   }
 }
 
@@ -73,12 +102,18 @@ function uploadToCloudinary(buffer, options = {}) {
         ...options,
       },
       (error, result) => {
-        if (error) return reject(error)
+        if (error) {
+          // Cloudinary nests the human-readable reason under error.error.message
+          const reason = error?.error?.message || error?.message || 'Cloudinary upload failed'
+          return reject(new Error(`Cloudinary rejected the upload: ${reason}`))
+        }
         if (!result || !result.secure_url) return reject(new Error('Cloudinary upload failed (no URL returned)'))
         resolve({ url: result.secure_url, publicId: result.public_id })
       }
     )
-    uploadStream.on('error', reject)
+    uploadStream.on('error', (err) => {
+      reject(new Error(`Cloudinary upload stream error: ${err?.message || 'unknown error'}`))
+    })
     // NOTE: must wrap buffer in an array — Readable.from(buffer) would
     // iterate the Buffer byte-by-byte (numbers), corrupting the upload
     // and making EVERY local PDF upload fail.
