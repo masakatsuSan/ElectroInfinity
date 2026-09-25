@@ -24,12 +24,21 @@ function generateOTP() {
 // Brevo queues the message either way, so an unauthenticated sender looks
 // like success and then dies in the recipient's spam filter.
 // NOTE: the ee.agemc.ac.in subdomain publishes no SPF/DKIM (MX is Google
-// Workspace only), so it cannot be used as a sending domain. Keep EMAIL_SENDER
-// pointed at a sender verified in the Brevo dashboard.
-const SENDER_NAME = 'Electro Infinity | AGEMC'
+// Workspace only), so it cannot be used as a sending domain. Keep the sender
+// pointed at a mailbox verified in the Brevo dashboard.
+const DEFAULT_SENDER_NAME = 'Electro Infinity | AGEMC'
+
+function senderName() {
+  return process.env.BREVO_SENDER_NAME?.trim() || process.env.EMAIL_SENDER_NAME?.trim() || DEFAULT_SENDER_NAME
+}
 
 function senderAddress() {
-  return process.env.EMAIL_SENDER?.trim() || process.env.EMAIL_USER?.trim() || 'noreply@electroinfinity.com'
+  return (
+    process.env.BREVO_SENDER_EMAIL?.trim() ||
+    process.env.EMAIL_SENDER?.trim() ||
+    process.env.EMAIL_USER?.trim() ||
+    ''
+  )
 }
 
 // ── Helper: send email via Brevo API ─────────────────────────────────────
@@ -41,8 +50,16 @@ async function sendEmail({ to, subject, html }) {
     throw new Error('Email service unavailable')
   }
 
+  const from = senderAddress()
+  if (!from) {
+    // Previously this fell back to noreply@electroinfinity.com, which is not a
+    // verified Brevo sender, so every OTP silently failed. Fail loudly instead.
+    console.error('[email] no sender configured — set BREVO_SENDER_EMAIL in backend/.env')
+    throw new Error('Email service unavailable')
+  }
+
   const payload = {
-    sender: { name: SENDER_NAME, email: senderAddress() },
+    sender: { name: senderName(), email: from },
     to: [{ email: to }],
     subject: subject,
     htmlContent: html,
@@ -178,6 +195,9 @@ router.get('/check-roll/:rollNo', async (req, res) => {
       otpSent: true,
     })
   } catch (err) {
+    // Log the real reason — swallowing it here is what made a Brevo 401
+    // (unrecognised IP) look like an unexplained "Failed to send OTP".
+    console.error('[auth] check-roll OTP failed for', req.params.rollNo, err?.message, err?.stack)
     res.status(500).json({ success: false, error: 'Failed to send OTP. Try again.' })
   }
 })
@@ -527,6 +547,7 @@ router.post('/forgot-password', async (req, res) => {
       maskedEmail,
     })
   } catch (err) {
+    console.error('[auth] forgot-password OTP failed for', req.body?.rollNumber || req.body?.email, err?.message, err?.stack)
     res.status(500).json({ success: false, error: 'Failed to send OTP. Try again.' })
   }
 })
