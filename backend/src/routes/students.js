@@ -3,6 +3,7 @@ const User    = require('../models/User')
 const { protect, guard } = require('../middleware/auth')
 const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
 const { canViewBatchStudents } = require('../utils/studentAccess')
+const { purgeUserForumContent } = require('../utils/forumCleanup')
 
 const router = express.Router()
 
@@ -231,6 +232,9 @@ router.get('/batches', protect, guard('super_admin', 'admin'), async (req, res) 
 // ── DELETE /api/students/:id ──────────────────────────────────────────────
 router.delete('/:id', protect, guard('super_admin', 'admin'), async (req, res) => {
   try {
+    // Drop their forum posts/comments first, otherwise the deleted account
+    // leaves dangling author references in the forum.
+    await purgeUserForumContent(req.params.id)
     await User.findByIdAndDelete(req.params.id)
     res.json({ success: true, message: 'Student removed' })
   } catch (err) {

@@ -1,20 +1,22 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
-import { X } from 'lucide-react'
+import { X, ExternalLink } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { MODAL_VARIANTS, MODAL_TRANSITION } from '../utils/motion'
-import { fetchPreviewBlobUrl, getPreviewUrl } from '../api/resources'
-
-function isGoogleDriveUrl(url) {
-  if (!url) return false
-  return /^https?:\/\/(?:drive\.google\.com|drive\.userdata\.googleusercontent\.com|drive\.googleusercontent\.com)/i.test(url)
-}
+import { fetchPreviewBlobUrl, getPreviewUrl, getGoogleDriveEmbedUrl, getGoogleDriveDownloadUrl } from '../api/resources'
+import { isGoogleDriveUrl, isGoogleFolderUrl } from '../utils/googleDrive'
 
 // react-pdf pulls in a ~1.4 MB PDF.js worker, so it is only downloaded when a
 // user actually opens a PDF preview rather than on every page load.
 const PdfViewer = lazy(() => import('./PdfViewer'))
 
 export default function ResourcePreviewDrawer({ resource, onClose }) {
-  const isPdf = resource ? (/\.pdf($|[?#])/i.test(resource.fileUrl || '') || isGoogleDriveUrl(resource.fileUrl)) : false
+  const isDrive = resource ? isGoogleDriveUrl(resource.fileUrl) : false
+  const isDriveFolder = resource ? isGoogleFolderUrl(resource.fileUrl) : false
+  // Drive-hosted PDFs render through Drive's own viewer (see below), so they
+  // must not be handed to react-pdf.
+  const isPdf = resource
+    ? !isDrive && (/\.pdf($|[?#])/i.test(resource.fileUrl || '') || /\.pdf$/i.test(resource.fileName || ''))
+    : false
   const isImage = resource ? /\.(png|jpe?g|webp|gif|svg)($|[?#])/i.test(resource.fileUrl || '') : false
   const [loading, setLoading] = useState(true)
   const [previewUrl, setPreviewUrl] = useState(null)
@@ -40,6 +42,23 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
     setLoading(true)
     setPreviewUrl(null)
     setPreviewError('')
+
+    if (isDrive) {
+      if (active) {
+        // Drive files render in Drive's own viewer. Feeding
+        // /api/resources/:id/preview to react-pdf used to make it follow a
+        // redirect to drive.google.com/…/preview, which is an HTML page —
+        // pdf.js reported "Failed to load PDF document" for every Drive file.
+        setPreviewUrl(
+          isDriveFolder ? null : getGoogleDriveEmbedUrl(resource.fileUrl)
+        )
+        if (isDriveFolder) {
+          setPreviewError('This is a Google Drive folder, not a file. Open it in Drive.')
+        }
+        setLoading(false)
+      }
+      return
+    }
 
     if (isPdf) {
       if (active) {
@@ -74,7 +93,7 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
       active = false
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [resource?._id, isPdf, isImage])
+  }, [resource?._id, isPdf, isImage, isDrive, isDriveFolder])
 
   if (!resource) return null
 
@@ -119,10 +138,28 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
               <div className="max-w-sm rounded-xl border border-hairline bg-white p-6 text-center shadow-sm">
                 <p className="font-sans text-[15px] font-medium text-ink">Preview unavailable</p>
                 <p className="mt-2 font-sans text-[13px] text-body-muted">{previewError}</p>
+                {isDrive && !isDriveFolder && (
+                  <a
+                    href={getGoogleDriveDownloadUrl(resource.fileUrl)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="button-primary mt-4 inline-flex items-center gap-1.5"
+                  >
+                    Open in Drive <ExternalLink size={14} />
+                  </a>
+                )}
               </div>
             </div>
           )}
-          {previewUrl && isPdf ? (
+          {previewUrl && isDrive ? (
+            <iframe
+              key={previewUrl}
+              src={previewUrl}
+              title={resource.title || 'Google Drive preview'}
+              className="h-full w-full border-0 bg-white"
+              allow="autoplay"
+            />
+          ) : previewUrl && isPdf ? (
             <Suspense
               fallback={
                 <div className="absolute inset-0 flex items-center justify-center bg-soft-stone/40">

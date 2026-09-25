@@ -7,6 +7,7 @@ const AttendanceRecord = require('../models/AttendanceRecord')
 const { protect, guard } = require('../middleware/auth')
 const { distanceMeters } = require('../utils/geofence')
 const { createNotificationBulk } = require('../utils/notification')
+const { purgeUserForumContent } = require('../utils/forumCleanup')
 const {
   endSession,
   triggerCheckpoint,
@@ -149,6 +150,7 @@ router.delete('/admin/faculty/:id', protect, guard('admin', 'super_admin'), asyn
     if (!faculty || faculty.role !== 'faculty') {
       return res.status(404).json({ success: false, error: 'Faculty account not found' })
     }
+    await purgeUserForumContent(req.params.id)
     await User.findByIdAndDelete(req.params.id)
     res.json({ success: true, message: 'Faculty account deleted' })
   } catch (err) {

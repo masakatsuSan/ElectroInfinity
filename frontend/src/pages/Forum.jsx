@@ -312,6 +312,7 @@ export default function Forum() {
   }
 
   const handleViewProfile = (userId) => {
+    if (!userId) return
     setActivePopover(null)
     navigate(`/profile/${userId}`)
   }
@@ -769,19 +770,23 @@ function PostCard({
       <div className="mb-3 flex items-center gap-2 text-[13px] font-normal text-[#41454d]">
         <button
           onClick={() => onViewProfile?.(post.author?._id)}
-          className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#dddddd] bg-[#f8fafc] text-[11px] font-medium text-[#41454d] transition-colors hover:border-[#9297a0]"
+          disabled={!post.author?._id}
+          className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#dddddd] bg-[#f8fafc] text-[11px] font-medium text-[#41454d] transition-colors hover:border-[#9297a0] disabled:cursor-default disabled:hover:border-[#dddddd]"
         >
           {post.author?.photo ? (
             <img src={post.author.photo} alt={post.author.name} className="h-full w-full object-cover" />
           ) : (
-            post.author?.name?.charAt(0)?.toUpperCase()
+            post.author?.name?.charAt(0)?.toUpperCase() || '?'
           )}
         </button>
         <button
           onClick={() => onViewProfile?.(post.author?._id)}
-          className="font-medium text-[#181d26] hover:no-underline"
+          disabled={!post.author?._id}
+          className="font-medium text-[#181d26] hover:no-underline disabled:cursor-default disabled:text-[#9297a0]"
         >
-          {post.author?.name}
+          {/* An author is null when their account was deleted — without this
+              fallback the byline renders as a blank gap. */}
+          {post.author?.name || 'Deleted user'}
         </button>
         <span className="text-[#dddddd]">·</span>
         <span>{formatTimeAgo(post.createdAt)}</span>
@@ -937,10 +942,11 @@ function PostCard({
             )}
             {topLevelComments.map(comment => (
 <div key={comment._id} className="flex gap-3">
-                <button
-                  onClick={() => onViewProfile(comment.author._id)}
-                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#dddddd] bg-[#f8fafc] text-[11px] font-medium text-[#41454d] transition-colors hover:border-[#9297a0]"
-                >
+                  <button
+                    onClick={() => onViewProfile?.(comment.author?._id)}
+                    disabled={!comment.author?._id}
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#dddddd] bg-[#f8fafc] text-[11px] font-medium text-[#41454d] transition-colors hover:border-[#9297a0] disabled:cursor-default disabled:hover:border-[#dddddd]"
+                  >
                   {comment.author?.photo ? (
                     <img src={comment.author.photo} alt={comment.author.name} className="h-full w-full object-cover" />
                   ) : (
@@ -950,10 +956,11 @@ function PostCard({
                 <div className="min-w-0 flex-1">
                   <div className="mb-0.5 flex items-center gap-2">
                     <button
-                      onClick={() => onViewProfile(comment.author._id)}
-                      className="text-[13px] font-medium text-[#181d26] hover:no-underline"
+                      onClick={() => onViewProfile?.(comment.author?._id)}
+                      disabled={!comment.author?._id}
+                      className="text-[13px] font-medium text-[#181d26] hover:no-underline disabled:cursor-default disabled:text-[#9297a0]"
                     >
-                      {comment.author?.name}
+                      {comment.author?.name || 'Deleted user'}
                     </button>
                     <span className="text-[11px] font-normal text-[#41454d]">{formatTimeAgo(comment.createdAt)}</span>
                   </div>
@@ -1001,8 +1008,9 @@ function PostCard({
                       {replyMap[comment._id].map(reply => (
                         <div key={reply._id} className="flex gap-2">
                           <button
-                            onClick={() => onViewProfile(reply.author._id)}
-                            className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#dddddd] bg-[#f8fafc] text-[10px] font-medium text-[#41454d] transition-colors hover:border-[#9297a0]"
+                            onClick={() => onViewProfile?.(reply.author?._id)}
+                            disabled={!reply.author?._id}
+                            className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#dddddd] bg-[#f8fafc] text-[10px] font-medium text-[#41454d] transition-colors hover:border-[#9297a0] disabled:cursor-default disabled:hover:border-[#dddddd]"
                           >
                             {reply.author?.photo ? (
                               <img src={reply.author.photo} alt={reply.author.name} className="h-full w-full object-cover" />
@@ -1012,12 +1020,13 @@ function PostCard({
                           </button>
                           <div className="min-w-0 flex-1">
                             <div className="mb-0.5 flex items-center gap-2">
-                              <button
-                                onClick={() => onViewProfile(reply.author._id)}
-                                className="text-[12px] font-medium text-[#181d26] hover:no-underline"
-                              >
-                                {reply.author?.name}
-                              </button>
+                                <button
+                                  onClick={() => onViewProfile?.(reply.author?._id)}
+                                  disabled={!reply.author?._id}
+                                  className="text-[12px] font-medium text-[#181d26] hover:no-underline disabled:cursor-default disabled:text-[#9297a0]"
+                                >
+                                  {reply.author?.name || 'Deleted user'}
+                                </button>
                               <span className="text-[10px] font-normal text-[#41454d]">{formatTimeAgo(reply.createdAt)}</span>
                             </div>
                             <MentionText text={reply.content} mentions={reply.mentions} onViewProfile={onViewProfile} />

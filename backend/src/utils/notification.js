@@ -1,3 +1,4 @@
+const mongoose = require('mongoose')
 const Notification = require('../models/Notification')
 
 const DEFAULT_ICONS = {
@@ -96,10 +97,12 @@ async function createNotificationBulk({
     await Notification.insertMany(notifications)
 
     if (io) {
+      // One aggregate for every recipient instead of a countDocuments each.
+      const counts = await getUnreadCounts(uniqueRecipients)
       for (const recipientId of uniqueRecipients) {
         io.to(`user:${recipientId}`).emit('notification:new', {
           notification: { type, title, message, link, entityId, entityType },
-          unreadCount: await getUnreadCount(recipientId),
+          unreadCount: counts.get(recipientId) || 0,
         })
       }
     }
@@ -119,6 +122,41 @@ async function getUnreadCount(userId) {
     })
   } catch {
     return 0
+  }
+}
+
+/**
+ * Unread counts for many recipients in ONE query.
+ *
+ * createNotificationBulk previously called getUnreadCount() inside a sequential
+ * loop — ~170 round-trips to MongoDB Atlas for a single upload, which was slow
+ * enough to blow the client's request timeout. One $group by recipient replaces
+ * the lot.
+ */
+async function getUnreadCounts(userIds) {
+  const ids = [...new Set((userIds || []).map(String))].filter(Boolean)
+  if (!ids.length) return new Map()
+
+  try {
+    // aggregate() does NOT cast like a normal query does, so the ids must be
+    // turned into ObjectIds explicitly — passing the raw strings matches
+    // nothing and silently reports every recipient as having 0 unread.
+    const objectIds = ids
+      .filter((id) => mongoose.Types.ObjectId.isValid(id))
+      .map((id) => new mongoose.Types.ObjectId(id))
+
+    if (!objectIds.length) return new Map(ids.map((id) => [id, 0]))
+
+    const rows = await Notification.aggregate([
+      { $match: { recipient: { $in: objectIds }, isRead: false } },
+      { $group: { _id: '$recipient', count: { $sum: 1 } } },
+    ])
+
+    const counts = new Map(ids.map((id) => [id, 0]))
+    rows.forEach((row) => counts.set(String(row._id), row.count))
+    return counts
+  } catch {
+    return new Map(ids.map((id) => [id, 0]))
   }
 }
 
@@ -169,6 +207,7 @@ module.exports = {
   createNotification,
   createNotificationBulk,
   getUnreadCount,
+  getUnreadCounts,
   markAsRead,
   markAllAsRead,
   formatTimeAgo,

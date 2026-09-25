@@ -24,28 +24,18 @@ export const downloadResource = (id) =>
 export const incrementDownloadCount = (id) =>
   api.post(`/resources/${id}/download/increment`)
 
-// Check if a URL is a Google Drive link
-export const isGoogleDriveUrl = (url) => {
-  if (!url) return false
-  return /^https?:\/\/(?:drive\.google\.com|drive\.userdata\.googleusercontent\.com|drive\.googleusercontent\.com)/i.test(url)
-}
-
-// Extract Google Drive file ID from various URL formats
-export const extractGoogleDriveFileId = (url) => {
-  if (!url) return null
-  const idMatch = url.match(/[?&]id=([^&]+)/)
-  if (idMatch) return idMatch[1]
-  const dMatch = url.match(/\/d\/([^/]+)/)
-  if (dMatch) return dMatch[1]
-  return null
-}
-
-// Get direct Google Drive download URL
-export const getGoogleDriveDownloadUrl = (url) => {
-  const fileId = extractGoogleDriveFileId(url)
-  if (!fileId) return null
-  return `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`
-}
+// ── Google Drive helpers ──────────────────────────────────────────────────
+// Re-exported from the shared module so there is a single source of truth;
+// these used to be duplicated here and in both preview components, and the
+// copies disagreed on which Drive hosts count.
+export {
+  isGoogleDriveUrl,
+  isGoogleFolderUrl,
+  extractGoogleDriveFileId,
+  getGoogleDriveEmbedUrl,
+  getGoogleDriveDownloadUrl,
+  normalizeGoogleDriveUrl,
+} from '../utils/googleDrive'
 
 // Upload a new resource — sends as FormData (has a file attached)
 // NOTE: do NOT set Content-Type manually — the browser/axios must set

@@ -1,18 +1,18 @@
 import { useEffect, lazy, Suspense, useState } from 'react'
-import { X } from 'lucide-react'
-import { fetchPreviewBlobUrl, getPreviewUrl } from '../api/resources'
-
-function isGoogleDriveUrl(url) {
-  if (!url) return false
-  return /^https?:\/\/(?:drive\.google\.com|drive\.userdata\.googleusercontent\.com|drive\.googleusercontent\.com)/i.test(url)
-}
+import { X, ExternalLink } from 'lucide-react'
+import { fetchPreviewBlobUrl, getPreviewUrl, getGoogleDriveEmbedUrl, getGoogleDriveDownloadUrl } from '../api/resources'
+import { isGoogleDriveUrl, isGoogleFolderUrl } from '../utils/googleDrive'
 
 const PdfViewer = lazy(() => import('./PdfViewer'))
 
 export default function ResourceSplitView({ selectedResource, resources, onSelectResource, onClose }) {
   if (!selectedResource) return null
 
-  const isPdf = /\.(pdf)($|[?#])/i.test(selectedResource.fileUrl || '') || isGoogleDriveUrl(selectedResource.fileUrl)
+  const isDrive = isGoogleDriveUrl(selectedResource.fileUrl)
+  const isDriveFolder = isGoogleFolderUrl(selectedResource.fileUrl)
+  // Drive-hosted PDFs render through Drive's own viewer rather than react-pdf:
+  // drive.google.com/…/preview is an HTML page, which pdf.js cannot parse.
+  const isPdf = !isDrive && (/\.pdf($|[?#])/i.test(selectedResource.fileUrl || '') || /\.pdf$/i.test(selectedResource.fileName || ''))
   const isImage = /\.(png|jpe?g|webp|gif|svg)($|[?#])/i.test(selectedResource.fileUrl || '')
   const [loading, setLoading] = useState(true)
   const [previewUrl, setPreviewUrl] = useState(null)
@@ -25,6 +25,17 @@ export default function ResourceSplitView({ selectedResource, resources, onSelec
     setLoading(true)
     setPreviewUrl(null)
     setPreviewError('')
+
+    if (isDrive) {
+      if (active) {
+        setPreviewUrl(isDriveFolder ? null : getGoogleDriveEmbedUrl(selectedResource.fileUrl))
+        if (isDriveFolder) {
+          setPreviewError('This is a Google Drive folder, not a file. Open it in Drive.')
+        }
+        setLoading(false)
+      }
+      return
+    }
 
     if (isPdf) {
       if (active) {
@@ -105,10 +116,28 @@ export default function ResourceSplitView({ selectedResource, resources, onSelec
               <div className="max-w-sm rounded-xl border border-hairline bg-white p-6 text-center shadow-sm">
                 <p className="font-sans text-[15px] font-medium text-ink">Preview unavailable</p>
                 <p className="mt-2 font-sans text-[13px] text-body-muted">{previewError}</p>
+                {isDrive && !isDriveFolder && (
+                  <a
+                    href={getGoogleDriveDownloadUrl(selectedResource.fileUrl)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="button-primary mt-4 inline-flex items-center gap-1.5"
+                  >
+                    Open in Drive <ExternalLink size={14} />
+                  </a>
+                )}
               </div>
             </div>
           )}
-          {previewUrl && isPdf ? (
+          {previewUrl && isDrive ? (
+            <iframe
+              key={previewUrl}
+              src={previewUrl}
+              title={selectedResource.title || 'Google Drive preview'}
+              className="h-full w-full border-0 bg-white"
+              allow="autoplay"
+            />
+          ) : previewUrl && isPdf ? (
             <Suspense
               fallback={
                 <div className="absolute inset-0 flex items-center justify-center bg-soft-stone/40">

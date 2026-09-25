@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const ForumPost = require('../models/ForumPost');
 const ForumComment = require('../models/ForumComment');
@@ -9,6 +10,18 @@ const { protect, guard } = require('../middleware/auth')
 const { createActivity } = require('../utils/activity')
 const { createNotification, createNotificationBulk } = require('../utils/notification')
 const { resolveMentions } = require('../utils/mentions')
+
+// mongoose.Types.ObjectId is an ES class and must be constructed with `new`.
+// Calling it as a bare function throws
+// "TypeError: Class constructor ObjectId cannot be invoked without 'new'",
+// which made every forum list/single-post request 500 as soon as a post with
+// an author existed — the UI just showed "No posts yet" from the failed call.
+// Malformed ids are dropped rather than throwing a CastError.
+function toObjectIds(ids) {
+  return Array.from(ids)
+    .filter((id) => mongoose.Types.ObjectId.isValid(id))
+    .map((id) => new mongoose.Types.ObjectId(id));
+}
 
 // @route   GET /api/forum/rooms
 // @desc    Get all community rooms
@@ -132,13 +145,15 @@ router.get('/', protect, async (req, res) => {
       });
 
       const postCounts = await ForumPost.aggregate([
-        { $match: { author: { $in: Array.from(authorIds).map(id => require('mongoose').Types.ObjectId(id)) } } },
+        { $match: { author: { $in: toObjectIds(authorIds) } } },
         { $group: { _id: '$author', count: { $sum: 1 } } }
       ]);
       const postCountMap = {};
       postCounts.forEach(pc => { postCountMap[pc._id.toString()] = pc.count; });
 
       const enrichedPosts = posts.map(post => {
+        // author is null when the account was deleted; the frontend renders a
+        // "Deleted user" placeholder, so pass it through untouched.
         const enrichedAuthor = post.author ? {
           ...post.author.toObject(),
           friendStatus: (post.author.friends || []).some(id => id.toString() === viewerId.toString()) ? 'friends' : 'none',
@@ -216,7 +231,7 @@ router.get('/:id', protect, async (req, res) => {
       });
 
       const postCounts = await ForumPost.aggregate([
-        { $match: { author: { $in: Array.from(authorIds).map(id => require('mongoose').Types.ObjectId(id)) } } },
+        { $match: { author: { $in: toObjectIds(authorIds) } } },
         { $group: { _id: '$author', count: { $sum: 1 } } }
       ]);
       const postCountMap = {};

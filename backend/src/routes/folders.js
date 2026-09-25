@@ -1,6 +1,5 @@
 const express = require('express')
 const mongoose = require('mongoose')
-const axios = require('axios')
 const Folder = require('../models/Folder')
 const Resource = require('../models/Resource')
 const YTLecture = require('../models/YTLecture')
@@ -9,6 +8,11 @@ const { protect, guard, optionalAuth } = require('../middleware/auth')
 const { uploadSingle, uploadToCloudinary, deleteFromCloudinary, toSafePublicId } = require('../utils/upload')
 const { createActivity } = require('../utils/activity')
 const { createNotificationBulk } = require('../utils/notification')
+const {
+  extractGoogleDriveFileId,
+  looksLikeHtml,
+  fetchDriveBuffer,
+} = require('../utils/googleDrive')
 const { extractPlaylistId, importPlaylist } = require('../services/youtube')
 
 const router = express.Router()
@@ -283,40 +287,31 @@ router.delete('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, 
 })
 
 async function uploadFromDriveLink(driveLink, fileType, title) {
-  let fileId
-  const idMatch = driveLink.match(/[?&]id=([^&]+)/)
-  const dMatch = driveLink.match(/\/d\/([^/]+)/)
-  if (idMatch) {
-    fileId = idMatch[1]
-  } else if (dMatch) {
-    fileId = dMatch[1]
-  } else {
+  const fileId = extractGoogleDriveFileId(driveLink)
+  if (!fileId) {
     throw new Error('Invalid Google Drive link — copy the "Anyone with the link" share URL')
   }
 
-  let response
+  // fetchDriveStream follows Drive's "confirm this large file" interstitial and
+  // classifies the failure, so a private file no longer reports as "not found"
+  // and large PDFs no longer fail on the HTML warning page.
+  let buffer
+  let contentType
   try {
-    response = await axios.get(`https://drive.google.com/uc?export=download&id=${fileId}`, {
-      responseType: 'arraybuffer',
-      maxContentLength: 20 * 1024 * 1024,
-      maxBodyLength: 20 * 1024 * 1024,
-      timeout: 25000,
-      maxRedirects: 5,
-    })
+    ;({ buffer, contentType } = await fetchDriveBuffer(fileId, { timeout: 25000 }))
   } catch (err) {
     if (err?.code === 'ECONNABORTED') throw new Error('Google Drive took too long to respond — try again')
+    if (err?.driveReason === 'missing') throw new Error('That Google Drive file does not exist — check the link')
+    if (err?.driveReason === 'forbidden') {
+      throw new Error('Could not download from Google Drive — make sure link sharing is ON ("Anyone with the link")')
+    }
     throw new Error('Could not download from Google Drive — make sure link sharing is ON ("Anyone with the link")')
   }
 
-  // Drive returns an HTML warning page (not the file) for private files,
-  // large files needing virus-scan confirmation, or bad IDs.
-  // Uploading that HTML to Cloudinary is what produced the 500 before.
-  const contentType = String(response.headers['content-type'] || '').toLowerCase()
-  const buffer = Buffer.from(response.data)
-  if (contentType.includes('text/html') || (buffer.length < 2000 && /^[\s\S]*<html/i.test(buffer.toString('utf8', 0, 1500)))) {
+  if (!buffer.length) throw new Error('Downloaded file from Drive is empty')
+  if (looksLikeHtml(contentType, buffer)) {
     throw new Error('Google Drive blocked the download — set sharing to "Anyone with the link" (Viewer) and try again')
   }
-  if (!buffer.length) throw new Error('Downloaded file from Drive is empty')
 
   const isPdf = contentType.includes('pdf') || (title || '').toLowerCase().endsWith('.pdf')
   const resourceType = isPdf ? 'raw' : 'auto'

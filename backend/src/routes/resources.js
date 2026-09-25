@@ -4,6 +4,13 @@ const { protect, guard, optionalAuth } = require('../middleware/auth')
 const { uploadSingle, uploadToCloudinary, deleteFromCloudinary, toSafePublicId } = require('../utils/upload')
 const { createActivity } = require('../utils/activity')
 const { createNotificationBulk } = require('../utils/notification')
+const {
+  isGoogleDriveUrl,
+  isGoogleFolderUrl,
+  extractGoogleDriveFileId,
+  normalizeGoogleDriveUrl,
+  buildDriveDownloadUrl,
+} = require('../utils/googleDrive')
 const axios = require('axios')
 
 const router = express.Router()
@@ -11,30 +18,6 @@ const router = express.Router()
 function isExternalUrl(url) {
   if (!url) return false
   return /^https?:\/\/(?!.*\.cloudinary\.com)/.test(url)
-}
-
-function isGoogleDriveUrl(url) {
-  if (!url) return false
-  return /^https?:\/\/(?:drive\.google\.com|drive\.userdata\.google\.com|drive\.googleusercontent\.com)/i.test(url)
-}
-
-function normalizeGoogleDriveUrl(url) {
-  if (!url) return url
-  if (!isGoogleDriveUrl(url)) return url
-
-  let fileId = null
-
-  const idMatch = url.match(/[?&]id=([^&]+)/)
-  if (idMatch) {
-    fileId = idMatch[1]
-  } else {
-    const dMatch = url.match(/\/d\/([^/]+)/)
-    if (dMatch) fileId = dMatch[1]
-  }
-
-  if (!fileId) return url
-
-  return `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`
 }
 
 const EXTENSION_TO_MIME = {
@@ -196,6 +179,12 @@ router.get('/:id/download', async (req, res) => {
     // get killed on bandwidth) and lets the browser handle the large-file
     // virus-scan interstitial natively.
     if (isGoogleDriveUrl(resource.fileUrl)) {
+      if (isGoogleFolderUrl(resource.fileUrl)) {
+        return res.status(400).json({
+          success: false,
+          error: 'This link points to a Google Drive folder, not a file',
+        })
+      }
       const fileId = extractGoogleDriveFileId(resource.fileUrl)
       if (!fileId) {
         return res.status(400).json({
@@ -203,10 +192,7 @@ router.get('/:id/download', async (req, res) => {
           error: 'Invalid Google Drive link — the file ID could not be read',
         })
       }
-      return res.redirect(
-        302,
-        `https://drive.google.com/uc?export=download&confirm=t&id=${encodeURIComponent(fileId)}`
-      )
+      return res.redirect(302, buildDriveDownloadUrl(fileId, { confirm: 't' }))
     }
 
     if (isExternalUrl(resource.fileUrl)) {
@@ -266,13 +252,16 @@ router.get('/:id/preview', async (req, res) => {
     if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
 
     if (isGoogleDriveUrl(resource.fileUrl)) {
+      // Kept for direct browser navigation / non-app clients only. The app
+      // embeds Drive's viewer directly (see frontend getGoogleDriveEmbedUrl)
+      // because pointing react-pdf at this endpoint made it follow a redirect
+      // to an HTML page that pdf.js cannot parse.
       const fileId = extractGoogleDriveFileId(resource.fileUrl)
       if (fileId) {
         return res.redirect(`https://drive.google.com/file/d/${fileId}/preview`)
       }
       return res.status(400).json({ success: false, error: 'Invalid Google Drive URL' })
     }
-
     if (isExternalUrl(resource.fileUrl)) {
       return res.redirect(resource.fileUrl)
     }
@@ -282,15 +271,6 @@ router.get('/:id/preview', async (req, res) => {
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
-
-function extractGoogleDriveFileId(url) {
-  if (!url) return null
-  const idMatch = url.match(/[?&]id=([^&]+)/)
-  if (idMatch) return idMatch[1]
-  const dMatch = url.match(/\/d\/([^/]+)/)
-  if (dMatch) return dMatch[1]
-  return null
-}
 
 // Turn any upload/update failure into a message the admin can act on.
 // Mongoose validation, duplicate keys, Cloudinary rejections and plain network
@@ -376,6 +356,12 @@ router.post(
         if (!/^https?:\/\//i.test(link)) {
           return res.status(400).json({ success: false, error: 'Link must start with http:// or https://' })
         }
+        if (isGoogleFolderUrl(link)) {
+          return res.status(400).json({
+            success: false,
+            error: 'That is a Google Drive folder link — copy the link to a single file',
+          })
+        }
         if (isGoogleDriveUrl(link) && !extractGoogleDriveFileId(link)) {
           return res.status(400).json({
             success: false,
@@ -390,6 +376,19 @@ router.post(
         fileName = isGoogleDriveUrl(link) ? `${title || 'document'}.pdf` : (link.split('/').pop() || 'external-link')
       }
 
+      // A CR can only publish to their own batch. Admins and super_admins may
+      // target a specific batch or publish globally; when nothing is supplied
+      // the upload is batch-scoped so a normal upload no longer notifies all
+      // ~170 students (visibility used to be hardcoded 'GLOBAL' here, which
+      // both leaked uploads across batches and widened the fan-out).
+      const isCr = req.user.role === 'cr'
+      const batchId = isCr
+        ? req.user.batch
+        : (req.body.batchId || '').trim()
+      const visibility = isCr
+        ? 'BATCH'
+        : ((req.body.visibility || '').trim().toUpperCase() === 'GLOBAL' && !batchId ? 'GLOBAL' : 'BATCH')
+
       const resource = await Resource.create({
         title,
         type,
@@ -400,8 +399,8 @@ router.post(
         filePublicId: publicId,
         fileName,
         uploadedBy: req.user._id,
-        batchId: req.user.role === 'cr' ? req.user.batch : (req.body.batchId || ''),
-        visibility: 'GLOBAL',
+        batchId,
+        visibility,
       })
 
       await createActivity(
@@ -412,32 +411,42 @@ router.post(
         `/resources`
       );
 
-      // Notify relevant users about new resource
-      const io = req.app.get('io')
-      const User = require('../models/User')
-      let recipientQuery = { role: { $in: ['student', 'cr'] }, isActive: true }
-      if (resource.batchId) {
-        recipientQuery.batch = resource.batchId
-      }
-      const recipients = await User.find(recipientQuery).select('_id')
-      const recipientIds = recipients
-        .map(r => r._id.toString())
-        .filter(id => id !== req.user._id.toString())
-      if (recipientIds.length > 0) {
-        await createNotificationBulk({
-          recipients: recipientIds,
-          actor: req.user._id,
-          type: 'resource_uploaded',
-          title: `New ${type || 'resource'}: ${title}`,
-          message: subject || `Semester ${resource.semester || '—'}`,
-          link: '/resources',
-          entityId: resource._id,
-          entityType: 'Resource',
-          io,
-        })
-      }
-
+      // Reply before the notification fan-out. The fan-out used to run inline
+      // and awaited one unread-count query per recipient, so with ~170 students
+      // the response routinely arrived after the browser's 30s axios timeout —
+      // the upload had already been saved, but the admin saw "Upload failed"
+      // and re-uploading created duplicates.
       res.status(201).json({ success: true, data: resource })
+
+      // Fan-out continues after the response. createNotificationBulk swallows
+      // its own errors, so a failure here can no longer corrupt the result.
+      try {
+        const io = req.app.get('io')
+        const User = require('../models/User')
+        let recipientQuery = { role: { $in: ['student', 'cr'] }, isActive: true }
+        if (resource.batchId) {
+          recipientQuery.batch = resource.batchId
+        }
+        const recipients = await User.find(recipientQuery).select('_id')
+        const recipientIds = recipients
+          .map(r => r._id.toString())
+          .filter(id => id !== req.user._id.toString())
+        if (recipientIds.length > 0) {
+          await createNotificationBulk({
+            recipients: recipientIds,
+            actor: req.user._id,
+            type: 'resource_uploaded',
+            title: `New ${type || 'resource'}: ${title}`,
+            message: subject || `Semester ${resource.semester || '—'}`,
+            link: '/resources',
+            entityId: resource._id,
+            entityType: 'Resource',
+            io,
+          })
+        }
+      } catch (notifyError) {
+        console.error('[RESOURCES NOTIFY ERROR]', notifyError?.message)
+      }
     } catch (err) {
       console.error('[RESOURCES POST ERROR]', err?.message, err?.stack)
       // Surface the real problem (validation, Cloudinary rejection, network)
