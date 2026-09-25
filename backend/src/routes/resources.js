@@ -118,92 +118,6 @@ async function streamCloudinaryToResponse(req, res, cloudinaryUrl, fileName, dis
   }
 }
 
-// Stream a Google Drive file through the server, handling Drive's
-// HTML confirmation page for large/private files.
-async function streamGoogleDriveToResponse(req, res, driveUrl, fileName, disposition = 'attachment') {
-  const fileId = extractGoogleDriveFileId(driveUrl)
-  if (!fileId) {
-    return res.status(400).json({ success: false, error: 'Invalid Google Drive URL' })
-  }
-
-  const downloadUrl = `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`
-
-  let response
-  try {
-    response = await axios.get(downloadUrl, {
-      responseType: 'stream',
-      timeout: 30000,
-      maxRedirects: 5,
-      validateStatus: () => true, // Drive returns 404/403/confirm pages — handle below
-    })
-  } catch (error) {
-    console.error('Failed to fetch file from Google Drive (network):', {
-      url: downloadUrl,
-      error: error.message,
-      code: error.code,
-    })
-    if (error.code === 'ECONNABORTED') {
-      return res.status(504).json({ success: false, error: 'Google Drive took too long to respond' })
-    }
-    return res.status(502).json({ success: false, error: 'Could not reach Google Drive' })
-  }
-
-  const status = response.status
-  const contentType = String(response.headers['content-type'] || '').toLowerCase()
-
-  // Drive serves an HTML error/confirmation page for bad IDs, private files,
-  // or files needing a virus-scan confirmation. Detect it and surface a clear
-  // message instead of piping HTML to the client as a "PDF".
-  if (status < 200 || status >= 300 || contentType.includes('text/html')) {
-    // Drain the response body so the underlying socket can be reused/released
-    // — otherwise the connection hangs and the next request times out.
-    response.data.resume()
-
-    if (status === 404) {
-      return res.status(404).json({
-        success: false,
-        error: 'Google Drive file not found — check the link and that it is set to "Anyone with the link"',
-      })
-    }
-    if (status === 403 || status === 401) {
-      return res.status(403).json({
-        success: false,
-        error: 'Google Drive denied access — set file sharing to "Anyone with the link" (Viewer) and try again',
-      })
-    }
-    if (status >= 300 && status < 400 && response.headers.location) {
-      return res.redirect(response.headers.location)
-    }
-    return res.status(400).json({
-      success: false,
-      error: 'Google Drive blocked the download — set sharing to "Anyone with the link" (Viewer) and try again',
-    })
-  }
-
-  const isPdf = contentType.includes('pdf') || (fileName && fileName.toLowerCase().endsWith('.pdf'))
-  res.setHeader('Content-Type', contentType || 'application/pdf')
-  res.setHeader('Accept-Ranges', 'bytes')
-
-  const safeName = (fileName && fileName.replace(/"/g, '')) || 'download'
-  res.setHeader('Content-Disposition', `${disposition}; filename="${safeName}"`)
-
-  if (response.headers['content-length']) {
-    res.setHeader('Content-Length', response.headers['content-length'])
-  }
-
-  res.status(200)
-
-  response.data.pipe(res)
-  response.data.on('error', (err) => {
-    console.error('Stream error while fetching from Google Drive:', {
-      url: downloadUrl,
-      error: err.message,
-    })
-    if (!res.headersSent) {
-      res.status(500).json({ success: false, error: 'Failed to fetch the file from Google Drive' })
-    }
-  })
-}
 
 // ── GET /api/resources ─────────────────────────────────────────────────────
 // Public — supports ?type=notes&semester=5&subject=Power+System-I
@@ -271,10 +185,28 @@ router.get('/:id/download', async (req, res) => {
   const fileName = resource.fileName || 'download'
 
   try {
-    // Google Drive files — stream through the server so Drive's HTML
-    // confirmation page is detected and the real PDF is saved, not HTML.
+    // Google Drive files — redirect the browser straight to Google instead of
+    // proxying the bytes through this server.
+    //
+    // Proxying is unreliable in production: Google returns 404/403 for Drive
+    // downloads originating from datacenter IP ranges, so on a host like
+    // Render even a correctly shared public file can come back "not found".
+    // The user's own browser is not on a blocked range, and sending them
+    // directly to Drive also keeps large PDFs off this instance (free dynos
+    // get killed on bandwidth) and lets the browser handle the large-file
+    // virus-scan interstitial natively.
     if (isGoogleDriveUrl(resource.fileUrl)) {
-      return await streamGoogleDriveToResponse(req, res, resource.fileUrl, resource.fileName, 'attachment')
+      const fileId = extractGoogleDriveFileId(resource.fileUrl)
+      if (!fileId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid Google Drive link — the file ID could not be read',
+        })
+      }
+      return res.redirect(
+        302,
+        `https://drive.google.com/uc?export=download&confirm=t&id=${encodeURIComponent(fileId)}`
+      )
     }
 
     if (isExternalUrl(resource.fileUrl)) {
