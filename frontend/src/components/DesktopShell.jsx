@@ -8,6 +8,15 @@ import { useLayout } from '../context/LayoutContext'
 /**
  * Desktop (lg+) chrome: two independent panels inside a framed viewport.
  *
+ * `children` is rendered into exactly one of two wrappers, picked from
+ * `isDesktop`: a plain in-flow column below 1024px, or the framed panel above
+ * it. Only one copy is ever mounted — rendering both and hiding one with CSS
+ * would mount every page twice (double queries, observers, socket listeners)
+ * and would put two elements with the same view-transition-name in the DOM,
+ * which breaks the page transition outright. The panel ref lives on the desktop
+ * copy only, so useLayout() reports `mainPanel === null` (window scroll) on
+ * mobile.
+ *
  * CSS variables:
  *   --shell-gap         8px    grey frame gutter (defined once in index.css)
  *   --shell-frame              colour of that gutter
@@ -31,8 +40,22 @@ import { useLayout } from '../context/LayoutContext'
  */
 function ShellLayout({ children }) {
   const location = useLocation()
-  const { setMainPanelRef, setMainContentRef } = useLayout()
+  const { isDesktop, setMainPanelRef, setMainContentRef } = useLayout()
   const chrome = !isHiddenRoute(location.pathname)
+
+  // Below 1024px there is no shell at all: no sidebar, no top bar, no framed
+  // panel — the window scrolls and the page content is a plain column in the
+  // document flow. The framed div is `hidden lg:block`, so it must not be the
+  // only place `children` is rendered or mobile gets an empty body. The
+  // `lg:hidden` / `hidden lg:block` pairs also cover the one frame where
+  // isDesktop has not caught up with a resize.
+  if (!isDesktop) {
+    return (
+      <div data-ei-mobile-shell="" className="flex min-h-0 flex-1 flex-col lg:hidden">
+        {children}
+      </div>
+    )
+  }
 
   return (
     <div

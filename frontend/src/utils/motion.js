@@ -99,6 +99,13 @@ export function useReducedMotion() {
 
 let _vtInFlight = false
 
+/* Every rejection from startViewTransition means the *animation* was skipped,
+   never that the DOM update failed. Chrome rejects with AbortError for a
+   duplicate transition, and with InvalidStateError when the document is hidden
+   or the viewport resizes mid-transition — which happens constantly on mobile,
+   where showing/hiding the URL bar changes the viewport height. */
+const SKIPPED_VT_ERRORS = new Set(['AbortError', 'InvalidStateError', 'NotSupportedError'])
+
 export function safeViewTransition(callback) {
   if (typeof document === 'undefined' || !('startViewTransition' in document)) {
     callback()
@@ -110,20 +117,35 @@ export function safeViewTransition(callback) {
     return null
   }
   _vtInFlight = true
+
+  // The update callback carries the React state change, so it must run exactly
+  // once even if the transition is torn down before the browser invokes it.
+  let ran = false
+  const run = () => {
+    if (ran) return
+    ran = true
+    callback()
+  }
+
   try {
-    const vt = document.startViewTransition(callback)
+    const vt = document.startViewTransition(run)
+    // Never rethrow a skip: `throw err` inside this rejection handler was the
+    // source of the "[unhandledrejection] InvalidStateError" noise in main.jsx.
     vt.finished.then(
       () => { _vtInFlight = false },
       (err) => {
         _vtInFlight = false
-        if (err.name === 'AbortError') return
-        throw err
+        if (err && !SKIPPED_VT_ERRORS.has(err.name)) console.warn('[view-transition]', err)
       }
     )
+    // `ready` rejects as soon as the transition is skipped, which may happen
+    // before the browser calls the update callback. Recover the route change.
+    vt.ready?.catch(() => run())
     return vt
   } catch (err) {
     _vtInFlight = false
-    if (err.name === 'AbortError') return null
-    throw err
+    if (err && !SKIPPED_VT_ERRORS.has(err.name)) console.warn('[view-transition]', err)
+    run()
+    return null
   }
 }

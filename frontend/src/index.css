@@ -161,12 +161,19 @@
     box-shadow: 0 1px 2px rgba(24, 29, 38, 0.06);
     -webkit-tap-highlight-color: transparent;
   }
+  /* The `a` / `a:hover` base rules are (0,0,1) and (0,1,1). `a:hover`
+     therefore out-specifies a bare `.button-primary` (0,1,0), so every
+     black button rendered as an <a> flipped to link blue on hover. Each
+     hover/focus state re-asserts its own colour — `.button-*:hover` is
+     (0,2,0), which wins. Never drop the `color` from these rules. */
   .button-primary:hover, .button-primary:focus {
     background-color: var(--color-primary-active);
+    color: var(--color-on-primary);
     box-shadow: 0 2px 4px rgba(24, 29, 38, 0.1);
   }
   .button-primary:active {
     background-color: var(--color-primary-active);
+    color: var(--color-on-primary);
     box-shadow: none;
     transform: scale(0.98);
   }
@@ -199,6 +206,7 @@
   .button-secondary:hover, .button-secondary:focus {
     background-color: var(--color-surface-soft);
     border-color: var(--color-ink);
+    color: var(--color-ink);
   }
   .button-secondary:active {
     background-color: var(--color-surface-soft);
@@ -232,6 +240,12 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Colour only — keeps the fix scoped to the base `a:hover` leak without
+     inventing a hover background this variant never had. */
+  .button-secondary-on-dark:hover, .button-secondary-on-dark:focus {
+    color: var(--color-ink);
+  }
+
   .button-pricing-pill {
     background-color: var(--color-canvas);
     color: var(--color-pricing-ink);
@@ -253,6 +267,9 @@
   .button-pricing-pill:active {
     transform: scale(0.97);
   }
+  .button-pricing-pill:hover, .button-pricing-pill:focus {
+    color: var(--color-pricing-ink);
+  }
 
   .button-legal {
     background-color: var(--color-link);
@@ -269,6 +286,11 @@
     gap: 6px;
     cursor: pointer;
     text-decoration: none;
+  }
+  /* Blue background: without this the base `a:hover` painted link-active
+     navy on top of the blue fill. */
+  .button-legal:hover, .button-legal:focus, .button-legal:active {
+    color: var(--color-on-primary);
   }
 
   .button-icon-circular {
@@ -288,6 +310,7 @@
   .button-icon-circular:hover {
     background-color: var(--color-surface-soft);
     border-color: var(--color-ink);
+    color: var(--color-ink);
   }
   .button-icon-circular:active {
     transform: scale(0.92);

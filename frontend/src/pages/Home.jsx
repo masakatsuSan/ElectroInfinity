@@ -49,27 +49,7 @@ export default function Home() {
               </p>
             </ScrollReveal>
 
-            <ScrollReveal variant="fadeUp" delay={0.25}>
-              <div className="max-w-2xl py-4 pl-5 pr-4 mb-10 border-l-2 border-signature-coral bg-surface-soft">
-                <p className="font-sans text-[13px] leading-[1.65] text-body">
-                  <strong className="font-semibold text-ink">Independent and unofficial.</strong> Electro Infinity is a
-                  free, open-source project built and maintained by the seniors of the department for their juniors. It
-                  is <strong className="font-semibold text-ink">not affiliated with, endorsed by, or operated by</strong>{' '}
-                  Alipurduar Government Engineering &amp; Management College, its department,
-                  faculty, or any official college body &mdash; and it is not an official college portal. Everything posted here is
-                  student-maintained and unofficial; always confirm anything important on{' '}
-                  <a
-                    href="https://agemc.ac.in/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-link hover:underline"
-                  >
-                    agemc.ac.in
-                  </a>
-                  .
-                </p>
-              </div>
-            </ScrollReveal>
+            
 
             <ScrollReveal variant="fadeUp" delay={0.3}>
               <div className="flex flex-wrap items-center gap-3">
@@ -144,7 +124,7 @@ export default function Home() {
         <section className="relative py-20 bg-signature-forest" view-transition-name="hero-bento-section">
           {/* Decorative layer: clipped to this layer only. The section itself has
               no overflow-hidden, so the cards below are never clipped. */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute inset-0 opacity-[0.04] bg-[radial-gradient(circle,white_1px,transparent_1px)] bg-[length:22px_22px]" />
             <div className="absolute border rounded-full -top-24 -left-24 w-80 h-80 border-white/5" />
             <div className="absolute border rounded-full top-1/3 -right-20 w-72 h-72 border-white/5" />
@@ -162,9 +142,9 @@ export default function Home() {
               </div>
             </ScrollReveal>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
+            <div className="grid items-stretch grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <ScrollReveal variant="scaleIn" delay={0}>
-                <article className="bento-card col-span-1 bg-white rounded-[22px] p-6 md:p-8 lg:p-10 border border-white/70 shadow-card flex flex-col justify-between relative" view-transition-name="bento-card-1">
+                <article className="relative flex flex-col justify-between col-span-1 p-6 bg-white border bento-card md:p-8 lg:p-10 border-white/70 shadow-card" view-transition-name="bento-card-1">
                   <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <div className="absolute top-0 right-0 -translate-y-1/2 rounded-full w-44 h-44 bg-signature-yellow/20 blur-3xl translate-x-1/4" />
                     <div className="hidden md:absolute md:top-4 md:right-6 font-display text-[140px] font-normal leading-none text-ink/4 select-none">
@@ -187,7 +167,7 @@ export default function Home() {
               </ScrollReveal>
 
               <ScrollReveal variant="scaleIn" delay={0.1}>
-                <article className="bento-card col-span-1 bg-[#f2f1ee] rounded-[22px] p-6 md:p-8 lg:p-10 border border-white/60 shadow-card flex flex-col justify-between relative" view-transition-name="bento-card-2">
+                <article className="bento-card col-span-1 bg-[#f2f1ee]  p-6 md:p-8 lg:p-10 border border-white/60 shadow-card flex flex-col justify-between relative" view-transition-name="bento-card-2">
                   <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <div className="absolute top-0 right-0 w-32 h-32 -translate-y-1/2 rounded-full bg-ink/5 blur-2xl translate-x-1/3" />
                   </div>
@@ -207,7 +187,7 @@ export default function Home() {
               </ScrollReveal>
 
               <ScrollReveal variant="scaleIn" delay={0.2}>
-                <article className="bento-card col-span-1 bg-white rounded-[22px] p-6 md:p-8 lg:p-10 border border-white/70 shadow-card flex flex-col justify-between relative" view-transition-name="bento-card-3">
+                <article className="relative flex flex-col justify-between col-span-1 p-6 bg-white border bento-card md:p-8 lg:p-10 border-white/70 shadow-card" view-transition-name="bento-card-3">
                   <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <div className="absolute top-0 right-0 w-32 h-32 -translate-y-1/2 rounded-full bg-signature-coral/15 blur-2xl translate-x-1/3" />
                   </div>
@@ -227,7 +207,7 @@ export default function Home() {
               </ScrollReveal>
 
               <ScrollReveal variant="scaleIn" delay={0.3}>
-                <article className="bento-card col-span-1 bg-white rounded-[22px] p-6 md:p-8 lg:p-10 border border-white/10 shadow-card flex flex-col justify-between relative" view-transition-name="bento-card-4">
+                <article className="relative flex flex-col justify-between col-span-1 p-6 bg-white border bento-card md:p-8 lg:p-10 border-white/10 shadow-card" view-transition-name="bento-card-4">
                   <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(168,216,196,0.14),transparent_55%)]" />
                     <div className="absolute inset-0 opacity-[0.05] bg-[radial-gradient(circle,white_1px,transparent_1px)] bg-[length:18px_18px]" />
@@ -267,19 +247,19 @@ export default function Home() {
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-6">
-                <div className="p-6 border border-divider-soft bg-surface-soft">
+                <div className="p-6 border border-divider-soft rounded-[22px] bg-surface-soft">
                   <span className="block font-display text-[36px] md:text-[44px] font-normal leading-none text-ink">5+</span>
                   <span className="block mt-2 font-sans text-[14px] text-body">Workshops delivered</span>
                 </div>
-                <div className="p-6 border border-divider-soft bg-surface-soft">
+                <div className="p-6 border border-divider-soft rounded-[22px] bg-surface-soft">
                   <span className="block font-display text-[36px] md:text-[44px] font-normal leading-none text-ink">20+</span>
                   <span className="block mt-2 font-sans text-[14px] text-body">Student projects</span>
                 </div>
-                <div className="p-6 border border-divider-soft bg-surface-soft">
+                <div className="p-6 border border-divider-soft bg-surface-soft rounded-[22px]">
                   <span className="block font-display text-[36px] md:text-[44px] font-normal leading-none text-ink">85%</span>
                   <span className="block mt-2 font-sans text-[14px] text-body">Placement readiness</span>
                 </div>
-                <div className="p-6 border border-divider-soft bg-surface-soft">
+                <div className="p-6 border border-divider-soft bg-surface-soft rounded-[22px]">
                   <span className="block font-display text-[36px] md:text-[44px] font-normal leading-none text-ink">10+</span>
                   <span className="block mt-2 font-sans text-[14px] text-body">Alumni mentors</span>
                 </div>
@@ -290,7 +270,7 @@ export default function Home() {
       </ScrollReveal>
 
       <ScrollReveal variant="fadeUp">
-        <section className="py-24 md:py-24 bg-signature-cream" view-transition-name="hero-announcements">
+        <section className="py-24 bg-white md:py-24" view-transition-name="hero-announcements">
           <Container>
             <div className="flex flex-col justify-between gap-6 pb-8 mb-12 border-b border-hairline sm:flex-row sm:items-end">
               <div>
