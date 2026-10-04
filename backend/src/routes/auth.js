@@ -85,7 +85,7 @@ function emailErrorMessage(reason) {
 // NOTE: the ee.agemc.ac.in subdomain publishes no SPF/DKIM (MX is Google
 // Workspace only), so it cannot be used as a sending domain. Keep the sender
 // pointed at a mailbox verified in the Brevo dashboard.
-const DEFAULT_SENDER_NAME = 'Electro Infinity | AGEMC'
+const DEFAULT_SENDER_NAME = 'College Connect | AGEMC'
 
 function senderName() {
   return process.env.BREVO_SENDER_NAME?.trim() || process.env.EMAIL_SENDER_NAME?.trim() || DEFAULT_SENDER_NAME
@@ -241,7 +241,7 @@ async function deliverOtp(user, { purpose, subject, heading, leadIn }) {
   const html = `
     <div style="font-family:monospace; max-width:480px; margin:0 auto; padding:32px; background:#07060E; color:#F0EFF8; border:1px solid rgba(255,255,255,0.1);">
       <h2 style="font-family:serif; font-size:22px; margin:0 0 8px;">${heading}</h2>
-      <p style="opacity:0.6; font-size:14px; margin:0 0 24px;">Electro Infinity · EE Club, AGEMC</p>
+      <p style="opacity:0.6; font-size:14px; margin:0 0 24px;">College Connect · AGEMC</p>
 
       <p style="font-size:14px; margin:0 0 16px;">Hi ${user.name},</p>
       <p style="font-size:14px; opacity:0.8; margin:0 0 24px;">${leadIn}</p>
@@ -369,7 +369,7 @@ router.get('/check-roll/:rollNo', async (req, res) => {
 
     const recipient = await deliverOtp(user, {
       purpose: 'account activation',
-      subject: 'Electro Infinity — Account Activation OTP',
+      subject: 'College Connect — Account Activation OTP',
       heading: 'Account Activation',
       leadIn: 'Your OTP to activate your account:',
     })
@@ -566,7 +566,7 @@ router.get('/check-faculty/:email', async (req, res) => {
 
     const recipient = await deliverOtp(user, {
       purpose: 'faculty activation',
-      subject: 'Electro Infinity — Faculty Activation OTP',
+      subject: 'College Connect — Faculty Activation OTP',
       heading: 'Faculty Activation',
       leadIn: 'Use this OTP to activate your faculty account:',
     })
@@ -653,7 +653,7 @@ router.post('/forgot-password', async (req, res) => {
 
     const recipient = await deliverOtp(user, {
       purpose: 'password reset',
-      subject: 'Electro Infinity — Password Reset OTP',
+      subject: 'College Connect — Password Reset OTP',
       heading: 'Password Reset',
       leadIn: 'Your OTP to reset your password:',
     })

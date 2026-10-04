@@ -1,18 +1,50 @@
 import { useQuery } from '@tanstack/react-query'
-import { getPlacements } from '../api/placements'
+import {
+  getPlacementStats,
+  getRecruiters,
+  getPlacedStudents,
+  getAlumni,
+} from '../api/placements'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 import { Skeleton } from '../components/Skeleton'
 
+function initials(name = '') {
+  return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
+}
+
+function fmtNum(n) {
+  if (n === undefined || n === null || n === '') return '—'
+  return String(n)
+}
+
 export default function Placements() {
-  const { data: allData, isLoading } = useQuery({
-    queryKey: ['placements'],
-    queryFn: () => getPlacements().then(r => r.data),
+  const { data: statsData, isLoading: statsLoading } = useQuery({
+    queryKey: ['placements', 'stats'],
+    queryFn: () => getPlacementStats().then(r => r.data),
   })
 
-  if (isLoading) {
+  const { data: recruitersData, isLoading: recruitersLoading } = useQuery({
+    queryKey: ['placements', 'recruiters'],
+    queryFn: () => getRecruiters().then(r => r.data),
+  })
+
+  const { data: internshipsData, isLoading: internshipsLoading } = useQuery({
+    queryKey: ['placements', 'internships'],
+    queryFn: () => getPlacedStudents({ type: 'internship' }).then(r => r.data),
+  })
+
+  const { data: alumniData, isLoading: alumniLoading } = useQuery({
+    queryKey: ['placements', 'alumni'],
+    queryFn: () => getAlumni().then(r => r.data),
+  })
+
+  const loading = statsLoading || recruitersLoading || internshipsLoading || alumniLoading
+
+  if (loading) {
     return (
       <div className="min-h-screen bg-white text-ink pt-24 md:pt-32 pb-24">
-        <SEO title="Placements & Career | Electro Infinity" />
+        <SEO title={`Placements &amp; Career | ${BRAND_NAME}`} />
         <div className="mx-auto max-w-[1280px] px-6 md:px-12">
           <div className="mb-14 max-w-3xl">
             <div className="mb-2 h-4 w-24 rounded bg-surface-soft skeleton-shimmer" />
@@ -50,16 +82,46 @@ export default function Placements() {
     )
   }
 
-  const placements = allData?.data || []
-  const STATS = placements.filter(p => p.type === 'stat').map(p => ({ n: p.statValue, l: p.statLabel }))
-  const RECRUITERS = placements.filter(p => p.type === 'recruiter').map(p => ({ name: p.companyName, role: p.roleOffered, placed: p.studentsPlaced }))
-  const INTERNSHIPS = placements.filter(p => p.type === 'internship').map(p => ({ title: p.internshipTitle, company: p.internshipCompany, stipend: p.stipend, deadline: p.deadline ? new Date(p.deadline).toISOString().split('T')[0] : '' }))
-  const ALUMNI = placements.filter(p => p.type === 'alumni').map(p => ({ initials: p.alumniInitials, name: p.alumniName, role: p.alumniRole, desc: p.alumniDesc, batch: p.alumniBatch }))
+  const stats = statsData?.data || []
+  const recruiters = recruitersData?.data || []
+  const internships = internshipsData?.data || []
+  const alumni = alumniData?.data || []
+
+  // Each PlacementStat record contributes multiple stat cards
+  const STATS = []
+  for (const s of stats) {
+    if (s.highestPackage) STATS.push({ n: s.highestPackage, l: 'Highest Package' })
+    if (s.averagePackage) STATS.push({ n: s.averagePackage, l: 'Average Package' })
+    if (s.medianPackage) STATS.push({ n: s.medianPackage, l: 'Median Package' })
+    if (s.totalStudents) STATS.push({ n: s.totalStudents, l: `Total Students (${s.academicYear})` })
+    if (s.placed) STATS.push({ n: s.placed, l: `Placed (${s.academicYear})` })
+  }
+
+  const RECRUITERS = recruiters.map(r => ({
+    name: r.name,
+    role: r.type === 'both' ? 'Placements & Internships' : r.type === 'placement' ? 'Placements' : 'Internships',
+    placed: '—',
+  }))
+
+  const INTERNSHIPS = internships.map(i => ({
+    title: i.studentName || i.company,
+    company: i.company,
+    stipend: i.package || '—',
+    deadline: '',
+  }))
+
+  const ALUMNI = alumni.map(a => ({
+    initials: initials(a.name),
+    name: a.name,
+    role: a.currentRole,
+    desc: a.quote,
+    batch: a.batchYear,
+  }))
 
   return (
     <div className="min-h-screen bg-white text-ink pt-24 md:pt-32">
       <SEO
-        title="Placements & Career | Electro Infinity"
+        title={`Placements &amp; Career | ${BRAND_NAME}`}
         description="Career opportunities, core recruiter networks, internships and alumni profiles of AGEMC EE."
       />
 
@@ -67,10 +129,10 @@ export default function Placements() {
         <section className="pb-24 md:pb-24">
           <div className="max-w-3xl">
             <span className="mb-3 block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral">
-              Career & Industry
+              Career &amp; Industry
             </span>
             <h1 className="mb-5 font-display text-[40px] font-normal leading-[1.15] text-ink md:text-[56px]">
-              Placements & Careers
+              Placements &amp; Careers
             </h1>
             <p className="max-w-2xl font-sans text-[17px] font-normal leading-[1.4] text-body">
               From AGEMC laboratory workbenches to core power grids, automation EPCs, semiconductors, and technology leaders.
@@ -164,8 +226,8 @@ export default function Placements() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
-              {ALUMNI.map(a => (
-                <div key={a.name} className={'rounded-lg p-6 md:p-8 ' + (a.batch % 2 === 0 ? 'bg-signature-peach' : 'bg-signature-mint')}>
+              {ALUMNI.map((a, idx) => (
+                <div key={a.name} className={'rounded-lg p-6 md:p-8 ' + (Number(a.batch) % 2 === 0 ? 'bg-signature-peach' : 'bg-signature-mint')}>
                   <div className="flex gap-5">
                     <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white font-sans text-[14px] font-medium text-ink">
                       {a.initials}

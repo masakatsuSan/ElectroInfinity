@@ -28,13 +28,16 @@ router.get('/college', protect, async (req, res) => {
       ]
     }
 
-    const users = await User.find(query)
-      .select('name rollNumber batch semester role photo profile.department profile.skills profile.interests friends')
-      .sort({ name: 1 })
-      .limit(100)
+    const [users, total] = await Promise.all([
+      User.find(query)
+        .select('name rollNumber batch semester role photo profile.department profile.skills profile.interests friends')
+        .sort({ name: 1 })
+        .lean(),
+      User.countDocuments(query),
+    ])
 
-    const currentUser = await User.findById(currentUserId).select('friends')
-    const currentFriendIds = (currentUser?.friends || []).map(id => id.toString())
+    const currentUser = await User.findById(currentUserId).select('friends').lean()
+    const currentFriendIds = new Set((currentUser?.friends || []).map(id => id.toString()))
 
     const pendingRequests = await FriendRequest.find({
       $or: [
@@ -54,8 +57,8 @@ router.get('/college', protect, async (req, res) => {
 
     const formatted = users.map(u => {
       const friendIds = (u.friends || []).map(id => id.toString())
-      const mutualCount = friendIds.filter(id => currentFriendIds.includes(id)).length
-      const isFriend = friendIds.includes(currentUserId.toString())
+      const mutualCount = friendIds.filter(id => currentFriendIds.has(id)).length
+      const isFriend = currentFriendIds.has(currentUserId.toString())
 
       let friendStatus = 'none'
       if (isFriend) {
@@ -81,7 +84,7 @@ router.get('/college', protect, async (req, res) => {
       }
     })
 
-    res.json({ success: true, data: formatted })
+    res.json({ success: true, data: formatted, total })
   } catch (err) {
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { BRAND_NAME } from '../../config/brand'
+import BrandLogo from '../../components/BrandLogo'
 
 export default function AdminLogin() {
   const navigate = useNavigate()
@@ -54,11 +56,7 @@ export default function AdminLogin() {
           <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-coral/20 blur-3xl" />
 
           <div className="relative">
-            <Link to="/" className="inline-block">
-              <span className="font-[Inter,system-ui,sans-serif] font-medium text-[22px] tracking-tight" style={{ fontFamily: '"Instagram Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
-                Electro Infinity
-              </span>
-            </Link>
+            <BrandLogo variant="large" />
           </div>
 
           <div className="relative">
@@ -74,9 +72,7 @@ export default function AdminLogin() {
         <div className="px-6 py-10 md:px-12 md:py-14 flex flex-col justify-center">
           <div>
             <div className="md:hidden mb-6">
-              <Link to="/" className="font-[Inter,system-ui,sans-serif] font-medium text-[18px] tracking-tight" style={{ fontFamily: '"Instagram Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
-                Electro Infinity
-              </Link>
+              <BrandLogo variant="large" />
             </div>
 
             <h1 className="font-[Inter,system-ui,sans-serif] text-[28px] md:text-[30px] font-medium tracking-tight text-ink">

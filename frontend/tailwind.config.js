@@ -61,11 +61,14 @@ export default {
         coral: '#aa2d00',
         'coral-soft': '#fcab79',
         error: '#aa2d00',
+        'brand-navy': '#1a2332',
+        'brand-teal': '#0dab8f',
       },
       fontFamily: {
         display: ['Haas Groot Disp', 'Haas', 'Inter', 'system-ui', 'sans-serif'],
         sans: ['Haas', 'Inter', 'system-ui', 'sans-serif'],
         mono: ['Haas', 'Inter', 'system-ui', 'sans-serif'],
+        brand: ['Poppins', 'Inter', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         'display-xl': ['48px', { lineHeight: '1.1', letterSpacing: '0', fontWeight: '500' }],

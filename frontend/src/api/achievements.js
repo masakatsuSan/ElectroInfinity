@@ -10,7 +10,7 @@ export const createAchievement = (data) =>
   api.post('/achievements', data)
 
 export const updateAchievement = (id, data) =>
-  api.put(`/achievements/${id}`, data)
+  api.patch(`/achievements/${id}`, data)
 
 export const patchAchievement = (id, data) =>
   api.patch(`/achievements/${id}`, data)

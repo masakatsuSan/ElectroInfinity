@@ -3,7 +3,7 @@ const router = express.Router()
 const User = require('../models/User')
 const FriendRequest = require('../models/FriendRequest')
 const { protect } = require('../middleware/auth')
-const { createNotification } = require('../utils/notification')
+const { createAndEmitNotification } = require('../utils/notification')
 
 // @route   POST /api/friends/request
 // @desc    Send a friend request
@@ -55,16 +55,18 @@ router.post('/request', protect, async (req, res) => {
     }
 
     const io = req.app.get('io')
-    await createNotification({
-      recipient: recipientId,
-      actor: senderId,
+    await createAndEmitNotification({
+      recipientId: recipientId,
+      senderId: senderId,
       type: 'friend_request',
-      title: `${req.user.name || 'Someone'} sent you a friend request`,
+      title: `${req.user.name || 'Someone'} sent you a connection request`,
       message: '',
-      link: `/profile/${senderId}`,
-      entityId: senderId,
-      entityType: 'User',
-      io,
+      link: '/network',
+      meta: {
+        io,
+        entityId: senderId,
+        entityType: 'User',
+      },
     })
 
     res.status(201).json({ success: true, message: 'Friend request sent' })
@@ -116,16 +118,18 @@ router.post('/:userId/accept', protect, async (req, res) => {
     await Promise.all([senderUser.save(), recipientUser.save()])
 
     const io = req.app.get('io')
-    await createNotification({
-      recipient: request.sender,
-      actor: request.recipient,
+    await createAndEmitNotification({
+      recipientId: request.sender,
+      senderId: request.recipient,
       type: 'friend_accepted',
-      title: `${req.user.name || 'Someone'} accepted your friend request`,
-      message: 'You are now friends',
+      title: `${req.user.name || 'Someone'} accepted your connection request`,
+      message: 'You are now connected',
       link: `/profile/${request.recipient}`,
-      entityId: request.recipient,
-      entityType: 'User',
-      io,
+      meta: {
+        io,
+        entityId: request.recipient,
+        entityType: 'User',
+      },
     })
 
     res.json({

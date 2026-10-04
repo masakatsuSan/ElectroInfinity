@@ -6,6 +6,7 @@ import { getProjects, likeProject, createProject } from '../api/projects'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 import UploaderInfo from '../components/UploaderInfo'
 
 export default function Projects() {
@@ -50,7 +51,7 @@ export default function Projects() {
   return (
     <div className="min-h-screen bg-white text-ink pt-24 pb-24">
       <SEO
-        title="Student Projects | Electro Infinity"
+        title={`Student Projects | ${BRAND_NAME}`}
         description="Showcase of student projects, prototypes, and engineering builds from AGEMC."
       />
 

@@ -2,7 +2,7 @@ const express = require('express')
 const Achievement = require('../models/Achievement')
 const User = require('../models/User')
 const { protect, guard, optionalAuth } = require('../middleware/auth')
-const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
+const { upload, uploadSingle, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
 const { createNotification, createNotificationBulk } = require('../utils/notification')
 
 const router = express.Router()
@@ -46,7 +46,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 })
 
 // ── POST /api/achievements ─────────────────────────────────────────────────
-router.post('/', protect, upload.single('image'), async (req, res) => {
+router.post('/', protect, uploadSingle('image'), async (req, res) => {
   try {
     const { title, description, date, category, students } = req.body
 
@@ -117,7 +117,7 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
 })
 
 // ── PATCH /api/achievements/:id ─────────────────────────────────────────────
-router.patch('/:id', protect, upload.single('image'), async (req, res) => {
+router.patch('/:id', protect, uploadSingle('image'), async (req, res) => {
   try {
     const achievement = await Achievement.findById(req.params.id)
       .populate('author', 'name rollNumber batch role _id')

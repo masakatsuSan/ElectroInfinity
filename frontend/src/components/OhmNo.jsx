@@ -2,6 +2,7 @@ import React from 'react'
 import { Zap } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import BrandLogo from './BrandLogo'
 
 export default function OhmNo() {
   return (
@@ -12,6 +13,7 @@ export default function OhmNo() {
         transition={{ duration: 0.5, type: 'spring' }}
         className="relative mb-8"
       >
+        <BrandLogo variant="large" />
         <motion.svg
           width="160"
           height="160"

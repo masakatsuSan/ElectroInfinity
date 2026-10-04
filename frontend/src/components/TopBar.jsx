@@ -26,11 +26,10 @@ import { getRoleBadge, normalizeRole } from './nav/navConfig'
 import { EASE, useReducedMotion } from '../utils/motion'
 import { useMainScroll } from '../context/LayoutContext'
 import { cn } from '../utils/cn'
+import { BRAND_NAME } from '../config/brand'
 
-/* The site is still branded "Electro Infinity" everywhere (index.html, Footer,
-   Sidebar). Swap both for "College Connect" / "electroinfinity" once the
-   rebrand lands. */
-const BRAND_NAME = 'Electro Infinity'
+/* The site is branded "College Connect" everywhere (index.html, Footer,
+   Sidebar). */
 
 const CARD_WIDTH = 340
 const TRIGGER_GAP = 8
@@ -64,6 +63,17 @@ function profileCompletion(user) {
   if (!hasTrackedFields) return null
   const filled = COMPLETENESS_CHECKS.filter((check) => check(user)).length
   return Math.round((filled / COMPLETENESS_CHECKS.length) * 100)
+}
+
+/* AnimatePresence only keeps children that pass React's isValidElement, and a
+   portal is not a valid element — React tags it REACT_PORTAL_TYPE rather than
+   REACT_ELEMENT_TYPE. A createPortal() returned *directly* as AnimatePresence's
+   child is therefore filtered out and never mounts, so the dropdown stayed
+   permanently empty. Wrapping the portal in a real element gives AnimatePresence
+   something it can track; React context still flows through the portal, so the
+   card below keeps its exit animation. */
+function Portal({ children }) {
+  return createPortal(children, document.body)
 }
 
 function CompletionAvatar({ user, percentage }) {
@@ -172,7 +182,14 @@ export default function TopBar() {
         VIEWPORT_PAD,
         Math.min(window.innerWidth - r.right, window.innerWidth - cardWidth - VIEWPORT_PAD)
       )
-      setCardPosition({ top, right })
+      /* Returning `prev` when the coordinates are unchanged is what makes
+         `cardPosition` safe as a dependency: the first pass necessarily
+         measures with no card mounted (height 0), the second pass re-clamps
+         against the real card now that it is in the DOM, and the third pass
+         is a no-op instead of a render loop. */
+      setCardPosition((prev) =>
+        prev && prev.top === top && prev.right === right ? prev : { top, right }
+      )
     }
     update()
     /* Anchor to whichever element actually scrolls (Main panel on desktop,
@@ -183,7 +200,7 @@ export default function TopBar() {
       mainScroll?.removeEventListener('scroll', update, true)
       window.removeEventListener('resize', update)
     }
-  }, [profileDropdownOpen, mainScroll])
+  }, [profileDropdownOpen, mainScroll, cardPosition])
 
   /* Close on route change. */
   useEffect(() => {
@@ -375,21 +392,23 @@ export default function TopBar() {
                 </button>
 
                 <AnimatePresence>
-                  {profileDropdownOpen && cardPosition && createPortal(
-                   <motion.div
-                     ref={dropdownRef}
-                     initial="hidden"
-                     animate="visible"
-                     exit="exiting"
-                     variants={cardVariants}
-                     transition={reduceMotion ? { duration: 0 } : { duration: 0.15, ease: EASE.mac }}
-                     style={{
-                       position: 'fixed',
-                       top: cardPosition.top,
-                       right: cardPosition.right,
-                     }}
-                     className="z-50 flex w-[340px] max-h-[calc(100vh-16px)] flex-col rounded-2xl border border-hairline bg-white p-4 shadow-modal"
-                   >
+                  {profileDropdownOpen && cardPosition && (
+                    <Portal>
+                      <motion.div
+                        key="profile-card"
+                        ref={dropdownRef}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exiting"
+                        variants={cardVariants}
+                        transition={reduceMotion ? { duration: 0 } : { duration: 0.15, ease: EASE.mac }}
+                        style={{
+                          position: 'fixed',
+                          top: cardPosition.top,
+                          right: cardPosition.right,
+                        }}
+                        className="z-50 flex w-[340px] max-h-[calc(100vh-16px)] flex-col rounded-2xl border border-hairline bg-white p-4 shadow-modal"
+                      >
                      {/* 1 — Header: avatar + completion ring, edit-profile pill */}
                      <div className="flex shrink-0 items-start justify-between gap-3">
                        <CompletionAvatar user={user} percentage={completion} />
@@ -529,9 +548,9 @@ ref={(el) => {
                      <div className="mt-3 shrink-0 border-t border-hairline pt-3 text-center">
                        <p className="font-display text-[11px] font-medium text-muted">{BRAND_NAME}</p>
                      </div>
-                   </motion.div>,
-                   document.body
-                 )}
+                      </motion.div>
+                    </Portal>
+                  )}
                 </AnimatePresence>
               </div>
             ) : (

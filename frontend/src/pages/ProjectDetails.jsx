@@ -4,6 +4,7 @@ import { getProject } from '../api/projects'
 import { useAuth } from '../context/AuthContext'
 import { Heart, GitBranch, ExternalLink, ArrowLeft } from 'lucide-react'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 import UploaderInfo from '../components/UploaderInfo'
 
 export default function ProjectDetails() {
@@ -60,7 +61,7 @@ export default function ProjectDetails() {
   return (
     <div className="min-h-screen bg-white text-ink pt-24 pb-24">
       <SEO
-        title={`${project.title} | Student Projects | Electro Infinity`}
+        title={`${project.title} | Student Projects | ${BRAND_NAME}`}
         description={description.slice(0, 160)}
       />
 

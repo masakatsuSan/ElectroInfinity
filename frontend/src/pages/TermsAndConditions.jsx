@@ -1,9 +1,10 @@
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 
 const sections = [
   {
     title: '1. Unofficial Status & Non-Affiliation',
-    content: 'Electro Infinity is an independent, unofficial, open-source student project. It is not affiliated with, endorsed by, sponsored by, supervised by, or operated by Alipurduar Government Engineering & Management College (AGEMC), its Electrical Engineering department, any faculty member, or any official college body or administration. It is not an official college website, portal, or system, and it does not represent or speak on behalf of the college or the department. The college name and "AGEMC" are used only to identify the intended students. No college logo, emblem, or seal is used. Nothing published on this platform should be treated as an official notification, circular, notice, or result of the college or the department.',
+    content: `${BRAND_NAME} is an independent, unofficial, open-source student project. It is not affiliated with, endorsed by, sponsored by, supervised by, or operated by Alipurduar Government Engineering & Management College (AGEMC), its Electrical Engineering department, any faculty member, or any official college body or administration. It is not an official college website, portal, or system, and it does not represent or speak on behalf of the college or the department. The college name and "AGEMC" are used only to identify the intended students. No college logo, emblem, or seal is used. Nothing published on this platform should be treated as an official notification, circular, notice, or result of the college or the department.`,
   },
   {
     title: '2. Unofficial Content — Verify Before You Rely On It',
@@ -11,15 +12,15 @@ const sections = [
   },
   {
     title: '3. Account Access & Security',
-    content: 'You are solely responsible for maintaining the confidentiality of your account credentials, including your roll number, email address, and password. You agree not to share your login credentials with any third party and to notify the project maintainers immediately of any unauthorized use of your account. Electro Infinity is not liable for any loss or damage arising from your failure to protect your account security.',
+    content: `You are solely responsible for maintaining the confidentiality of your account credentials, including your roll number, email address, and password. You agree not to share your login credentials with any third party and to notify the project maintainers immediately of any unauthorized use of your account. ${BRAND_NAME} is not liable for any loss or damage arising from your failure to protect your account security.`,
   },
   {
     title: '4. Platform Terms',
-    content: 'Electro Infinity is an educational platform providing study material, discussion forums, and community features. You agree to use the platform only for legitimate educational purposes and not to misuse the platform or engage in any harmful, unauthorized, or illegal activities. You agree not to attempt to misrepresent yourself as a college official or faculty member, and not to use the platform to circulate unverified claims as official college information.',
+    content: `${BRAND_NAME} is an educational platform providing study material, discussion forums, and community features. You agree to use the platform only for legitimate educational purposes and not to misuse the platform or engage in any harmful, unauthorized, or illegal activities. You agree not to attempt to misrepresent yourself as a college official or faculty member, and not to use the platform to circulate unverified claims as official college information.`,
   },
   {
     title: '5. Legal Disclaimer',
-    content: 'Electro Infinity provides its services on an "as is" basis without warranties of any kind, whether express or implied. The platform is not responsible for any loss of data, communication failures, or interruptions in service. All content is provided for informational purposes only. The student maintainers and contributors of this open-source project accept no liability for any reliance on, or loss arising from, content published here.',
+    content: `${BRAND_NAME} provides its services on an "as is" basis without warranties of any kind, whether express or implied. The platform is not responsible for any loss of data, communication failures, or interruptions in service. All content is provided for informational purposes only. The student maintainers and contributors of this open-source project accept no liability for any reliance on, or loss arising from, content published here.`,
   },
   {
     title: '6. Open Source Licence',
@@ -39,8 +40,8 @@ export default function TermsAndConditions() {
   return (
     <div className="min-h-screen bg-white text-ink pt-32 pb-24">
       <SEO
-        title="Terms & Disclaimer | Electro Infinity"
-        description="Terms, licence, and the unofficial non-affiliation disclaimer for the Electro Infinity student project."
+        title={`Terms & Disclaimer | ${BRAND_NAME}`}
+        description={`Terms, licence, and the unofficial non-affiliation disclaimer for the ${BRAND_NAME} student project.`}
         path="/terms-and-conditions"
       />
 
@@ -60,7 +61,7 @@ export default function TermsAndConditions() {
             This is an unofficial project
           </h2>
           <p className="mt-3 font-sans text-[15px] leading-[1.8] text-body">
-            Electro Infinity is an independent, unofficial, open-source project built by the seniors of the Electrical
+            {BRAND_NAME} is an independent, unofficial, open-source project built by the seniors of the Electrical
             Engineering department for their juniors. It is <strong className="font-semibold text-ink">not affiliated with, endorsed by, or operated by Alipurduar Government Engineering &amp; Management College (AGEMC)</strong>, its department, faculty, or any official college body. For anything official, always go to the college directly at{' '}
             <a href="https://agemc.ac.in/" target="_blank" rel="noopener noreferrer" className="text-link hover:underline">
               agemc.ac.in
@@ -72,7 +73,7 @@ export default function TermsAndConditions() {
         <div className="mt-10 divide-y divide-hairline border-y border-hairline">
           <div className="py-8 first:pt-2 last:pb-2">
             <p className="mb-5 font-sans text-[16px] font-medium leading-relaxed text-body">
-              Please read these Terms &amp; Conditions carefully before using the Electro Infinity platform.
+              Please read these Terms &amp; Conditions carefully before using the {BRAND_NAME} platform.
             </p>
           </div>
 
@@ -89,7 +90,7 @@ export default function TermsAndConditions() {
         </div>
 
         <p className="mt-8 font-sans text-[13px] leading-relaxed text-muted">
-          For questions about these terms, contact the Electro Infinity student maintainers through the contact page.
+          For questions about these terms, contact the {BRAND_NAME} student maintainers through the contact page.
         </p>
       </div>
     </div>

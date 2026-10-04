@@ -6,6 +6,7 @@ import ProtectedRoute from '../../components/ProtectedRoute'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import SEO from '../../components/SEO'
+import { BRAND_NAME } from '../../config/brand'
 import { getMyAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement } from '../../api/announcements'
 import { BATCHES } from '../../data/batches'
 
@@ -114,7 +115,7 @@ function FacultyDashboardInner() {
 
   return (
     <div className="min-h-screen bg-[#ffffff] text-[#181d26] pt-28 pb-24">
-      <SEO title="Faculty Dashboard | Electro Infinity" description="Post announcements for your classes and manage your teaching schedule." />
+      <SEO title={`Faculty Dashboard | ${BRAND_NAME}`} description="Post announcements for your classes and manage your teaching schedule." />
       <div className="max-w-[1100px] mx-auto px-6 md:px-12">
         {/* Header */}
         <div className="mb-10">

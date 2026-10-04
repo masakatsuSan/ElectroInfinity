@@ -8,6 +8,7 @@ import { getFolders, getFolder } from '../api/folders'
 import { downloadResource } from '../api/resources'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 
 const SEM_LABELS = { 0: 'General', 1: 'Semester 1', 2: 'Semester 2', 3: 'Semester 3', 4: 'Semester 4', 5: 'Semester 5', 6: 'Semester 6', 7: 'Semester 7', 8: 'Semester 8' }
 
@@ -41,7 +42,7 @@ export default function ResourceFolders() {
   return (
     <div className="min-h-screen bg-white text-ink pt-36 pb-28">
       <SEO
-        title="Study Folders &amp; Series | Electro Infinity"
+        title="Study Folders &amp; Series | College Connect"
         description="Semester-wise, subject-wise curated folders of notes, PDFs, and YouTube lecture series."
         path="/resources/folders"
       />

@@ -4,6 +4,7 @@ import { CalendarDays, Filter, Search, Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { getCalendarEntries } from '../api/calendar'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 
 const TYPE_FILTERS = [
   { key: '', label: 'All' },
@@ -96,7 +97,7 @@ export default function Calendar() {
   return (
     <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
       <SEO
-        title="Academic Calendar | Electro Infinity"
+        title={`Academic Calendar | ${BRAND_NAME}`}
         description="Important dates, exams, holidays, registrations, deadlines, and events for AGEMC Electrical Engineering."
       />
 

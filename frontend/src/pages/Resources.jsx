@@ -7,6 +7,7 @@ import { getSubjects } from '../api/subjects'
 import { getYTLectures } from '../api/ytLectures'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 import UploaderInfo from '../components/UploaderInfo'
 import ScrollReveal from '../components/ScrollReveal'
 
@@ -72,8 +73,8 @@ export default function Resources() {
   return (
     <div className="min-h-screen bg-white text-ink pt-36 pb-28">
       <SEO
-        title="Resources & Bulletins | Electro Infinity"
-        description="Study materials, PYQs, assignments, lab manuals, and YouTube lectures for Electro Infinity members."
+        title={`Resources &amp; Bulletins | ${BRAND_NAME}`}
+        description={`Study materials, PYQs, assignments, lab manuals, and YouTube lectures for ${BRAND_NAME} members.`}
         path="/resources"
       />
 

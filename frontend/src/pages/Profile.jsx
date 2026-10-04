@@ -11,6 +11,7 @@ import { getAllStudents } from '../api/students'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 import ProfileHeader from '../components/ProfileHeader'
 import SocialLinkCard from '../components/SocialLinkCard'
 import GalleryLightbox from '../components/GalleryLightbox'
@@ -272,7 +273,7 @@ export default function Profile() {
     const url = window.location.href
     if (navigator.share) {
       try {
-        await navigator.share({ title: `${profile?.name} | Electro Infinity`, url })
+        await navigator.share({ title: `${profile?.name} | ${BRAND_NAME}`, url })
       } catch {}
     } else {
       await navigator.clipboard.writeText(url)
@@ -370,8 +371,8 @@ export default function Profile() {
       backgroundImage: 'radial-gradient(circle at 10% 10%, rgba(24,29,38,0.03) 0%, transparent 30%), radial-gradient(circle at 90% 80%, rgba(24,29,38,0.02) 0%, transparent 25%)'
     }}>
       <SEO
-        title={`${profile.name} | Electro Infinity`}
-        description={profile.bio || `Profile of ${profile.name} at Electro Infinity`}
+        title={`${profile.name} | ${BRAND_NAME}`}
+        description={profile.bio || `Profile of ${profile.name} at ${BRAND_NAME}`}
       />
 
       <ProfileHeader

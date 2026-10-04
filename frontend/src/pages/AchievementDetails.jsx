@@ -4,6 +4,7 @@ import { getAchievement } from '../api/achievements'
 import ImageGuard from '../components/ImageGuard'
 import { ArrowLeft, Calendar } from 'lucide-react'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 
 const NO_GRADIENTS = '[*]:bg-none [*]:before:bg-none'
 
@@ -60,7 +61,7 @@ export default function AchievementDetails() {
   return (
     <div className="min-h-screen bg-white text-ink pt-24 pb-24">
       <SEO
-        title={`${title} | Achievements | Electro Infinity`}
+        title={`${title} | Achievements | ${BRAND_NAME}`}
         description={description.slice(0, 160)}
       />
 

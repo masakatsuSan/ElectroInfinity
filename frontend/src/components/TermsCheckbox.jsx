@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BRAND_NAME } from '../config/brand'
 
 const COLORS = {
   canvas: '#ffffff',
@@ -150,12 +151,12 @@ function TermsModalContent({ onClose }) {
         </div>
 <div style={bodyStyle}>
             <p style={{ margin: '0 0 12px', fontWeight: 500, color: COLORS.ink }}>
-              Please read these Terms &amp; Conditions carefully before using the Electro Infinity platform.
+              Please read these Terms &amp; Conditions carefully before using the {BRAND_NAME} platform.
             </p>
 
             <p style={sectionTitleStyle}>1. Unofficial Status &amp; Non-Affiliation</p>
             <p style={{ margin: '0 0 8px' }}>
-              Electro Infinity is an independent, unofficial, open-source student project. It is not affiliated with, endorsed by, sponsored by, or operated by Alipurduar Government Engineering &amp; Management College (AGEMC), its Electrical Engineering department, any faculty member, or any official college body. It is not an official college website, portal, or system, and it does not speak on behalf of the college or the department. The college name is used only to identify the intended students; no college logo, emblem, or seal is used.
+              {BRAND_NAME} is an independent, unofficial, open-source student project. It is not affiliated with, endorsed by, sponsored by, or operated by Alipurduar Government Engineering &amp; Management College (AGEMC), its Electrical Engineering department, any faculty member, or any official college body. It is not an official college website, portal, or system, and it does not speak on behalf of the college or the department. The college name is used only to identify the intended students; no college logo, emblem, or seal is used.
             </p>
 
             <p style={sectionTitleStyle}>2. Unofficial Content &mdash; Verify Before You Rely On It</p>
@@ -165,17 +166,17 @@ function TermsModalContent({ onClose }) {
 
             <p style={sectionTitleStyle}>3. Account Access &amp; Security</p>
             <p style={{ margin: '0 0 8px' }}>
-              You are solely responsible for maintaining the confidentiality of your account credentials (roll number, email, and password). You agree not to share your login credentials with any third party and to notify the project maintainers immediately of any unauthorized use of your account. Electro Infinity is not liable for any loss or damage arising from your failure to protect your account security.
+              You are solely responsible for maintaining the confidentiality of your account credentials (roll number, email, and password). You agree not to share your login credentials with any third party and to notify the project maintainers immediately of any unauthorized use of your account. {BRAND_NAME} is not liable for any loss or damage arising from your failure to protect your account security.
             </p>
 
             <p style={sectionTitleStyle}>4. Platform Terms</p>
             <p style={{ margin: '0 0 8px' }}>
-              Electro Infinity is an educational platform providing study material, discussion forums, and community features. You agree to use the platform only for legitimate educational purposes and not to misuse the platform or engage in any harmful, unauthorized, or illegal activities. You agree not to misrepresent yourself as a college official or faculty member, and not to circulate unverified claims as official college information.
+              {BRAND_NAME} is an educational platform providing study material, discussion forums, and community features. You agree to use the platform only for legitimate educational purposes and not to misuse the platform or engage in any harmful, unauthorized, or illegal activities. You agree not to misrepresent yourself as a college official or faculty member, and not to circulate unverified claims as official college information.
             </p>
 
             <p style={sectionTitleStyle}>5. Legal Disclaimer</p>
             <p style={{ margin: '0 0 8px' }}>
-              Electro Infinity provides its services on an "as is" basis without warranties of any kind, whether express or implied. The platform is not responsible for any loss of data, communication failures, or interruptions in service. All content is provided for informational purposes only. The student maintainers and contributors accept no liability for any reliance on content published here.
+              {BRAND_NAME} provides its services on an "as is" basis without warranties of any kind, whether express or implied. The platform is not responsible for any loss of data, communication failures, or interruptions in service. All content is provided for informational purposes only. The student maintainers and contributors accept no liability for any reliance on content published here.
             </p>
 
             <p style={sectionTitleStyle}>6. Data &amp; Privacy</p>

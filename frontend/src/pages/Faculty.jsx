@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Mail } from 'lucide-react'
 import { getFaculty } from '../api/faculty'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 import ScrollReveal from '../components/ScrollReveal'
 import { SkeletonFaculty, SkeletonAvatar, SkeletonButton } from '../components/Skeleton'
 
@@ -16,7 +17,7 @@ export default function Faculty() {
   return (
     <div className="min-h-screen bg-canvas text-ink pt-36 pb-28">
       <SEO
-        title="Faculty Directory | Electro Infinity"
+        title={`Faculty Directory | ${BRAND_NAME}`}
         description="Distinguished faculty members and researchers of Electrical Engineering at AGEMC."
       />
 

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { BRAND_NAME } from '../../config/brand'
+import BrandLogo from '../../components/BrandLogo'
 
 export default function FacultyLogin() {
   const navigate = useNavigate()
@@ -55,11 +57,7 @@ export default function FacultyLogin() {
 
         <div className="hidden md:flex flex-col justify-between p-12 bg-[#181d26] text-white relative overflow-hidden">
           <div className="relative">
-            <Link to="/" className="inline-block">
-              <span className="font-[Haas,Inter,system-ui,sans-serif] font-medium text-[22px] tracking-tight" style={{ fontFamily: '"Instagram Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
-                Electro Infinity
-              </span>
-            </Link>
+            <BrandLogo variant="large" />
           </div>
 
           <div className="relative">
@@ -80,9 +78,7 @@ export default function FacultyLogin() {
         <div className="px-6 py-10 md:px-12 md:py-14 flex flex-col justify-center">
           <div>
             <div className="md:hidden mb-6">
-              <Link to="/" className="font-[Haas,Inter,system-ui,sans-serif] font-medium text-[18px] tracking-tight" style={{ fontFamily: '"Instagram Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
-                Electro Infinity
-              </Link>
+              <BrandLogo variant="large" />
             </div>
 
             <h1 className="font-[Haas,Inter,system-ui,sans-serif] text-[28px] md:text-[30px] font-medium tracking-tight text-[#181d26]">

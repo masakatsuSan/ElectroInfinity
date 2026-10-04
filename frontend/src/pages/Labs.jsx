@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getLabs } from '../api/labs'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 import ImageGuard from '../components/ImageGuard'
 import { Skeleton } from '../components/Skeleton'
 
@@ -17,7 +18,7 @@ export default function Laboratory() {
   return (
     <div className="min-h-screen bg-white text-ink pt-24 pb-24">
       <SEO
-        title="Laboratories & Facilities | Electro Infinity"
+        title={`Laboratories &amp; Facilities | ${BRAND_NAME}`}
         description="State-of-the-art power electronics, machines, and circuit simulation testbeds at AGEMC."
       />
 

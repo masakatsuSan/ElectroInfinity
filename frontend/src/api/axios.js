@@ -18,6 +18,11 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+  // Prevent axios from sending default Content-Type: application/json with FormData.
+  // Without this, the browser can't set multipart/form-data with the boundary.
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type']
+  }
   return config
 })
 

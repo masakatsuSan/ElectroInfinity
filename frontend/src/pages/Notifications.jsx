@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { CheckCheck, Trash2, Bell, UserPlus, UserCheck, Heart, CheckCircle, XCircle, Send, Megaphone, Clock, FileText, Calendar, Image, Upload, Trophy, Zap } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { CheckCheck, Trash2, Bell, UserPlus, UserCheck, Heart, CheckCircle, XCircle, Send, Megaphone, Clock, FileText, Calendar, Image, Upload, Trophy, MessageCircle, AtSign, Reply, ClipboardCheck } from 'lucide-react'
 import { useNotifications } from '../context/NotificationContext'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 
 const TYPE_ICONS = {
   follow: UserPlus,
@@ -19,6 +21,10 @@ const TYPE_ICONS = {
   gallery_photo: Image,
   resource_uploaded: Upload,
   achievement: Trophy,
+  chat_message: MessageCircle,
+  chat_mention: AtSign,
+  chat_reply: Reply,
+  attendance_session: ClipboardCheck,
 }
 
 const FILTERS = [
@@ -37,6 +43,7 @@ export default function Notifications() {
     markAllRead,
     removeNotification,
   } = useNotifications()
+  const navigate = useNavigate()
   const [activeFilter, setActiveFilter] = useState('all')
 
   const filteredNotifications = activeFilter === 'unread'
@@ -45,7 +52,7 @@ export default function Notifications() {
 
   return (
     <div className="min-h-screen bg-[#ffffff] text-ink pt-28 pb-24">
-      <SEO title="Notifications | Electro Infinity" description="Your notifications" path="/notifications" />
+      <SEO title={`Notifications | ${BRAND_NAME}`} description="Your notifications" path="/notifications" />
       <div className="max-w-[720px] mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -112,7 +119,7 @@ export default function Notifications() {
               <p className="font-sans text-[13px] text-slate mt-1 max-w-xs">
                 {activeFilter === 'unread'
                   ? 'All caught up! Check back later.'
-                  : "You'll be notified about important activity across Electro Infinity"}
+                  : "You'll be notified about important activity across ${BRAND_NAME}"}
               </p>
             </div>
           ) : (
@@ -123,6 +130,7 @@ export default function Notifications() {
                   notification={notification}
                   onMarkRead={() => markRead(notification._id)}
                   onDelete={() => removeNotification(notification._id)}
+                  onNavigate={navigate}
                 />
               ))}
             </div>
@@ -145,13 +153,23 @@ export default function Notifications() {
   )
 }
 
-function NotificationCard({ notification, onMarkRead, onDelete }) {
+function NotificationCard({ notification, onMarkRead, onDelete, onNavigate }) {
   const actor = notification.actor
   const IconComponent = TYPE_ICONS[notification.type] || Bell
 
+  const handleClick = () => {
+    if (!notification.isRead) {
+      onMarkRead()
+    }
+    if (notification.link) {
+      onNavigate(notification.link)
+    }
+  }
+
   return (
     <div
-      className={`flex gap-3 p-4 transition-colors hover:bg-soft-stone/30 ${
+      onClick={handleClick}
+      className={`flex gap-3 p-4 transition-colors hover:bg-soft-stone/30 cursor-pointer ${
         !notification.isRead ? 'bg-pale-blue/20' : ''
       }`}
     >

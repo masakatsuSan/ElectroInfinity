@@ -1,9 +1,9 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
-const SEO = ({ title, description, name = 'ElectroInfinity', type = 'website', path = '' }) => {
-  const url = `https://electro-infinity.vercel.app${path}`;
-  const fullTitle = `${title} | ${name} — Unofficial Student Project`;
+const SEO = ({ title, description, name = 'College Connect', type = 'website', path = '' }) => {
+  const url = `https://college-connect.vercel.app${path}`;
+  const fullTitle = `${title} | ${name}`;
 
   return (
     <Helmet>

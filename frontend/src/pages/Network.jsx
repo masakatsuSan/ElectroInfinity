@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { Search, TrendingUp, Sparkles } from 'lucide-react'
 import FriendActionButton from '../components/FriendActionButton'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 
 export default function Network() {
   const { user } = useAuth()
@@ -14,10 +15,13 @@ export default function Network() {
   const [selectedTab, setSelectedTab] = useState('all')
   const [showTrending, setShowTrending] = useState(true)
 
-  const { data, isLoading } = useQuery({
+  const { data: network, isLoading } = useQuery({
     queryKey: ['network', search],
-    queryFn: () => getCollegeNetwork(search).then(r => r.data.data),
+    queryFn: () => getCollegeNetwork(search).then(r => r.data),
   })
+
+  const data = network?.data
+  const total = network?.total ?? 0
 
   const { data: trendingData } = useQuery({
     queryKey: ['trendingUsers'],
@@ -55,7 +59,7 @@ export default function Network() {
 
   return (
     <div className="min-h-screen bg-[#ffffff] text-ink pt-36 pb-28">
-      <SEO title="Network | Electro Infinity" description="Connect with your college mates." />
+      <SEO title={`Network | ${BRAND_NAME}`} description="Connect with your college mates." />
 
       <div className="max-w-[1280px] mx-auto px-6 md:px-12">
         <div className="max-w-3xl mb-12">
@@ -72,7 +76,7 @@ export default function Network() {
 
         {/* Search */}
         <div className="relative w-full max-w-md mb-8">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate" />
+          <Search size={16} className="absolute -translate-y-1/2 left-3 top-1/2 text-slate" />
           <input
             type="text"
             value={search}
@@ -91,9 +95,9 @@ export default function Network() {
           >
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp size={18} className="text-coral" />
-              <h3 className="font-sans text-[20px] font-medium text-ink">Trending Now</h3>
+              <h3 className="font-sans text-[20px] font-medium text-ink">Active Posting</h3>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {trending.map((user, idx) => (
                 <motion.div
                   key={user._id}
@@ -123,7 +127,7 @@ export default function Network() {
               <Sparkles size={18} className="text-action-blue" />
               <h3 className="font-sans text-[20px] font-medium text-ink">People You May Know</h3>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {suggested.map((user, idx) => (
                 <motion.div
                   key={user._id}
@@ -142,7 +146,7 @@ export default function Network() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-8 overflow-x-auto p-1 bg-white border border-divider-soft rounded-md w-max max-w-full">
+        <div className="flex max-w-full gap-2 p-1 mb-8 overflow-x-auto bg-white border rounded-md border-divider-soft w-max">
           {['all', 'students', 'faculty'].map((tab) => (
             <button
               key={tab}
@@ -162,18 +166,19 @@ export default function Network() {
         {/* Count */}
         <p className="font-mono text-[12px] uppercase tracking-wider text-slate mb-6">
           {displayList.length} {displayList.length === 1 ? 'person' : 'people'}
+          {displayList.length !== total ? ` of ${total}` : ''}
           {search ? ` matching "${search}"` : ''}
         </p>
 
         {/* Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="border border-hairline bg-soft-stone/40 rounded-[10px] h-[160px] skeleton-shimmer" />
             ))}
           </div>
         ) : displayList.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {displayList.map((peer) => (
               <PeerCard key={peer._id} user={peer} />
             ))}
@@ -204,9 +209,9 @@ function PeerCard({ user, onUpdate }) {
   return (
     <Link to={`/profile/${user._id}`} className="block">
        <div className="border border-divider-soft bg-white rounded-[10px] p-6 shadow-card hover:shadow-md transition-shadow flex items-center gap-4 group" style={{ transitionDuration: '0.22s', transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }}>
-        <div className="w-14 h-14 rounded-full bg-soft-stone flex items-center justify-center overflow-hidden flex-shrink-0">
+        <div className="flex items-center justify-center flex-shrink-0 overflow-hidden rounded-full w-14 h-14 bg-soft-stone">
           {user.photo ? (
-            <img src={user.photo} alt={user.name} className="w-full h-full object-cover" />
+            <img src={user.photo} alt={user.name} className="object-cover w-full h-full" />
           ) : (
             <span className="font-sans font-medium text-[18px] text-ink-muted-48">
               {user.name?.charAt(0)}

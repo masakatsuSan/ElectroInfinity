@@ -2,7 +2,7 @@ const express = require('express')
 const Gallery = require('../models/Gallery')
 const User = require('../models/User')
 const { protect, guard } = require('../middleware/auth')
-const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
+const { upload, uploadSingle, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
 const axios = require('axios')
 
 const router = express.Router()
@@ -106,7 +106,7 @@ router.get('/:id/image', async (req, res) => {
 })
 
 // -- POST /api/gallery -----------------------------------------------
-router.post('/', protect, upload.single('image'), async (req, res) => {
+router.post('/', protect, uploadSingle('image'), async (req, res) => {
   try {
     const { title, category, date, imageUrl } = req.body
 
@@ -143,7 +143,7 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
 })
 
 // -- PATCH /api/gallery/:id -------------------------------------------
-router.patch('/:id', protect, upload.single('image'), async (req, res) => {
+router.patch('/:id', protect, uploadSingle('image'), async (req, res) => {
   try {
     const photo = await Gallery.findById(req.params.id)
       .populate('uploadedBy', 'batch role _id')

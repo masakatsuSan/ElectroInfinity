@@ -16,6 +16,8 @@ import {
 } from './nav/navConfig'
 import { useInstallApp } from './nav/useInstallApp'
 import { useNavigate, useLocation } from 'react-router-dom';
+import { BRAND_NAME } from '../config/brand'
+import BrandLogo from './BrandLogo'
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -26,10 +28,6 @@ export default function Navbar() {
   const { installPromptEvent, appInstalled,
           isIosDevice, handleInstallApp: promptInstall, dismissInstallBar, showFloatingInstallBar } = useInstallApp();
   const userRole = String(user?.role ?? '').trim().toLowerCase();
-
-  if (isHiddenRoute(location.pathname)) {
-    return null
-  }
 
   /* This overlay only ever opens below lg, where the window is the scrollport,
      so the lock keeps the original body behaviour — it just goes through the
@@ -55,6 +53,21 @@ export default function Navbar() {
 
   const closeMenu = () => setMenuOpen(false)
 
+  /* Any navigation dismisses the overlay, including ones this component did
+     not initiate (the notification bell, a redirect after logout). */
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [location.pathname])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menuOpen])
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -69,19 +82,22 @@ export default function Navbar() {
 
   const roleInfo = user ? getRoleBadge(userRole) : null
 
+  /* Hooks above must run unconditionally: the hidden-route bail-out used to
+     sit above useScrollLock, so navigating to /login and back changed the
+     hook count and React threw. */
+  if (isHiddenRoute(location.pathname)) {
+    return null
+  }
+
   return (
     <>
       <nav view-transition-name="navbar" className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-hairline lg:hidden">
-        <div className="w-full max-w-[1440px] mx-auto px-4 md:px-6 xl:px-10 h-16 flex items-center justify-between">
+        {/* h-16 plus the notch inset; the menu scroller's padding-top below is derived
+            from the same two numbers, so keep them in step. */}
+        <div className="w-full max-w-[1440px] mx-auto px-4 md:px-6 xl:px-10 min-h-16 pt-[env(safe-area-inset-top)] flex items-center justify-between">
           {/* Left: Brand Logo */}
           <div className="flex items-center gap-1">
-            <Link to="/" className="flex items-center gap-2" onClick={closeMenu}>
-              <div className="flex items-center gap-2">
-                <span className="font-display font-medium text-[18px] tracking-tight text-ink">
-                  Electro Infinity
-                </span>
-              </div>
-            </Link>
+            <BrandLogo variant="mark" onClick={closeMenu} />
           </div>
 
           {/* Mobile hamburger */}
@@ -107,11 +123,31 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile overlay menu */}
-      <div className={`fixed inset-0 z-40 flex flex-col bg-white overflow-hidden lg:hidden ${
-        menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-      }`}>
-        <div className="fixed top-[72px] bottom-0 left-0 right-0 overflow-y-auto px-4 sm:px-6 py-6 pb-8 no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
+      {/* Mobile overlay menu.
+
+          `data-lenis-prevent` is load-bearing, not decoration: App.jsx runs
+          Lenis on `window` below 1024px with `smoothTouch: true`, and Lenis
+          preventDefaults every touchmove inside its wrapper to drive its own
+          smooth scroll. Without the opt-out the menu ate every swipe, and with
+          the body locked by useScrollLock there was nowhere for that scroll to
+          go — the panel looked frozen above Sign In/Sign Out.
+
+          The panel is a plain flex column and the scroller is a `min-h-0
+          flex-1` child, so it gets a definite height and scrolls natively. The
+          previous markup put a `position: fixed` box inside the fixed overlay,
+          which escaped the parent entirely (the parent's overflow-hidden and
+          flex-col did nothing) and hard-coded top-[72px] against a 64px bar. */}
+      <div
+        data-lenis-prevent
+        role="dialog"
+        aria-modal="true"
+        aria-label="Site menu"
+        className={`fixed inset-0 z-40 flex-col bg-white lg:hidden ${menuOpen ? 'flex' : 'hidden'}`}
+      >
+        <div
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(5.5rem+env(safe-area-inset-top))] no-scrollbar"
+          style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+        >
           {user && (
             <div className="p-4 mb-6 border bg-soft-stone rounded-xl border-hairline">
               <div className="flex items-center justify-between mb-1">
@@ -205,7 +241,7 @@ export default function Navbar() {
             ))}
 
             {user ? (
-              <button onClick={() => { logout(); closeMenu() }} className="flex items-center w-full gap-3 p-3 mt-2 text-left transition-colors border rounded-lg border-signature-coral/20 bg-signature-coral/5 hover:bg-signature-coral/10">
+              <button onClick={handleLogout} className="flex items-center w-full gap-3 p-3 mt-2 text-left transition-colors border rounded-lg border-signature-coral/20 bg-signature-coral/5 hover:bg-signature-coral/10">
                 <span className="flex items-center justify-center flex-shrink-0 text-white rounded-lg w-9 h-9 bg-signature-coral">
                   <Power size={17} strokeWidth={2} />
                 </span>
@@ -235,7 +271,7 @@ export default function Navbar() {
                     <p className="flex items-center gap-2 mb-1 font-medium font-display text-ink">
                       <Download size={16} strokeWidth={1.75} /> Install App
                     </p>
-                    <p>Tap the <span className="font-medium">Share</span> button, then choose <span className="font-medium">"Add to Home Screen"</span> to install Electro Infinity on your iPhone.</p>
+                    <p>Tap the <span className="font-medium">Share</span> button, then choose <span className="font-medium">"Add to Home Screen"</span> to install {BRAND_NAME} on your iPhone.</p>
                   </div>
                 )}
               </div>
@@ -253,7 +289,7 @@ export default function Navbar() {
               <Download size={18} strokeWidth={2} />
             </span>
             <div className="flex-1 min-w-0">
-              <p className="font-display font-medium text-[13px] text-ink leading-tight">Install Electro Infinity</p>
+              <p className="font-display font-medium text-[13px] text-ink leading-tight">Install {BRAND_NAME}</p>
               <p className="font-sans text-[11px] text-muted leading-tight">Tap to install the app on your device</p>
             </div>
             <button

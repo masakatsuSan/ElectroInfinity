@@ -4,6 +4,7 @@ import { getGallery, createGalleryPhoto, getGalleryImageUrl } from '../api/galle
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 import { Plus, X, Upload } from 'lucide-react'
 import UploaderInfo from '../components/UploaderInfo'
 import ScrollReveal from '../components/ScrollReveal'
@@ -62,7 +63,7 @@ export default function Gallery() {
 
   return (
     <div className="min-h-screen bg-white text-ink pt-24 pb-24">
-      <SEO title="Gallery | Electro Infinity" description="Visual archive of Electro Infinity workshops, events, lab sessions, and campus life." />
+      <SEO title={`Gallery | ${BRAND_NAME}`} description={`Visual archive of ${BRAND_NAME} workshops, events, lab sessions, and campus life.`} />
 
       <div className="max-w-[1280px] mx-auto px-6 md:px-12">
         <ScrollReveal variant="fadeUp">

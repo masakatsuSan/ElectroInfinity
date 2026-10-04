@@ -41,7 +41,7 @@ router.post('/', async (req, res) => {
   `
 
   const payload = {
-    sender:  { name: 'Electro Infinity Website', email: process.env.EMAIL_USER || 'noreply@electroinfinity.com' },
+    sender:  { name: 'College Connect Website', email: process.env.EMAIL_USER || 'noreply@collegeconnect.com' },
     to:      [{ email: process.env.EMAIL_USER || 'admin@electroinfinity.com' }],
     replyTo: { email: email, name: name },
     subject: `Contact Form: ${subject || 'New Message'}`,

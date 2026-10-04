@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { EASE, DURATION } from '../utils/motion'
+import { BRAND_NAME } from '../config/brand'
+import BrandLogo from '../components/BrandLogo'
 
 const COLORS = {
   canvas: '#ffffff',
@@ -355,9 +357,7 @@ export default function Login() {
       <div className="flex min-h-screen flex-col items-center justify-center px-6 py-10 md:hidden">
         <div className="w-full max-w-sm">
           <div className="mb-8 flex justify-center">
-            <Link to="/" className="inline-block font-display font-medium text-[28px] leading-tight tracking-tight text-ink no-underline">
-              Electro Infinity
-            </Link>
+            <BrandLogo variant="large" />
           </div>
 
           <h1 className="mb-6 text-center text-ink" style={{ margin: '0 0 24px', fontFamily: DISPLAY_FONT, fontSize: 24, fontWeight: 400, lineHeight: 1.2, letterSpacing: 0 }}>

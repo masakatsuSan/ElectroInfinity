@@ -1,7 +1,7 @@
 {
   "name": "electro-infinity-backend",
   "version": "1.0.0",
-  "description": "Electro Infinity API (unofficial, independent, open-source student project) — Express + MongoDB",
+  "description": "College Connect API (unofficial, independent, open-source student project) — Express + MongoDB",
   "license": "MIT",
   "main": "server.js",
   "scripts": {

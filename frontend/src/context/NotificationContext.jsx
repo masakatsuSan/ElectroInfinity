@@ -52,7 +52,7 @@ export function NotificationProvider({ children }) {
     } finally {
       setLoading(false)
     }
-  }, [user, unreadCount])
+  }, [user])
 
   const loadMore = useCallback(() => {
     if (!loading && hasMore) {
@@ -66,11 +66,12 @@ export function NotificationProvider({ children }) {
       setNotifications((prev) =>
         prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
       )
-      setUnreadCount(res.data.data?.unreadCount ?? Math.max(0, unreadCount - 1))
+      setUnreadCount(res.data.data?.unreadCount ?? 0)
     } catch (err) {
       console.error('Failed to mark notification read:', err.message)
+      fetchUnreadCount()
     }
-  }, [unreadCount])
+  }, [fetchUnreadCount])
 
   const markAllRead = useCallback(async () => {
     try {
@@ -86,11 +87,11 @@ export function NotificationProvider({ children }) {
     try {
       const res = await deleteNotification(id)
       setNotifications((prev) => prev.filter((n) => n._id !== id))
-      setUnreadCount(res.data.data?.unreadCount ?? unreadCount)
+      setUnreadCount(res.data.data?.unreadCount ?? 0)
     } catch (err) {
       console.error('Failed to delete notification:', err.message)
     }
-  }, [unreadCount])
+  }, [])
 
   // Initialize socket connection for real-time notifications
   useEffect(() => {
@@ -110,8 +111,19 @@ export function NotificationProvider({ children }) {
     const socket = io(getSocketUrl(), { auth: { token } })
     socketRef.current = socket
 
+    const onConnect = () => {
+      socket.emit('join-notifications', user._id)
+      fetchUnreadCount()
+    }
+
+    socket.on('connect', onConnect)
+    socket.on('reconnect', onConnect)
+    socket.on('connect_error', (err) => {
+      console.error('[Socket] connect_error:', err.message)
+    })
+
     socket.on('notification:new', (data) => {
-      setUnreadCount(data.unreadCount ?? unreadCount + 1)
+      setUnreadCount(data.unreadCount ?? ((prev) => prev + 1))
       if (data.notification) {
         setNotifications((prev) => {
           const exists = prev.some((n) => n._id === data.notification._id)
@@ -127,11 +139,17 @@ export function NotificationProvider({ children }) {
 
     socket.emit('join-notifications', user._id)
 
+    const handleFocus = () => {
+      fetchUnreadCount()
+    }
+    window.addEventListener('focus', handleFocus)
+
     return () => {
       socket.disconnect()
       socketRef.current = null
+      window.removeEventListener('focus', handleFocus)
     }
-  }, [user])
+  }, [user, fetchUnreadCount])
 
   // Fetch initial data when user changes
   useEffect(() => {

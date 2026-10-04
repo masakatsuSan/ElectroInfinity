@@ -2,7 +2,7 @@
   "name": "electro-infinity-frontend",
   "private": true,
   "version": "1.0.0",
-  "description": "Electro Infinity frontend — unofficial, independent, open-source student project for AGEMC Electrical Engineering. Not affiliated with the college.",
+  "description": "College Connect frontend — unofficial, independent, open-source student project for AGEMC Electrical Engineering. Not affiliated with the college.",
   "license": "MIT",
   "type": "module",
   "scripts": {

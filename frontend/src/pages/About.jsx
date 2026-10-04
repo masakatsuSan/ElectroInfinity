@@ -1,12 +1,13 @@
 import SEO from '../components/SEO'
 import { Link } from 'react-router-dom'
 import ScrollReveal from '../components/ScrollReveal'
+import { BRAND_NAME } from '../config/brand'
 
 const TIMELINE = [
   { year: '2023', text: 'Seniors of the electrical engineering students at AGEMC start sharing notes and PYQs in group chats.' },
   { year: '2024', text: 'First hands-on Power Electronics & Hardware Automation workshops run for juniors.' },
   { year: '2025', text: 'Materials consolidated into shared folders as seniors handed down lab manuals and references.' },
-  { year: '2026', text: 'Electro Infinity launched: an unofficial, open-source resource and community app built by seniors, dedicated to their juniors.' },
+  { year: '2026', text: `${BRAND_NAME} launched: an unofficial, open-source resource and community app built by seniors, dedicated to their juniors.` },
 ]
 
 const OBJECTIVES = [
@@ -31,8 +32,8 @@ export default function About() {
   return (
     <div className="min-h-screen bg-white text-ink">
       <SEO
-        title="About Us | Electro Infinity"
-        description="Electro Infinity is an independent, unofficial, open-source student project for AGEMC Electrical Engineering. Not affiliated with the college."
+        title={`About Us | ${BRAND_NAME}`}
+        description={`${BRAND_NAME} is an independent, unofficial, open-source student project for AGEMC Electrical Engineering. Not affiliated with the college.`}
         path="/about"
       />
 
@@ -44,7 +45,7 @@ export default function About() {
                 An Independent Student Project
               </span>
               <h1 className="mb-5 font-display text-[40px] font-normal leading-[1.15] text-ink md:text-[56px]">
-                About Electro Infinity
+                About {BRAND_NAME}
               </h1>
               <p className="max-w-2xl font-sans text-[18px] font-normal leading-[1.4] text-body">
                 A student-built technical hub for Electrical Engineering at Alipurduar Government Engineering &amp;
@@ -72,7 +73,7 @@ export default function About() {
               </div>
 
               <p className="font-sans text-[16px] font-medium leading-[1.5] text-ink">
-                Electro Infinity is an unofficial student project. It has no official connection to the college.
+                {BRAND_NAME} is an unofficial student project. It has no official connection to the college.
               </p>
 
               <ul className="mt-6 space-y-4">

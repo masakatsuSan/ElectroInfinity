@@ -18,7 +18,7 @@ export default function Home() {
     <div className="min-h-screen bg-white text-ink">
       <SEO
         title="Home"
-        description="Electro Infinity — an independent, unofficial, open-source student-built app for Electrical Engineering juniors at AGEMC. Not affiliated with or operated by the college."
+        description="College Connect — an independent, unofficial, open-source student-built app for Electrical Engineering juniors at AGEMC. Not affiliated with or operated by the college."
         path="/"
       />
 
@@ -27,12 +27,14 @@ export default function Home() {
           <div className="max-w-[880px]">
             <ScrollReveal variant="fadeUp">
               <div className="flex flex-wrap items-center gap-3 mb-8">
-                <span className="inline-block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral">
-                  AGEMC Electrical Engineering
-                </span>
-                <span className="inline-block rounded-sm border border-hairline px-2.5 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.16px] text-muted">
+                <a
+                  href="https://github.com/masakatsuSan/ElectroInfinity.git"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block rounded-sm border border-hairline px-2 py-2 font-mono text-[10px] font-medium uppercase tracking-[0.16px] text-muted no-underline"
+                >
                   Open Source
-                </span>
+                </a>
               </div>
             </ScrollReveal>
 

@@ -1,4 +1,4 @@
-// Service worker for ElectroInfinity.
+// Service worker for College Connect.
 //
 // Rules that keep this from causing the "white screen after a deploy" bug:
 //   1. Bump CACHE_NAME whenever the caching strategy changes. activate() deletes
@@ -11,8 +11,8 @@
 //      both safe and the fastest possible path.
 //   4. Navigations are network-first so a new deploy is picked up immediately,
 //      with the cached shell as an offline fallback.
-const CACHE_NAME = 'electro-infinity-v3'
-const SHELL_ASSETS = ['/', '/index.html', '/pic.png']
+const CACHE_NAME = 'college-connect-v3'
+const SHELL_ASSETS = ['/', '/index.html', '/brand/icons/favicon-32.png?v=2']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -77,3 +77,4 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(request).then((cached) => cached || caches.match('/index.html')))
   )
 })
+

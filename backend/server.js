@@ -11,7 +11,7 @@ connectDB()
 const app = express()
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:5173',
-  'https://electro-infinity.vercel.app',
+  'https://college-connect.vercel.app',
 ]
 app.use(cors({
   origin: (origin, cb) => {
@@ -46,7 +46,8 @@ app.use('/api/projects',      require('./src/routes/projects'))
 app.use('/api/admin',      require('./src/routes/admin'))
 // Phase 4 - Dynamic Data
 app.use('/api/faculty',    require('./src/routes/faculty'))
-app.use('/api/placements', require('./src/routes/placements'))
+app.use('/api/placements',    require('./src/routes/placements'))
+app.use('/api/admin/placements', require('./src/routes/admin-placements'))
 app.use('/api/labs',       require('./src/routes/labs'))
 app.use('/api/achievements',require('./src/routes/achievements'))
 app.use('/api/gallery',    require('./src/routes/gallery'))
@@ -60,7 +61,7 @@ app.use('/api/folders',    require('./src/routes/folders'))
 
 app.use('/api/attendance', require('./src/routes/attendance'))
 app.get('/api/health', (req, res) =>
-  res.json({ success: true, message: 'Electro Infinity API is running ⚡' })
+  res.json({ success: true, message: 'College Connect API is running ⚡' })
 )
 
 app.use((req, res) => res.status(404).json({ success: false, error: 'Not found' }))

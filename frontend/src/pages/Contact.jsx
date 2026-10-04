@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Check } from 'lucide-react'
 import api from '../api/axios'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 
 export default function Contact() {
   const [form, setForm]     = useState({ name: '', email: '', message: '' })
@@ -27,7 +28,7 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen pt-24 bg-white text-ink md:pt-32">
-      <SEO title="Contact | Electro Infinity" description="Get in touch with the Electro Infinity student maintainers, or find the official AGEMC college website." />
+      <SEO title={`Contact | ${BRAND_NAME}`} description={`Get in touch with the ${BRAND_NAME} student maintainers, or find the official AGEMC college website.`} />
 
       <div className="mx-auto max-w-[1280px] px-6 md:px-12">
         <section className="pb-24 md:pb-24">

@@ -7,6 +7,7 @@ import { searchUsers, getTrendingUsers, getSuggestedUsers } from '../api/profile
 import { useAuth } from '../context/AuthContext'
 import FriendActionButton from '../components/FriendActionButton'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 
 const ITEMS_PER_PAGE = 12
 
@@ -75,7 +76,7 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen bg-[#ffffff] pt-28 pb-20">
-      <SEO title="Discover & Connect | Electro Infinity" description="Find and connect with students, seniors, and faculty." />
+      <SEO title={`Discover &amp; Connect | ${BRAND_NAME}`} description="Find and connect with students, seniors, and faculty." />
 
       <div className="max-w-[1280px] mx-auto px-4 md:px-12">
         {/* Header */}

@@ -20,6 +20,7 @@ import {
   Award,
   Play,
   User,
+  Briefcase,
 } from 'lucide-react'
 
 const LINKS = [
@@ -40,6 +41,7 @@ const LINKS = [
   { to: '/admin/deadlines',   label: 'Deadlines',            icon: Clock },
   { to: '/admin/routines',    label: 'Routine',              icon: CalendarClock },
   { to: '/admin/contact',     label: 'Contacts',             icon: Mail },
+  { to: '/admin/placements',  label: 'Placements',            icon: Briefcase },
 ]
 
 export default function AdminLayout() {

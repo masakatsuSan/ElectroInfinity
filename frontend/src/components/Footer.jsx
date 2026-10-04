@@ -9,6 +9,8 @@ import {
   SOCIAL_LINKS,
   AGEMC_URL,
 } from '../data/footerLinks'
+import { BRAND_NAME } from '../config/brand'
+import BrandLogo from './BrandLogo'
 
 // Notched top edge for the tinted panel. The clip-path lives on the background
 // layer only (an absolutely-positioned div), never on the footer itself, so the
@@ -156,10 +158,7 @@ export default function Footer() {
         {/* Header row: logo+tagline column (left, at the high top-left) — social (right) */}
         <div className="flex items-end justify-between pt-10 pb-6">
           <div className="flex flex-col items-start">
-            <Link to="/" className="flex items-center gap-3" aria-label="Electro Infinity home">
-              <img src="/pic.png" alt="Electro Infinity" className="h-9 w-9" />
-              <span className="font-display font-medium text-[19px] text-ink">Electro Infinity</span>
-            </Link>
+            <BrandLogo variant="large" />
             <span className="flex items-center gap-1 mt-1 text-muted">
               <span className="font-sans text-sm">Built with</span>
               <Heart size={16} className="text-signature-coral" fill="currentColor" aria-hidden="true" />
@@ -186,7 +185,7 @@ export default function Footer() {
       <div className="mt-8 border-t border-hairline">
         <div className="mx-auto w-full max-w-[1100px] px-4 md:px-6 py-4">
           <p className="font-sans text-[12px] leading-[1.6] text-muted">
-            Electro Infinity is an independent, unofficial, open-source student project built
+            {BRAND_NAME} is an independent, unofficial, open-source student project built
             by the Electrical Engineering seniors for their juniors. It is{' '}
             <strong className="font-semibold text-body">
               not affiliated with, endorsed by, or operated by
@@ -210,7 +209,7 @@ export default function Footer() {
       {/* Bottom bar: thin solid divider, copyright left + AGEMC Official right */}
       <div className="border-t border-hairline">
         <div className="mx-auto w-full max-w-[1100px] px-4 md:px-6 flex flex-col items-center justify-between gap-3 py-4 text-[13px] font-sans text-muted sm:flex-row">
-          <span>© {year} Electro Infinity · AGEMC</span>
+          <span>© {year} {BRAND_NAME}</span>
           <a
             href={AGEMC_URL}
             target="_blank"

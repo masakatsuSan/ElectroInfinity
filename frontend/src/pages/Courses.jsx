@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { getSubjects } from '../api/subjects'
 import SEO from '../components/SEO'
+import { BRAND_NAME } from '../config/brand'
 import ScrollReveal from '../components/ScrollReveal'
 
 const SEMESTER_PILLS = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -41,7 +42,7 @@ export default function Courses() {
   return (
     <div className="min-h-screen bg-white text-ink pt-36 pb-28">
       <SEO
-        title="Curriculum &amp; Courses | Electro Infinity"
+        title={`Curriculum &amp; Courses | ${BRAND_NAME}`}
         description="Semester-wise subjects under the MAKAUT-affiliated B.Tech Electrical Engineering curriculum."
       />
 

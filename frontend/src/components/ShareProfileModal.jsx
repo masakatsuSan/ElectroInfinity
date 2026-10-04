@@ -11,9 +11,10 @@ import {
   MODAL_VARIANTS,
   MODAL_TRANSITION,
 } from '../utils/motion'
+import { BRAND_NAME, LOGO_MARK } from '../config/brand'
 
 const GRADIENT =
-  'linear-gradient(135deg, #7c5cff 0%, #5b8cff 50%, #3b82f6 100%)'
+   'linear-gradient(135deg, #1a2332 0%, #0dab8f 50%, #1a2332 100%)'
 const SHARE_URL = typeof window !== 'undefined' ? window.location.href : ''
 
 function InfinityGlyph({ size = 22, className = '' }) {
@@ -27,14 +28,14 @@ function InfinityGlyph({ size = 22, className = '' }) {
       fill="none"
     >
       <defs>
-        <linearGradient id="ei-qr-grad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#7c5cff" />
-          <stop offset="0.5" stopColor="#818cf8" />
-          <stop offset="1" stopColor="#38bdf8" />
+        <linearGradient id="cc-qr-grad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#1a2332" />
+          <stop offset="0.5" stopColor="#0dab8f" />
+          <stop offset="1" stopColor="#1a2332" />
         </linearGradient>
       </defs>
-      <circle cx="8" cy="12" r="4.8" stroke="url(#ei-qr-grad)" strokeWidth="2" />
-      <circle cx="16" cy="12" r="4.8" stroke="url(#ei-qr-grad)" strokeWidth="2" />
+      <circle cx="8" cy="12" r="4.8" stroke="url(#cc-qr-grad)" strokeWidth="2" />
+      <circle cx="16" cy="12" r="4.8" stroke="url(#cc-qr-grad)" strokeWidth="2" />
     </svg>
   )
 }
@@ -160,7 +161,7 @@ export default function ShareProfileModal({
     const url = SHARE_URL
     if (!url) return
     const text = encodeURIComponent(
-      `Check out ${profile?.name ? profile.name + "'s" : 'my'} Electro Infinity profile: ${username}`
+      `Check out ${profile?.name ? profile.name + "'s" : 'my'} ${BRAND_NAME} profile: ${username}`
     )
     const u = encodeURIComponent(url)
     let href = ''
@@ -187,8 +188,8 @@ export default function ShareProfileModal({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${profile?.name || 'Electro Infinity'}`,
-          text: `Check out this Electro Infinity profile: ${username}`,
+          title: `${profile?.name || BRAND_NAME}`,
+          text: `Check out this ${BRAND_NAME} profile: ${username}`,
           url: SHARE_URL,
         })
         return
@@ -201,7 +202,7 @@ export default function ShareProfileModal({
 
   const handleDownload = () => {
     if (!qrData) return
-    const label = `electro-infinity-qr-${profile?.rollNumber || profile?._id || 'profile'}`
+    const label = `${BRAND_NAME.toLowerCase().replace(/\s+/g, '-')}-qr-${profile?.rollNumber || profile?._id || 'profile'}`
     // Prefer the server-generated PNG data URL (clean raster, always scannable)
     if (qrData.qrCode) {
       const a = document.createElement('a')
@@ -256,7 +257,7 @@ export default function ShareProfileModal({
             style={{
               background: 'linear-gradient(165deg, #0b0b0f 0%, #07070a 100%)',
               boxShadow:
-                '0 30px 80px -20px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(124, 92, 255, 0.06)',
+                '0 30px 80px -20px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(26, 35, 50, 0.06)',
             }}
             onClick={(e) => e.stopPropagation()}
             role="dialog"
@@ -265,19 +266,26 @@ export default function ShareProfileModal({
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-5 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500/15 to-sky-500/10 border border-white/10">
-                  <InfinityGlyph />
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/[0.06] border border-white/10 overflow-hidden">
+                    <img
+                      src={LOGO_MARK}
+                      alt=""
+                      width={753}
+                      height={484}
+                      srcSet={`${LOGO_MARK} 1x, ${LOGO_MARK} 2x`}
+                      className="h-7 w-7 shrink-0 object-contain"
+                    />
+                  </div>
+                  <div>
+                    <p className="font-display text-[15px] font-semibold text-white">
+                      {BRAND_NAME}
+                    </p>
+                    <p className="font-mono text-[10px] tracking-wide text-white/40">
+                      Connect. Create. Collaborate.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-display text-[15px] font-semibold text-white">
-                    Electro Infinity
-                  </p>
-                  <p className="font-mono text-[10px] tracking-wide text-white/40">
-                    Connect. Create. Collaborate.
-                  </p>
-                </div>
-              </div>
               <button
                 type="button"
                 onClick={onClose}
@@ -344,7 +352,7 @@ export default function ShareProfileModal({
             {/* PROFILE INFO */}
             <div className="px-5 pb-1 text-center">
               <p className="font-mono text-[15px] font-semibold text-white/90 truncate">
-                {username || profile?.name || 'Electro Infinity'}
+                {username || profile?.name || BRAND_NAME}
               </p>
               <p className="mt-0.5 font-sans text-[12px] text-white/40">
                 Scan to connect
@@ -426,8 +434,8 @@ export default function ShareProfileModal({
             {/* FOOTER BRANDING */}
             <div className="px-5 pb-5">
               <div className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3">
-                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500/15 to-sky-500/10 border border-white/10">
-                  <InfinityGlyph />
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-white/[0.06] border border-white/10 overflow-hidden">
+                  <img src={LOGO_MARK} alt="" className="h-7 w-7 object-contain" />
                 </div>
                 <div>
                   <p className="font-sans text-[12.5px] font-medium text-white/70 leading-tight">

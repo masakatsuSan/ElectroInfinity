@@ -3,10 +3,13 @@
  * visible) when a single page crashes. Deliberately free of router/context
  * dependencies so it can never throw while reporting an error.
  */
+import BrandLogo from './BrandLogo'
+
 export default function PageError({ resetKey }) {
   return (
     <div className="w-full max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8 pt-28 pb-24">
       <div className="max-w-lg mx-auto flex flex-col items-center text-center py-16">
+        <BrandLogo variant="large" />
         <div className="w-16 h-16 bg-soft-stone rounded-full flex items-center justify-center mb-6">
           <svg
             width="26"

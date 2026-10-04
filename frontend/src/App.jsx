@@ -63,6 +63,7 @@ const AdminCalendar  = lazy(() => import('./pages/admin/AdminCalendar'))
 const AdminAnnouncements = lazy(() => import('./pages/admin/AdminAnnouncements'))
 const AdminAchievements = lazy(() => import('./pages/admin/AdminAchievements'))
 const AdminYTLectures = lazy(() => import('./pages/admin/AdminYTLectures'))
+const AdminPlacements = lazy(() => import('./pages/admin/AdminPlacements'))
 const AdminLogin     = lazy(() => import('./pages/admin/AdminLogin'))
 const AdminProfile   = lazy(() => import('./pages/admin/AdminProfile'))
 const FacultyDashboard = lazy(() => import('./pages/faculty/FacultyDashboard'))
@@ -262,6 +263,7 @@ export default function App() {
                       <Route path="achievements" element={<AdminAchievements />} />
                       <Route path="yt-lectures" element={<AdminYTLectures />} />
                       <Route path="contact"   element={<AdminContact />} />
+                      <Route path="placements" element={<AdminPlacements />} />
                     </Route>
                   </Routes>
                 </ProtectedRoute>

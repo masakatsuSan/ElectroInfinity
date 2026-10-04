@@ -19,6 +19,8 @@ import { cn } from '../utils/cn'
 import { useAnchorRect, RailTooltip } from './sidebar/SidebarFlyout'
 import { itemClass, iconClass, iconWrapClass, labelClass } from './sidebar/SidebarItem'
 import { SidebarGroup } from './sidebar/SidebarGroup'
+import { BRAND_NAME } from '../config/brand'
+import BrandLogo from './BrandLogo'
 
 function useIsTouchDevice() {
   const [isTouch, setIsTouch] = useState(false)
@@ -87,7 +89,7 @@ function InstallFooterItem({ collapsed, installPromptEvent, onInstall, open, onT
             </p>
             <p className="font-sans text-[12px] leading-relaxed text-muted">
               Tap the <span className="font-medium">Share</span> button, then choose{' '}
-              <span className="font-medium">&quot;Add to Home Screen&quot;</span> to install Electro Infinity on your
+              <span className="font-medium">&quot;Add to Home Screen&quot;</span> to install {BRAND_NAME} on your
               iPhone.
             </p>
           </motion.div>,
@@ -245,17 +247,12 @@ export default function Sidebar() {
   }
 
   const brand = (
-    <div className={cn('flex items-center', isCollapsed ? 'h-11 w-full justify-center px-0' : 'gap-2 px-2 py-4')}>
-      <Link
-        to="/"
-        aria-label="Electro Infinity home"
-        className={cn(
-          'flex items-center rounded-lg font-display tracking-tight text-ink outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-          isCollapsed ? 'h-9 w-9 justify-center text-[13px] font-medium' : 'text-[18px]'
-        )}
-      >
-        {isCollapsed ? 'EI' : 'Electro Infinity'}
-      </Link>
+    <div className="flex h-16 w-full items-center px-3 overflow-hidden">
+      {isCollapsed ? (
+        <BrandLogo variant="mark" className="flex-1 justify-center" />
+      ) : (
+        <BrandLogo variant="full" expanded style={{ marginLeft: '4px' }} />
+      )}
 
       {!isCollapsed && (
         <button
@@ -263,7 +260,7 @@ export default function Sidebar() {
           onClick={toggle}
           aria-label="Collapse sidebar"
           aria-expanded={!collapsed}
-          className="ml-auto flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors duration-200 hover:bg-surface-soft hover:text-ink focus-visible:ring-2 focus-visible:ring-primary/40"
+          className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted transition-colors duration-200 hover:bg-surface-soft hover:text-ink focus-visible:ring-2 focus-visible:ring-primary/40"
         >
           <ChevronsLeft size={18} strokeWidth={1.75} />
         </button>
