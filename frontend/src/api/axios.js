@@ -63,7 +63,10 @@ api.interceptors.response.use(
       localStorage.removeItem('ei_token')
       localStorage.removeItem('ei_user')
       if (!onAuthPage()) {
-        window.location.href = '/login'
+        // replace(), not href: a replacing navigation does not add a history
+        // entry, so pressing Back can never re-enter a page that will 401 again
+        // and bounce forward once more.
+        window.location.replace('/login')
       }
     }
     return Promise.reject(error)

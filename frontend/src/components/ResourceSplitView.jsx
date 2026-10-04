@@ -173,7 +173,7 @@ export default function ResourceSplitView({ selectedResource, resources, onSelec
             Other Resources
           </span>
         </div>
-        <div className="flex-1 overflow-y-auto p-3 space-y-2">
+          <div data-lenis-prevent className="flex-1 overflow-y-auto p-3 space-y-2">
           {otherResources.length === 0 ? (
             <p className="text-[13px] text-muted text-center py-8">No other resources</p>
           ) : (

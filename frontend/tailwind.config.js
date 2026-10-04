@@ -107,6 +107,13 @@ export default {
         modal: '0 12px 32px -12px rgba(24, 29, 38, 0.16)',
         'card-hover': '0 4px 12px rgba(24, 29, 38, 0.08)',
       },
+      /* Shell stacking scale. Tailwind's default stops at 50, so `z-60`
+         silently produced no CSS (GlobalSearch's overlay had no z-index at
+         all). Scale: content 0, top bar 30, sidebar 40, dropdowns/flyouts/
+         tooltips 50, modals 60. Toasts stay above modals. */
+      zIndex: {
+        60: '60',
+      },
       animation: {},
     },
   },

@@ -84,6 +84,7 @@ export default function FriendsListModal({ open, onClose, userId }) {
       {open && (
         <motion.div
           key="friends-overlay"
+          data-lenis-prevent
           className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
           variants={OVERLAY_VARIANTS}
           initial="hidden"

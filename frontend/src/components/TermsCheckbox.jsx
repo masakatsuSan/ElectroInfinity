@@ -140,44 +140,54 @@ function TermsModalContent({ onClose }) {
   }
 
   return (
-    <div style={overlayStyle} onClick={onClose}>
+    <div data-lenis-prevent style={overlayStyle} onClick={onClose}>
       <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
         <div style={headerStyle}>
-          <h2 style={headingStyle}>Terms &amp; Conditions</h2>
+          <h2 style={headingStyle}>Terms &amp; Disclaimer</h2>
           <button type="button" onClick={onClose} style={closeBtnStyle} aria-label="Close">
             &times;
           </button>
         </div>
-        <div style={bodyStyle}>
-          <p style={{ margin: '0 0 12px', fontWeight: 500, color: COLORS.ink }}>
-            Please read these Terms &amp; Conditions carefully before using the Electro Infinity platform.
-          </p>
+<div style={bodyStyle}>
+            <p style={{ margin: '0 0 12px', fontWeight: 500, color: COLORS.ink }}>
+              Please read these Terms &amp; Conditions carefully before using the Electro Infinity platform.
+            </p>
 
-          <p style={sectionTitleStyle}>1. Account Access &amp; Security</p>
-          <p style={{ margin: '0 0 8px' }}>
-            You are solely responsible for maintaining the confidentiality of your account credentials (roll number, email, and password). You agree not to share your login credentials with any third party and to notify the administration immediately of any unauthorized use of your account. Electro Infinity is not liable for any loss or damage arising from your failure to protect your account security.
-          </p>
+            <p style={sectionTitleStyle}>1. Unofficial Status &amp; Non-Affiliation</p>
+            <p style={{ margin: '0 0 8px' }}>
+              Electro Infinity is an independent, unofficial, open-source student project. It is not affiliated with, endorsed by, sponsored by, or operated by Alipurduar Government Engineering &amp; Management College (AGEMC), its Electrical Engineering department, any faculty member, or any official college body. It is not an official college website, portal, or system, and it does not speak on behalf of the college or the department. The college name is used only to identify the intended students; no college logo, emblem, or seal is used.
+            </p>
 
-          <p style={sectionTitleStyle}>2. Platform Terms</p>
-          <p style={{ margin: '0 0 8px' }}>
-            Electro Infinity is an educational platform providing department resources, lecture materials, discussion forums, and community features. You agree to use the platform only for legitimate educational purposes and not to misuse the platform or engage in any harmful, unauthorized, or illegal activities.
-          </p>
+            <p style={sectionTitleStyle}>2. Unofficial Content &mdash; Verify Before You Rely On It</p>
+            <p style={{ margin: '0 0 8px' }}>
+              Announcements, deadlines, routines, calendar entries, faculty and laboratory listings, and other content here are maintained by students for convenience only, and may be inaccurate or out of date. Do not rely on them for examinations, results, attendance, fees, scholarships, admissions, or placements. Always confirm with the college or department through official channels at https://agemc.ac.in/.
+            </p>
 
-          <p style={sectionTitleStyle}>3. Legal Disclaimer</p>
-          <p style={{ margin: '0 0 8px' }}>
-            Electro Infinity provides its services on an "as is" basis without warranties of any kind, whether express or implied. The platform is not responsible for any loss of data, communication failures, or interruptions in service. All content is provided for informational purposes only.
-          </p>
+            <p style={sectionTitleStyle}>3. Account Access &amp; Security</p>
+            <p style={{ margin: '0 0 8px' }}>
+              You are solely responsible for maintaining the confidentiality of your account credentials (roll number, email, and password). You agree not to share your login credentials with any third party and to notify the project maintainers immediately of any unauthorized use of your account. Electro Infinity is not liable for any loss or damage arising from your failure to protect your account security.
+            </p>
 
-          <p style={sectionTitleStyle}>4. Data &amp; Privacy</p>
-          <p style={{ margin: '0 0 8px' }}>
-            By using this platform, you consent to the collection and processing of your personal data as described in the Privacy Policy. Your institutional email and roll number are used for verification purposes only. We do not sell your personal information to third parties.
-          </p>
+            <p style={sectionTitleStyle}>4. Platform Terms</p>
+            <p style={{ margin: '0 0 8px' }}>
+              Electro Infinity is an educational platform providing study material, discussion forums, and community features. You agree to use the platform only for legitimate educational purposes and not to misuse the platform or engage in any harmful, unauthorized, or illegal activities. You agree not to misrepresent yourself as a college official or faculty member, and not to circulate unverified claims as official college information.
+            </p>
 
-          <p style={sectionTitleStyle}>5. Consent &amp; Agreement</p>
-          <p style={{ margin: '0 0 8px' }}>
-            By checking the agreement box, you acknowledge that you have read, understood, and agree to all terms outlined above. You may deactivate your account at any time by contacting the administration. These terms are subject to revision at any time. Continued use of the platform constitutes acceptance of revised terms.
-          </p>
-        </div>
+            <p style={sectionTitleStyle}>5. Legal Disclaimer</p>
+            <p style={{ margin: '0 0 8px' }}>
+              Electro Infinity provides its services on an "as is" basis without warranties of any kind, whether express or implied. The platform is not responsible for any loss of data, communication failures, or interruptions in service. All content is provided for informational purposes only. The student maintainers and contributors accept no liability for any reliance on content published here.
+            </p>
+
+            <p style={sectionTitleStyle}>6. Data &amp; Privacy</p>
+            <p style={{ margin: '0 0 8px' }}>
+              By using this platform, you consent to the collection and processing of your personal data as described in the Privacy Policy. Your email address and roll number are used for verification purposes only. We do not sell your personal information to third parties.
+            </p>
+
+            <p style={sectionTitleStyle}>7. Consent &amp; Agreement</p>
+            <p style={{ margin: '0 0 8px' }}>
+              By checking the agreement box, you acknowledge that you have read, understood, and agree to all terms outlined above. You may deactivate your account at any time by contacting the project maintainers. These terms are subject to revision at any time. Continued use of the platform constitutes acceptance of revised terms.
+            </p>
+          </div>
         <div style={footerStyle}>
           <label className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: TEXT_FONT, fontSize: 13, color: COLORS.body }}>
             <input

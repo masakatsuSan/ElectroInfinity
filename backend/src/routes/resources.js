@@ -15,6 +15,7 @@ const {
   resolveExternalLink,
   deriveLinkFileName,
 } = require('../utils/resourceLinks')
+const { buildPublicPdfId } = require('../utils/cloudinaryUrl')
 const axios = require('axios')
 
 const router = express.Router()
@@ -151,6 +152,15 @@ router.get('/', optionalAuth, async (req, res) => {
   }
 })
 
+// The admin panel stores PDFs only (the direct upload is signed with
+// allowed_formats: 'pdf'), so a stored name always carries a .pdf extension.
+// Without it a PDF served as an attachment downloads as a bare "file".
+function withPdfExtension(name) {
+  const clean = String(name || '').trim()
+  if (!clean) return ''
+  return /\.[A-Za-z0-9]{1,10}$/.test(clean) ? clean : `${clean}.pdf`
+}
+
 // ── GET /api/upload-signature ───────────────────────────────────────────────
 // Signed direct-upload credentials for the admin panel. Deliberately registered
 // BEFORE the /:id/* routes below so this literal path can never be matched as
@@ -183,14 +193,20 @@ const uploadSignatureChain = [
       // echoes back in the upload FormData. Any mismatch here fails with
       // "Invalid Signature".
       const allowedFormats = 'pdf'
+      // The client sends the original filename; the public_id is derived here
+      // rather than in the browser so the signed value and the uploaded value
+      // are produced by the same code and cannot drift. It carries ".pdf" so
+      // the delivered raw URL ends in .pdf, and a random suffix so two uploads
+      // of the same filename cannot collide.
+      const publicId = buildPublicPdfId(req.query.name, folder)
       const signature = cloudinary.utils.api_sign_request(
-        { timestamp, folder, allowed_formats: allowedFormats },
+        { timestamp, folder, allowed_formats: allowedFormats, public_id: publicId },
         apiSecret,
       )
 
       res.json({
         success: true,
-        data: { timestamp, signature, apiKey, cloudName, folder, allowedFormats },
+        data: { timestamp, signature, apiKey, cloudName, folder, allowedFormats, publicId },
       })
     } catch (err) {
       console.error('[UPLOAD SIGNATURE ERROR]', err?.message, err?.stack)
@@ -361,7 +377,7 @@ router.post(
 
         url = cloudUrl
         publicId = cloudId
-        fileName = req.file.originalname
+        fileName = withPdfExtension(req.file.originalname)
       } else {
         // Reject links we can never serve, instead of storing a resource that
         // is guaranteed to fail on download for every user who clicks it.
@@ -383,6 +399,10 @@ router.post(
           isGoogleDrive: resolved.isGoogleDrive,
           title,
         })
+        // Drive resources are named after their title (deriveLinkFileName does
+        // that), but a Cloudinary direct upload reports the browser the name we
+        // choose here — so it must end in .pdf or the download lands as "file".
+        fileName = withPdfExtension(fileName)
       }
 
       // A CR can only publish to their own batch. Admins and super_admins may
@@ -519,7 +539,7 @@ router.put(
 
         updates.fileUrl      = url
         updates.filePublicId = publicId
-        updates.fileName     = req.file.originalname
+        updates.fileName     = withPdfExtension(req.file.originalname)
       } else if (fileUrl) {
         // Same validation as create: an edit must not be able to store a link
         // that can only ever produce a broken download. Drive links are stored
@@ -537,10 +557,10 @@ router.put(
         }
         updates.fileUrl      = resolved.url
         updates.filePublicId = ''
-        updates.fileName     = deriveLinkFileName(resolved.url, {
+        updates.fileName     = withPdfExtension(deriveLinkFileName(resolved.url, {
           isGoogleDrive: resolved.isGoogleDrive,
           title: updates.title || resource.title,
-        })
+        }))
       }
 
       const updated = await Resource.findByIdAndUpdate(req.params.id, updates, { new: true })

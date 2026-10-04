@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 
 const SEO = ({ title, description, name = 'ElectroInfinity', type = 'website', path = '' }) => {
   const url = `https://electro-infinity.vercel.app${path}`;
-  const fullTitle = `${title} | ${name} - EE Club, AGEMC`;
+  const fullTitle = `${title} | ${name} — Unofficial Student Project`;
 
   return (
     <Helmet>

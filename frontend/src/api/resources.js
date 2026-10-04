@@ -60,9 +60,11 @@ export const uploadResource = (formData) =>
 // straight to Cloudinary with live progress, then creates the resource record
 // from the returned secure_url + public_id.
 
-// One-time signed upload credentials (admin/CR only)
-export const getUploadSignature = () =>
-  api.get('/upload-signature').then((r) => r.data.data)
+// One-time signed upload credentials (admin/CR only). `name` is the original
+// filename; the server derives the public_id from it and returns it, so the
+// signed public_id and the uploaded public_id are guaranteed byte-identical.
+export const getUploadSignature = (name) =>
+  api.get('/upload-signature', { params: { name } }).then((r) => r.data.data)
 
 // POST the file directly to Cloudinary's raw upload endpoint.
 // onProgress receives a number 0–100.
@@ -79,8 +81,10 @@ export const uploadToCloudinaryDirect = (file, signature, onProgress) => {
   fd.append('signature', signature.signature)
   fd.append('api_key', signature.apiKey)
   // Must be byte-identical to what the server signed, otherwise Cloudinary
-  // rejects the request with "Invalid Signature".
+  // rejects the request with "Invalid Signature". publicId comes from the
+  // signature response — never rebuilt here.
   fd.append('allowed_formats', signature.allowedFormats)
+  fd.append('public_id', signature.publicId)
   return axios.post(
     `https://api.cloudinary.com/v1_1/${signature.cloudName}/raw/upload`,
     fd,

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getAnnouncements } from '../api/announcements'
 import SEO from '../components/SEO'
 import ScrollReveal from '../components/ScrollReveal'
+import Container from '../components/Container'
 
 export default function Home() {
   const { data, isLoading } = useQuery({
@@ -17,17 +18,20 @@ export default function Home() {
     <div className="min-h-screen bg-white text-ink">
       <SEO
         title="Home"
-        description="Electro Infinity — Electrical Engineering Club, Alipurduar Government Engineering and Management College"
+        description="Electro Infinity — an independent, unofficial, open-source student-built app for Electrical Engineering juniors at AGEMC. Not affiliated with or operated by the college."
         path="/"
       />
 
       <section className="pt-24 pb-16 md:pt-32 md:pb-24" view-transition-name="hero-section">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+        <Container>
           <div className="max-w-[880px]">
             <ScrollReveal variant="fadeUp">
-              <div className="mb-8">
+              <div className="flex flex-wrap items-center gap-3 mb-8">
                 <span className="inline-block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral">
-                  Electrical Engineering Club · AGEMC
+                  AGEMC Electrical Engineering
+                </span>
+                <span className="inline-block rounded-sm border border-hairline px-2.5 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.16px] text-muted">
+                  Open Source
                 </span>
               </div>
             </ScrollReveal>
@@ -39,9 +43,32 @@ export default function Home() {
             </ScrollReveal>
 
             <ScrollReveal variant="fadeUp" delay={0.2}>
-              <p className="font-sans text-[17px] sm:text-[20px] font-normal leading-[1.4] text-body max-w-2xl mb-12">
-                The official hub for circuit design, power systems, hands-on automation labs, and peer-to-peer engineering research at AGEMC.
+              <p className="font-sans text-[17px] sm:text-[20px] font-normal leading-[1.4] text-body max-w-2xl mb-6">
+                A student-built hub for circuit design notes, power systems material, lab manuals, and peer-to-peer
+                engineering help for Electrical Engineering juniors at AGEMC.
               </p>
+            </ScrollReveal>
+
+            <ScrollReveal variant="fadeUp" delay={0.25}>
+              <div className="max-w-2xl py-4 pl-5 pr-4 mb-10 border-l-2 border-signature-coral bg-surface-soft">
+                <p className="font-sans text-[13px] leading-[1.65] text-body">
+                  <strong className="font-semibold text-ink">Independent and unofficial.</strong> Electro Infinity is a
+                  free, open-source project built and maintained by the seniors of the department for their juniors. It
+                  is <strong className="font-semibold text-ink">not affiliated with, endorsed by, or operated by</strong>{' '}
+                  Alipurduar Government Engineering &amp; Management College, its department,
+                  faculty, or any official college body &mdash; and it is not an official college portal. Everything posted here is
+                  student-maintained and unofficial; always confirm anything important on{' '}
+                  <a
+                    href="https://agemc.ac.in/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-link hover:underline"
+                  >
+                    agemc.ac.in
+                  </a>
+                  .
+                </p>
+              </div>
             </ScrollReveal>
 
             <ScrollReveal variant="fadeUp" delay={0.3}>
@@ -52,19 +79,19 @@ export default function Home() {
               </div>
             </ScrollReveal>
           </div>
-        </div>
+        </Container>
       </section>
 
       <ScrollReveal variant="fadeUp">
         <section className="pb-24 md:pb-24" view-transition-name="hero-dark-card">
-          <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+          <Container>
             <div className="hero-card-dark min-h-[360px] md:min-h-[420px] flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between gap-4 pb-6 mb-8 border-b border-white/20">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-signature-mint animate-pulse" />
                     <span className="font-mono text-[11px] font-medium uppercase tracking-[0.16px] text-signature-mint">
-                      Live Department Platform
+                      Live Student Platform
                     </span>
                   </div>
                   <span className="font-mono text-[12px] font-normal text-white/70">
@@ -86,13 +113,13 @@ export default function Home() {
                 <span className="flex items-center gap-2"><Check size={14} />Industry-Aligned Projects</span>
               </div>
             </div>
-          </div>
+          </Container>
         </section>
       </ScrollReveal>
 
       <ScrollReveal variant="fadeUp">
         <section className="pb-24 md:pb-24" view-transition-name="hero-coral-card">
-          <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+          <Container>
             <div className="signature-coral-card">
               <div className="max-w-3xl">
                 <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-cream mb-4">
@@ -109,17 +136,21 @@ export default function Home() {
                 </Link>
               </div>
             </div>
-          </div>
+          </Container>
         </section>
       </ScrollReveal>
 
       <ScrollReveal variant="fadeUp">
-        <section className="relative overflow-hidden py-28 md:py-36 bg-signature-forest" view-transition-name="hero-bento-section">
-          <div className="absolute inset-0 pointer-events-none opacity-[0.04] bg-[radial-gradient(circle,white_1px,transparent_1px)] bg-[length:22px_22px]" />
-          <div className="absolute border rounded-full -top-24 -left-24 w-80 h-80 border-white/5" />
-          <div className="absolute border rounded-full top-1/3 -right-20 w-72 h-72 border-white/5" />
+        <section className="relative py-20 bg-signature-forest" view-transition-name="hero-bento-section">
+          {/* Decorative layer: clipped to this layer only. The section itself has
+              no overflow-hidden, so the cards below are never clipped. */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute inset-0 opacity-[0.04] bg-[radial-gradient(circle,white_1px,transparent_1px)] bg-[length:22px_22px]" />
+            <div className="absolute border rounded-full -top-24 -left-24 w-80 h-80 border-white/5" />
+            <div className="absolute border rounded-full top-1/3 -right-20 w-72 h-72 border-white/5" />
+          </div>
 
-          <div className="mx-auto max-w-[1280px] px-6 md:px-12 relative">
+          <Container className="relative">
             <ScrollReveal variant="fadeUp">
               <div className="max-w-3xl mb-16">
                 <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-mint mb-4">
@@ -131,21 +162,23 @@ export default function Home() {
               </div>
             </ScrollReveal>
 
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-5 md:auto-rows-[180px] lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
               <ScrollReveal variant="scaleIn" delay={0}>
-                <article className="bento-card col-span-1 md:col-span-1 lg:col-span-1 lg:row-span-2 bg-white rounded-[22px] p-6 md:p-8 lg:p-10 border border-white/70 shadow-card flex flex-col justify-between relative overflow-hidden" view-transition-name="bento-card-1">
-                  <div className="absolute top-0 right-0 -translate-y-1/2 rounded-full w-44 h-44 bg-signature-yellow/20 blur-3xl translate-x-1/4" />
-                  <div className="hidden md:absolute md:top-4 md:right-6 font-display text-[140px] font-normal leading-none text-ink/4 select-none">
-                    01
+                <article className="bento-card col-span-1 bg-white rounded-[22px] p-6 md:p-8 lg:p-10 border border-white/70 shadow-card flex flex-col justify-between relative" view-transition-name="bento-card-1">
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-0 right-0 -translate-y-1/2 rounded-full w-44 h-44 bg-signature-yellow/20 blur-3xl translate-x-1/4" />
+                    <div className="hidden md:absolute md:top-4 md:right-6 font-display text-[140px] font-normal leading-none text-ink/4 select-none">
+                      01
+                    </div>
                   </div>
                   <div className="relative">
                     <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-forest mb-5">
                       01. WORKSHOPS
                     </span>
-                    <h3 className="font-display text-[26px] md:text-[32px] font-normal leading-[1.2] text-ink mb-4">
+                    <h3 className="font-display text-[22px] md:text-[26px] font-normal leading-tight text-ink mb-4 min-w-0 break-words hyphens-auto">
                       Hands-on Hardware
                     </h3>
-                    <p className="font-sans text-[15px] font-normal leading-[1.5] text-body max-w-sm">
+                    <p className="font-sans text-[14px] md:text-[15px] font-normal leading-[1.5] text-body">
                       Practical sessions on PCB design, embedded systems, transformer testing, and power grid simulation.
                     </p>
                   </div>
@@ -154,16 +187,18 @@ export default function Home() {
               </ScrollReveal>
 
               <ScrollReveal variant="scaleIn" delay={0.1}>
-                <article className="bento-card col-span-1 md:col-span-1 lg:col-span-1 bg-[#f2f1ee] rounded-[22px] p-6 md:p-7 lg:p-8 border border-white/60 shadow-card flex flex-col justify-between relative overflow-hidden" view-transition-name="bento-card-2">
-                  <div className="absolute top-0 right-0 w-32 h-32 -translate-y-1/2 rounded-full bg-ink/5 blur-2xl translate-x-1/3" />
+                <article className="bento-card col-span-1 bg-[#f2f1ee] rounded-[22px] p-6 md:p-8 lg:p-10 border border-white/60 shadow-card flex flex-col justify-between relative" view-transition-name="bento-card-2">
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-0 right-0 w-32 h-32 -translate-y-1/2 rounded-full bg-ink/5 blur-2xl translate-x-1/3" />
+                  </div>
                   <div className="relative">
-                    <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-ink mb-4">
+                    <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-ink mb-5">
                       02. CAREER
                     </span>
-                    <h3 className="font-display text-[22px] font-normal leading-[1.3] text-ink mb-3">
-                      Placement & Alumni
+                    <h3 className="font-display text-[22px] md:text-[26px] font-normal leading-tight text-ink mb-4 min-w-0 break-words hyphens-auto">
+                      Placement &amp; Alumni
                     </h3>
-                    <p className="font-sans text-[14px] font-normal leading-[1.45] text-body">
+                    <p className="font-sans text-[14px] md:text-[15px] font-normal leading-[1.5] text-body">
                       Direct mentorship from alumni in core electrical, semiconductor, and automation industries.
                     </p>
                   </div>
@@ -172,16 +207,18 @@ export default function Home() {
               </ScrollReveal>
 
               <ScrollReveal variant="scaleIn" delay={0.2}>
-                <article className="bento-card col-span-1 md:col-span-1 lg:col-span-1 bg-white rounded-[22px] p-6 md:p-7 lg:p-8 border border-white/70 shadow-card flex flex-col justify-between relative overflow-hidden" view-transition-name="bento-card-3">
-                  <div className="absolute top-0 right-0 w-32 h-32 -translate-y-1/2 rounded-full bg-signature-coral/15 blur-2xl translate-x-1/3" />
+                <article className="bento-card col-span-1 bg-white rounded-[22px] p-6 md:p-8 lg:p-10 border border-white/70 shadow-card flex flex-col justify-between relative" view-transition-name="bento-card-3">
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-0 right-0 w-32 h-32 -translate-y-1/2 rounded-full bg-signature-coral/15 blur-2xl translate-x-1/3" />
+                  </div>
                   <div className="relative">
-                    <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral mb-4">
+                    <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral mb-5">
                       03. RESEARCH
                     </span>
-                    <h3 className="font-display text-[22px] font-normal leading-[1.3] text-ink mb-3">
-                      Research & Innovation
+                    <h3 className="font-display text-[22px] md:text-[26px] font-normal leading-tight text-ink mb-4 min-w-0 break-words hyphens-auto">
+                      Research &amp; Innovation
                     </h3>
-                    <p className="font-sans text-[14px] font-normal leading-[1.45] text-body">
+                    <p className="font-sans text-[14px] md:text-[15px] font-normal leading-[1.5] text-body">
                       Faculty-guided research in power systems, renewable energy, and embedded intelligence.
                     </p>
                   </div>
@@ -190,31 +227,33 @@ export default function Home() {
               </ScrollReveal>
 
               <ScrollReveal variant="scaleIn" delay={0.3}>
-                <article className="bento-card col-span-1 md:col-span-1 lg:col-span-1 lg:row-span-2 bg-white rounded-[22px] p-7 md:p-8 lg:p-10 border border-white/10 shadow-card flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative overflow-hidden" view-transition-name="bento-card-4">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(168,216,196,0.14),transparent_55%)]" />
-                  <div className="absolute inset-0 opacity-[0.05] bg-[radial-gradient(circle,white_1px,transparent_1px)] bg-[length:18px_18px]" />
+                <article className="bento-card col-span-1 bg-white rounded-[22px] p-6 md:p-8 lg:p-10 border border-white/10 shadow-card flex flex-col justify-between relative" view-transition-name="bento-card-4">
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(168,216,196,0.14),transparent_55%)]" />
+                    <div className="absolute inset-0 opacity-[0.05] bg-[radial-gradient(circle,white_1px,transparent_1px)] bg-[length:18px_18px]" />
+                  </div>
                   <div className="relative">
-                    <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-mint mb-4">
+                    <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-mint mb-5">
                       04. LABS
                     </span>
-                    <h3 className="font-display text-[26px] md:text-[32px] font-normal leading-[1.2] text-black mb-3">
-                      Instrumentation & Automation
+                    <h3 className="font-display text-[22px] md:text-[26px] font-normal leading-tight text-black mb-4 min-w-0 break-words hyphens-auto">
+                      Instrumentation &amp; Automation
                     </h3>
-                    <p className="font-sans text-[15px] font-normal leading-[1.5] text-black/70 max-w-2xl">
+                    <p className="font-sans text-[14px] md:text-[15px] font-normal leading-[1.5] text-black/70">
                       Calibrated lab benches, digital oscilloscopes, relay test kits, and PLC trainers for every semester.
                     </p>
                   </div>
-                  <div className="relative flex items-end justify-between gap-6 md:justify-end" />
+                  <div className="relative flex items-end justify-between" />
                 </article>
               </ScrollReveal>
             </div>
-          </div>
+          </Container>
         </section>
       </ScrollReveal>
 
       <ScrollReveal variant="fadeUp">
         <section className="py-24 bg-white md:py-24" view-transition-name="hero-stats">
-          <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+          <Container>
             <div className="grid gap-12 md:grid-cols-2 md:gap-16">
               <div>
                 <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral mb-4">
@@ -246,17 +285,17 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
+          </Container>
         </section>
       </ScrollReveal>
 
       <ScrollReveal variant="fadeUp">
         <section className="py-24 md:py-24 bg-signature-cream" view-transition-name="hero-announcements">
-          <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+          <Container>
             <div className="flex flex-col justify-between gap-6 pb-8 mb-12 border-b border-hairline sm:flex-row sm:items-end">
               <div>
                 <span className="block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral mb-3">
-                  Official Communications
+                  Unofficial Notices
                 </span>
                 <h2 className="font-display text-[32px] md:text-[40px] font-normal leading-[1.2] text-ink">
                   Latest Announcements
@@ -306,7 +345,7 @@ export default function Home() {
                 <div className="p-12 font-sans font-normal text-center text-muted">No announcements published yet.</div>
               )}
             </div>
-          </div>
+          </Container>
         </section>
       </ScrollReveal>
     </div>

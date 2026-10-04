@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { ToastProvider } from './context/ToastContext'
+import { LayoutProvider } from './context/LayoutContext'
 import ErrorBoundary from './components/ErrorBoundary'
 import FatalError from './components/FatalError'
 import App from './App'
@@ -13,37 +14,27 @@ import './index.css'
 
 // ─── Recovery from a failed code-split chunk ───────────────────────────────
 // After a deploy, a tab that is still open may ask for a chunk whose hashed
-// filename no longer exists. Vite raises `vite:preloadError`; we reload once so
-// the user picks up the new index.html instead of staring at a dead screen.
+// filename no longer exists. Vite raises `vite:preloadError`; we used to reload
+// once so the user picks up the new index.html. That turned out to break SPA
+// navigation: the event was firing on every lazy-route load and forcing a full
+// page reload on every page change.
 //
-// PRODUCTION ONLY. In `npm run dev` Vite/HMR owns reloads, and reacting to a
-// dynamic-import failure there turns an ordinary dev error (for example a
-// stale Vite dependency cache) into a page that reloads over and over.
-if (typeof window !== 'undefined' && import.meta.env.PROD) {
-  const RELOAD_KEY = 'ei_chunk_reload_at'
-  const reloadOnce = () => {
-    let last = 0
-    try {
-      last = Number(sessionStorage.getItem(RELOAD_KEY)) || 0
-    } catch {
-      /* sessionStorage unavailable (private mode) — fall through */
-    }
-    // Guard against a reload loop: at most one automatic reload per 30s.
-    if (Date.now() - last < 30000) return
-    try {
-      sessionStorage.setItem(RELOAD_KEY, String(Date.now()))
-    } catch {
-      /* ignore */
-    }
-    window.location.reload()
-  }
+// The error boundary in App.jsx already catches lazy-load failures per-route,
+// and the service worker does network-first on navigations so a new deploy is
+// picked up without help from this listener. Removing the listener entirely
+// avoids the reload-on-every-navigation bug while keeping chunk-load errors
+// debuggable via the ErrorBoundary + global-error listeners below.
 
-  window.addEventListener('vite:preloadError', (event) => {
-    event.preventDefault()
-    console.error('[chunk] failed to load a lazy chunk, reloading once', event.payload)
-    reloadOnce()
-  })
-}
+// ─── Reload debugging (historical) ──────────────────────────────────────────
+// A prior attempt monkeypatched window.location.reload/assign/replace to trace
+// their callers. That throws `TypeError: Cannot assign to read only property
+// 'reload' of object '[object Location]'` on every load (those slots are
+// non-writable on the Location instance), which crashed main.jsx before React
+// could mount — blank screen, user reloads, repeat. The reload entry points are
+// now known: axios 401 → location.replace('/login') (guarded by token check
+// in Login.jsx + AUTH_PATHS guard in axios.js) and the FatalError reload button.
+// To trace future reloads, instrument `Location.prototype` instead of the
+// instance, or read the stack from the global error handlers below.
 
 // Global crash logging — keeps any white-screen bug debuggable in DevTools
 if (typeof window !== 'undefined') {
@@ -67,7 +58,11 @@ const queryClient = new QueryClient({
   },
 })
 
-if ('serviceWorker' in navigator) {
+// Only register the service worker in production. In `vite dev` a SW controls
+// the live page and can intercept Vite's HMR websocket / module requests and
+// serve a stale cached shell — the classic cause of "the page keeps reloading
+// every couple seconds" symptoms that vanish in a fresh headless profile.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
@@ -111,7 +106,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 {/* Inner boundary: catches route/component crashes and can use
                     router + context for its recovery UI. */}
                 <ErrorBoundary>
-                  <App />
+                  {/* Owns the desktop Main panel ref + which element scrolls.
+                      Must sit above App because App, the shell chrome and every
+                      overlay read it. */}
+                  <LayoutProvider>
+                    <App />
+                  </LayoutProvider>
                 </ErrorBoundary>
                 </ToastProvider>
               </ThemeProvider>

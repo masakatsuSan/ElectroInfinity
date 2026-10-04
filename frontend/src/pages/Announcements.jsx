@@ -187,6 +187,7 @@ function AnnouncementDetail({ detail, loading, error, user, onClose }) {
 
   return (
     <div
+      data-lenis-prevent
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
       onClick={onClose}
     >
@@ -331,8 +332,8 @@ export default function Announcements() {
   return (
     <div className="min-h-screen bg-white text-ink pt-32 pb-24">
       <SEO
-        title="Announcements | Official Communications"
-        description="Official communications from the department and club"
+        title="Announcements | Notices Board"
+        description="Unofficial, student-maintained notices for the Electrical Engineering community. Not an official communication of the college or department."
         path="/announcements"
       />
 
@@ -340,13 +341,14 @@ export default function Announcements() {
         <ScrollReveal variant="fadeUp">
         <header className="mb-10">
           <span className="inline-flex items-center gap-2 font-mono text-[12px] font-medium uppercase tracking-wider text-signature-coral mb-3">
-            <Bell size={16} strokeWidth={1.75} /> Official Communications
+            <Bell size={16} strokeWidth={1.75} /> Unofficial Notices
           </span>
           <h1 className="font-display text-[38px] md:text-[46px] font-normal tracking-tight text-ink">
             Announcements
           </h1>
           <p className="mt-3 font-sans text-[16px] text-body leading-relaxed max-w-2xl">
-            Official communications from the department and club
+            Student-maintained notices and reminders. These are <strong className="font-semibold text-ink">not official
+            college communications</strong> &mdash; always confirm with the department before acting on them.
           </p>
         </header>
         </ScrollReveal>

@@ -169,7 +169,7 @@ function AddTab({ qc }) {
           {csvRows.length > 0 && (
             <div className="mt-6">
               <p className="text-[14px] font-[Inter,system-ui,sans-serif] text-ink-muted-80 mb-3">{csvRows.length} students ready to import:</p>
-              <div className="border border-divider-soft rounded-lg max-h-64 overflow-y-auto bg-[#fff]">
+              <div data-lenis-prevent className="border border-divider-soft rounded-lg max-h-64 overflow-y-auto bg-[#fff]">
                 {csvRows.map((r, i) => (
                   <div key={i} className="flex gap-4 px-4 py-3 border-b border-divider-soft last:border-b-0 text-[14px] hover:bg-white">
                     <span className="font-[Inter,system-ui,sans-serif] font-semibold text-primary w-20 flex-shrink-0">{r.rollNumber}</span>

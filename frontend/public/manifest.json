@@ -1,7 +1,7 @@
 {
   "name": "ElectroInfinity",
   "short_name": "ElectroInfinity",
-  "description": "ElectroInfinity — Electrical Engineering Club, AGEMC",
+  "description": "ElectroInfinity — unofficial, independent, open-source student project for AGEMC Electrical Engineering. Not affiliated with the college.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

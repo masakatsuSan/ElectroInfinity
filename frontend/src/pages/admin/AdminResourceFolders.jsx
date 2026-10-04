@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Check, Trash2, Pencil, Plus, ExternalLink, GripVertical, X,
-  Upload, Play, FolderOpen,
+  Upload, Play, FolderOpen, FileText,
 } from 'lucide-react'
 import {
   getFolders, createFolder, updateFolder, deleteFolder,

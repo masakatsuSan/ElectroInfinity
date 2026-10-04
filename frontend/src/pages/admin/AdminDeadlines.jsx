@@ -132,7 +132,7 @@ export default function AdminDeadlines() {
                   {isComplete ? (
                     <p className="text-green-500 text-[13px] font-medium">Ready to deliver                     <CheckCircle2 size={14} /></p>
                   ) : (
-                    <div className="max-h-[100px] overflow-y-auto pr-1">
+                    <div data-lenis-prevent className="max-h-[100px] overflow-y-auto pr-1">
                       <span className="font-[Inter,system-ui,sans-serif] text-[11px] font-medium text-ink-muted-48 uppercase tracking-wider block mb-1">Missing ({missingStudents.length})</span>
                       <ul className="space-y-1">
                         {missingStudents.map(student => (
@@ -151,7 +151,7 @@ export default function AdminDeadlines() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div data-lenis-prevent className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white border-2 border-divider-soft w-full max-w-lg rounded-[24px] overflow-hidden">
               <div className="flex items-center justify-between p-6 border-b-2 border-divider-soft">
               <h3 className="font-[Inter,system-ui,sans-serif] text-[22px] font-semibold text-ink">Post New Deadline</h3>

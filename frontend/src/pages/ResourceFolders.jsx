@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Play, Download, FolderOpen, ChevronRight, ArrowLeft,
+  Play, Download, FolderOpen, ChevronRight, ArrowLeft, FileText,
 } from 'lucide-react'
 import { getFolders, getFolder } from '../api/folders'
 import { downloadResource } from '../api/resources'

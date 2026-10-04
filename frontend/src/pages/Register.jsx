@@ -25,7 +25,7 @@ const DISPLAY_FONT = '"Haas Groot Disp", "Haas", Inter, system-ui, -apple-system
 const TEXT_FONT = '"Haas", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
 
 const pageStyle = {
-  minHeight: '100vh',
+  minHeight: 'var(--page-min-h)',
   backgroundColor: COLORS.canvas,
   color: COLORS.ink,
   fontFamily: TEXT_FONT,

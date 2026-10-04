@@ -87,7 +87,7 @@ export default function Resources() {
             Resources & Bulletins
           </h1>
           <p className="font-sans text-[17px] text-body leading-relaxed">
-          Curated repository of previous year questions, class notes, laboratory manuals, and official departmental announcements.
+          Curated repository of previous year questions, class notes, and laboratory manuals, shared by seniors for their juniors. Student-maintained and unofficial &mdash; always confirm anything important with the department.
         </p>
           <Link to="/resources/folders" className="inline-flex items-center gap-2 font-sans text-[13px] font-semibold text-primary border border-primary rounded-full px-4 py-2 hover:bg-primary hover:text-white transition-colors duration-200 mt-2">
             Browse by Folder (Series)
@@ -210,8 +210,11 @@ function FilterSelect({ value, onChange, options, placeholder }) {
         />
       </button>
 
+      {/* w-full, not 100vw: inside the Main panel 100vw resolves to the
+          viewport, which is a scrollbar-width too wide and made the page
+          overflow horizontally. */}
       {open && (
-        <div className="absolute left-0 z-50 mt-2 w-full max-w-[calc(100vw-32px)] min-w-[220px] bg-white border border-hairline rounded-lg shadow-lg py-1.5 animate-in fade-in duration-150 origin-top overflow-hidden"
+        <div className="absolute left-0 z-50 mt-2 w-full min-w-[220px] bg-white border border-hairline rounded-lg shadow-lg py-1.5 animate-in fade-in duration-150 origin-top overflow-hidden"
           style={{ animationTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
           {options.map(option => (
             <button

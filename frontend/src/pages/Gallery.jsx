@@ -156,6 +156,7 @@ export default function Gallery() {
 
         {selectedIndex !== null && (
           <div
+            data-lenis-prevent
             className="fixed inset-0 z-50 bg-ink/70 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={(e) => {
               if (e.target === e.currentTarget) setSelectedIndex(null)
@@ -256,7 +257,7 @@ function UploadModal({ onClose, onSubmit, loading }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-ink/64 flex items-center justify-center p-4">
+    <div data-lenis-prevent className="fixed inset-0 z-50 bg-ink/64 flex items-center justify-center p-4">
       <div className="bg-white text-ink border border-hairline rounded-lg w-full max-w-xl max-h-[90vh] flex flex-col shadow-lg overflow-hidden">
         <div className="p-6 border-b border-hairline flex items-center justify-between">
           <div>

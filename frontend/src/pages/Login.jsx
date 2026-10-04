@@ -162,8 +162,21 @@ export default function Login() {
   const location = useLocation()
   const { login, user } = useAuth()
 
+  // Only bounce off this page for a real, usable session. `user` alone is not
+  // enough: api/axios.js clears ei_user when a request 401s, and a stale
+  // ei_user can outlive a dead token. Redirecting in that state sent the user to
+  // a protected page that immediately 401'd, which logged them out and
+  // reloaded /login — an endless refresh loop. No token means no session, so
+  // render the form instead.
   useEffect(() => {
     if (!user) return
+    let token = null
+    try {
+      token = localStorage.getItem('ei_token')
+    } catch {
+      return
+    }
+    if (!token) return
     if (user.role === 'faculty') navigate('/faculty/dashboard')
     else if (user.role === 'admin' || user.role === 'super_admin') navigate('/admin')
     else navigate('/students')

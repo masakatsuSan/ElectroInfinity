@@ -98,7 +98,7 @@ export default function ResourcePreviewDrawer({ resource, onClose }) {
   if (!resource) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex">
+    <div data-lenis-prevent className="fixed inset-0 z-[100] flex">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <motion.div
         className="relative w-full max-w-3xl h-full bg-white border-r border-hairline shadow-modal flex flex-col overflow-hidden"

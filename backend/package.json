@@ -1,7 +1,8 @@
 {
   "name": "electro-infinity-backend",
   "version": "1.0.0",
-  "description": "Electro Infinity EE Club API — Express + MongoDB",
+  "description": "Electro Infinity API (unofficial, independent, open-source student project) — Express + MongoDB",
+  "license": "MIT",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

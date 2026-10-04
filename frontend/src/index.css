@@ -39,6 +39,24 @@
     --color-facebook-tertiary: #F0F2F5;
     --color-facebook-border: #D8DADF;
     --color-facebook-focus: #E3F2FD;
+
+    /* ── Desktop shell frame ───────────────────────────────────────────
+       Single source of truth for the shell chrome metrics. The shell
+       wrapper, sidebar, main panel, top bar and every sticky/fixed
+       consumer read these instead of hard-coding 8 / 56 / 72 / 272.
+         --shell-gap   grey frame gutter between viewport and cards
+         --shell-frame colour of that gutter
+         --topbar-h    height of the sticky top bar inside the main panel
+       --sidebar-collapsed / --sidebar-expanded are injected by
+       DesktopShell from SIDEBAR_DIMENSIONS so they can never drift. */
+    --shell-gap: 8px;
+    --shell-frame: var(--color-canvas-alt);
+    --topbar-h: 56px;
+
+    /* Default "fill the viewport" for pages that need it as an inline style
+       (an inline min-height can't be overridden by a class rule). Inside the
+       Main panel this is redefined to 100% so those pages fill the panel. */
+    --page-min-h: 100vh;
   }
 
   * {
@@ -803,5 +821,50 @@
   .skeleton-shimmer-dark,
   .skeleton-shimmer-soft {
     animation: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-ei-desktop-shell] main {
+    padding-top: 0;
+  }
+
+  /* ── Main panel: the desktop scroll container ────────────────────────
+     Above 1024px the window no longer scrolls. Everything that used to
+     measure or listen to window scroll has to go through this element
+     instead — see useMainScroll() in context/LayoutContext.jsx. */
+  [data-ei-main-panel] {
+    /* Own vertical scroll; clip X so 100vw children can't widen the page. */
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Lenis needs the element to be a scrollport with a real content box. */
+    overscroll-behavior: contain;
+    /* Inline min-height: var(--page-min-h) on login/register/activate pages
+       now resolves against the panel instead of the viewport. */
+    --page-min-h: 100%;
+  }
+
+  /* Pages that fill the viewport must fill the panel instead, or they
+     paint past its bottom edge. `min-h-full` resolves against the panel's
+     definite height (set inline as 100%). */
+  [data-ei-main-panel] .fill-panel {
+    min-height: 100%;
+  }
+
+  /* Layout-level sweep for `min-h-screen` inside page roots (~35 pages).
+     100vh is the viewport, which above 1024px is 16px taller than the panel
+     (100dvh - 2 x --shell-gap), so every page was ~16px too tall and always
+     produced a sliver of extra scroll. Overriding the utility here beats
+     editing 35 files, and it applies automatically to future pages.
+     Unlayered, so it outranks Tailwind's `@layer utilities`. Below 1024px
+     this whole block is inert and mobile keeps its own min-h-screen. */
+  [data-ei-main-panel] .min-h-screen {
+    min-height: 100%;
+  }
+
+  /* Sticky in-page bars now resolve against the panel's scrollport, so
+     they must clear the sticky top bar instead of the old window offset. */
+  [data-ei-main-panel] .sticky-below-topbar {
+    top: var(--topbar-h);
   }
 }

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Clock } from 'lucide-react'
 import { searchUsers, getProfileViews } from '../api/profile'
 import { useAuth } from '../context/AuthContext'
+import { useScrollLock } from '../context/LayoutContext'
 import { motion, AnimatePresence } from 'framer-motion'
 import { OVERLAY_VARIANTS, OVERLAY_TRANSITION, EASE } from '../utils/motion'
 import FriendActionButton from './FriendActionButton'
@@ -26,24 +27,11 @@ export default function GlobalSearch({ onClose }) {
   const debounced = useDebounce(query)
   const { user: currentUser } = useAuth()
 
-  useEffect(() => {
-    const scrollY = window.scrollY
-    document.documentElement.style.overflow = 'hidden'
-    document.body.style.overflow = 'hidden'
-    document.body.style.position = 'fixed'
-    document.body.style.top = '-' + scrollY + 'px'
-    document.body.style.width = '100%'
-
-    return () => {
-      const savedScrollY = parseInt(document.body.style.top || '0', 10)
-      document.documentElement.style.overflow = ''
-      document.body.style.overflow = ''
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
-      window.scrollTo(0, savedScrollY)
-    }
-  }, [])
+  /* Locks the Main panel's scroll on desktop and the body's on mobile, and is
+     reference counted so this cannot unlock a lock another overlay still needs
+     (it used to write document.body.style.* directly and clobber the mobile
+     menu's lock on close). */
+  useScrollLock(true)
 
   useEffect(() => { inputRef.current?.focus() }, [])
 
@@ -113,7 +101,7 @@ export default function GlobalSearch({ onClose }) {
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-50 flex flex-col"
+        className="fixed inset-0 z-60 flex flex-col"
         onClick={(e) => { if (e.target === e.currentTarget) onClose?.() }}
         initial="hidden"
         animate="visible"

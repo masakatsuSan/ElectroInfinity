@@ -66,7 +66,7 @@ export default function AdminLogin() {
               Admin Console
             </h2>
             <p className="font-[Inter,system-ui,sans-serif] text-[15px] text-white/80 leading-relaxed max-w-sm">
-              Sign in with your institutional email to manage the department hub
+              Sign in with your email to manage this unofficial student project
             </p>
           </div>
         </div>

@@ -1,7 +1,8 @@
-﻿import { useEffect, useRef, useState, Suspense, lazy } from 'react'
+﻿import { useEffect, useState, Suspense, lazy } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Lenis from '@studio-freight/lenis'
 import Navbar         from './components/Navbar'
+import DesktopShell   from './components/DesktopShell'
 import Footer         from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
 import OrganicBlobs   from './components/OrganicBlobs'
@@ -12,6 +13,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import { NotificationProvider } from './context/NotificationContext'
 import { safeViewTransition } from './utils/motion'
 import { useReducedMotion } from './utils/motion'
+import { useLayout, useMainScroll } from './context/LayoutContext'
 
 
 const Home          = lazy(() => import('./pages/Home'))
@@ -84,12 +86,19 @@ const AnimatedRoute = ({ children }) => {
 
 export default function App() {
   const location = useLocation()
-  const lenisRef = useRef(null)
   const [pageKey, setPageKey] = useState(location.pathname)
   const reduced = useReducedMotion()
+  const { isDesktop, mainPanel, mainContent, registerLenis, getLenis } = useLayout()
+  const mainScroll = useMainScroll()
 
+  /* Smooth scroll follows the frame: the Main panel at >= 1024px, the window
+     below it. Lenis v1 drives the wrapper's native scrollTop (no transform), so
+     `position: sticky` inside the panel — the top bar, in-page sticky columns —
+     keeps working normally. */
   useEffect(() => {
+    const usePanel = isDesktop && mainPanel && mainContent
     const lenis = new Lenis({
+      ...(usePanel ? { wrapper: mainPanel, content: mainContent } : {}),
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       direction: 'vertical',
@@ -101,7 +110,7 @@ export default function App() {
       infinite: false,
     })
 
-    lenisRef.current = lenis
+    registerLenis(lenis)
 
     let frame
     function raf(time) {
@@ -114,17 +123,19 @@ export default function App() {
     return () => {
       if (frame) cancelAnimationFrame(frame)
       lenis.destroy()
-      lenisRef.current = null
+      registerLenis(null)
     }
-  }, [])
+  }, [isDesktop, mainPanel, mainContent, registerLenis])
 
   useEffect(() => {
     const callback = () => {
       setPageKey(location.pathname)
-      if (lenisRef.current) {
-        lenisRef.current.scrollTo(0, { duration: reduced ? 0 : 1.2 })
+      const lenis = getLenis()
+      if (lenis) {
+        lenis.scrollTo(0, { duration: reduced ? 0 : 1.2 })
       } else {
-        window.scrollTo(0, 0)
+        // Panel on desktop, window on mobile.
+        mainScroll?.scrollTo?.(0, 0)
       }
     }
     if (reduced) {
@@ -132,11 +143,14 @@ export default function App() {
     } else {
       safeViewTransition(callback)
     }
-  }, [location.pathname])
+  }, [location.pathname, getLenis, mainScroll, reduced])
 
   return (
     <NotificationProvider>
-      <div className="relative z-0 flex flex-col min-h-screen overflow-x-hidden">
+      {/* min-h-screen only below 1024px: above it the shell owns the viewport
+          (h-dvh) and the Main panel scrolls, so the wrapper must not force the
+          document taller or the window grows a second scrollbar. */}
+      <div className="relative z-0 flex min-h-screen flex-col overflow-x-hidden lg:min-h-0">
       <OrganicBlobs />
       <Routes>
         <Route path="/admin/*" element={null} />
@@ -150,7 +164,8 @@ export default function App() {
         <Route path="*" element={<Navbar />} />
       </Routes>
 
-        <main className="flex flex-col flex-1" style={{ viewTransitionName: 'main-content' }}>
+        <DesktopShell>
+          <main className="flex flex-1 flex-col" style={{ viewTransitionName: 'main-content' }}>
           <Routes location={location} key={pageKey}>
             <Route path="/"             element={<AnimatedRoute><Home /></AnimatedRoute>} />
             <Route path="/about"        element={<AnimatedRoute><About /></AnimatedRoute>} />
@@ -257,17 +272,18 @@ export default function App() {
           </Routes>
         </main>
 
-      <Routes>
-        <Route path="/admin/*" element={null} />
-        <Route path="/faculty/dashboard" element={null} />
-        <Route path="/faculty/login" element={null} />
-        <Route path="/faculty/activate" element={null} />
-        <Route path="/login" element={null} />
-        <Route path="/admin/login" element={null} />
-        <Route path="/activate" element={null} />
-        <Route path="/forgot-password" element={null} />
-        <Route path="*"        element={<Footer />} />
-      </Routes>
+        <Routes>
+          <Route path="/admin/*" element={null} />
+          <Route path="/faculty/dashboard" element={null} />
+          <Route path="/faculty/login" element={null} />
+          <Route path="/faculty/activate" element={null} />
+          <Route path="/login" element={null} />
+          <Route path="/admin/login" element={null} />
+          <Route path="/activate" element={null} />
+          <Route path="/forgot-password" element={null} />
+          <Route path="*"        element={<Footer />} />
+        </Routes>
+      </DesktopShell>
 
     </div>
     </NotificationProvider>

@@ -387,7 +387,7 @@ export default function PdfViewer({ file, onReady }) {
         </div>
       </div>
 
-      <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-auto overscroll-contain">
+      <div ref={scrollRef} data-lenis-prevent className="relative min-h-0 flex-1 overflow-auto overscroll-contain">
         {loading && <PdfSkeleton progress={progress} />}
 
         {error && (

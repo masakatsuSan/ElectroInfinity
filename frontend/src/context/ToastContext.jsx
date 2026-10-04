@@ -30,7 +30,10 @@ export function ToastProvider({ children }) {
 function ToastItem({ toast, onRemove }) {
   const isSuccess = toast.type === 'success'
   return (
-    <div className="fixed bottom-6 right-6 z-[200] animate-in fade-in slide-in-from-bottom-4 duration-300">
+    /* Viewport-fixed. Above lg it also clears the Main panel's edge by
+       --shell-gap so it never sits on the grey frame; below lg there is no
+       frame, so the mobile offset is untouched. */
+    <div className="fixed bottom-6 right-6 z-[200] animate-in fade-in slide-in-from-bottom-4 duration-300 lg:bottom-[calc(var(--shell-gap)+24px)] lg:right-[calc(var(--shell-gap)+24px)]">
       <div
         className={`flex items-center gap-3 px-5 py-3 rounded-lg shadow-lg border min-w-[280px] max-w-[420px] ${
           isSuccess

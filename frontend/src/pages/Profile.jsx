@@ -550,8 +550,10 @@ function LeftSidebar({
   aboutForm, setAboutForm, skillsForm, setSkillsForm, socialForm, setSocialForm, saving,
   saveAbout, saveSkills, saveSocial,
 }) {
+  /* sticky-below-topbar → top: var(--topbar-h) inside the Main panel, so the
+     column parks below the sticky top bar instead of under it. */
   return (
-    <div className="hidden xl:block w-64 flex-shrink-0 xl:sticky xl:top-24 self-start">
+    <div className="hidden xl:block w-64 flex-shrink-0 xl:sticky xl:sticky-below-topbar self-start">
       <div className="space-y-3">
         <div className="bg-white rounded-xl shadow border border-hairline overflow-hidden">
           <div className="p-4 border-b border-hairline">
@@ -621,7 +623,7 @@ function LeftSidebar({
 
 function RightSidebar({ isOwn, viewsData, suggested, profile, currentUser, navigate }) {
   return (
-    <div className="hidden lg:block w-80 flex-shrink-0 lg:sticky lg:top-24 self-start">
+    <div className="hidden lg:block w-80 flex-shrink-0 lg:sticky lg:sticky-below-topbar self-start">
       <div className="space-y-4">
         {isOwn && viewsData?.length > 0 && (
           <div className="bg-white rounded-xl shadow border border-hairline p-4">
@@ -1609,7 +1611,7 @@ function ProjectSubmitModal({ onClose, onSubmit }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div data-lenis-prevent className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white text-gray-900 border border-hairline rounded-xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         <div className="p-5 border-b border-hairline flex items-center justify-between">
           <div>
@@ -1718,7 +1720,7 @@ function AchievementSubmitModal({ onClose, onSubmit, loading }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div data-lenis-prevent className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white text-gray-900 border border-hairline rounded-xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         <div className="p-5 border-b border-hairline flex items-center justify-between">
           <div>
@@ -1838,7 +1840,7 @@ function AchievementEditModal({ achievement, onClose, onSubmit, loading }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div data-lenis-prevent className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white text-gray-900 border border-hairline rounded-xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         <div className="p-5 border-b border-hairline flex items-center justify-between">
           <div>
@@ -1953,7 +1955,7 @@ function GallerySubmitModal({ onClose, onSubmit, loading, initialData }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div data-lenis-prevent className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white text-gray-900 border border-hairline rounded-xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         <div className="p-5 border-b border-hairline flex items-center justify-between">
           <div>

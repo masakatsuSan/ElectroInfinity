@@ -77,11 +77,15 @@ export default function AdminLayout() {
     return true;
   });
 
+  /* No pt-[48px] here: /admin is a chrome-free route, so no top bar renders
+     above it and that offset reserved space against nothing. Scroll offset now
+     comes from the Main panel, which owns the scroll for admin too.
+     h-full lets the rail's md:min-h-full resolve against the panel. */
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-[#fff] text-ink pt-[48px]">
+      <div className="min-h-screen h-full flex flex-col md:flex-row bg-[#fff] text-ink">
 
       {/* ── Sidebar ── */}
-      <aside className="w-full md:w-64 md:min-h-[calc(100vh-48px)] border-b md:border-b-0 md:border-r border-hairline flex-shrink-0 bg-[#fff] z-10 flex flex-col">
+      <aside className="w-full md:w-64 md:min-h-full border-b md:border-b-0 md:border-r border-hairline flex-shrink-0 bg-[#fff] z-10 flex flex-col">
         <div className="p-6 border-b border-hairline">
           <div className="flex items-center gap-2 mb-3">
             <BackButton fallback="/" className="!-ml-2" />

@@ -138,7 +138,7 @@ export default function AdminResources() {
 
         // ── 1. One-time signature from our API (secret stays server-side) ──
         setUploadPhase('signature')
-        const signature = await getUploadSignature()
+        const signature = await getUploadSignature(file.name)
 
         // ── 2. Direct upload to Cloudinary with live progress ─────────
         // The bytes go straight to Cloudinary and never through the Render

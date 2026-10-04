@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { useReducedMotion, SCROLL_REVEAL_VARIANTS } from '../utils/motion'
+import { useMainPanel } from '../context/LayoutContext'
 
 const DEFAULT_VARIANT = 'fadeUp'
 const DEFAULT_DELAY = 0
@@ -15,6 +16,11 @@ export default function ScrollReveal({
   ...rest
 }) {
   const reduced = useReducedMotion()
+  /* Above 1024px the reveal must trigger against the Main panel's scrollport,
+     not the window — otherwise the -80px lead-in is measured from the viewport
+     edge and elements reveal at the wrong scroll depth. Null below 1024px
+     keeps framer-motion's default (viewport root), i.e. mobile is unchanged. */
+  const root = useMainPanel()
   const variants = SCROLL_REVEAL_VARIANTS[variant] || SCROLL_REVEAL_VARIANTS.fadeUp
 
   if (reduced) {
@@ -32,7 +38,7 @@ export default function ScrollReveal({
       className={className}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: '-80px' }}
+      viewport={{ once: true, margin: '-80px', root }}
       exit="exiting"
       variants={variants}
       transition={{

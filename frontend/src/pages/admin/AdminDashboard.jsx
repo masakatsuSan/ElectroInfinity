@@ -24,14 +24,14 @@ export default function AdminDashboard() {
   const stats = [
     { label: 'Faculty',       count: fData?.data?.length ?? '—', to: '/admin/faculty',   badge: 'Active System' },
     { label: 'Students',      count: sData?.data?.length ?? '—', to: '/admin/students',      badge: 'Roster' },
-    { label: 'Announcements', count: aData?.total ?? '—',        to: '/admin/announcements', badge: 'Official' },
+    { label: 'Announcements', count: aData?.total ?? '—',        to: '/admin/announcements', badge: 'Notices' },
     { label: 'Deadlines',     count: dData?.data?.length ?? '—', to: '/admin/deadlines',     badge: 'Tasks' },
     { label: 'Resources',     count: rData?.data?.length ?? '—', to: '/admin/resources',     badge: 'Files' },
   ]
 
   const communityStats = [
     { label: 'Projects',      count: adminStats?.data?.totalProjects ?? '—',       to: '/admin/projects',     badge: 'Showcase',    icon: Code2 },
-    { label: 'Announcements', count: adminStats?.data?.totalAnnouncements ?? '—',  to: '/admin/announcements', badge: 'Official', icon: Megaphone },
+    { label: 'Announcements', count: adminStats?.data?.totalAnnouncements ?? '—',  to: '/admin/announcements', badge: 'Notices', icon: Megaphone },
   ]
 
   const recentAnnouncements = (aData?.data || []).slice(0, 5)

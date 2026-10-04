@@ -3,23 +3,23 @@ import { Link } from 'react-router-dom'
 import ScrollReveal from '../components/ScrollReveal'
 
 const TIMELINE = [
-  { year: '2023', text: 'Club established by electrical engineering students and faculty mentors at AGEMC.' },
-  { year: '2024', text: 'Conducted first hands-on Power Electronics & Hardware Automation workshops for undergraduates.' },
-  { year: '2025', text: 'Partnered with department laboratories for guaranteed hardware testbed access.' },
-  { year: '2026', text: 'Launched Electro Infinity unified academic resource and community command center.' },
+  { year: '2023', text: 'Seniors of the electrical engineering students at AGEMC start sharing notes and PYQs in group chats.' },
+  { year: '2024', text: 'First hands-on Power Electronics & Hardware Automation workshops run for juniors.' },
+  { year: '2025', text: 'Materials consolidated into shared folders as seniors handed down lab manuals and references.' },
+  { year: '2026', text: 'Electro Infinity launched: an unofficial, open-source resource and community app built by seniors, dedicated to their juniors.' },
 ]
 
 const OBJECTIVES = [
   'Run hands-on workshops beyond the syllabus with industry-grade kits.',
-  'Guarantee member access to real lab equipment and project testbeds.',
+  'Make lab references and equipment guides easy for juniors to find.',
   'Build a strong alumni peer network for internships and core placements.',
-  'Make AGEMC EE a beacon of innovation and practical engineering mastery.',
+  'Keep every resource freely open to every batch, with no paywall and no gatekeeping.',
 ]
 
 const HIGHLIGHTS = [
-  { stat: '150+', label: 'Active Student Members', desc: 'Across 4 undergraduate batches' },
+  { stat: '150+', label: 'Students Reached', desc: 'Across 4 undergraduate batches' },
   { stat: '12+',  label: 'Workshops & Seminars / Year', desc: 'Hardware & software simulations' },
-  { stat: '5',    label: 'Dedicated Laboratories', desc: 'Power, Machines, DSP, Circuits, Drives' },
+  { stat: '5',    label: 'Laboratories Covered', desc: 'Power, Machines, DSP, Circuits, Drives' },
 ]
 
 const ACHIEVEMENTS = [
@@ -32,7 +32,7 @@ export default function About() {
     <div className="min-h-screen bg-white text-ink">
       <SEO
         title="About Us | Electro Infinity"
-        description="Learn more about Electro Infinity, the official Electrical Engineering Club of AGEMC."
+        description="Electro Infinity is an independent, unofficial, open-source student project for AGEMC Electrical Engineering. Not affiliated with the college."
         path="/about"
       />
 
@@ -41,14 +41,55 @@ export default function About() {
           <div className="mx-auto max-w-[1280px] px-6 md:px-12">
             <div className="max-w-3xl">
               <span className="mb-3 block font-mono text-[12px] font-medium uppercase tracking-[0.16px] text-signature-coral">
-                The Technical Society
+                An Independent Student Project
               </span>
               <h1 className="mb-5 font-display text-[40px] font-normal leading-[1.15] text-ink md:text-[56px]">
                 About Electro Infinity
               </h1>
               <p className="max-w-2xl font-sans text-[18px] font-normal leading-[1.4] text-body">
-                The official student-led technical hub for Electrical Engineering at Alipurduar Government Engineering & Management College.
+                A student-built technical hub for Electrical Engineering at Alipurduar Government Engineering &amp;
+                Management College &mdash; made by the seniors, dedicated to their juniors.
               </p>
+            </div>
+          </div>
+        </section>
+      </ScrollReveal>
+
+      <ScrollReveal variant="fadeUp">
+        <section className="pb-24 md:pb-24" view-transition-name="about-disclaimer">
+          <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+            <div className="max-w-4xl border-2 border-ink bg-white p-7 md:p-10">
+              <div className="mb-5 flex flex-wrap items-center gap-3">
+                <span className="rounded-sm bg-ink px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.16px] text-white">
+                  Disclaimer
+                </span>
+                <span className="rounded-sm border border-hairline px-3 py-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.16px] text-muted">
+                  Unofficial &amp; Independent
+                </span>
+                <span className="rounded-sm border border-hairline px-3 py-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.16px] text-muted">
+                  Open Source
+                </span>
+              </div>
+
+              <p className="font-sans text-[16px] font-medium leading-[1.5] text-ink">
+                Electro Infinity is an unofficial student project. It has no official connection to the college.
+              </p>
+
+              <ul className="mt-6 space-y-4">
+                {[
+                  'It is not affiliated with, endorsed by, sponsored by, supervised by, or operated by Alipurduar Government Engineering & Management College (AGEMC), its Electrical Engineering department, any faculty member, or any official college body or administration.',
+                  'It is not an official college website, portal, or information system, and it does not speak on behalf of the college, the department, or its students.',
+                  'The college name and "AGEMC" are used only to identify the students this app is built for. No college logo, emblem, or seal is used, and nothing here should be read as an official notification, circular, or result.',
+                  'All content — announcements, deadlines, routines, calendar entries, faculty and lab listings, resources — is maintained by students for convenience. It may be inaccurate or out of date, and it is not an official communication.',
+                  'For anything that actually matters, verify with the college or the department through official channels at agemc.ac.in.',
+                  'This project is free and open source. Use it, learn from it, fork it for your own department, and contribute back.',
+                ].map(item => (
+                  <li key={item} className="flex gap-3">
+                    <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-signature-coral" />
+                    <span className="font-sans text-[15px] leading-[1.7] text-body">{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </section>

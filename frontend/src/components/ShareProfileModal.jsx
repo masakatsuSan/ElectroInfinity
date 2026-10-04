@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useToast } from '../context/ToastContext'
+import { useScrollLock } from '../context/LayoutContext'
 import { X, Link, Download, MoreHorizontal } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import {
@@ -127,14 +128,15 @@ export default function ShareProfileModal({
     const onKey = (e) => {
       if (e.key === 'Escape') onClose()
     }
-    const prevOverflow = document.body.style.overflow
     window.addEventListener('keydown', onKey)
-    document.body.style.overflow = 'hidden'
     return () => {
       window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prevOverflow
     }
   }, [open, onClose])
+
+  /* Panel on desktop, body on mobile — reference counted with any other
+     overlay so locks no longer clobber each other. */
+  useScrollLock(open)
 
   const username = profile?.rollNumber
     ? `@${profile.rollNumber.toLowerCase()}`
@@ -237,6 +239,7 @@ export default function ShareProfileModal({
       {open && (
         <motion.div
           key="share-qr-overlay"
+          data-lenis-prevent
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"
           style={{ backdropFilter: 'blur(8px)' }}
           variants={OVERLAY_VARIANTS}

@@ -25,7 +25,10 @@ const { isCloudinaryUrl, buildCloudinaryDownloadUrl } = require('./cloudinaryUrl
  * Resolve a stored fileUrl to a URL the browser can download from directly.
  *
  *  - Google Drive share links  -> https://drive.google.com/uc?export=download&id=<FILE_ID>
- *  - Cloudinary uploads       -> the stored secure_url + the fl_attachment flag
+ *  - Cloudinary uploads       -> the stored secure_url + the fl_attachment flag,
+ *                                 named from fileName (falling back to title) so
+ *                                 the browser saves "<something>.pdf",
+ *                                 named from fileName (falling back to title)
  *  - any other http(s) URL    -> unchanged
  *
  * Returns `{ url }`, or `{ status, error }` when there is nothing to redirect to.
@@ -54,10 +57,13 @@ function resolveDirectDownloadUrl(resource) {
     return { url: buildDriveDownloadUrl(fileId, { confirm: 't' }) }
   }
 
-  // fl_attachment makes Cloudinary answer with Content-Disposition: attachment
-  // so the browser saves the file instead of rendering it in a tab.
+  // Cloudinary uploads. The stored fileName/title are passed through so the
+  // download is named "<something>.pdf" instead of Cloudinary's literal
+  // `filename="file"` (a bare fl_attachment) or the extension-less public_id
+  // basename (no flag at all). Raw assets — every PDF — carry the name;
+  // image/video fall back to a bare flag.
   if (isCloudinaryUrl(url)) {
-    return { url: buildCloudinaryDownloadUrl(url) }
+    return { url: buildCloudinaryDownloadUrl(url, resource.fileName, resource.title) }
   }
 
   if (/^https?:\/\//i.test(url)) {

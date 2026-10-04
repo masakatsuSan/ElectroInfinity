@@ -24,6 +24,17 @@ const OTP_TTL_MS    = 10 * 60 * 1000 // 10 minutes
 const OTP_MAX_TRIES = 5              // wrong codes allowed before the OTP dies
 const OTP_RESEND_MS = 30 * 1000      // minimum gap between two sends
 
+function otpMeta(user) {
+  const expiresIn = user.otpExpiry
+    ? Math.max(0, Math.ceil((new Date(user.otpExpiry).getTime() - Date.now()) / 1000))
+    : 0
+  const resendIn = user.otpSentAt
+    ? Math.max(0, Math.ceil((OTP_RESEND_MS - (Date.now() - new Date(user.otpSentAt).getTime())) / 1000))
+    : 0
+  const attemptsLeft = Math.max(0, OTP_MAX_TRIES - (user.otpAttempts || 0))
+  return { expiresIn, resendIn, attemptsLeft }
+}
+
 // Thrown by sendEmail so each caller can report why delivery failed instead of
 // collapsing every cause into "Try again", which is what made this undiagnosable.
 class EmailError extends Error {
@@ -648,11 +659,15 @@ router.post('/forgot-password', async (req, res) => {
     })
 
     const maskedEmail = maskEmail(recipient)
+    const meta = otpMeta(user)
 
     res.json({
       success: true,
       message: `OTP sent to ${maskedEmail}`,
       maskedEmail,
+      expiresInSeconds: meta.expiresIn,
+      resendInSeconds: meta.resendIn,
+      attemptsLeft: meta.attemptsLeft,
     })
   } catch (err) {
     respondOtpSendFailure(res, req.body?.rollNumber || req.body?.email, err)
@@ -686,7 +701,14 @@ router.post('/verify-otp', async (req, res) => {
     const problem = await checkOtp(user, otp)
     if (problem) {
       if (problem.clear) await clearOtp(user)
-      return res.status(problem.status).json({ success: false, error: problem.error })
+      const meta = problem.clear ? { expiresIn: 0, resendIn: 0, attemptsLeft: 0 } : otpMeta(user)
+      return res.status(problem.status).json({
+        success: false,
+        error: problem.error,
+        expiresInSeconds: meta.expiresIn,
+        resendInSeconds: meta.resendIn,
+        attemptsLeft: meta.attemptsLeft,
+      })
     }
 
     // OTP verified — give a short-lived reset token (5 min) so they can set a new password

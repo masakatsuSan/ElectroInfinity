@@ -26,8 +26,8 @@ export default function Contact() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-ink pt-24 md:pt-32">
-      <SEO title="Contact | Electro Infinity" description="Get in touch with Electro Infinity — reach us by email, phone, or visit us at AGEMC." />
+    <div className="min-h-screen pt-24 bg-white text-ink md:pt-32">
+      <SEO title="Contact | Electro Infinity" description="Get in touch with the Electro Infinity student maintainers, or find the official AGEMC college website." />
 
       <div className="mx-auto max-w-[1280px] px-6 md:px-12">
         <section className="pb-24 md:pb-24">
@@ -36,10 +36,10 @@ export default function Contact() {
               Inquiries & Collaborations
             </span>
             <h1 className="mb-5 font-display text-[40px] font-normal leading-[1.15] text-ink md:text-[56px]">
-              Contact the Department
+              Contact the Maintainers
             </h1>
             <p className="max-w-2xl font-sans text-[17px] font-normal leading-[1.4] text-body">
-              Reach out to faculty mentors, club executives, or student coordinators for lab access, workshop collaborations, or academic queries.
+              Reach out to the student maintainers for help with the app, to share material, or to fix something that is wrong. For anything official &mdash; marksheets, fees, attendance, examinations, admissions &mdash; contact the college or the department directly.
             </p>
           </div>
         </section>
@@ -47,32 +47,36 @@ export default function Contact() {
         <section className="pb-24 md:pb-24">
           <div className="grid items-start gap-12 lg:grid-cols-12">
             <div className="space-y-8 lg:col-span-5">
-              <div className="border border-hairline bg-surface-soft rounded-lg p-8 md:p-10">
+              <div className="p-8 border rounded-lg border-hairline bg-surface-soft md:p-10">
                 <div className="mb-8">
                   <span className="mb-2 block font-mono text-[11px] font-medium uppercase tracking-[0.16px] text-muted">
-                    Campus Address
+                    Community For
                   </span>
                   <p className="font-sans text-[15px] font-normal leading-[1.45] text-ink">
-                    Alipurduar Government Engineering & Management College,<br />
+                    Electrical Engineering students of<br />
+                    Alipurduar Government Engineering &amp; Management College,<br />
                     Alipurduar, West Bengal, India
+                  </p>
+                  <p className="mt-2 font-sans text-[12px] leading-[1.5] text-muted">
+                    Shown for context only. This is not an official college address or contact.
                   </p>
                 </div>
 
                 <div className="mb-8">
                   <span className="mb-2 block font-mono text-[11px] font-medium uppercase tracking-[0.16px] text-muted">
-                    Department Email
+                    Project Maintainer Email
                   </span>
                   <a
-                    href="mailto:electroinfinity@agemc.edu"
+                    href="mailto:heyysumith@gmail.com"
                     className="font-sans text-[15px] font-medium text-link hover:no-underline"
                   >
-                    electroinfinity@agemc.edu
+                    heyysumith@gmail.com
                   </a>
                 </div>
 
                 <div>
                   <span className="mb-2 block font-mono text-[11px] font-medium uppercase tracking-[0.16px] text-muted">
-                    Official College Website
+                    Actual Official College Website
                   </span>
                   <a
                     href="https://agemc.ac.in/"
@@ -85,17 +89,17 @@ export default function Contact() {
                 </div>
               </div>
 
-              <div className="aspect-video overflow-hidden rounded-lg border border-hairline bg-surface-strong">
+              <div className="overflow-hidden border rounded-lg aspect-video border-hairline bg-surface-strong">
                 <iframe
                   title="AGEMC location"
                   loading="lazy"
-                  className="h-full w-full border-0"
+                  className="w-full h-full border-0"
                   src="https://www.google.com/maps?q=Alipurduar+Government+Engineering+and+Management+College&output=embed"
                 />
               </div>
             </div>
 
-            <div className="border border-hairline bg-white rounded-lg p-8 md:p-10 lg:col-span-7">
+            <div className="p-8 bg-white border rounded-lg border-hairline md:p-10 lg:col-span-7">
               <h2 className="mb-3 font-display text-[24px] font-normal leading-[1.35] text-ink">Send a Message</h2>
               <p className="mb-8 font-sans text-[14px] font-normal leading-[1.4] text-body">
                 We respond to inquiries and collaboration proposals within 2 business days.
@@ -139,7 +143,7 @@ export default function Contact() {
                     value={form.message}
                     onChange={set('message')}
                     placeholder="How can we assist you?"
-                    className="input resize-none"
+                    className="resize-none input"
                   />
                 </div>
 
@@ -157,7 +161,7 @@ export default function Contact() {
                 <button
                   type="submit"
                   disabled={status === 'sending'}
-                  className="button-primary font-sans w-full mt-2"
+                  className="w-full mt-2 font-sans button-primary"
                 >
                   {status === 'sending' ? 'Sending Message…' : 'Submit Message →'}
                 </button>
