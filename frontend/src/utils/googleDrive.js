@@ -30,6 +30,19 @@ export function isGoogleFolderUrl(url) {
   return /\/folders?\//i.test(url) || /\/drive\/[fu]\//i.test(url)
 }
 
+// Google Forms and Drawings live on a Drive host but are not downloadable
+// files. "/forms/d/e/<formId>" contains a "/d/<segment>" that the extractor
+// below would read as the file ID "e", producing a URL that 404s on download.
+// Mirrors isGoogleNonFileUrl() in backend/src/utils/googleDrive.js.
+export function isGoogleNonFileUrl(url) {
+  if (!isGoogleDriveUrl(url)) return false
+  try {
+    return /\/(forms|drawings)(\/|$)/i.test(new URL(url).pathname)
+  } catch {
+    return false
+  }
+}
+
 // Pull the file ID out of every shape Drive hands out. The fragment is stripped
 // first — "/d/ABC#page=2" would otherwise yield "ABC#page=2".
 export function extractGoogleDriveFileId(url) {

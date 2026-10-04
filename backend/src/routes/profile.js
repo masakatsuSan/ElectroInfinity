@@ -7,7 +7,6 @@ const Badge = require('../models/Badge')
 const Project = require('../models/Project')
 const Gallery = require('../models/Gallery')
 const Achievement = require('../models/Achievement')
-const ForumPost = require('../models/ForumPost')
 const Resource = require('../models/Resource')
 const FriendRequest = require('../models/FriendRequest')
 const { protect, guard, optionalAuth } = require('../middleware/auth')
@@ -522,19 +521,13 @@ router.get('/:id', optionalAuth, async (req, res) => {
     const viewer = req.user || null
     const isOwn = viewer && viewer._id.toString() === user._id.toString()
 
-    const [projectCount, postCount, resourceCount, photosCount, likesReceived] = await Promise.all([
+    const [projectCount, resourceCount, photosCount, likesReceived] = await Promise.all([
       Project.countDocuments({ author: user._id, ...(isOwn ? {} : { isApproved: true }) }),
-      ForumPost.countDocuments({ author: user._id }),
       Resource.countDocuments({ uploadedBy: user._id }),
       Gallery.countDocuments({ uploadedBy: user._id }),
-      Promise.all([
-        Project.find({ author: user._id }).select('likes'),
-        ForumPost.find({ author: user._id }).select('upvotes'),
-      ]).then(([projects, posts]) => {
-        const projectLikes = projects.reduce((sum, p) => sum + (p.likes?.length || 0), 0)
-        const postLikes = posts.reduce((sum, p) => sum + (p.upvotes?.length || 0), 0)
-        return projectLikes + postLikes
-      }),
+      Project.find({ author: user._id }).select('likes').then((projects) =>
+        projects.reduce((sum, p) => sum + (p.likes?.length || 0), 0)
+      ),
     ])
 
     const profile = {
@@ -564,7 +557,6 @@ router.get('/:id', optionalAuth, async (req, res) => {
       highlights: user.highlights || [],
       featuredProject: user.featuredProject || null,
       projects: projectCount,
-      forumPosts: postCount,
       resourcesUploaded: resourceCount,
       photosCount,
       likesReceived,
@@ -836,7 +828,7 @@ router.patch('/me/featured', protect, async (req, res) => {
 })
 
 // ── GET /api/profile/:id/likes ──────────────────────────────────────────────
-// @desc    Posts this user has liked (projects liked + forum posts upvoted)
+// @desc    Projects this user has liked
 // @access  Public
 router.get('/:id/likes', async (req, res) => {
   try {
@@ -846,17 +838,10 @@ router.get('/:id/likes', async (req, res) => {
     const viewer = req.user || null
     const isOwn = viewer && viewer._id.toString() === user._id.toString()
 
-    const [projects, posts] = await Promise.all([
-      Project.find({ likes: user._id, isApproved: true })
-        .sort({ createdAt: -1 })
-        .limit(50)
-        .populate('author', 'name role batch photo profile.profileVisibility'),
-      ForumPost.find({ upvotes: user._id })
-        .sort({ createdAt: -1 })
-        .limit(50)
-        .populate('author', 'name role photo rollNumber batch semester friends')
-        .populate('room', 'name icon color isPopular'),
-    ])
+    const projects = await Project.find({ likes: user._id, isApproved: true })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .populate('author', 'name role batch photo profile.profileVisibility')
 
     const formattedProjects = projects.map(p => ({
       _id: p._id,
@@ -883,36 +868,10 @@ router.get('/:id/likes', async (req, res) => {
         : null,
     }))
 
-    const formattedPosts = posts.map(p => ({
-      _id: p._id,
-      kind: 'forum',
-      title: p.title,
-      content: p.content || '',
-      postType: p.postType || 'text',
-      upvotes: p.upvotes?.length || 0,
-      createdAt: p.createdAt,
-      date: p.createdAt,
-      room: p.room
-        ? { _id: p.room._id, name: p.room.name, icon: p.room.icon, color: p.room.color }
-        : null,
-      author: p.author && typeof p.author === 'object'
-        ? {
-            _id: p.author._id,
-            name: p.author.name,
-            photo: p.author.photo,
-            rollNumber: p.author.rollNumber,
-            batch: p.author.batch,
-            role: p.author.role,
-            department: p.author.profile?.department || '',
-          }
-        : null,
-    }))
-
     res.json({
       success: true,
       data: {
         projects: formattedProjects,
-        posts: formattedPosts,
         isOwn,
       },
     })

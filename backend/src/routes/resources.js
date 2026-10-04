@@ -2,15 +2,19 @@ const express = require('express')
 const Resource = require('../models/Resource')
 const { protect, guard, optionalAuth } = require('../middleware/auth')
 const { uploadSingle, uploadToCloudinary, deleteFromCloudinary, toSafePublicId } = require('../utils/upload')
+const cloudinary = require('../config/cloudinary')
 const { createActivity } = require('../utils/activity')
 const { createNotificationBulk } = require('../utils/notification')
 const {
   isGoogleDriveUrl,
   isGoogleFolderUrl,
   extractGoogleDriveFileId,
-  normalizeGoogleDriveUrl,
-  buildDriveDownloadUrl,
 } = require('../utils/googleDrive')
+const {
+  resolveDirectDownloadUrl,
+  resolveExternalLink,
+  deriveLinkFileName,
+} = require('../utils/resourceLinks')
 const axios = require('axios')
 
 const router = express.Router()
@@ -147,9 +151,60 @@ router.get('/', optionalAuth, async (req, res) => {
   }
 })
 
+// ── GET /api/upload-signature ───────────────────────────────────────────────
+// Signed direct-upload credentials for the admin panel. Deliberately registered
+// BEFORE the /:id/* routes below so this literal path can never be matched as
+// an id.
+//
+// The Cloudinary API secret never leaves this process. The client receives only
+// a one-time signature scoped to the "resources" folder — plus allowed_formats,
+// so Cloudinary itself rejects anything that is not a PDF — and POSTs the bytes
+// straight to Cloudinary. That keeps PDFs off the Render dyno entirely, which is
+// what made admin uploads slow and prone to the 30s client timeout: the file
+// used to travel client -> dyno -> Cloudinary while buffered in RAM.
+const uploadSignatureChain = [
+  protect,
+  guard('cr', 'super_admin', 'admin'), // same roles as POST /api/resources
+  (req, res) => {
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME
+    const apiKey = process.env.CLOUDINARY_API_KEY
+    const apiSecret = process.env.CLOUDINARY_API_SECRET
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      console.error('[UPLOAD SIGNATURE] CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET are not set on the server')
+      return res.status(500).json({ success: false, error: 'Cloudinary is not configured on the server' })
+    }
+
+    try {
+      const timestamp = Math.round(Date.now() / 1000)
+      const folder = 'resources'
+      // Signed as the string 'pdf' (not ['pdf']) so the signature payload
+      // contains exactly "allowed_formats=pdf" — the same bytes the browser
+      // echoes back in the upload FormData. Any mismatch here fails with
+      // "Invalid Signature".
+      const allowedFormats = 'pdf'
+      const signature = cloudinary.utils.api_sign_request(
+        { timestamp, folder, allowed_formats: allowedFormats },
+        apiSecret,
+      )
+
+      res.json({
+        success: true,
+        data: { timestamp, signature, apiKey, cloudName, folder, allowedFormats },
+      })
+    } catch (err) {
+      console.error('[UPLOAD SIGNATURE ERROR]', err?.message, err?.stack)
+      res.status(500).json({ success: false, error: 'Could not generate upload signature' })
+    }
+  },
+]
+
+router.get('/upload-signature', ...uploadSignatureChain)
+
 // ── GET /api/resources/:id/download ───────────────────────────────────────
-// Increments download count and streams the file as an attachment
-// (forces a "Save As" dialog instead of opening inline in the browser).
+// Counts the download, then redirects the browser to wherever the file actually
+// lives. Nothing is fetched or streamed here — see resolveDirectDownloadUrl in
+// utils/resourceLinks.js for why.
 router.get('/:id/download', async (req, res) => {
   let resource
   try {
@@ -165,55 +220,20 @@ router.get('/:id/download', async (req, res) => {
 
   if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
 
-  const fileName = resource.fileName || 'download'
-
-  try {
-    // Google Drive files — redirect the browser straight to Google instead of
-    // proxying the bytes through this server.
-    //
-    // Proxying is unreliable in production: Google returns 404/403 for Drive
-    // downloads originating from datacenter IP ranges, so on a host like
-    // Render even a correctly shared public file can come back "not found".
-    // The user's own browser is not on a blocked range, and sending them
-    // directly to Drive also keeps large PDFs off this instance (free dynos
-    // get killed on bandwidth) and lets the browser handle the large-file
-    // virus-scan interstitial natively.
-    if (isGoogleDriveUrl(resource.fileUrl)) {
-      if (isGoogleFolderUrl(resource.fileUrl)) {
-        return res.status(400).json({
-          success: false,
-          error: 'This link points to a Google Drive folder, not a file',
-        })
-      }
-      const fileId = extractGoogleDriveFileId(resource.fileUrl)
-      if (!fileId) {
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid Google Drive link — the file ID could not be read',
-        })
-      }
-      return res.redirect(302, buildDriveDownloadUrl(fileId, { confirm: 't' }))
-    }
-
-    if (isExternalUrl(resource.fileUrl)) {
-      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
-      return res.redirect(resource.fileUrl)
-    }
-
-    // Cloudinary files — stream the file through the server so the
-    // Content-Disposition: attachment header is honored, forcing a
-    // download instead of opening the PDF inline in the browser.
-    await streamCloudinaryToResponse(req, res, resource.fileUrl, resource.fileName, 'attachment')
-  } catch (err) {
-    console.error('[RESOURCES DOWNLOAD] failed:', err?.message)
-    if (!res.headersSent) {
-      res.status(500).json({ success: false, error: 'An internal server error occurred' })
-    }
+  const target = resolveDirectDownloadUrl(resource)
+  if (!target.url) {
+    return res.status(target.status || 400).json({ success: false, error: target.error })
   }
+
+  // 303 so the browser always issues a GET at the target, whatever the
+  // original method was.
+  return res.redirect(303, target.url)
 })
 
 // ── POST /api/resources/:id/download/increment ─────────────────────────────
-// Increments download count without redirecting (for direct Google Drive downloads)
+// Increments download count without redirecting. `directUrl` is resolved with
+// the exact same helper /download uses, so callers can point the browser at the
+// real file themselves when they cannot follow a redirect.
 router.post('/:id/download/increment', async (req, res) => {
   try {
     const resource = await Resource.findByIdAndUpdate(
@@ -223,20 +243,14 @@ router.post('/:id/download/increment', async (req, res) => {
     )
     if (!resource) return res.status(404).json({ success: false, error: 'Not found' })
 
-    const isGDrive = isGoogleDriveUrl(resource.fileUrl)
-    let directUrl = null
-    if (isGDrive) {
-      directUrl = normalizeGoogleDriveUrl(resource.fileUrl)
-    } else if (isExternalUrl(resource.fileUrl)) {
-      directUrl = resource.fileUrl
-    }
+    const target = resolveDirectDownloadUrl(resource)
 
     res.json({
       success: true,
       data: {
         downloadCount: resource.downloadCount,
-        isGoogleDrive: isGDrive,
-        directUrl,
+        isGoogleDrive: isGoogleDriveUrl(resource.fileUrl),
+        directUrl: target.url || null,
       },
     })
   } catch (err) {
@@ -349,31 +363,26 @@ router.post(
         publicId = cloudId
         fileName = req.file.originalname
       } else {
-        const link = String(fileUrl).trim()
-
         // Reject links we can never serve, instead of storing a resource that
         // is guaranteed to fail on download for every user who clicks it.
-        if (!/^https?:\/\//i.test(link)) {
-          return res.status(400).json({ success: false, error: 'Link must start with http:// or https://' })
-        }
-        if (isGoogleFolderUrl(link)) {
-          return res.status(400).json({
-            success: false,
-            error: 'That is a Google Drive folder link — copy the link to a single file',
-          })
-        }
-        if (isGoogleDriveUrl(link) && !extractGoogleDriveFileId(link)) {
-          return res.status(400).json({
-            success: false,
-            error: 'Could not read a Google Drive file ID from that link — copy the "Share" link from Drive',
-          })
+        // Drive links are stored normalised to their direct-download URL.
+        const resolved = resolveExternalLink(fileUrl)
+        if (!resolved.ok) {
+          return res.status(400).json({ success: false, error: resolved.error })
         }
 
-        url = link
+        url = resolved.url
+        // A signed direct upload has already placed the asset in Cloudinary, so
+        // the client sends back the publicId (needed to delete the asset later)
+        // and the original filename. A pasted Drive/external link has neither.
+        publicId = String(req.body.publicId || '').trim()
         // A Drive share link ends in "/view" or "/preview", which would be
         // saved as the download filename. Use the resource title instead so
         // the file the user receives is named something recognisable.
-        fileName = isGoogleDriveUrl(link) ? `${title || 'document'}.pdf` : (link.split('/').pop() || 'external-link')
+        fileName = String(req.body.fileName || '').trim() || deriveLinkFileName(url, {
+          isGoogleDrive: resolved.isGoogleDrive,
+          title,
+        })
       }
 
       // A CR can only publish to their own batch. Admins and super_admins may
@@ -512,16 +521,26 @@ router.put(
         updates.filePublicId = publicId
         updates.fileName     = req.file.originalname
       } else if (fileUrl) {
+        // Same validation as create: an edit must not be able to store a link
+        // that can only ever produce a broken download. Drive links are stored
+        // normalised to their direct-download URL.
+        const resolved = resolveExternalLink(fileUrl)
+        if (!resolved.ok) {
+          return res.status(400).json({ success: false, error: resolved.error })
+        }
+
+        // Only destroy the previous Cloudinary asset once the new link is known
+        // to be servable, so a bad paste cannot destroy a working file.
         if (resource.filePublicId) {
           const isRaw = resource.fileUrl.includes('/raw/upload/')
           await deleteFromCloudinary(resource.filePublicId, isRaw ? 'raw' : 'image')
         }
-        const link = String(fileUrl).trim()
-        updates.fileUrl      = link
+        updates.fileUrl      = resolved.url
         updates.filePublicId = ''
-        updates.fileName     = isGoogleDriveUrl(link)
-          ? `${updates.title || resource.title || 'document'}.pdf`
-          : (link.split('/').pop() || 'external-link')
+        updates.fileName     = deriveLinkFileName(resolved.url, {
+          isGoogleDrive: resolved.isGoogleDrive,
+          title: updates.title || resource.title,
+        })
       }
 
       const updated = await Resource.findByIdAndUpdate(req.params.id, updates, { new: true })
@@ -562,3 +581,6 @@ router.delete('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, 
 })
 
 module.exports = router
+// Exported so server.js can mount the same protected chain at the canonical
+// /api/upload-signature path used by the admin panel.
+module.exports.uploadSignature = uploadSignatureChain

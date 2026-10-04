@@ -5,7 +5,6 @@ async function createActivity(userId, type, title, description = '', link = '', 
     const icons = {
       project_shared: 'code',
       resource_uploaded: 'upload',
-      forum_post: 'message-square',
       badge_earned: 'award',
       achievement_completed: 'trophy',
        profile_updated: 'user',
@@ -30,7 +29,6 @@ function getDefaultTitle(type) {
   const titles = {
     project_shared: 'Shared a new project',
     resource_uploaded: 'Uploaded a resource',
-    forum_post: 'Posted in the forum',
     badge_earned: 'Earned a badge',
     achievement_completed: 'Completed an achievement',
     profile_updated: 'Updated profile',

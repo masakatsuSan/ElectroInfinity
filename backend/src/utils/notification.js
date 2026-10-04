@@ -4,10 +4,6 @@ const Notification = require('../models/Notification')
 const DEFAULT_ICONS = {
   follow: 'user-plus',
   follow_back: 'user-check',
-  forum_comment: 'message-circle',
-  forum_reply: 'message-circle',
-  forum_mention: 'at-sign',
-  forum_upvote: 'arrow-big-up',
   project_like: 'heart',
   project_approved: 'check-circle',
   project_rejected: 'x-circle',

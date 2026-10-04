@@ -5,7 +5,7 @@ import { getStudents } from '../../api/students'
 import { getResources } from '../../api/resources'
 import { getDeadlines } from '../../api/deadlines'
 import { getFaculty } from '../../api/faculty'
-import { Hash, Code2, Megaphone, MessageCircle } from 'lucide-react'
+import { Code2, Megaphone } from 'lucide-react'
 import api from '../../api/axios'
 
 export default function AdminDashboard() {
@@ -30,8 +30,6 @@ export default function AdminDashboard() {
   ]
 
   const communityStats = [
-    { label: 'Rooms',         count: adminStats?.data?.totalRooms ?? '—',          to: '/admin/rooms',        badge: 'Community',   icon: Hash },
-    { label: 'Posts',         count: adminStats?.data?.totalPosts ?? '—',          to: '/admin/rooms',        badge: 'Discussions', icon: MessageCircle },
     { label: 'Projects',      count: adminStats?.data?.totalProjects ?? '—',       to: '/admin/projects',     badge: 'Showcase',    icon: Code2 },
     { label: 'Announcements', count: adminStats?.data?.totalAnnouncements ?? '—',  to: '/admin/announcements', badge: 'Official', icon: Megaphone },
   ]

@@ -66,15 +66,21 @@ const userSchema = new mongoose.Schema(
     // Legacy alias kept for compatibility with older student-management UI/screens
     isActivated: { type: Boolean, default: false },
 
-    // OTP for forgot-password flow
+    // OTP for activation / forgot-password flow
     // Stored as plain string — expires in 10 minutes, deleted after use
     otp:       { type: String,  default: '' },
     otpExpiry: { type: Date,    default: null },
+    // When the current code was sent — used to throttle resends so the flow
+    // cannot be used to burn through the mail provider's quota.
+    otpSentAt:   { type: Date,   default: null },
+    // Wrong codes submitted against the current OTP; cleared on each new send.
+    otpAttempts: { type: Number, default: 0 },
 
     badges:    [{ type: String }],
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     collegeEmail:  { type: String, default: '' },
-    personalEmail: { type: String, default: '' },
+    // Normalised on write so OTP lookups by personal mailbox stay predictable.
+    personalEmail: { type: String, default: '', trim: true, lowercase: true },
     phone:         { type: String, default: '' },
 
     profileViews: [{

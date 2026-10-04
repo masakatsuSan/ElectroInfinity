@@ -34,6 +34,17 @@ function isGoogleFolderUrl(url) {
   return /\/folders?\//i.test(url) || /\/drive\/[fu]\//i.test(url)
 }
 
+// Google Workspace products that live on a Drive host but are not downloadable
+// files. "/forms/d/e/<formId>" contains a "/d/<segment>" that the ID extractor
+// below happily reads as the file ID "e", which then builds a Drive URL that
+// 404s. Forms and Drawings must be exported to a real file first.
+const NON_FILE_WORKSPACE_PATH = /\/(forms|drawings)(\/|$)/i
+
+function isGoogleNonFileUrl(url) {
+  if (!isGoogleDriveUrl(url)) return false
+  return NON_FILE_WORKSPACE_PATH.test(new URL(url).pathname)
+}
+
 // Pull the file ID out of every shape Drive hands out:
 //   /file/d/<id>/view?usp=sharing
 //   /open?id=<id>
@@ -246,6 +257,7 @@ module.exports = {
   DRIVE_FILE_HOSTS,
   isGoogleDriveUrl,
   isGoogleFolderUrl,
+  isGoogleNonFileUrl,
   extractGoogleDriveFileId,
   buildDriveDownloadUrl,
   normalizeGoogleDriveUrl,

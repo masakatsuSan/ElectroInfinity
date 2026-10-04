@@ -103,7 +103,16 @@ function uploadToCloudinary(buffer, options = {}) {
       },
       (error, result) => {
         if (error) {
-          // Cloudinary nests the human-readable reason under error.error.message
+          // Log the FULL Cloudinary error (message, HTTP code and body) so the
+          // real rejection reason — e.g. "Raw file size exceeds the limit" on
+          // the Free plan, whose 10MB raw cap is lower than multer's 20MB —
+          // reaches the Render logs. Previously only error.error.message
+          // survived and the admin just saw a generic "Internal error".
+          console.error('[CLOUDINARY UPLOAD ERROR]', {
+            message: error?.message,
+            httpCode: error?.http_code,
+            body: error?.body ?? error?.error ?? undefined,
+          })
           const reason = error?.error?.message || error?.message || 'Cloudinary upload failed'
           return reject(new Error(`Cloudinary rejected the upload: ${reason}`))
         }

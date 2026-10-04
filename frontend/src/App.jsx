@@ -1,12 +1,10 @@
 ﻿import { useEffect, useRef, useState, Suspense, lazy } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
-import { AnimatePresence } from 'framer-motion'
 import Lenis from '@studio-freight/lenis'
 import Navbar         from './components/Navbar'
 import Footer         from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
 import OrganicBlobs   from './components/OrganicBlobs'
-import ForumFlipOverlay from './components/ForumFlipOverlay'
 import OhmNo from './components/OhmNo'
 import RouteFallback from './components/RouteFallback'
 import PageError from './components/PageError'
@@ -42,7 +40,6 @@ const Login           = lazy(() => import('./pages/Login'))
 const Activate        = lazy(() => import('./pages/Activate'))
 const ForgotPassword  = lazy(() => import('./pages/ForgotPassword'))
 const Students  = lazy(() => import('./pages/Students'))
-const Forum     = lazy(() => import('./pages/Forum'))
 const Directory = lazy(() => import('./pages/Directory'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Search    = lazy(() => import('./pages/Search'))
@@ -59,7 +56,6 @@ const AdminLabs      = lazy(() => import('./pages/admin/AdminLabs'))
 const AdminCourses   = lazy(() => import('./pages/admin/AdminCourses'))
 const AdminGallery   = lazy(() => import('./pages/admin/AdminGallery'))
 const AdminContact   = lazy(() => import('./pages/admin/AdminContact'))
-const AdminRooms     = lazy(() => import('./pages/admin/AdminRooms'))
 const AdminProjects  = lazy(() => import('./pages/admin/AdminProjects'))
 const AdminCalendar  = lazy(() => import('./pages/admin/AdminCalendar'))
 const AdminAnnouncements = lazy(() => import('./pages/admin/AdminAnnouncements'))
@@ -89,7 +85,6 @@ const AnimatedRoute = ({ children }) => {
 export default function App() {
   const location = useLocation()
   const lenisRef = useRef(null)
-  const [forumFlip, setForumFlip] = useState(null)
   const [pageKey, setPageKey] = useState(location.pathname)
   const reduced = useReducedMotion()
 
@@ -148,12 +143,11 @@ export default function App() {
         <Route path="/faculty/dashboard" element={null} />
         <Route path="/faculty/login" element={null} />
         <Route path="/faculty/activate" element={null} />
-        <Route path="/forum" element={null} />
         <Route path="/login" element={null} />
         <Route path="/admin/login" element={null} />
         <Route path="/activate" element={null} />
         <Route path="/forgot-password" element={null} />
-        <Route path="*" element={<Navbar onForumFlip={(data) => setForumFlip(data)} />} />
+        <Route path="*" element={<Navbar />} />
       </Routes>
 
         <main className="flex flex-col flex-1" style={{ viewTransitionName: 'main-content' }}>
@@ -195,12 +189,6 @@ export default function App() {
             <Route path="/activate"         element={<AnimatedRoute><Activate /></AnimatedRoute>} />
             <Route path="/faculty/activate" element={<AnimatedRoute><FacultyActivate /></AnimatedRoute>} />
             <Route path="/forgot-password"  element={<AnimatedRoute><ForgotPassword /></AnimatedRoute>} />
-
-            <Route path="/forum" element={
-              <AnimatedRoute>
-                <ProtectedRoute><Forum /></ProtectedRoute>
-              </AnimatedRoute>
-            }/>
 
             <Route path="/students" element={
               <AnimatedRoute>
@@ -249,7 +237,6 @@ export default function App() {
                       <Route path="resource-folders" element={<AdminResourceFolders />} />
                       <Route path="calendar"   element={<AdminCalendar />} />
                       <Route path="projects"   element={<AdminProjects />} />
-                      <Route path="rooms"      element={<AdminRooms />} />
                       <Route path="students"   element={<AdminStudents />} />
                       <Route path="deadlines"  element={<AdminDeadlines />} />
                       <Route path="routines"   element={<AdminRoutines />} />
@@ -275,23 +262,12 @@ export default function App() {
         <Route path="/faculty/dashboard" element={null} />
         <Route path="/faculty/login" element={null} />
         <Route path="/faculty/activate" element={null} />
-        <Route path="/forum" element={null} />
         <Route path="/login" element={null} />
         <Route path="/admin/login" element={null} />
         <Route path="/activate" element={null} />
         <Route path="/forgot-password" element={null} />
         <Route path="*"        element={<Footer />} />
       </Routes>
-
-      <AnimatePresence>
-        {forumFlip && (
-          <ForumFlipOverlay
-            triggerRect={forumFlip.rect}
-            borderRadius={forumFlip.borderRadius}
-            onClose={() => setForumFlip(null)}
-          />
-        )}
-      </AnimatePresence>
 
     </div>
     </NotificationProvider>

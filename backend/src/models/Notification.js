@@ -18,10 +18,6 @@ const notificationSchema = new mongoose.Schema(
       enum: [
         'follow',
         'follow_back',
-        'forum_comment',
-        'forum_reply',
-        'forum_mention',
-        'forum_upvote',
         'project_like',
         'project_approved',
         'project_rejected',

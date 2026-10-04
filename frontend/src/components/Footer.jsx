@@ -4,7 +4,6 @@ import { ExternalLink } from 'lucide-react';
 
 const HIDDEN_ROUTES = [
   '/admin',
-  '/forum',
   '/login',
   '/faculty/login',
   '/faculty/activate',
@@ -41,7 +40,6 @@ const FOOTER_LINKS = [
   {
     title: 'Community',
     links: [
-      { to: '/forum', label: 'Discussion Forum' },
       { to: '/projects', label: 'Student Projects' },
       { to: '/gallery', label: 'Department Gallery' },
       { to: '/placements', label: 'Placements' },

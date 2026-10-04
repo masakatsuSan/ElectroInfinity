@@ -265,7 +265,8 @@ function ResourceCard({ resource: r }) {
         <a
           href={downloadResource(r._id)}
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
+          download={r.fileName || undefined}
           className="button-primary !py-1 !px-3 !text-[12px] !bg-primary text-white"
         >
           Download ↓

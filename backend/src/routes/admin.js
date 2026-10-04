@@ -1,10 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Announcement = require('../models/Announcement');
-const CommunityRoom = require('../models/CommunityRoom');
-const ForumPost = require('../models/ForumPost');
 const Project = require('../models/Project');
-const AcademicCalendar = require('../models/AcademicCalendar');
 const { protect, guard } = require('../middleware/auth');
 
 // @route   GET /api/admin/stats
@@ -14,15 +11,11 @@ router.get('/stats', protect, guard('cr', 'admin', 'super_admin'), async (req, r
   try {
     const [
       totalUsers,
-      totalPosts,
-      totalRooms,
       totalResources,
       totalAnnouncements,
       totalProjects
     ] = await Promise.all([
       require('../models/User').countDocuments({ isActive: true }),
-      ForumPost.countDocuments(),
-      CommunityRoom.countDocuments({ isActive: true }),
       require('../models/Resource').countDocuments(),
       Announcement.countDocuments(),
       Project.countDocuments({ isApproved: true })
@@ -32,8 +25,6 @@ router.get('/stats', protect, guard('cr', 'admin', 'super_admin'), async (req, r
       success: true,
       data: {
         totalUsers,
-        totalPosts,
-        totalRooms,
         totalResources,
         totalAnnouncements,
         totalProjects

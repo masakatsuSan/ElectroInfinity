@@ -9,6 +9,8 @@ const { uploadSingle, uploadToCloudinary, deleteFromCloudinary, toSafePublicId }
 const { createActivity } = require('../utils/activity')
 const { createNotificationBulk } = require('../utils/notification')
 const {
+  isGoogleFolderUrl,
+  isGoogleNonFileUrl,
   extractGoogleDriveFileId,
   looksLikeHtml,
   fetchDriveBuffer,
@@ -287,6 +289,18 @@ router.delete('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, 
 })
 
 async function uploadFromDriveLink(driveLink, fileType, title) {
+  // Reject folders and Google Forms/Drawings up front. A folder link has no
+  // file ID at all, and a Form's "/d/e/<formId>" path yields the bogus file ID
+  // "e" — either way the import below would fetch a Drive HTML page and store
+  // it on Cloudinary under a .pdf name, which is the broken download this
+  // guard exists to prevent.
+  if (isGoogleFolderUrl(driveLink)) {
+    throw new Error('That is a Google Drive folder link — copy the link to a single file')
+  }
+  if (isGoogleNonFileUrl(driveLink)) {
+    throw new Error('That is a Google Form or Drawing — publish or export it as a file first')
+  }
+
   const fileId = extractGoogleDriveFileId(driveLink)
   if (!fileId) {
     throw new Error('Invalid Google Drive link — copy the "Anyone with the link" share URL')

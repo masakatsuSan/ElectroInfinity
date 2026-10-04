@@ -7,7 +7,7 @@ import TermsCheckbox from '../../components/TermsCheckbox'
 
 export default function FacultyActivate() {
   const navigate = useNavigate()
-  const { login, user } = useAuth()
+  const { setUser, user } = useAuth()
 
   useEffect(() => {
     if (!user) return
@@ -113,6 +113,10 @@ export default function FacultyActivate() {
       const { token, user: userData } = res.data
       localStorage.setItem('ei_token', token)
       localStorage.setItem('ei_user', JSON.stringify(userData))
+      // AuthContext only hydrates from localStorage on mount. Without this the
+      // redirect into the protected dashboard saw a null user, rendered
+      // "Please Login", and activation looked like it had failed.
+      setUser(userData)
       navigate('/faculty/dashboard', { replace: true })
     } catch (err) {
       setError(err.response?.data?.error || 'Activation failed')
@@ -206,12 +210,16 @@ export default function FacultyActivate() {
                 </label>
                 <input
                   required autoFocus
+                  type="text"
                   value={otp}
                   onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   className="input text-center text-[22px] font-mono tracking-[0.3em]"
                   placeholder="000000"
                   maxLength={6}
                   inputMode="numeric"
+                  autoComplete="one-time-code"
+                  autoCorrect="off"
+                  spellCheck={false}
                 />
               </div>
 

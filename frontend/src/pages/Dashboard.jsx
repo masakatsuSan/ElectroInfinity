@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Bell, MessageCircle } from 'lucide-react'
+import { Bell } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
 import SEO from '../components/SEO'
@@ -63,15 +63,7 @@ export default function Dashboard() {
     },
   })
 
-  const postsQuery = useQuery({
-    queryKey: ['dashboard-posts'],
-    queryFn: async () => {
-      const res = await api.get('/forum', { params: { limit: 5, sort: 'latest' } })
-      return res.data.data || []
-    },
-  })
-
-  if (announcementsQuery.isLoading || postsQuery.isLoading) {
+  if (announcementsQuery.isLoading) {
     return (
       <div className="min-h-screen bg-white text-ink pt-28 pb-24">
         <div className="max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
@@ -94,7 +86,6 @@ export default function Dashboard() {
   }
 
   const recentAnnouncements = announcementsQuery.data || []
-  const recentPosts = postsQuery.data || []
 
   return (
     <div className="min-h-screen bg-white text-ink pt-28 pb-24">
@@ -112,20 +103,12 @@ export default function Dashboard() {
           </div>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+        <div className="grid grid-cols-1 gap-4 mb-10">
           <ScrollReveal variant="scaleIn" delay={0}>
             <StatCard
               icon={Bell}
               label="Announcements"
               count={recentAnnouncements.length}
-              accent="text-ink bg-surface-soft"
-            />
-          </ScrollReveal>
-          <ScrollReveal variant="scaleIn" delay={0.1}>
-            <StatCard
-              icon={MessageCircle}
-              label="Discussions"
-              count={recentPosts.length}
               accent="text-ink bg-surface-soft"
             />
           </ScrollReveal>
@@ -150,35 +133,6 @@ export default function Dashboard() {
                   </div>
                   <div className="flex items-center gap-2 text-[13px] text-muted">
                     <span className="font-mono">{formatDate(a.createdAt || a.date)}</span>
-                  </div>
-                </div>
-              )}
-            />
-          </ScrollReveal>
-
-          <ScrollReveal variant="fadeUp" delay={0.2}>
-            <Section
-              title="Recent Discussions"
-              icon={MessageCircle}
-              items={recentPosts}
-              emptyMessage="No discussions yet. Start the conversation!"
-              renderItem={(p) => (
-                <div key={p._id} className="bg-white border border-hairline rounded-lg p-4 hover:border-ink transition-colors">
-                  <h3 className="text-[15px] font-medium text-ink leading-snug line-clamp-1 mb-2">{p.title}</h3>
-                  <div className="flex items-center gap-3 text-[13px] text-muted">
-                    <span className="truncate">
-                      {p.author?.name || 'Unknown'}
-                      {p.room?.name && (
-                        <>
-                          <span className="text-muted mx-1">·</span>
-                          <span className="text-muted">{p.room.name}</span>
-                        </>
-                      )}
-                    </span>
-                    <span className="flex items-center gap-1 ml-auto flex-shrink-0">
-                      <span className="text-[12px] font-medium text-ink">{(p.upvotes?.length || 0)}</span>
-                      <span className="text-[12px] text-muted">upvotes</span>
-                    </span>
                   </div>
                 </div>
               )}

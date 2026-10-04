@@ -394,6 +394,7 @@ export default function ForgotPassword() {
               </label>
               <input
                 required autoFocus
+                type="text"
                 value={otp}
                 onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 className="input w-full text-center"
@@ -401,6 +402,9 @@ export default function ForgotPassword() {
                 placeholder="000000"
                 maxLength={6}
                 inputMode="numeric"
+                autoComplete="one-time-code"
+                autoCorrect="off"
+                spellCheck={false}
               />
             </div>
 

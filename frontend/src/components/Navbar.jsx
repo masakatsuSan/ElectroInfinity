@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import GlobalSearch from './GlobalSearch';
 import NotificationBell from './NotificationBell';
 import {
-  LayoutGrid, School, Contact, MessagesSquare,
+  LayoutGrid, School, Contact,
   CalendarClock, Search, ChevronDown, ChevronRight,
   Power, Menu, X, Megaphone, BookOpen, FlaskConical,
   Briefcase, Rocket, Image, UserCheck, FolderOpen, GraduationCap,
@@ -15,7 +15,6 @@ import { DROPDOWN_VARIANTS, DROPDOWN_TRANSITION, MODAL_VARIANTS, MODAL_TRANSITIO
 
 const HIDDEN_ROUTES = [
   '/admin',
-  '/forum',
   '/login',
   '/faculty/login',
   '/faculty/activate',
@@ -50,7 +49,6 @@ const NAV_GROUPS = [
   {
     label: 'Community',
     items: [
-      { to: '/forum', label: 'Forum', icon: MessagesSquare, flip: true },
       { to: '/projects', label: 'Projects', icon: Rocket },
       { to: '/announcements', label: 'Announcements', icon: Megaphone },
       { to: '/calendar', label: 'Calendar', icon: CalendarClock },
@@ -62,7 +60,7 @@ const STANDALONE_LINKS = [
   { to: '/contact', label: 'Contact' }
 ]
 
-export default function Navbar({ onForumFlip }) {
+export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation()
@@ -250,9 +248,9 @@ export default function Navbar({ onForumFlip }) {
         <div className="flex-col hidden p-3 border lg:flex w-60 rounded-xl bg-surface-soft border-hairline">
           <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-signature-coral mb-1">What's Happening</span>
           <p className="font-display font-medium text-[16px] text-ink leading-snug mb-1">Join the Conversation</p>
-          <p className="font-sans text-[12px] text-muted leading-relaxed mb-2">Latest discussions, projects, and announcements from peers.</p>
-          <NavLink to="/forum" onClick={() => setDropdownOpen(null)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:no-underline">
-            Open Forum <ChevronRight size={14} />
+          <p className="font-sans text-[12px] text-muted leading-relaxed mb-2">Latest projects and announcements from peers.</p>
+          <NavLink to="/projects" onClick={() => setDropdownOpen(null)} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-primary hover:no-underline">
+            Browse Projects <ChevronRight size={14} />
           </NavLink>
         </div>
       );
@@ -321,18 +319,9 @@ export default function Navbar({ onForumFlip }) {
                                   <NavLink
                                     key={item.to}
                                     to={item.to}
-                                    onClick={(e) => {
-                                      if (item.flip && user && typeof onForumFlip === 'function') {
-                                        e.preventDefault()
-                                        const el = e.currentTarget
-                                        const rect = el.getBoundingClientRect()
-                                        const borderRadius = getComputedStyle(el).borderRadius
+                                    onClick={() => {
                                         setDropdownOpen(null)
-                                        onForumFlip({ rect, borderRadius })
-                                      } else {
-                                        setDropdownOpen(null)
-                                      }
-                                    }}
+                                      }}
                                     className={({ isActive }) => `group flex items-center gap-3 px-2.5 py-2 rounded-lg transition-all duration-200 ${dropdownItemClass(isActive)}`}
                                     style={{ transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)' }}
                                   >
@@ -469,13 +458,6 @@ export default function Navbar({ onForumFlip }) {
                       >
                         <CalendarClock size={17} strokeWidth={1.75} /> Deadlines & Routine
                       </Link>
-                      <Link
-                        to="/forum"
-                        onClick={() => setProfileOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-muted hover:text-ink hover:bg-soft-stone transition-colors"
-                      >
-                        <MessagesSquare size={17} strokeWidth={1.75} /> Discussion Forum
-                      </Link>
                         </>
                       )}
 
@@ -511,13 +493,6 @@ export default function Navbar({ onForumFlip }) {
                         className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-muted hover:text-ink hover:bg-soft-stone transition-colors"
                       >
                         <Contact size={17} strokeWidth={1.75} /> Student Directory
-                      </Link>
-                      <Link
-                        to="/forum"
-                        onClick={() => setProfileOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-muted hover:text-ink hover:bg-soft-stone transition-colors"
-                      >
-                        <MessagesSquare size={17} strokeWidth={1.75} /> Discussion Forum
                       </Link>
                         </>
                       )}

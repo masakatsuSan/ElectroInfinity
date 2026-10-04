@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import {
   Building2, UserCheck, BookOpen, FlaskConical,
-  FolderOpen, Image as ImageIcon, MessagesSquare, Rocket,
+  FolderOpen, Image as ImageIcon, Rocket,
 } from 'lucide-react'
 
 const quickActions = [
@@ -29,7 +29,6 @@ const sections = [
   {
     title: 'Community',
     items: [
-      { label: 'Forum', to: '/forum', icon: MessagesSquare },
       { label: 'Projects', to: '/projects', icon: Rocket },
     ],
   },

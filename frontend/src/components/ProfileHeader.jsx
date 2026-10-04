@@ -123,7 +123,7 @@ export default function ProfileHeader({
     }
   }
 
-  const totalPosts = stats.posts ?? ((profile?.projects || 0) + (profile?.forumPosts || 0) + (profile?.resourcesUploaded || 0))
+  const totalPosts = stats.posts ?? ((profile?.projects || 0) + (profile?.resourcesUploaded || 0))
 
   return (
     <ScrollReveal variant="fadeUp">

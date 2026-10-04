@@ -13,7 +13,6 @@ import {
   BookOpen,
   Image,
   Mail,
-  Hash,
   Code2,
   CalendarRange,
   Megaphone,
@@ -30,7 +29,6 @@ const LINKS = [
   { to: '/admin/students',    label: 'Students',             icon: Users },
   { to: '/admin/labs',        label: 'Laboratories',         icon: Building2 },
   { to: '/admin/courses',     label: 'Courses',              icon: BookOpen },
-  { to: '/admin/rooms',       label: 'Community Rooms',      icon: Hash },
   { to: '/admin/announcements', label: 'Announcements',      icon: Megaphone },
   { to: '/admin/resources',   label: 'Resources',            icon: FolderOpen },
   { to: '/admin/resource-folders', label: 'Resource Folders', icon: FolderOpen },
@@ -57,7 +55,6 @@ export default function AdminLayout() {
   // CRs get full CRUD on exactly these sections — nothing else in the panel
   const CR_SECTIONS = [
     '/admin/labs',
-    '/admin/rooms',
     '/admin/announcements',
     '/admin/resources',
     '/admin/resource-folders',

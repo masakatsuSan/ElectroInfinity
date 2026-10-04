@@ -1,9 +1,8 @@
-import { FileText, Upload, MessageSquare, Award, Trophy, User } from 'lucide-react'
+import { FileText, Upload, Award, Trophy, User } from 'lucide-react'
 
 const typeConfig = {
   project_shared:       { icon: FileText,  color: 'text-link', bg: 'bg-surface-soft', label: 'Shared Project' },
   resource_uploaded:    { icon: Upload,    color: 'text-signature-forest', bg: 'bg-signature-mint', label: 'Uploaded Resource' },
-  forum_post:           { icon: MessageSquare, color: 'text-signature-mustard', bg: 'bg-signature-cream', label: 'Forum Post' },
   badge_earned:         { icon: Award,     color: 'text-signature-mustard', bg: 'bg-signature-yellow', label: 'Earned Badge' },
   achievement_completed:{ icon: Trophy,    color: 'text-signature-coral', bg: 'bg-signature-peach', label: 'Achievement' },
   profile_updated:      { icon: User,      color: 'text-muted', bg: 'bg-surface-strong', label: 'Updated Profile' },

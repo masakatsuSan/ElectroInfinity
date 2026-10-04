@@ -1,12 +1,43 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getResources, uploadResource, updateResource, deleteResource } from '../../api/resources'
+import {
+  getResources,
+  updateResource,
+  deleteResource,
+  getUploadSignature,
+  uploadToCloudinaryDirect,
+  createResource,
+  isGoogleDriveUrl,
+  isGoogleFolderUrl,
+  isGoogleNonFileUrl,
+  extractGoogleDriveFileId,
+} from '../../api/resources'
 import { getSubjects } from '../../api/subjects'
 import { Check } from 'lucide-react'
 import { useToast } from '../../context/ToastContext'
 
 const TYPES = ['notes','books','organisers','pyqs','yt playlist']
 const SEMS  = [1,2,3,4,5,6,7,8]
+
+// Cloudinary's Free plan caps raw (PDF) uploads at 10 MB — well below multer's
+// 20 MB limit. Validate client-side so the failure is instant and readable
+// instead of a slow rejection after the whole file has travelled.
+const MAX_PDF_SIZE = 10 * 1024 * 1024
+
+// Mirrors resolveExternalLink() in backend/src/utils/resourceLinks.js so the admin
+// finds out about a folder link (or an unparseable Drive URL) before submitting
+// instead of after a round trip.
+function validateFileLink(rawLink) {
+  const link = String(rawLink || '').trim()
+  if (!link) return 'Drive link is required'
+  if (!/^https?:\/\//i.test(link)) return 'Link must start with http:// or https://'
+  if (isGoogleFolderUrl(link)) return 'That is a Google Drive folder link — copy the link to a single file'
+  if (isGoogleNonFileUrl(link)) return 'That is a Google Form or Drawing — publish or export it as a file first'
+  if (isGoogleDriveUrl(link) && !extractGoogleDriveFileId(link)) {
+    return 'Could not read a Google Drive file ID from that link — copy the "Share" link from Drive'
+  }
+  return ''
+}
 
 export default function AdminResources() {
   const qc = useQueryClient()
@@ -24,6 +55,8 @@ export default function AdminResources() {
   const [sourceType, setSourceType] = useState('file')
   const [editError, setEditError] = useState('')
   const [editSaving, setEditSaving] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [uploadPhase, setUploadPhase] = useState('') // '' | 'signature' | 'uploading' | 'saving'
 
   const { data, isLoading } = useQuery({
     queryKey: ['resources', filterType],
@@ -83,22 +116,61 @@ export default function AdminResources() {
   const handleUpload = async () => {
     if (!form.title) return setError('Title is required')
     if (sourceType === 'file' && !file) return setError('File is required')
-    if (sourceType === 'link' && !fileUrl) return setError('Drive link is required')
+    if (sourceType === 'link') {
+      const linkError = validateFileLink(fileUrl)
+      if (linkError) return setError(linkError)
+    }
+    setError('')
+    setProgress(0)
     setUploading(true)
 
-    const fd = new FormData()
-    fd.append('title', form.title)
-    fd.append('type', form.type)
-    if (form.semester) fd.append('semester', form.semester)
-    if (form.subject)  fd.append('subject', form.subject)
-    if (sourceType === 'file') {
-      fd.append('file', file)
-    } else {
-      fd.append('fileUrl', fileUrl)
-    }
-
     try {
-      await uploadResource(fd)
+      let uploaded = null
+
+      if (sourceType === 'file') {
+        // ── Validate BEFORE anything is sent ──────────────────────────
+        if (file.type !== 'application/pdf') {
+          return setError('Only PDF files are allowed — please choose a .pdf file.')
+        }
+        if (file.size > MAX_PDF_SIZE) {
+          return setError(`"${file.name}" is ${(file.size / 1024 / 1024).toFixed(1)} MB — the maximum is 10 MB.`)
+        }
+
+        // ── 1. One-time signature from our API (secret stays server-side) ──
+        setUploadPhase('signature')
+        const signature = await getUploadSignature()
+
+        // ── 2. Direct upload to Cloudinary with live progress ─────────
+        // The bytes go straight to Cloudinary and never through the Render
+        // server, so this cannot hit the API's 30s timeout or wait behind a
+        // free-dyno cold start.
+        setUploadPhase('uploading')
+        const response = await uploadToCloudinaryDirect(file, signature, setProgress)
+        const cloud = response.data
+
+        uploaded = {
+          fileUrl: cloud.secure_url,
+          publicId: cloud.public_id,
+          fileName: file.name,
+        }
+      } else {
+        // Drive link: stored as a plain link; the backend normalises it to the
+        // direct-download URL and rejects folder links (validated above).
+        uploaded = { fileUrl: fileUrl.trim(), publicId: '', fileName: '' }
+      }
+
+      // ── 3. Save the resource record in MongoDB ─────────────────────
+      setUploadPhase('saving')
+      await createResource({
+        title: form.title,
+        type: form.type,
+        semester: form.semester ? Number(form.semester) : undefined,
+        subject: form.subject || '',
+        fileUrl: uploaded.fileUrl,
+        publicId: uploaded.publicId,
+        fileName: uploaded.fileName,
+      })
+
       qc.invalidateQueries({ queryKey: ['resources'] })
       setForm({ title: '', type: 'notes', semester: '', subject: '' })
       setFile(null)
@@ -107,9 +179,21 @@ export default function AdminResources() {
       setShowForm(false)
       showToast('Resource uploaded successfully!')
     } catch (err) {
-      setError(err.response?.data?.error || 'Upload failed')
+      // Surface the real reason (Cloudinary rejection, validation, network)
+      // instead of a blanket "Internal error".
+      const data = err?.response?.data
+      const message =
+        data?.error ||
+        (err?.code === 'ECONNABORTED' || String(err?.message || '').includes('timeout')
+          ? 'Upload timed out — check your connection and try again'
+          : null) ||
+        err?.message ||
+        'Upload failed'
+      setError(typeof message === 'string' ? message : 'Upload failed')
     } finally {
       setUploading(false)
+      setUploadPhase('')
+      setProgress(0)
     }
   }
 
@@ -257,11 +341,11 @@ export default function AdminResources() {
             </div>
             {sourceType === 'file' ? (
               <div>
-                <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">File (PDF or image) *</label>
+                <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">File (PDF, max 10 MB) *</label>
                 <input
                   type="file"
-                  accept=".pdf,.jpg,.jpeg,.png,.webp"
-                  onChange={e => setFile(e.target.files[0])}
+                  accept=".pdf"
+                  onChange={e => { setFile(e.target.files[0]); setError('') }}
                   className="mt-1 font-[Inter,system-ui,sans-serif] text-[14px] text-ink-muted-80 file:mr-4 file:bg-[#fff]-parchment file:text-ink file:border file:border-divider-soft file:rounded-lg file:px-4 file:py-2 file:cursor-pointer"
                 />
               </div>
@@ -271,25 +355,51 @@ export default function AdminResources() {
                 <input
                   type="url"
                   value={fileUrl}
-                  onChange={e => setFileUrl(e.target.value)}
-                  placeholder="https://drive.google.com/..."
+                  onChange={e => { setFileUrl(e.target.value); setError('') }}
+                  placeholder="https://drive.google.com/file/d/FILE_ID/view"
                   className="w-full bg-[#fff] border border-divider-soft rounded-lg px-4 py-2.5 text-[15px] font-[Inter,system-ui,sans-serif] text-ink focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 />
+                <p className="font-[Inter,system-ui,sans-serif] text-[12px] text-ink-muted-80 mt-2">
+                  Paste the link to a <strong>single file</strong> (not a folder), with sharing set to
+                  &ldquo;Anyone with the link&rdquo;. Drive links are normalised to their direct-download
+                  URL and the Download button sends the browser straight to Drive &mdash; for the most
+                  reliable downloads, upload the file instead so it is stored on Cloudinary.
+                </p>
               </div>
             )}
           </div>
           {sourceType === 'file' && file && (
             <p className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-green-500 mt-3 truncate">
-              <Check size={14} /> {file.name} ({(file.size / 1024).toFixed(0)} KB)
+              <Check size={14} /> {file.name} ({file.size > 1024 * 1024 ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : `${(file.size / 1024).toFixed(0)} KB`})
             </p>
+          )}
+          {uploading && (
+            <div className="mt-4">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="font-[Inter,system-ui,sans-serif] text-[13px] font-medium text-ink-muted-80">
+                  {uploadPhase === 'signature' && 'Generating secure upload signature…'}
+                  {uploadPhase === 'uploading' && 'Uploading to Cloudinary…'}
+                  {uploadPhase === 'saving' && 'Saving resource…'}
+                </span>
+                {uploadPhase === 'uploading' && (
+                  <span className="font-[Inter,system-ui,sans-serif] text-[13px] font-semibold text-primary">{progress}%</span>
+                )}
+              </div>
+              <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-200"
+                  style={{ width: `${uploadPhase === 'uploading' ? progress : uploadPhase === 'signature' ? 5 : 90}%` }}
+                />
+              </div>
+            </div>
           )}
           {error && <p className="font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-red-500 mt-3">{error}</p>}
           <button
             onClick={handleUpload}
-            disabled={uploading || (sourceType === 'file' ? !file : !fileUrl) || !form.title}
+            disabled={uploading || (sourceType === 'file' ? !file : !fileUrl.trim()) || !form.title}
             className="button-primary mt-6"
           >
-            {uploading ? 'Uploading to Cloudinary…' : 'Upload'}
+            {uploading ? 'Uploading…' : 'Upload'}
           </button>
         </div>
       )}

@@ -27,15 +27,17 @@ app.use(express.urlencoded({ extended: true }))
 // Phase 1
 app.use('/api/auth',       require('./src/routes/auth'))
 // Phase 2
-app.use('/api/resources',  require('./src/routes/resources'))
+const resourcesRoutes = require('./src/routes/resources')
+app.use('/api/resources',  resourcesRoutes)
+// Signed direct-upload credentials for the admin panel's Cloudinary direct
+// upload — the same protected handler chain as GET /api/resources/upload-signature.
+app.get('/api/upload-signature', ...resourcesRoutes.uploadSignature)
 app.use('/api/contact',    require('./src/routes/contact'))
 // Phase 3
 app.use('/api/students',   require('./src/routes/students'))
 app.use('/api/deadlines',  require('./src/routes/deadlines'))
 app.use('/api/routines',   require('./src/routes/routines'))
 app.use('/api/assignments',require('./src/routes/assignments'))
-app.use('/api/forum',      require('./src/routes/forum'))
-app.use('/api/rooms',      require('./src/routes/rooms'))
 // Phase 4 - Community & Academic
 app.use('/api/announcements', require('./src/routes/announcements'))
 app.use('/api/calendar',      require('./src/routes/calendar'))

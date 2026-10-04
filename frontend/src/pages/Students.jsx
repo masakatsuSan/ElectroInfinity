@@ -383,7 +383,7 @@ export default function Students() {
               setOtpError(''); setOtpMsg('');
               setOtpLoading(true);
               try {
-                const res = await forgotPassword({ rollNumber: user?.rollNumber });
+                const res = await forgotPassword({ rollNumber: String(user?.rollNumber || '').trim().toUpperCase() });
                 if (res.data?.success) {
                   setOtpSent(true);
                   setOtpMsg(res.data?.message || 'OTP sent to your registered email');
@@ -416,6 +416,10 @@ export default function Students() {
               onChange={e => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="000000"
               maxLength={6}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              autoCorrect="off"
+              spellCheck={false}
               className="flex-1 w-full max-w-full box-border min-w-0 bg-[#ffffff] border border-divider-soft text-ink px-4 py-3 text-[15px] text-center tracking-[0.15em] font-mono rounded-sm focus:outline-none focus:border-info-border focus:ring-1 focus:ring-info-border transition-all placeholder:text-ink-muted-48"
             />
             <button
@@ -424,7 +428,7 @@ export default function Students() {
                 setOtpError(''); setOtpMsg('');
                 setOtpLoading(true);
                 try {
-                  const res = await verifyOtp({ rollNumber: user?.rollNumber, otp: otpInput });
+                  const res = await verifyOtp({ rollNumber: String(user?.rollNumber || '').trim().toUpperCase(), otp: otpInput });
                   if (res.data?.success && res.data?.resetToken) {
                     setResetToken(res.data.resetToken);
                     setOtpVerified(true);

@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { checkRoll, verifyActivationOtp, activateAccount } from '../api/auth'
+import { useAuth } from '../context/AuthContext'
 import TermsCheckbox from '../components/TermsCheckbox'
 
 const COLORS = {
@@ -132,6 +133,7 @@ const eyebrowStyle = {
 
 export default function Activate() {
   const navigate = useNavigate()
+  const { setUser } = useAuth()
 
   const [step, setStep] = useState(1)
   const [rollNo, setRollNo] = useState('')
@@ -148,6 +150,11 @@ export default function Activate() {
   const [termsError, setTermsError] = useState('')
   const [otpSent, setOtpSent] = useState(false)
   const [resendTimer, setResendTimer] = useState(0)
+  const resendRef = useRef(null)
+
+  // The countdown used to run on an interval that nothing cleared, so leaving
+  // the page mid-countdown kept it alive and kept firing state updates.
+  useEffect(() => () => clearInterval(resendRef.current), [])
 
   const handleCheckRoll = async (e) => {
     e.preventDefault()
@@ -205,7 +212,11 @@ export default function Activate() {
       const { token, user } = res.data
       localStorage.setItem('ei_token', token)
       localStorage.setItem('ei_user', JSON.stringify(user))
-      navigate('/students')
+      // AuthContext only reads localStorage on mount, so without this the
+      // protected /students route still saw a null user and immediately showed
+      // "Please Login" — activation looked broken even when it succeeded.
+      setUser(user)
+      navigate('/students', { replace: true })
     } catch (err) {
       setError(err.response?.data?.error || 'Activation failed')
     } finally {
@@ -216,15 +227,24 @@ export default function Activate() {
   const handleResend = async () => {
     if (resendTimer > 0) return
     setError('')
-    setResendTimer(60)
     try {
-      await checkRoll(rollNo.trim())
+      const res = await checkRoll(rollNo.trim())
       setOtpSent(true)
-    } catch {
-      // ignore
+      setMaskedEmail(res.data?.maskedEmail || maskedEmail)
+      setResendTimer(60)
+      clearInterval(resendRef.current)
+      resendRef.current = setInterval(
+        () => setResendTimer((c) => {
+          if (c <= 1) clearInterval(resendRef.current)
+          return Math.max(0, c - 1)
+        }),
+        1000,
+      )
+    } catch (err) {
+      // Surface the reason: a throttled or blocked send must not look like a
+      // silent success while the user waits for a mail that never arrives.
+      setError(err.response?.data?.error || 'Could not resend OTP. Try again.')
     }
-    const t = setInterval(() => setResendTimer((c) => Math.max(0, c - 1)), 1000)
-    setTimeout(() => clearInterval(t), 60000)
   }
 
   const submitButtonStyle = loading
@@ -335,6 +355,11 @@ export default function Activate() {
                 </label>
                 <input
                   required
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  autoCorrect="off"
+                  spellCheck={false}
                   maxLength={6}
                   value={otp}
                   onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}

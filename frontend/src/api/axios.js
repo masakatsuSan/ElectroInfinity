@@ -46,9 +46,15 @@ api.interceptors.response.use(
   (error) => {
     // Network-level failures (no response at all) are retried once for GET
     // requests only — reads are safe to repeat, mutations are not.
+    // Excluded: the OTP "check" endpoints are GETs that actually send mail and
+    // mint a fresh code. Retrying one on a network blip replaced the code the
+    // user had already received, so a correct OTP was rejected as wrong.
     const config = error.config
     const isNetworkError = !error.response
-    if (isNetworkError && config && config.method === 'get' && !config.__retried) {
+    const MUTATING_GETS = ['/auth/check-roll/', '/auth/check-faculty/']
+    const url = config?.url || ''
+    const isOtpSend = MUTATING_GETS.some((p) => url.includes(p))
+    if (isNetworkError && config && config.method === 'get' && !config.__retried && !isOtpSend) {
       config.__retried = true
       return api.request(config)
     }

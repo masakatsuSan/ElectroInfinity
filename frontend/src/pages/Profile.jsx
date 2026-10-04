@@ -18,7 +18,7 @@ import BatchMateCard from '../components/BatchMateCard'
 import MyUploadsSection from '../components/MyUploadsSection'
 import ProfileGrid from '../components/ProfileGrid'
 import FriendActionButton from '../components/FriendActionButton'
-import { ExternalLink, GitBranch, Users, Image as ImageIcon, Plus, Edit3, Save, X, Trophy, Sparkles, Eye, Search, Upload, Rocket, MessageCircle, Pin, User, Star } from 'lucide-react'
+import { ExternalLink, GitBranch, Users, Image as ImageIcon, Plus, Edit3, Save, X, Trophy, Sparkles, Eye, Search, Upload, Rocket, Pin, User, Star } from 'lucide-react'
 
 const TABS = ['posts', 'about', 'directory', 'uploads']
 
@@ -142,9 +142,8 @@ export default function Profile() {
   }, [profile, isOwn, currentUser])
 
   const stats = {
-    posts: (profile?.projects || 0) + (profile?.forumPosts || 0) + (profile?.resourcesUploaded || 0),
+    posts: (profile?.projects || 0) + (profile?.resourcesUploaded || 0),
     projects: profile?.projects || 0,
-    forumPosts: profile?.forumPosts || 0,
     resources: profile?.resourcesUploaded || 0,
     friends: profile?.friends || 0,
     photos: profile?.photosCount || 0,
@@ -702,10 +701,6 @@ function RightSidebar({ isOwn, viewsData, suggested, profile, currentUser, navig
             <Users size={18} className="text-gray-600" />
           </div>
           <div className="space-y-2 text-[14px]">
-            <Link to="/forum" className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
-              <MessageCircle size={16} />
-              Discussion Forum
-            </Link>
             <Link to="/projects" className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
               <Rocket size={16} />
               Projects

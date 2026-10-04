@@ -19,6 +19,54 @@ function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString()
 }
 
+// ── OTP policy ───────────────────────────────────────────────────────────
+const OTP_TTL_MS    = 10 * 60 * 1000 // 10 minutes
+const OTP_MAX_TRIES = 5              // wrong codes allowed before the OTP dies
+const OTP_RESEND_MS = 30 * 1000      // minimum gap between two sends
+
+// Thrown by sendEmail so each caller can report why delivery failed instead of
+// collapsing every cause into "Try again", which is what made this undiagnosable.
+class EmailError extends Error {
+  constructor(reason) {
+    super(reason)
+    this.reason = reason
+  }
+}
+
+// Human-facing reason for a failed send. `ip_not_allowlisted` is by far the most
+// common one on a residential/dynamic IP and cannot be fixed from the app — it
+// needs the Brevo dashboard, so it gets its own message and a louder log.
+function emailFailureReason(err) {
+  const status = err?.response?.status
+  const detail = err?.response?.data?.message || err?.message || ''
+
+  if (status === 401 || /unauthori[sz]ed|api[- ]?key/i.test(detail)) {
+    if (/unrecognised IP|unrecognized IP/i.test(detail)) return 'ip_not_allowlisted'
+    return 'bad_credentials'
+  }
+  if (status === 400 && /sender|from/i.test(detail)) return 'bad_sender'
+  if (status === 403 || status === 429) return 'quota_or_forbidden'
+  return 'unavailable'
+}
+
+// What the API tells the client when the code could not be sent. Kept vague for
+// anything user-facing except the misconfiguration cases, which are pointless to
+// hide because no amount of retrying will fix them.
+function emailErrorMessage(reason) {
+  switch (reason) {
+    case 'ip_not_allowlisted':
+      return 'Email service is blocked for this server IP. Contact the site admin.'
+    case 'bad_credentials':
+      return 'Email service is not configured correctly. Contact the site admin.'
+    case 'bad_sender':
+      return 'Email sender address is not verified. Contact the site admin.'
+    case 'quota_or_forbidden':
+      return 'Email service is temporarily unavailable. Try again shortly.'
+    default:
+      return 'Failed to send OTP. Try again.'
+  }
+}
+
 // ── Email sender identity ────────────────────────────────────────────────
 // The From address must be a sender authenticated for this Brevo account.
 // Brevo queues the message either way, so an unauthenticated sender looks
@@ -47,7 +95,7 @@ async function sendEmail({ to, subject, html }) {
 
   if (!apiKey) {
     console.error('[email] BREVO_API_KEY is not set')
-    throw new Error('Email service unavailable')
+    throw new EmailError('bad_credentials')
   }
 
   const from = senderAddress()
@@ -55,7 +103,7 @@ async function sendEmail({ to, subject, html }) {
     // Previously this fell back to noreply@electroinfinity.com, which is not a
     // verified Brevo sender, so every OTP silently failed. Fail loudly instead.
     console.error('[email] no sender configured — set BREVO_SENDER_EMAIL in backend/.env')
-    throw new Error('Email service unavailable')
+    throw new EmailError('bad_sender')
   }
 
   const payload = {
@@ -79,21 +127,37 @@ async function sendEmail({ to, subject, html }) {
     // outcome means it was never sent, so we must not report it as delivered.
     if (status !== 201 || !data?.messageId) {
       console.error('[email] Brevo returned no messageId', status, data)
-      throw new Error('Email service unavailable')
+      throw new EmailError('unavailable')
     }
 
     console.log(`[email] queued "${subject}" -> ${to} (${data.messageId})`)
     return data.messageId
   } catch (err) {
-    // Keep the real reason (unauthorized sender, bad recipient, quota) in the
-    // logs — collapsing every failure into one opaque error is what made this
-    // undiagnosable in the first place.
+    const reason = err instanceof EmailError ? err.reason : emailFailureReason(err)
+
+    // Keep the real reason (unauthorized sender, blocked IP, bad recipient,
+    // quota) in the logs — collapsing every failure into one opaque error is
+    // what made this undiagnosable in the first place.
     console.error('[email] send failed ->', to, {
+      reason,
       status: err.response?.status,
       code: err.response?.data?.code,
       detail: err.response?.data?.message || err.message,
     })
-    throw new Error('Email service unavailable')
+
+    // A Brevo key with an IP allowlist rejects every request from a new address,
+    // and a residential IPv6 prefix rotates constantly, so this recurs silently.
+    // Spell out the one manual step that actually resolves it.
+    if (reason === 'ip_not_allowlisted') {
+      console.error(
+        '[email] ACTION REQUIRED — Brevo API key has an "authorised IPs" restriction and this\n' +
+        '          server IP is not on it. Either add the IP below in Brevo (Brevo > Security >\n' +
+        '          Authorised IPs), or clear the restriction so the key works from any IP.\n' +
+        `          Server IP: ${(err.response?.data?.message || '').match(/unrecogni[sz]ed IP address ([^\s.]+)/i)?.[1] || 'see message above'}`
+      )
+    }
+
+    throw new EmailError(reason)
   }
 }
 
@@ -109,6 +173,155 @@ function otpRecipient(user) {
 
 function maskEmail(email) {
   return email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
+}
+
+// ── Helper: find a user by either mailbox they might type ────────────────
+// Accepts the account email or the personal mailbox the OTP is actually
+// delivered to. Matched case-insensitively because `personalEmail` has no
+// `lowercase: true` on the schema, so records saved through the profile form
+// can hold any casing — a plain equality match silently missed them and the
+// reset flow answered "No account found with this email" for a real user.
+function findUserByEmail(input) {
+  const needle = String(input || '').trim()
+  if (!needle) return null
+
+  const exact = String(needle).toLowerCase()
+  const escaped = exact.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+  return User.findOne({
+    $or: [
+      { email: exact },
+      { email: { $regex: `^${escaped}$`, $options: 'i' } },
+      { personalEmail: exact },
+      { personalEmail: { $regex: `^${escaped}$`, $options: 'i' } },
+    ],
+  })
+}
+
+// ── Helper: mint + deliver an OTP ───────────────────────────────────────
+// Every OTP flow (student activation, faculty activation, password reset) is
+// the same three steps, so they share one implementation: send first, then
+// persist. Writing the code before the mail went out left a live OTP on the
+// account whenever Brevo rejected the send — a code nobody received, which
+// then fails verification as "Wrong OTP" and looks like a broken OTP flow.
+async function deliverOtp(user, { purpose, subject, heading, leadIn }) {
+  const recipient = otpRecipient(user)
+  if (!recipient) {
+    const err = new Error('no recipient')
+    err.status = 400
+    err.error = 'No email registered for this account. Contact your HOD.'
+    throw err
+  }
+
+  // Refuse to spam the relay (and the user) with codes seconds apart.
+  if (
+    user.otp &&
+    user.otpSentAt &&
+    Date.now() - new Date(user.otpSentAt).getTime() < OTP_RESEND_MS
+  ) {
+    const err = new Error('throttled')
+    err.status = 429
+    err.error = `Please wait ${Math.ceil((OTP_RESEND_MS - (Date.now() - new Date(user.otpSentAt).getTime())) / 1000)}s before requesting another OTP.`
+    throw err
+  }
+
+  const otp = generateOTP()
+
+  const html = `
+    <div style="font-family:monospace; max-width:480px; margin:0 auto; padding:32px; background:#07060E; color:#F0EFF8; border:1px solid rgba(255,255,255,0.1);">
+      <h2 style="font-family:serif; font-size:22px; margin:0 0 8px;">${heading}</h2>
+      <p style="opacity:0.6; font-size:14px; margin:0 0 24px;">Electro Infinity · EE Club, AGEMC</p>
+
+      <p style="font-size:14px; margin:0 0 16px;">Hi ${user.name},</p>
+      <p style="font-size:14px; opacity:0.8; margin:0 0 24px;">${leadIn}</p>
+
+      <div style="background:rgba(102,87,245,0.15); border:1px solid rgba(102,87,245,0.4); padding:20px; text-align:center; margin:0 0 24px;">
+        <span style="font-size:36px; letter-spacing:12px; font-weight:bold; color:#9D90FA;">${otp}</span>
+      </div>
+
+      <p style="font-size:13px; opacity:0.5; margin:0 0 8px;">This OTP expires in 10 minutes.</p>
+      <p style="font-size:13px; opacity:0.5; margin:0;">If you didn't request this, ignore this email.</p>
+    </div>
+  `
+
+  await sendEmail({ to: recipient, subject, html })
+
+  // Only now is the code actually claimable.
+  user.otp         = otp
+  user.otpExpiry   = new Date(Date.now() + OTP_TTL_MS)
+  user.otpSentAt   = new Date()
+  user.otpAttempts = 0
+  await user.save()
+
+  logOtpForDev(purpose, user, otp)
+
+  return recipient
+}
+
+// ── Helper: check a submitted code ───────────────────────────────────────
+// Returns { error, status } on failure, or null when the code is good.
+// Async because the attempt counter is persisted, and that write MUST be
+// awaited: a floating save carries a stale in-memory copy of the document and
+// can land after clearOtp(), resurrecting an OTP that was already locked out.
+// `otp` is coerced to a string first: a client that sends the code as a JSON
+// number (a leading zero stripped, e.g. 012345 -> 12345) used to throw
+// "otp.trim is not a function" and surface as an opaque 500.
+async function checkOtp(user, otp) {
+  const submitted = String(otp ?? '').trim()
+
+  if (!user.otp) {
+    return { status: 400, error: 'No OTP requested. Request a new one.' }
+  }
+
+  if (new Date() > new Date(user.otpExpiry)) {
+    return { status: 400, error: 'OTP expired. Request a new one.', clear: true }
+  }
+
+  if (submitted !== user.otp) {
+    // Bound the guesses so a 6-digit code cannot be brute-forced in
+    // milliseconds, and so the account is not left holding a code that has
+    // already served its purpose.
+    const tries = (user.otpAttempts || 0) + 1
+    if (tries >= OTP_MAX_TRIES) {
+      return {
+        status: 429,
+        error: 'Too many incorrect attempts. Request a new OTP.',
+        clear: true,
+      }
+    }
+    user.otpAttempts = tries
+    await user.save()
+    const left = OTP_MAX_TRIES - tries
+    return {
+      status: 400,
+      error: `Wrong OTP. ${left} attempt${left === 1 ? '' : 's'} left before a new OTP is required.`,
+    }
+  }
+
+  return null
+}
+
+async function clearOtp(user) {
+  user.otp = ''
+  user.otpExpiry = null
+  user.otpSentAt = null
+  user.otpAttempts = 0
+  await user.save()
+}
+
+// ── Helper: turn a failed OTP send into a useful response ────────────────
+// Handles the three outcomes a send can produce: our own guard rejections
+// (missing address, resend throttled — already carry a status), a mail-provider
+// failure, and an unexpected error.
+function respondOtpSendFailure(res, identifier, err) {
+  if (err instanceof EmailError) {
+    return res.status(502).json({ success: false, error: emailErrorMessage(err.reason) })
+  }
+  if (err?.status) {
+    return res.status(err.status).json({ success: false, error: err.error })
+  }
+  console.error('[auth] OTP send failed for', identifier, err?.message, err?.stack)
+  return res.status(500).json({ success: false, error: 'Failed to send OTP. Try again.' })
 }
 
 // Opt-in diagnostic: echo the code to the server log so a send that Brevo
@@ -143,47 +356,13 @@ router.get('/check-roll/:rollNo', async (req, res) => {
       })
     }
 
-    const recipient = otpRecipient(user)
-    if (!recipient) {
-      return res.status(400).json({
-        success: false,
-        error: 'No email registered for this account. Contact your HOD.',
-      })
-    }
-
-    // Generate OTP — valid for 10 minutes
-    const otp = generateOTP()
-    user.otp = otp
-    user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000)
-    await user.save()
-
-    // Send OTP email
-    await sendEmail({
-      to: recipient,
+    const recipient = await deliverOtp(user, {
+      purpose: 'account activation',
       subject: 'Electro Infinity — Account Activation OTP',
-      html: `
-        <div style="font-family:monospace; max-width:480px; margin:0 auto; padding:32px; background:#07060E; color:#F0EFF8; border:1px solid rgba(255,255,255,0.1);">
-          <h2 style="font-family:serif; font-size:22px; margin:0 0 8px;">Account Activation</h2>
-          <p style="opacity:0.6; font-size:14px; margin:0 0 24px;">Electro Infinity · EE Club, AGEMC</p>
-
-          <p style="font-size:14px; margin:0 0 16px;">Hi ${user.name},</p>
-          <p style="font-size:14px; opacity:0.8; margin:0 0 24px;">
-            Your OTP to activate your account:
-          </p>
-
-          <div style="background:rgba(102,87,245,0.15); border:1px solid rgba(102,87,245,0.4); padding:20px; text-align:center; margin:0 0 24px;">
-            <span style="font-size:36px; letter-spacing:12px; font-weight:bold; color:#9D90FA;">${otp}</span>
-          </div>
-
-          <p style="font-size:13px; opacity:0.5; margin:0 0 8px;">⏱ This OTP expires in 10 minutes.</p>
-          <p style="font-size:13px; opacity:0.5; margin:0;">If you didn't request this, ignore this email.</p>
-        </div>
-      `,
+      heading: 'Account Activation',
+      leadIn: 'Your OTP to activate your account:',
     })
 
-    logOtpForDev('account activation', user, otp)
-
-    // Return masked email so user knows where OTP was sent
     const maskedEmail = maskEmail(recipient)
 
     res.json({
@@ -195,10 +374,7 @@ router.get('/check-roll/:rollNo', async (req, res) => {
       otpSent: true,
     })
   } catch (err) {
-    // Log the real reason — swallowing it here is what made a Brevo 401
-    // (unrecognised IP) look like an unexplained "Failed to send OTP".
-    console.error('[auth] check-roll OTP failed for', req.params.rollNo, err?.message, err?.stack)
-    res.status(500).json({ success: false, error: 'Failed to send OTP. Try again.' })
+    respondOtpSendFailure(res, req.params.rollNo, err)
   }
 })
 
@@ -218,14 +394,10 @@ router.post('/verify-activation-otp', async (req, res) => {
     if (!user) return res.status(404).json({ success: false, error: 'User not found' })
     if (user.isVerified) return res.status(400).json({ success: false, error: 'Account already activated. Go to Login.' })
 
-    if (!user.otp || user.otp !== otp.trim()) {
-      return res.status(400).json({ success: false, error: 'Wrong OTP. Check your email.' })
-    }
-
-    if (!user.otpExpiry || new Date() > user.otpExpiry) {
-      user.otp = ''; user.otpExpiry = null
-      await user.save()
-      return res.status(400).json({ success: false, error: 'OTP expired. Request a new one.' })
+    const problem = await checkOtp(user, otp)
+    if (problem) {
+      if (problem.clear) await clearOtp(user)
+      return res.status(problem.status).json({ success: false, error: problem.error })
     }
 
     const activationToken = jwt.sign(
@@ -234,11 +406,12 @@ router.post('/verify-activation-otp', async (req, res) => {
       { expiresIn: '5m' }
     )
 
-    user.otp = ''; user.otpExpiry = null
-    await user.save()
+    // Single-use
+    await clearOtp(user)
 
     res.json({ success: true, activationToken })
   } catch (err) {
+    console.error('[auth] verify-activation-otp failed', err?.message)
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
@@ -258,8 +431,8 @@ router.post('/activate', async (req, res) => {
     }
 
     // Verify activation token if provided (OTP flow)
+    let decoded = null
     if (activationToken) {
-      let decoded
       try {
         decoded = jwt.verify(activationToken, process.env.JWT_SECRET)
       } catch {
@@ -275,6 +448,14 @@ router.post('/activate', async (req, res) => {
     if (!user)            return res.status(404).json({ success: false, error: 'Roll number not found' })
     if (user.isVerified)  return res.status(400).json({ success: false, error: 'Already activated. Go to Login.' })
 
+    // The token must have been minted for THIS account. Without this check a
+    // code someone verified for their own roll number also activated any other
+    // pending account, since the token was only checked for a valid signature
+    // and purpose.
+    if (decoded && decoded.id !== user._id.toString()) {
+      return res.status(400).json({ success: false, error: 'Invalid activation token' })
+    }
+
     // If no activation token, require OTP verification
     if (!activationToken && !user.otp) {
       return res.status(400).json({ success: false, error: 'OTP verification required. Request OTP first.' })
@@ -283,6 +464,9 @@ router.post('/activate', async (req, res) => {
     user.password    = password
     user.isVerified  = true
     user.isActivated = true
+    user.otp = ''
+    user.otpExpiry = null
+    user.otpSentAt = null
     await user.save()
 
     const token = signToken(user._id)
@@ -369,51 +553,16 @@ router.get('/check-faculty/:email', async (req, res) => {
       })
     }
 
-    const recipient = otpRecipient(user)
-    if (!recipient) {
-      return res.status(400).json({
-        success: false,
-        error: 'No email registered for this account. Contact your HOD.',
-      })
-    }
-
-    // Generate OTP — valid for 10 minutes
-    const otp = generateOTP()
-    user.otp       = otp
-    user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000)
-    await user.save()
-
-    // Send OTP email
-    await sendEmail({
-      to: recipient,
+    const recipient = await deliverOtp(user, {
+      purpose: 'faculty activation',
       subject: 'Electro Infinity — Faculty Activation OTP',
-      html: `
-        <div style="font-family:monospace; max-width:480px; margin:0 auto; padding:32px; background:#07060E; color:#F0EFF8; border:1px solid rgba(255,255,255,0.1);">
-          <h2 style="font-family:serif; font-size:22px; margin:0 0 8px;">Faculty Activation</h2>
-          <p style="opacity:0.6; font-size:14px; margin:0 0 24px;">Electro Infinity · EE Club, AGEMC</p>
-
-          <p style="font-size:14px; margin:0 0 16px;">Hi ${user.name},</p>
-          <p style="font-size:14px; opacity:0.8; margin:0 0 24px;">
-            Use this OTP to activate your faculty account:
-          </p>
-
-          <div style="background:rgba(102,87,245,0.15); border:1px solid rgba(102,87,245,0.4); padding:20px; text-align:center; margin:0 0 24px;">
-            <span style="font-size:36px; letter-spacing:12px; font-weight:bold; color:#9D90FA;">${otp}</span>
-          </div>
-
-          <p style="font-size:13px; opacity:0.5; margin:0 0 8px;">⏱ This OTP expires in 10 minutes.</p>
-          <p style="font-size:13px; opacity:0.5; margin:0;">If you didn't request this, ignore this email.</p>
-        </div>
-      `,
+      heading: 'Faculty Activation',
+      leadIn: 'Use this OTP to activate your faculty account:',
     })
 
-    logOtpForDev('faculty activation', user, otp)
-
-    const maskedEmail = maskEmail(recipient)
-
-    res.json({ success: true, name: user.name, maskedEmail })
+    res.json({ success: true, name: user.name, maskedEmail: maskEmail(recipient) })
   } catch (err) {
-    res.status(500).json({ success: false, error: 'An internal server error occurred' })
+    respondOtpSendFailure(res, req.params.email, err)
   }
 })
 
@@ -432,16 +581,10 @@ router.post('/faculty/verify-otp', async (req, res) => {
 
     if (!user) return res.status(404).json({ success: false, error: 'Faculty account not found' })
 
-    // Check OTP matches
-    if (!user.otp || user.otp !== otp.trim()) {
-      return res.status(400).json({ success: false, error: 'Wrong OTP. Check your email.' })
-    }
-
-    // Check OTP hasn't expired
-    if (!user.otpExpiry || new Date() > user.otpExpiry) {
-      user.otp = ''; user.otpExpiry = null
-      await user.save()
-      return res.status(400).json({ success: false, error: 'OTP expired. Request a new one.' })
+    const problem = await checkOtp(user, otp)
+    if (problem) {
+      if (problem.clear) await clearOtp(user)
+      return res.status(problem.status).json({ success: false, error: problem.error })
     }
 
     // OTP verified — give a short-lived activation token (5 min)
@@ -451,12 +594,12 @@ router.post('/faculty/verify-otp', async (req, res) => {
       { expiresIn: '5m' }
     )
 
-    // Clear OTP so it can't be reused
-    user.otp = ''; user.otpExpiry = null
-    await user.save()
+    // Single-use
+    await clearOtp(user)
 
     res.json({ success: true, activationToken })
   } catch (err) {
+    console.error('[auth] faculty verify-otp failed', err?.message)
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
@@ -475,70 +618,35 @@ router.post('/forgot-password', async (req, res) => {
     let user
 
     if (rollNumber) {
-      user = await User.findOne({ rollNumber: rollNumber.toUpperCase(), role: { $in: ['student', 'cr'] } })
+      user = await User.findOne({ rollNumber: rollNumber.trim().toUpperCase(), role: { $in: ['student', 'cr'] } })
 
       if (!user) {
         return res.status(404).json({ success: false, error: 'Roll number not found' })
       }
-      if (!user.isVerified) {
-        return res.status(400).json({
-          success: false,
-          error: 'Account not activated yet. Go to Activate Account.',
-        })
-      }
     } else if (email) {
-      // Accept either the account email or the personal mailbox the OTP is
-      // actually delivered to, so the user can type whichever they were sent to.
-      user = await User.findOne({
-        $or: [{ email: email.toLowerCase() }, { personalEmail: email.toLowerCase() }],
-      })
+      user = await findUserByEmail(email)
 
       if (!user) {
         return res.status(404).json({ success: false, error: 'No account found with this email' })
       }
     }
 
-    const recipient = otpRecipient(user)
-    if (!recipient) {
+    // Required on both paths. Only the roll-number branch checked it, which
+    // let a password be set on an account that had never been activated.
+    if (!user.isVerified) {
       return res.status(400).json({
         success: false,
-        error: 'No email registered for this account. Contact your HOD.',
+        error: 'Account not activated yet. Go to Activate Account.',
       })
     }
 
-    // Generate OTP — valid for 10 minutes
-    const otp = generateOTP()
-    user.otp       = otp
-    user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000)
-    await user.save()
-
-    // Send OTP email
-    await sendEmail({
-      to: recipient,
+    const recipient = await deliverOtp(user, {
+      purpose: 'password reset',
       subject: 'Electro Infinity — Password Reset OTP',
-      html: `
-        <div style="font-family:monospace; max-width:480px; margin:0 auto; padding:32px; background:#07060E; color:#F0EFF8; border:1px solid rgba(255,255,255,0.1);">
-          <h2 style="font-family:serif; font-size:22px; margin:0 0 8px;">Password Reset</h2>
-          <p style="opacity:0.6; font-size:14px; margin:0 0 24px;">Electro Infinity · EE Club, AGEMC</p>
-
-          <p style="font-size:14px; margin:0 0 16px;">Hi ${user.name},</p>
-          <p style="font-size:14px; opacity:0.8; margin:0 0 24px;">
-            Your OTP to reset your password:
-          </p>
-
-          <div style="background:rgba(102,87,245,0.15); border:1px solid rgba(102,87,245,0.4); padding:20px; text-align:center; margin:0 0 24px;">
-            <span style="font-size:36px; letter-spacing:12px; font-weight:bold; color:#9D90FA;">${otp}</span>
-          </div>
-
-          <p style="font-size:13px; opacity:0.5; margin:0 0 8px;">⏱ This OTP expires in 10 minutes.</p>
-          <p style="font-size:13px; opacity:0.5; margin:0;">If you didn't request this, ignore this email.</p>
-        </div>
-      `,
+      heading: 'Password Reset',
+      leadIn: 'Your OTP to reset your password:',
     })
 
-    logOtpForDev('password reset', user, otp)
-
-    // Return masked email so user knows where OTP was sent
     const maskedEmail = maskEmail(recipient)
 
     res.json({
@@ -547,8 +655,7 @@ router.post('/forgot-password', async (req, res) => {
       maskedEmail,
     })
   } catch (err) {
-    console.error('[auth] forgot-password OTP failed for', req.body?.rollNumber || req.body?.email, err?.message, err?.stack)
-    res.status(500).json({ success: false, error: 'Failed to send OTP. Try again.' })
+    respondOtpSendFailure(res, req.body?.rollNumber || req.body?.email, err)
   }
 })
 
@@ -569,26 +676,17 @@ router.post('/verify-otp', async (req, res) => {
     let user
 
     if (rollNumber) {
-      user = await User.findOne({ rollNumber: rollNumber.toUpperCase(), role: { $in: ['student', 'cr'] } })
+      user = await User.findOne({ rollNumber: rollNumber.trim().toUpperCase(), role: { $in: ['student', 'cr'] } })
     } else if (email) {
-      user = await User.findOne({
-        $or: [{ email: email.toLowerCase() }, { personalEmail: email.toLowerCase() }],
-      })
+      user = await findUserByEmail(email)
     }
 
     if (!user) return res.status(404).json({ success: false, error: 'User not found' })
 
-    // Check OTP matches
-    if (!user.otp || user.otp !== otp.trim()) {
-      return res.status(400).json({ success: false, error: 'Wrong OTP. Check your email.' })
-    }
-
-    // Check OTP hasn't expired
-    if (!user.otpExpiry || new Date() > user.otpExpiry) {
-      // Clear expired OTP
-      user.otp = ''; user.otpExpiry = null
-      await user.save()
-      return res.status(400).json({ success: false, error: 'OTP expired. Request a new one.' })
+    const problem = await checkOtp(user, otp)
+    if (problem) {
+      if (problem.clear) await clearOtp(user)
+      return res.status(problem.status).json({ success: false, error: problem.error })
     }
 
     // OTP verified — give a short-lived reset token (5 min) so they can set a new password
@@ -598,12 +696,12 @@ router.post('/verify-otp', async (req, res) => {
       { expiresIn: '5m' }
     )
 
-    // Clear OTP so it can't be reused
-    user.otp = ''; user.otpExpiry = null
-    await user.save()
+    // Single-use
+    await clearOtp(user)
 
     res.json({ success: true, resetToken })
   } catch (err) {
+    console.error('[auth] verify-otp failed', err?.message)
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
@@ -638,6 +736,10 @@ router.post('/reset-password', async (req, res) => {
     if (!user) return res.status(404).json({ success: false, error: 'User not found' })
 
     user.password = newPassword
+    user.otp = ''
+    user.otpExpiry = null
+    user.otpSentAt = null
+    user.otpAttempts = 0
     await user.save()
 
     res.json({ success: true, message: 'Password reset successfully! You can now log in.' })
