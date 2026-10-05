@@ -84,7 +84,10 @@ export const NAV_GROUPS = [
   },
 ]
 
-export const STANDALONE_LINKS = [{ to: '/contact', label: 'Contact', icon: Mail }]
+export const STANDALONE_LINKS = [
+  { to: '/blog', label: 'Blog', icon: BookOpen },
+  { to: '/contact', label: 'Contact', icon: Mail },
+]
 
 /** Children the mobile overlay menu is allowed to render. */
 export const mobileGroups = () => NAV_GROUPS.map((g) => ({ ...g, children: g.children.filter((c) => c.mobile !== false) }))

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { ChevronDown, Play, ArrowRight } from 'lucide-react'
+import { ChevronDown, ArrowRight, ExternalLink } from 'lucide-react'
 import { getResources, downloadResource } from '../api/resources'
 import { getSubjects } from '../api/subjects'
 import { getYTLectures } from '../api/ytLectures'
@@ -11,18 +11,20 @@ import { BRAND_NAME } from '../config/brand'
 import UploaderInfo from '../components/UploaderInfo'
 import ScrollReveal from '../components/ScrollReveal'
 
-const TABS = [
-  { id: 'notes',        label: 'Study Materials',  type: 'notes' },
-  { id: 'pyqs',         label: 'PYQs',             type: 'pyqs' },
-  { id: 'assignment',   label: 'Assignments',      type: 'assignment' },
-  { id: 'lab_manual',   label: 'Lab Manuals',      type: 'lab_manual' },
-  { id: 'yt_lectures',  label: 'YT Lectures',      type: 'yt_lectures' },
+const FILTERS = [
+  { id: '',          label: 'All' },
+  { id: 'notes',     label: 'Notes' },
+  { id: 'books',     label: 'Books' },
+  { id: 'organisers',label: 'Organisers' },
+  { id: 'pyqs',      label: 'PYQs' },
+  { id: 'yt playlist',label: 'YT Playlist' },
+  { id: 'yt-lectures', label: 'YT Lectures' },
 ]
 
 const SEMS = [1,2,3,4,5,6,7,8]
 
 export default function Resources() {
-  const [activeTab, setActiveTab] = useState(TABS[0])
+  const [activeFilter, setActiveFilter] = useState('')
   const [semesterFilter, setSemesterFilter] = useState('')
   const [subjectFilter, setSubjectFilter] = useState('')
   const [isDesktop, setIsDesktop] = useState(
@@ -37,28 +39,15 @@ export default function Resources() {
     return () => mql.removeEventListener('change', handler)
   }, [])
 
-  const isYTLectures = activeTab.type === 'yt_lectures'
-
   const { data: resData, isLoading: rLoading } = useQuery({
-    queryKey: ['resources', activeTab.type, semesterFilter, subjectFilter],
+    queryKey: ['resources', activeFilter, semesterFilter, subjectFilter],
     queryFn: () => {
-      const params = { type: activeTab.type }
+      const params = {}
+      if (activeFilter) params.type = activeFilter
       if (semesterFilter) params.semester = Number(semesterFilter)
       if (subjectFilter) params.subject = subjectFilter
       return getResources(params).then(r => r.data)
     },
-    enabled: !isYTLectures,
-  })
-
-  const { data: ytData, isLoading: ytLoading } = useQuery({
-    queryKey: ['yt-lectures', semesterFilter, subjectFilter],
-    queryFn: () => {
-      const params = {}
-      if (semesterFilter) params.semester = Number(semesterFilter)
-      if (subjectFilter) params.subject = subjectFilter
-      return getYTLectures(params).then(r => r.data)
-    },
-    enabled: isYTLectures,
   })
 
   const { data: subjectsData } = useQuery({
@@ -67,8 +56,22 @@ export default function Resources() {
   })
   const subjects = subjectsData?.data || []
 
-  const isLoading = isYTLectures ? ytLoading : rLoading
-  const data = isYTLectures ? ytData?.data : resData?.data
+  const isLoading = rLoading
+  const data = resData?.data
+
+  const isYTFilters = activeFilter === 'yt-lectures'
+
+  const { data: ytData, isLoading: ytLoading } = useQuery({
+    queryKey: ['yt-lectures', semesterFilter, subjectFilter],
+    enabled: isYTFilters,
+    queryFn: () => {
+      const params = {}
+      if (semesterFilter) params.semester = Number(semesterFilter)
+      if (subjectFilter) params.subject = subjectFilter
+      return getYTLectures(params).then(r => r.data)
+    },
+  })
+  const ytLectures = ytData?.data || []
 
   return (
     <div className="min-h-screen bg-white text-ink pt-36 pb-28">
@@ -98,20 +101,20 @@ export default function Resources() {
       </ScrollReveal>
 
         <div className="flex gap-2 pb-4 mb-10 overflow-x-auto border-b border-hairline scrollbar-thin">
-          {TABS.map(tab => (
+          {FILTERS.map(f => (
             <button
-              key={tab.id}
+              key={f.id}
               onClick={() => {
-                setActiveTab(tab)
+                setActiveFilter(f.id)
                 setSemesterFilter('')
                 setSubjectFilter('')
               }}
               className={'font-sans text-[13px] sm:text-[14px] font-medium px-4 py-2.5 rounded-full transition-all whitespace-nowrap shrink-0 ' +
-                (activeTab.id === tab.id
+                (activeFilter === f.id
                   ? 'bg-primary text-white'
                   : 'bg-soft-stone text-muted hover:text-ink')}
             >
-              {tab.label}
+              {f.label}
             </button>
           ))}
         </div>
@@ -143,21 +146,27 @@ export default function Resources() {
           </div>
         </div>
 
-        <div key={activeTab.id} className="animate-in h-[calc(100vh-15rem)] min-h-[600px]">
-          {isLoading ? (
+        <div key={activeFilter} className="animate-in min-h-[calc(100vh-15rem)] min-h-[600px]">
+          {isLoading || (isYTFilters && ytLoading) ? (
             <SkeletonGrid />
+          ) : isYTFilters ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {ytLectures.length > 0
+                ? ytLectures.map(lecture =>
+                    <YTLectureCard key={lecture._id} lecture={lecture} />
+                  )
+                : <Empty label={activeFilter ? activeFilter.toLowerCase().replace(/[-\s]/g, ' ') : 'yt lectures'} user={user} />}
+            </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {data?.length > 0
                 ? data.map(item =>
-                    isYTLectures
-                      ? <YTLectureCard key={item._id} lecture={item} />
-                      : <ResourceCard
-                          key={item._id}
-                          resource={item}
-                        />
+                    <ResourceCard
+                      key={item._id}
+                      resource={item}
+                    />
                   )
-                : <Empty label={activeTab.label.toLowerCase()} user={user} />}
+                : <Empty label={activeFilter ? activeFilter.toLowerCase() : 'resources'} user={user} />}
             </div>
           )}
         </div>
@@ -211,9 +220,6 @@ function FilterSelect({ value, onChange, options, placeholder }) {
         />
       </button>
 
-      {/* w-full, not 100vw: inside the Main panel 100vw resolves to the
-          viewport, which is a scrollbar-width too wide and made the page
-          overflow horizontally. */}
       {open && (
         <div className="absolute left-0 z-50 mt-2 w-full min-w-[220px] bg-white border border-hairline rounded-lg shadow-lg py-1.5 animate-in fade-in duration-150 origin-top overflow-hidden"
           style={{ animationTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
@@ -280,50 +286,53 @@ function ResourceCard({ resource: r }) {
   )
 }
 
-function YTLectureCard({ lecture: l }) {
-  const thumbnail = l.thumbnail || `https://img.youtube.com/vi/${l.youtubeVideoId}/maxresdefault.jpg`
-  const youtubeUrl = `https://www.youtube.com/watch?v=${l.youtubeVideoId}`
+function YTLectureCard({ lecture }) {
+  const ytUrl = `https://www.youtube.com/watch?v=${lecture.youtubeVideoId}`
 
   return (
-    <div className="flex flex-col overflow-hidden transition-colors border border-hairline bg-white rounded-lg hover:bg-soft-stone/30 group">
-      <div className="relative overflow-hidden aspect-video bg-soft-stone">
+    <div className="flex flex-col justify-between p-0 transition-colors border border-hairline bg-white rounded-lg hover:bg-soft-stone/30 group overflow-hidden">
+      <a
+        href={ytUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block relative w-full aspect-video bg-black overflow-hidden"
+      >
         <img
-          src={thumbnail}
-          alt={l.title}
-          className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-          onError={(e) => {
-            e.target.src = `https://img.youtube.com/vi/${l.youtubeVideoId}/hqdefault.jpg`
-          }}
+          src={lecture.thumbnail || `https://img.youtube.com/vi/${lecture.youtubeVideoId}/hqdefault.jpg`}
+          alt={lecture.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        <span className="absolute top-3 left-3 font-mono text-[11px] font-medium uppercase tracking-wider px-2.5 py-1 rounded-md bg-ink/80 text-white">
-          Lec {l.lectureNumber}
+        <span className="absolute bottom-2 left-2 font-mono text-[11px] font-medium uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-black/60 text-white border border-white/20">
+          Lec {lecture.lectureNumber}
         </span>
-        <a
-          href={youtubeUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="absolute inset-0 flex items-center justify-center"
-        >
-          <span className="flex items-center justify-center w-12 h-12 transition-transform rounded-full bg-white/90 group-hover:scale-110">
-            <Play size={20} className="ml-1 text-primary" fill="currentColor" />
-          </span>
-        </a>
-      </div>
+      </a>
 
-      <div className="flex flex-col flex-1 p-5">
+      <div className="p-5">
         <h3 className="font-sans text-[15px] font-medium text-ink leading-snug line-clamp-2">
-          {l.title}
+          {lecture.title}
         </h3>
-        <UploaderInfo user={l.uploadedBy} size="w-6 h-6" />
-        <div className="flex flex-wrap items-center gap-2 mt-3">
-          {l.semester && (
+        <div className="flex items-center gap-2 mt-2.5">
+          {lecture.semester && (
             <span className="font-mono text-[11px] font-medium uppercase px-2.5 py-0.5 rounded-full bg-soft-stone text-ink">
-              Sem {l.semester}
+              Sem {lecture.semester}
             </span>
           )}
-          {l.subject && (
-            <span className="font-sans text-[12px] text-muted">{l.subject}</span>
+          {lecture.subject && (
+            <span className="font-sans text-[12px] text-muted truncate">{lecture.subject}</span>
           )}
+        </div>
+        <UploaderInfo user={lecture.uploadedBy} size="w-5 h-5" />
+
+        <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-hairline">
+          <a
+            href={ytUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 font-sans text-[12px] font-semibold text-primary hover:text-primary/80 transition-colors"
+          >
+            <ExternalLink size={13} />
+            Watch on YouTube
+          </a>
         </div>
       </div>
     </div>

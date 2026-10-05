@@ -99,6 +99,7 @@ export default function Placements() {
 
   const RECRUITERS = recruiters.map(r => ({
     name: r.name,
+    logoUrl: r.logoUrl,
     role: r.type === 'both' ? 'Placements & Internships' : r.type === 'placement' ? 'Placements' : 'Internships',
     placed: '—',
   }))
@@ -108,6 +109,7 @@ export default function Placements() {
     company: i.company,
     stipend: i.package || '—',
     deadline: '',
+    photoUrl: i.photoUrl,
   }))
 
   const ALUMNI = alumni.map(a => ({
@@ -116,6 +118,7 @@ export default function Placements() {
     role: a.currentRole,
     desc: a.quote,
     batch: a.batchYear,
+    photoUrl: a.photoUrl,
   }))
 
   return (
@@ -167,8 +170,12 @@ export default function Placements() {
                 {RECRUITERS.map(r => (
                   <div key={r.name} className="flex items-center justify-between gap-4 p-6 hover:bg-white/5 transition-colors md:p-8">
                     <div className="flex items-center gap-5">
-                      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg border border-white/20 bg-white/10 font-sans text-[14px] font-medium text-white">
-                        {r.name.slice(0, 2).toUpperCase()}
+                      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg border border-white/20 bg-white/10 overflow-hidden">
+                        {r.logoUrl ? (
+                          <img src={r.logoUrl} alt={r.name} className="w-full h-full object-contain p-1" />
+                        ) : (
+                          <span className="font-sans text-[14px] font-medium text-white">{r.name.slice(0, 2).toUpperCase()}</span>
+                        )}
                       </div>
                       <div>
                         <h3 className="font-sans text-[16px] font-medium text-white">{r.name}</h3>
@@ -208,7 +215,11 @@ export default function Placements() {
                     <a href="#" className="button-secondary font-sans text-[13px]">
                       Apply Now →
                     </a>
-                    <span className="h-8 w-8 rounded-lg bg-signature-yellow" />
+                    {i.photoUrl ? (
+                      <img src={i.photoUrl} alt={i.title} className="h-8 w-8 rounded-lg object-cover" />
+                    ) : (
+                      <span className="h-8 w-8 rounded-lg bg-signature-yellow" />
+                    )}
                   </div>
                 </div>
               ))}
@@ -229,8 +240,12 @@ export default function Placements() {
               {ALUMNI.map((a, idx) => (
                 <div key={a.name} className={'rounded-lg p-6 md:p-8 ' + (Number(a.batch) % 2 === 0 ? 'bg-signature-peach' : 'bg-signature-mint')}>
                   <div className="flex gap-5">
-                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white font-sans text-[14px] font-medium text-ink">
-                      {a.initials}
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white overflow-hidden">
+                      {a.photoUrl ? (
+                        <img src={a.photoUrl} alt={a.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="font-sans text-[14px] font-medium text-ink">{a.initials}</span>
+                      )}
                     </div>
                     <div className="min-w-0">
                       <h3 className="font-sans text-[17px] font-medium text-ink">{a.name}</h3>

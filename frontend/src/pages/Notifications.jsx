@@ -119,7 +119,7 @@ export default function Notifications() {
               <p className="font-sans text-[13px] text-slate mt-1 max-w-xs">
                 {activeFilter === 'unread'
                   ? 'All caught up! Check back later.'
-                  : "You'll be notified about important activity across ${BRAND_NAME}"}
+                  : `You'll be notified about important activity across ${BRAND_NAME}`}
               </p>
             </div>
           ) : (

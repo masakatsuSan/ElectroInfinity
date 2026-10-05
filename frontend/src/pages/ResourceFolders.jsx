@@ -40,7 +40,7 @@ export default function ResourceFolders() {
   const folder = id ? folderData : null
 
   return (
-    <div className="min-h-screen bg-white text-ink pt-36 pb-28">
+    <div className="min-h-screen bg-white text-ink pt-36 pb-96 lg:pb-28">
       <SEO
         title="Study Folders &amp; Series | College Connect"
         description="Semester-wise, subject-wise curated folders of notes, PDFs, and YouTube lecture series."
@@ -54,7 +54,7 @@ export default function ResourceFolders() {
             ) : !folder ? (
               <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80 text-[15px]">Folder not found.</p>
             ) : (
-              <FolderDetail key={id} folder={folder} onPreview={setPreviewResource} />
+              <FolderDetail key={id} folder={folder} />
             )}
           </>
         ) : (

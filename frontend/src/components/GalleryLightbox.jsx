@@ -1,5 +1,6 @@
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 export default function GalleryLightbox({ images, initialIndex = 0, onClose }) {
   const [index, setIndex] = useState(initialIndex)
@@ -16,8 +17,8 @@ export default function GalleryLightbox({ images, initialIndex = 0, onClose }) {
 
   if (!images || images.length === 0) return null
 
-  return (
-    <div data-lenis-prevent className="fixed inset-0 z-50 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+  return createPortal(
+    <div data-lenis-prevent className="fixed inset-0 z-60 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
       <button
         onClick={onClose}
         className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-colors z-10"
@@ -52,6 +53,7 @@ export default function GalleryLightbox({ images, initialIndex = 0, onClose }) {
           {index + 1} / {images.length}
         </div>
       </div>
-    </div>
-  )
+    </div>,
+  document.body
+)
 }

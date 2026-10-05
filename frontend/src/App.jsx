@@ -79,7 +79,7 @@ const AnimatedRoute = ({ children }) => {
   const location = useLocation()
 
   return (
-    <div className="flex flex-col flex-1 w-full h-full">
+    <div className="flex flex-col w-full">
       <Suspense fallback={<RouteFallback />}>
         <ErrorBoundary resetKey={location.pathname} fallback={<PageError resetKey={location.pathname} />}>
           {children}
@@ -170,7 +170,7 @@ export default function App() {
       </Routes>
 
         <DesktopShell>
-          <main className="flex flex-1 flex-col" style={{ viewTransitionName: 'main-content' }}>
+          <main className="flex flex-col flex-1" style={{ viewTransitionName: 'main-content' }}>
           <Routes location={location} key={pageKey}>
             <Route path="/"             element={<AnimatedRoute><Home /></AnimatedRoute>} />
             <Route path="/about"        element={<AnimatedRoute><About /></AnimatedRoute>} />
