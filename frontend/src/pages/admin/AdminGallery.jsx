@@ -114,13 +114,13 @@ export default function AdminGallery() {
         : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {photos.map(p => (
-              <div key={p._id} className="border border-hairline rounded-22px overflow-hidden shadow-card bg-[#fff] group">
+              <div key={p._id} className="border border-hairline rounded-22px overflow-hidden shadow-card bg-[#fff] group relative">
                 <img src={p.imageUrl} alt={p.title} className="w-full aspect-video object-cover" />
                 <div className="p-4">
                   <p className="text-[15px] font-medium text-ink truncate">{p.title || p.category}</p>
                   <p className="font-mono text-[11px] text-slate uppercase mt-1">{p.category}</p>
                 </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-[#fff]-parchment/80 absolute top-2 right-2">
+                <div className="flex gap-1 absolute top-2 right-2">
                   <button onClick={() => openEdit(p)} className="font-[Inter,system-ui,sans-serif] text-[12px] font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors px-2.5 py-1 rounded-md">Edit</button>
                   <button onClick={() => { if (window.confirm('Remove this photo?')) deleteMut.mutate(p._id) }}
                     className="font-[Inter,system-ui,sans-serif] text-[12px] font-medium text-red-500/70 hover:text-red-500 transition-colors bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1 rounded-md">Delete</button>

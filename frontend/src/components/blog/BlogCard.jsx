@@ -59,7 +59,11 @@ export default function BlogCard({ post }) {
           </div>
           <div>
             <p className="font-sans text-[13px] font-medium text-ink">{authorName}</p>
-            <p className="font-sans text-[12px] text-muted">{date}</p>
+            <p className="font-sans text-[12px] text-muted">
+              {date}
+              {post.readTime ? ` · ${post.readTime} min read` : ''}
+              {typeof post.clapCount === 'number' && post.clapCount > 0 ? ` · ${post.clapCount} claps` : ''}
+            </p>
           </div>
         </div>
       </div>
