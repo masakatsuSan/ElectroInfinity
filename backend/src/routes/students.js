@@ -18,8 +18,10 @@ router.get('/batch/:batch', protect, async (req, res) => {
       })
     }
 
+    // Email addresses are not part of the directory payload —
+    // they used to be exposed to every student/CR across batches.
     const students = await User.find({ batch: req.params.batch, role: { $in: ['student', 'cr'] } })
-      .select('name rollNumber email batch semester role photo profile.socialLinks friends')
+      .select('name rollNumber batch semester role photo profile.socialLinks friends')
       .sort({ rollNumber: 1 })
 
     const viewerId = req.user._id
@@ -59,7 +61,7 @@ router.get('/all', protect, async (req, res) => {
     }
 
     const students = await User.find(filter)
-      .select('name rollNumber email batch semester role photo profile.socialLinks friends')
+      .select('name rollNumber batch semester role photo profile.socialLinks friends')
       .sort({ batch: -1, rollNumber: 1 })
 
     const viewerId = req.user._id
