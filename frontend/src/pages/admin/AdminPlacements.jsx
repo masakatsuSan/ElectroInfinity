@@ -301,6 +301,8 @@ const handleSave = () => {
           Object.entries(form).forEach(([k, v]) => {
             if (v !== undefined && v !== null && v !== '') fd.append(k, v)
           })
+          const fieldName = tab === 'recruiters' ? 'logo' : 'photo'
+          fd.append(fieldName, file)
           return fd
         })()
       : form

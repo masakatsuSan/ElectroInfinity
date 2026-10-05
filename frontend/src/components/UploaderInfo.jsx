@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
 export default function UploaderInfo({ user, size = 'w-6 h-6', className = '', children }) {
-  const name = user?.name || 'Unknown'
+  const name = user?.name || user?.role?.replace('_', ' ') || 'Unknown'
   const initials =
     name.split(' ').filter(Boolean).map((p) => p[0]).slice(0, 2).join('').toUpperCase() || 'S'
   const hasId = user?._id

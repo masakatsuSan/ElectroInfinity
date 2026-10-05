@@ -15,6 +15,7 @@ const BLANK_META = {
   tags: '',
   cover: '',
   coverAlt: '',
+  status: 'draft',
 }
 
 export default function AdminBlogEditor() {
@@ -44,6 +45,7 @@ export default function AdminBlogEditor() {
         tags: (data.tags || []).join(', '),
         cover: data.cover || '',
         coverAlt: data.coverAlt || data.title || '',
+        status: data.status || 'draft',
       })
       setBlocks(data.blocks || [])
     }
@@ -164,12 +166,6 @@ export default function AdminBlogEditor() {
       </div>
     )
   }
-
-  useEffect(() => {
-    if (data) {
-      setMeta((m) => ({ ...m, status: data.status || 'draft' }))
-    }
-  }, [data])
 
   const status = meta.status || 'draft'
 

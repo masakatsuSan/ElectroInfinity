@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getGallery, createGalleryPhoto, getGalleryImageUrl } from '../api/gallery'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import { useScrollLock } from '../context/LayoutContext'
 import SEO from '../components/SEO'
 import { BRAND_NAME } from '../config/brand'
 import { Plus, X, Upload } from 'lucide-react'
@@ -19,6 +21,9 @@ export default function Gallery() {
   const [active, setActive] = useState('All')
   const [selectedIndex, setSelectedIndex] = useState(null)
   const [showUpload, setShowUpload] = useState(false)
+  const [failedImages, setFailedImages] = useState({})
+
+  useScrollLock(selectedIndex !== null || showUpload)
 
   const { data, isLoading } = useQuery({
     queryKey: ['gallery'],
@@ -120,23 +125,33 @@ export default function Gallery() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((img, i) => (
               <ScrollReveal key={i} variant="scaleIn" delay={i * 0.08}>
-                <div view-transition-name={`gallery-image-${i}`}>
-                  <button
-                    onClick={() => setSelectedIndex(i)}
-                    className={`relative overflow-hidden group block w-full text-left rounded-md border border-divider-soft bg-white shadow-sm ${GALLERY_RATIOS[i % GALLERY_RATIOS.length]}`}
-                  >
-                    <img
-                      src={img.url}
-                      alt={img.label}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                      style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
-                    />
-                    <div className="absolute inset-0 bg-ink/55 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4" style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
-                      <p className="font-sans text-[13px] font-medium text-white">
-                        {img.label}
-                      </p>
-                    </div>
-                  </button>
+                    <div view-transition-name={`gallery-image-${i}`}>
+                      <button
+                        onClick={() => setSelectedIndex(i)}
+                        className={`relative overflow-hidden group block w-full text-left rounded-md border border-divider-soft bg-white shadow-sm ${GALLERY_RATIOS[i % GALLERY_RATIOS.length]}`}
+                      >
+                        {failedImages[img._id] ? (
+                          <div className="w-full h-full flex items-center justify-center bg-surface-soft">
+                            <div className="text-center p-4">
+                              <p className="font-sans text-[13px] font-medium text-ink truncate max-w-[200px]">{img.label}</p>
+                              <p className="font-sans text-[11px] text-muted mt-1">Image unavailable</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <img
+                            src={img.url}
+                            alt={img.label}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                            style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
+                            onError={() => setFailedImages((prev) => ({ ...prev, [img._id]: true }))}
+                          />
+                        )}
+                        <div className="absolute inset-0 bg-ink/55 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4" style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
+                          <p className="font-sans text-[13px] font-medium text-white">
+                            {img.label}
+                          </p>
+                        </div>
+                      </button>
                   {img.uploadedBy && (
                     <UploaderInfo user={img.uploadedBy} size="w-6 h-6" className="mt-3 px-1 gap-2" />
                   )}
@@ -155,71 +170,85 @@ export default function Gallery() {
           </div>
         )}
 
-        {selectedIndex !== null && (
-          <div
-            data-lenis-prevent
-            className="fixed inset-0 z-50 bg-ink/70 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setSelectedIndex(null)
-            }}
-          >
-            <button
-              onClick={() => setSelectedIndex(null)}
-              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white text-ink border border-hairline flex items-center justify-center z-10"
-              aria-label="Close"
+        {selectedIndex !== null &&
+          createPortal(
+            <div
+              data-lenis-prevent
+              className="fixed inset-0 z-60 bg-ink/70 backdrop-blur-sm flex items-center justify-center p-4"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setSelectedIndex(null)
+              }}
             >
-              <X size={18} />
-            </button>
+              <button
+                onClick={() => setSelectedIndex(null)}
+                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white text-ink border border-hairline flex items-center justify-center z-10"
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
 
-            <button
-              onClick={() => setSelectedIndex((selectedIndex - 1 + filtered.length) % filtered.length)}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-ink z-10 bg-white border border-hairline rounded-full w-12 h-12 flex items-center justify-center"
-              aria-label="Previous"
-            >
-              ‹
-            </button>
+              <button
+                onClick={() => setSelectedIndex((selectedIndex - 1 + filtered.length) % filtered.length)}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-ink z-10 bg-white border border-hairline rounded-full w-12 h-12 flex items-center justify-center"
+                aria-label="Previous"
+              >
+                ‹
+              </button>
 
-            <button
-              onClick={() => setSelectedIndex((selectedIndex + 1) % filtered.length)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-ink z-10 bg-white border border-hairline rounded-full w-12 h-12 flex items-center justify-center"
-              aria-label="Next"
-            >
-              ›
-            </button>
+              <button
+                onClick={() => setSelectedIndex((selectedIndex + 1) % filtered.length)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-ink z-10 bg-white border border-hairline rounded-full w-12 h-12 flex items-center justify-center"
+                aria-label="Next"
+              >
+                ›
+              </button>
 
-            <img
-              src={filtered[selectedIndex].url}
-              alt={filtered[selectedIndex].label}
-              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-lg"
-            />
-            {filtered[selectedIndex].uploadedBy && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-ink text-white px-4 py-2 rounded-md">
-                <div className="relative w-6 h-6 rounded-full overflow-hidden bg-white/20 shrink-0">
-                  {filtered[selectedIndex].uploadedBy.photo ? (
-                    <img src={filtered[selectedIndex].uploadedBy.photo} alt={filtered[selectedIndex].uploadedBy.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="font-sans text-[9px] font-medium text-white">
-                        {(filtered[selectedIndex].uploadedBy.name || 'S').split(' ').filter(Boolean).map(p => p[0]).slice(0, 2).join('').toUpperCase()}
-                      </span>
-                    </div>
-                  )}
+              {!failedImages[`lightbox-${filtered[selectedIndex]._id}`] ? (
+                <img
+                  src={filtered[selectedIndex].url}
+                  alt={filtered[selectedIndex].label}
+                  className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-lg"
+                  onError={() => setFailedImages((prev) => ({ ...prev, [`lightbox-${filtered[selectedIndex]._id}`]: true }))}
+                />
+              ) : (
+                <div className="max-w-full max-h-[85vh] flex items-center justify-center">
+                  <div className="bg-white border border-hairline rounded-lg shadow-lg p-8 text-center">
+                    <p className="font-sans text-[14px] text-muted">{filtered[selectedIndex].label}</p>
+                    <p className="font-sans text-[12px] text-muted mt-1">Image unavailable</p>
+                  </div>
                 </div>
-                <span className="font-sans text-[13px] font-medium">
-                  {filtered[selectedIndex].uploadedBy.name || 'Unknown'}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+              {filtered[selectedIndex].uploadedBy && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-ink text-white px-4 py-2 rounded-md">
+                  <div className="relative w-6 h-6 rounded-full overflow-hidden bg-white/20 shrink-0">
+                    {filtered[selectedIndex].uploadedBy.photo ? (
+                      <img src={filtered[selectedIndex].uploadedBy.photo} alt={filtered[selectedIndex].uploadedBy.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="font-sans text-[9px] font-medium text-white">
+                          {(filtered[selectedIndex].uploadedBy.name || 'S').split(' ').filter(Boolean).map(p => p[0]).slice(0, 2).join('').toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <span className="font-sans text-[13px] font-medium">
+                    {filtered[selectedIndex].uploadedBy.name || 'Unknown'}
+                  </span>
+                </div>
+              )}
+            </div>,
+            document.body
+          )}
 
-        {showUpload && (
-          <UploadModal
-            onClose={() => setShowUpload(false)}
-            onSubmit={(data) => createMut.mutate(data)}
-            loading={createMut.isPending}
-          />
-        )}
+        {showUpload &&
+          createPortal(
+            <UploadModal
+              onClose={() => setShowUpload(false)}
+              onSubmit={(data) => createMut.mutate(data)}
+              loading={createMut.isPending}
+            />,
+            document.body
+          )}
       </div>
     </div>
   )
@@ -258,7 +287,7 @@ function UploadModal({ onClose, onSubmit, loading }) {
   }
 
   return (
-    <div data-lenis-prevent className="fixed inset-0 z-50 bg-ink/64 flex items-center justify-center p-4">
+    <div data-lenis-prevent className="fixed inset-0 z-60 bg-ink/64 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
       <div className="bg-white text-ink border border-hairline rounded-lg w-full max-w-xl max-h-[90vh] flex flex-col shadow-lg overflow-hidden">
         <div className="p-6 border-b border-hairline flex items-center justify-between">
           <div>

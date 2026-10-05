@@ -4,6 +4,7 @@ const recruiterSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 200 },
     logoUrl: { type: String, required: true, trim: true },
+    logoPublicId: { type: String, trim: true, default: '' },
     website: { type: String, trim: true, default: '' },
     type: {
       type: String,

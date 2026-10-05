@@ -5,7 +5,7 @@
  */
 import BrandLogo from './BrandLogo'
 
-export default function PageError({ resetKey }) {
+export default function PageError({ resetKey, resetErrorBoundary }) {
   return (
     <div className="w-full max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8 pt-28 pb-24">
       <div className="max-w-lg mx-auto flex flex-col items-center text-center py-16">
