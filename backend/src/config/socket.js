@@ -3,24 +3,46 @@ const User = require('../models/User')
 const Channel = require('../models/Channel')
 const Message = require('../models/Message')
 const { getUnreadCount } = require('../utils/notification')
+const { verifyAccessToken } = require('../utils/tokens')
+const logger = require('../utils/logger')
+
+// Socket.IO connections are cross-origin in production, so the
+// CORS allowlist must be explicit — never a wildcard with
+// credentials, and never `true` (allow anything).
+function allowedOrigins() {
+  const raw = process.env.ALLOWED_ORIGINS || process.env.CLIENT_URL || ''
+  const origins = raw
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean)
+  return origins.length ? origins : false
+}
 
 function initSocket(server) {
   const { Server } = require('socket.io')
   const io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || true,
+      origin: allowedOrigins(),
       credentials: true,
     },
   })
 
   io.use(async (socket, next) => {
     try {
+      // Accept the access token from handshake auth (existing
+      // clients) or the access_token cookie (browser clients).
       const token = socket.handshake.auth?.token
+        || socket.handshake.headers?.cookie?.match(/(?:^|;\s*)access_token=([^;]+)/)?.[1]
       if (!token) return next(new Error('Authentication required'))
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET)
+      // HS256 + explicit issuer, same rules as HTTP routes.
+      const decoded = verifyAccessToken(token)
       const user = await User.findById(decoded.id)
       if (!user) return next(new Error('User not found'))
+      if (user.isActive === false) return next(new Error('Account deactivated'))
+      if (decoded.tv !== undefined && user.tokenVersion !== decoded.tv) {
+        return next(new Error('Token invalidated'))
+      }
 
       socket.user = user
       next()
@@ -42,8 +64,23 @@ function initSocket(server) {
       }
     })
 
-    socket.on('join_channel', (channelId) => {
+    // Channel rooms are gated: a socket may only join a channel
+    // its role is allowed to read.
+    async function canAccessChannel(channelId) {
+      if (!channelId || !socket.user) return false
+      const channel = await Channel.findById(channelId).select('isActive allowedRoles').lean()
+      if (!channel || !channel.isActive) return false
+      return (channel.allowedRoles || []).includes(socket.user.role)
+    }
+
+    socket.on('join_channel', async (channelId, callback) => {
+      const allowed = await canAccessChannel(channelId)
+      if (!allowed) {
+        callback?.({ error: 'Access denied' })
+        return
+      }
       socket.join(`channel:${channelId}`)
+      callback?.({ success: true })
     })
 
     socket.on('leave_channel', (channelId) => {
@@ -106,14 +143,16 @@ function initSocket(server) {
         io.to(`channel:${channelId}`).emit('new_message', messageObj);
         callback?.({ success: true, data: messageObj });
       } catch (error) {
-        console.error('Socket send_message error:', error?.message);
+        logger.error({ event: 'socket_send_message_failed', err: error?.message })
         callback?.({ error: 'An internal server error occurred' });
       }
     });
 
-    socket.on('mark_typing', (data) => {
+    socket.on('mark_typing', async (data) => {
       const { channelId, isTyping } = data;
-      if (channelId && isTyping) {
+      // Only members of the channel may broadcast typing events
+      // into it.
+      if (channelId && isTyping && (await canAccessChannel(channelId))) {
         socket.to(`channel:${channelId}`).emit('user_typing', {
           userId: socket.user._id,
           userName: socket.user.name,
