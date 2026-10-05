@@ -66,15 +66,21 @@ const userSchema = new mongoose.Schema(
     // Legacy alias kept for compatibility with older student-management UI/screens
     isActivated: { type: Boolean, default: false },
 
-    // OTP for activation / forgot-password flow
-    // Stored as plain string — expires in 10 minutes, deleted after use
-    otp:       { type: String,  default: '' },
+    // OTP for activation / forgot-password flow.
+    // Stored bcrypt-HASHED (never plaintext); expires in 10 minutes,
+    // deleted after use.
+    otpHash:   { type: String, default: '' },
     otpExpiry: { type: Date,    default: null },
     // When the current code was sent — used to throttle resends so the flow
     // cannot be used to burn through the mail provider's quota.
     otpSentAt:   { type: Date,   default: null },
     // Wrong codes submitted against the current OTP; cleared on each new send.
     otpAttempts: { type: Number, default: 0 },
+
+    // Bumped on every password change/reset — access tokens carry this
+    // value (the `tv` claim), so a password change instantly invalidates
+    // all previously issued sessions.
+    tokenVersion: { type: Number, default: 0 },
 
     badges:    [{ type: String }],
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
@@ -127,5 +133,7 @@ userSchema.methods.comparePassword = async function (typed) {
 userSchema.index({ rollNumber: 1 })
 // Directory and batch listing filters.
 userSchema.index({ batch: 1, section: 1, role: 1 })
+// Password-change session invalidation lookups.
+userSchema.index({ tokenVersion: 1 })
 
 module.exports = mongoose.model('User', userSchema)
