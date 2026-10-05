@@ -40,8 +40,9 @@ const LINKS = [
   { to: '/admin/yt-lectures', label: 'YT Lectures',          icon: Play },
   { to: '/admin/deadlines',   label: 'Deadlines',            icon: Clock },
   { to: '/admin/routines',    label: 'Routine',              icon: CalendarClock },
-  { to: '/admin/contact',     label: 'Contacts',             icon: Mail },
+  { to: '/admin/contact',     label: 'Contacts',            icon: Mail },
   { to: '/admin/placements',  label: 'Placements',            icon: Briefcase },
+  { to: '/admin/posts',       label: 'Blog',                  icon: BookOpen },
 ]
 
 export default function AdminLayout() {

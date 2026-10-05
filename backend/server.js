@@ -59,6 +59,8 @@ app.use('/api/notifications', require('./src/routes/notifications'))
 app.use('/api/subjects',   require('./src/routes/subjects'))
 app.use('/api/folders',    require('./src/routes/folders'))
 
+// Phase 6 — Blog (admin authoring, public reading)
+app.use('/api/posts',    require('./src/routes/posts'))
 app.use('/api/attendance', require('./src/routes/attendance'))
 app.get('/api/health', (req, res) =>
   res.json({ success: true, message: 'College Connect API is running ⚡' })

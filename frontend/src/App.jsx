@@ -66,6 +66,10 @@ const AdminYTLectures = lazy(() => import('./pages/admin/AdminYTLectures'))
 const AdminPlacements = lazy(() => import('./pages/admin/AdminPlacements'))
 const AdminLogin     = lazy(() => import('./pages/admin/AdminLogin'))
 const AdminProfile   = lazy(() => import('./pages/admin/AdminProfile'))
+const AdminPosts     = lazy(() => import('./pages/admin/AdminPosts'))
+const AdminBlogEditor = lazy(() => import('./pages/admin/AdminBlogEditor'))
+const BlogList       = lazy(() => import('./pages/blog/BlogList'))
+const BlogPost       = lazy(() => import('./pages/blog/BlogPost'))
 const FacultyDashboard = lazy(() => import('./pages/faculty/FacultyDashboard'))
 const FacultyLogin     = lazy(() => import('./pages/faculty/FacultyLogin'))
 const FacultyActivate  = lazy(() => import('./pages/faculty/FacultyActivate'))
@@ -187,6 +191,8 @@ export default function App() {
             <Route path="/projects/:id" element={<AnimatedRoute><ProjectDetails /></AnimatedRoute>} />
             <Route path="/contact"      element={<AnimatedRoute><Contact /></AnimatedRoute>} />
             <Route path="/terms-and-conditions" element={<AnimatedRoute><TermsAndConditions /></AnimatedRoute>} />
+            <Route path="/blog" element={<AnimatedRoute><BlogList /></AnimatedRoute>} />
+            <Route path="/blog/:slug" element={<AnimatedRoute><BlogPost /></AnimatedRoute>} />
             <Route path="/profile/:id"  element={<AnimatedRoute><Profile /></AnimatedRoute>} />
             <Route path="/profile/me" element={
               <AnimatedRoute>
@@ -262,8 +268,11 @@ export default function App() {
                       <Route path="gallery"   element={<AdminGallery />} />
                       <Route path="achievements" element={<AdminAchievements />} />
                       <Route path="yt-lectures" element={<AdminYTLectures />} />
-                      <Route path="contact"   element={<AdminContact />} />
-                      <Route path="placements" element={<AdminPlacements />} />
+                      <Route path="contact"     element={<AdminContact />} />
+                      <Route path="placements"   element={<AdminPlacements />} />
+                      <Route path="posts"         element={<AdminPosts />} />
+                      <Route path="posts/new"     element={<AdminBlogEditor />} />
+                      <Route path="posts/:id/edit" element={<AdminBlogEditor />} />
                     </Route>
                   </Routes>
                 </ProtectedRoute>
