@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
-import { adminGetAllPosts, deletePost, publishPost, unpublishPost } from '../../api/posts'
+import { adminGetAllPosts, deletePost, publishPost, unpublishPost, archivePost } from '../../api/posts'
 import { useToast } from '../../context/ToastContext'
-import { Edit2, Trash2, Eye, EyeOff, Plus } from 'lucide-react'
+import { Edit2, Trash2, Eye, EyeOff, Plus, Archive } from 'lucide-react'
 
 const TABS = [
   { value: 'all', label: 'All Posts' },
   { value: 'draft', label: 'Drafts' },
   { value: 'published', label: 'Published' },
+  { value: 'archived', label: 'Archived' },
 ]
 
 export default function AdminPosts() {
@@ -55,6 +56,15 @@ export default function AdminPosts() {
     onError: (err) => showToast(err.response?.data?.error || 'Unpublish failed', 'error'),
   })
 
+  const archiveMut = useMutation({
+    mutationFn: archivePost,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-posts'] })
+      showToast('Post archived')
+    },
+    onError: (err) => showToast(err.response?.data?.error || 'Archive failed', 'error'),
+  })
+
   const handleDelete = (post) => {
     if (window.confirm(`Delete "${post.title}"? This cannot be undone.`)) {
       deleteMut.mutate(post._id)
@@ -69,9 +79,14 @@ export default function AdminPosts() {
     }
   }
 
+  const handleArchive = (post) => {
+    archiveMut.mutate(post._id)
+  }
+
   const filtered = posts.filter((p) => {
-    if (tab === 'draft') return p.status !== 'published'
+    if (tab === 'draft') return p.status === 'draft'
     if (tab === 'published') return p.status === 'published'
+    if (tab === 'archived') return p.status === 'archived'
     return true
   })
 
@@ -137,6 +152,7 @@ export default function AdminPosts() {
               post={post}
               onTogglePublish={() => handleTogglePublish(post)}
               onDelete={() => handleDelete(post)}
+              onArchive={() => handleArchive(post)}
             />
           ))}
         </div>
@@ -145,8 +161,9 @@ export default function AdminPosts() {
   )
 }
 
-function PostRow({ post, onTogglePublish, onDelete }) {
+function PostRow({ post, onTogglePublish, onDelete, onArchive }) {
   const isPublished = post.status === 'published'
+  const isArchived = post.status === 'archived'
   const date = post.publishedAt || post.createdAt
   const formattedDate = new Date(date).toLocaleDateString('en-US', {
     month: 'short',
@@ -163,8 +180,13 @@ function PostRow({ post, onTogglePublish, onDelete }) {
             <span className="font-mono text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-deep-green/10 text-deep-green border border-deep-green/20 flex-shrink-0">
               Published
             </span>
+          ) : isArchived ? (
+            <span className="font-mono text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200 flex-shrink-0">
+              Archived
+            </span>
           ) : (
             <span className="font-mono text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-200 flex-shrink-0">
+              Draft
             </span>
           )}
         </div>
@@ -173,6 +195,9 @@ function PostRow({ post, onTogglePublish, onDelete }) {
         </p>
         <p className="font-[Inter,system-ui,sans-serif] text-[12px] text-slate mt-1.5">
           {formattedDate} · {(post.blocks || []).length} blocks
+          {typeof post.viewCount === 'number' ? ` · ${post.viewCount} views` : ''}
+          {typeof post.clapCount === 'number' ? ` · ${post.clapCount} claps` : ''}
+          {typeof post.commentCount === 'number' ? ` · ${post.commentCount} comments` : ''}
         </p>
       </div>
       <div className="flex gap-1 flex-shrink-0">
@@ -187,6 +212,15 @@ function PostRow({ post, onTogglePublish, onDelete }) {
         >
           {isPublished ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
+        {!isArchived && (
+          <button
+            onClick={() => onArchive(post)}
+            title="Archive"
+            className="p-1.5 rounded-md text-ink-muted-80 hover:text-primary hover:bg-primary/10 transition-colors"
+          >
+            <Archive size={16} />
+          </button>
+        )}
         <Link
           to={`/admin/posts/${post._id}/edit`}
           className="p-1.5 rounded-md text-ink-muted-80 hover:text-primary hover:bg-primary/10 transition-colors"

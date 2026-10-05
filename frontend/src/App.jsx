@@ -70,6 +70,7 @@ const AdminPosts     = lazy(() => import('./pages/admin/AdminPosts'))
 const AdminBlogEditor = lazy(() => import('./pages/admin/AdminBlogEditor'))
 const BlogList       = lazy(() => import('./pages/blog/BlogList'))
 const BlogPost       = lazy(() => import('./pages/blog/BlogPost'))
+const BlogMe         = lazy(() => import('./pages/blog/BlogMe'))
 const FacultyDashboard = lazy(() => import('./pages/faculty/FacultyDashboard'))
 const FacultyLogin     = lazy(() => import('./pages/faculty/FacultyLogin'))
 const FacultyActivate  = lazy(() => import('./pages/faculty/FacultyActivate'))
@@ -192,6 +193,7 @@ export default function App() {
             <Route path="/contact"      element={<AnimatedRoute><Contact /></AnimatedRoute>} />
             <Route path="/terms-and-conditions" element={<AnimatedRoute><TermsAndConditions /></AnimatedRoute>} />
             <Route path="/blog" element={<AnimatedRoute><BlogList /></AnimatedRoute>} />
+            <Route path="/blog/me" element={<AnimatedRoute><ProtectedRoute><BlogMe /></ProtectedRoute></AnimatedRoute>} />
             <Route path="/blog/:slug" element={<AnimatedRoute><BlogPost /></AnimatedRoute>} />
             <Route path="/profile/:id"  element={<AnimatedRoute><Profile /></AnimatedRoute>} />
             <Route path="/profile/me" element={

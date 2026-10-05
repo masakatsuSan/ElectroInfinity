@@ -50,10 +50,23 @@ const postSchema = new mongoose.Schema(
     excerpt: { type: String, default: '', maxlength: [500, 'Excerpt cannot exceed 500 characters'] },
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     blocks: { type: [blockSchema], default: [], validate: { validator: (v) => v.length <= 200, message: 'Posts are limited to 200 blocks' } },
-    status: { type: String, enum: ['draft', 'published'], default: 'draft', index: true },
+    status: { type: String, enum: ['draft', 'published', 'archived'], default: 'draft', index: true },
     publishedAt: { type: Date, default: null, index: true },
+    archivedAt: { type: Date, default: null, index: true },
     tags: [{ type: String, trim: true, lowercase: true }],
+    topic: { type: String, default: '', index: true },
+    subtitle: { type: String, default: '', maxlength: [200, 'Subtitle cannot exceed 200 characters'] },
+    allowResponses: { type: Boolean, default: true },
+    readTime: { type: Number, default: 0 },
+    contentText: { type: String, default: '' },
+    clapCount: { type: Number, default: 0 },
+    bookmarkCount: { type: Number, default: 0 },
+    commentCount: { type: Number, default: 0 },
+    viewCount: { type: Number, default: 0 },
     updatedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    claps: [{ user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, count: { type: Number, default: 1 }, date: { type: Date, default: Date.now } }],
+    bookmarks: [{ user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, date: { type: Date, default: Date.now } }],
+    views: [{ key: { type: String }, date: { type: Date, default: Date.now } }],
   },
   { timestamps: true }
 )
@@ -61,5 +74,7 @@ const postSchema = new mongoose.Schema(
 postSchema.index({ status: 1, publishedAt: -1 })
 postSchema.index({ author: 1, createdAt: -1 })
 postSchema.index({ tags: 1 })
+postSchema.index({ topic: 1 })
+postSchema.index({ status: 1, archivedAt: -1 })
 
 module.exports = mongoose.model('Post', postSchema)

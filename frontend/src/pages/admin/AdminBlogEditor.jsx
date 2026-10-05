@@ -1,15 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getPost, createPost, updatePost, publishPost, unpublishPost } from '../../api/posts'
+import { getPost, createPost, updatePost, publishPost, unpublishPost, archivePost } from '../../api/posts'
 import TipTapEditor from '../../components/blog/TipTapEditor'
 import PostRenderer from '../../components/blog/PostRenderer'
+import PublishModal from '../../components/blog/PublishModal'
 import { useToast } from '../../context/ToastContext'
-import { ArrowLeft, Save, Send, FileText, Tag, AlignLeft, Image } from 'lucide-react'
+import { ArrowLeft, Save, Send, FileText, Tag, AlignLeft, Image, Settings, X } from 'lucide-react'
 import { isExternalLink } from '../../utils/blogBlocks'
 
 const BLANK_META = {
   title: '',
+  subtitle: '',
   slug: '',
   excerpt: '',
   tags: '',
@@ -27,6 +29,8 @@ export default function AdminBlogEditor() {
   const [meta, setMeta] = useState(BLANK_META)
   const [blocks, setBlocks] = useState([])
   const [isPreview, setIsPreview] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [showPublish, setShowPublish] = useState(false)
   const coverInputRef = useRef(null)
 
   const { data, isLoading } = useQuery({
@@ -40,6 +44,7 @@ export default function AdminBlogEditor() {
     if (data) {
       setMeta({
         title: data.title || '',
+        subtitle: data.subtitle || '',
         slug: data.slug || '',
         excerpt: data.excerpt || '',
         tags: (data.tags || []).join(', '),
@@ -92,8 +97,8 @@ export default function AdminBlogEditor() {
   })
 
   const handleSave = () => {
-    if (!meta.title || !meta.slug) {
-      showToast('Title and slug are required', 'error')
+    if (!meta.title) {
+      showToast('Title is required', 'error')
       return
     }
     const payload = buildPayload()
@@ -104,22 +109,31 @@ export default function AdminBlogEditor() {
     }
   }
 
-  const handlePublish = () => {
-    if (!meta.title || !meta.slug) {
-      showToast('Title and slug are required', 'error')
+  const handlePublishClick = () => {
+    if (!meta.title) {
+      showToast('Title is required', 'error')
       return
     }
-    const payload = buildPayload({ status: 'published' })
+    if (!blocks.length) {
+      showToast('Add some content before publishing', 'error')
+      return
+    }
+    setShowPublish(true)
+  }
+
+  const handlePublishConfirm = async ({ title, subtitle, excerpt, tags, topic, allowResponses, cover }) => {
+    const payload = buildPayload({ status: 'published', title, subtitle, excerpt, tags, topic, allowResponses, cover })
     if (isNew) {
       createMut.mutate(payload)
     } else {
       updateMut.mutate({ id, ...payload })
     }
+    setShowPublish(false)
   }
 
   const handleTogglePublish = () => {
-    if (!meta.title || !meta.slug) {
-      showToast('Title and slug are required', 'error')
+    if (!meta.title) {
+      showToast('Title is required', 'error')
       return
     }
 
@@ -131,7 +145,7 @@ export default function AdminBlogEditor() {
         return
       }
       if (isNew) {
-        handlePublish()
+        handlePublishClick()
       } else {
         publishMut.mutate(id)
       }
@@ -140,17 +154,20 @@ export default function AdminBlogEditor() {
 
   function buildPayload(overrides = {}) {
     return {
-      title: meta.title,
+      title: overrides.title || meta.title,
+      subtitle: overrides.subtitle || meta.subtitle,
       slug: meta.slug,
-      excerpt: meta.excerpt,
-      tags: meta.tags
+      excerpt: overrides.excerpt || meta.excerpt,
+      tags: overrides.tags || meta.tags
         .split(',')
         .map((t) => t.trim().toLowerCase())
         .filter(Boolean),
-      cover: meta.cover,
+      cover: overrides.cover || meta.cover,
       coverAlt: meta.coverAlt,
       blocks: blocks,
       status: overrides.status || meta.status || 'draft',
+      topic: overrides.topic || meta.topic || '',
+      allowResponses: overrides.allowResponses !== false,
     }
   }
 
@@ -162,7 +179,7 @@ export default function AdminBlogEditor() {
   if (isLoading) {
     return (
       <div className="p-6">
-        <p className="font-[Inter,system-ui,sans-serif] text-ink-muted-80">Loading post…</p>
+        <p className="font-sans text-ink-muted">Loading post…</p>
       </div>
     )
   }
@@ -170,174 +187,203 @@ export default function AdminBlogEditor() {
   const status = meta.status || 'draft'
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={() => navigate('/admin/posts')}
-          className="p-1.5 rounded-md text-ink-muted-80 hover:text-ink hover:bg-soft-stone transition-colors"
-          title="Back to posts"
-        >
-          <ArrowLeft size={18} />
-        </button>
-        <h1 className="font-[Inter,system-ui,sans-serif] font-semibold text-[24px] tracking-tight text-ink">
-          {isNew ? 'New Post' : 'Edit Post'}
-        </h1>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <div>
-            <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-inkmuted-80 mb-1">
-              Title *
-            </label>
-            <input
-              value={meta.title}
-              onChange={set('title')}
-              className="input w-full"
-              placeholder="Post title"
-            />
-          </div>
-
-          <div>
-            <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">
-              Slug *
-            </label>
-            <input
-              value={meta.slug}
-              onChange={set('slug')}
-              className="input w-full"
-              placeholder="post-url-slug"
-              onBlur={() => {
-                setMeta((m) => ({
-                  ...m,
-                  slug: (m.slug || m.title || '')
-                    .toLowerCase()
-                    .replace(/[^a-z0-9]+/g, '-')
-                    .replace(/^-+|-+$/g, ''),
-                }))
-              }}
-            />
-            <p className="font-[Inter,system-ui,sans-serif] text-[12px] text-slate mt-1">
-              Used in the URL: /blog/{meta.slug || 'your-slug'}
-            </p>
-          </div>
-
-          <div>
-            <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">
-              Excerpt
-            </label>
-            <textarea
-              value={meta.excerpt}
-              onChange={set('excerpt')}
-              className="input w-full resize-none"
-              rows={3}
-              placeholder="A short summary..."
-              maxLength={500}
-            />
-          </div>
-
-          <div>
-            <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">
-              Tags
-            </label>
-            <input
-              value={meta.tags}
-              onChange={set('tags')}
-              className="input w-full"
-              placeholder="comma, separated, tags"
-            />
-          </div>
-
-          <div>
-            <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">
-              Cover Image URL
-            </label>
-            <div className="flex gap-2">
-              <input
-                value={meta.cover}
-                onChange={set('cover')}
-                className="input flex-1"
-                placeholder="https://..."
-              />
-              {meta.cover && isExternalLink(meta.cover) && (
-                <img
-                  src={meta.cover}
-                  alt={meta.coverAlt || 'cover'}
-                  className="w-10 h-10 rounded object-cover border border-divider_soft"
-                  loading="lazy"
-                />
+    <div className="min-h-screen bg-canvas">
+      {/* Minimal top bar */}
+      <div className="sticky top-0 z-30 bg-canvas/80 backdrop-blur-md border-b border-hairline">
+        <div className="max-w-[900px] mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/admin/posts')}
+              className="p-2 -ml-2 rounded-md text-ink-muted hover:text-ink hover:bg-surface-soft transition-colors"
+              title="Back to posts"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <div>
+              <h1 className="font-sans text-[15px] font-semibold text-ink leading-tight">
+                {isNew ? 'New Post' : 'Edit Post'}
+              </h1>
+              {!isNew && (
+                <p className="font-sans text-[11px] text-ink-muted leading-tight">
+                  {status === 'published' ? 'Published' : 'Draft'}
+                </p>
               )}
             </div>
           </div>
-
-          <div>
-            <label className="block font-[Inter,system-ui,sans-serif] text-[14px] font-medium text-ink-muted-80 mb-1">
-              Body
-            </label>
-            <TipTapEditor
-              content={blocks}
-              onChange={setBlocks}
-              placeholder="Write your story here…"
-            />
-          </div>
-        </div>
-
-        <div className="lg:col-span-1 space-y-6">
-          <div className="border border-divider_soft rounded-lg bg-canvas p-4 space-y-3">
-            <h3 className="font-[Inter,system-ui,sans-serif] font-semibold text-[15px] text-ink">Post Actions</h3>
-
+          <div className="flex items-center gap-2">
             <button
-              onClick={handleSave}
-              disabled={!meta.title || !meta.slug || updateMut.isPending || createMut.isPending}
-              className="button-secondary w-full flex items-center justify-center gap-2"
+              onClick={() => setShowSettings(!showSettings)}
+              className={`p-2 rounded-md transition-colors ${showSettings ? 'text-primary bg-surface-soft' : 'text-ink-muted hover:text-ink hover:bg-surface-soft'}`}
+              title="Post settings"
             >
-              <Save size={16} />
-              {updateMut.isPending || createMut.isPending ? 'Saving…' : isNew ? 'Create Draft' : 'Save Draft'}
+              <Settings size={18} />
             </button>
-
             {status === 'published' ? (
               <button
                 onClick={handleTogglePublish}
                 disabled={unpublishMut.isPending || updateMut.isPending || createMut.isPending}
-                className="button-secondary w-full !bg-soft-stone !text-ink-muted flex items-center justify-center gap-2"
+                className="button-secondary !py-2 !px-4 text-[13px]"
               >
                 {unpublishMut.isPending ? '…' : 'Unpublish'}
               </button>
             ) : (
               <button
-                onClick={handleTogglePublish}
-                disabled={publishMut.isPending || updateMut.isPending || createMut.isPending || !meta.title || !meta.slug || !blocks.length}
-                className="button-primary w-full flex items-center justify-center gap-2"
+                onClick={handlePublishClick}
+                disabled={publishMut.isPending || updateMut.isPending || createMut.isPending || !meta.title || !blocks.length}
+                className="button-primary !py-2 !px-4 text-[13px]"
               >
-                <Send size={16} />
+                <Send size={14} />
                 {publishMut.isPending ? 'Publishing…' : 'Publish'}
               </button>
             )}
-
             <button
-              onClick={() => setIsPreview(!isPreview)}
-              className="button-pill-outline w-full flex items-center justify-center gap-2"
+              onClick={handleSave}
+              disabled={!meta.title || updateMut.isPending || createMut.isPending}
+              className="button-secondary !py-2 !px-4 text-[13px]"
             >
-              <FileText size={16} />
-              {isPreview ? 'Hide Preview' : 'Preview'}
+              <Save size={14} />
+              {updateMut.isPending || createMut.isPending ? 'Saving…' : 'Save'}
             </button>
           </div>
-
-          {isPreview && (
-            <div className="border border-divider_soft rounded-lg bg-canvas p-4">
-              <h3 className="font-[Inter,system-ui,sans-serif] font-semibold text-[15px] text-ink mb-4">Preview</h3>
-              <div className="prose prose-sm max-w-none">
-                {meta.cover && (
-                  <img src={meta.cover} alt={meta.coverAlt} className="w-full rounded-lg mb-4" />
-                )}
-                <h2 className="font-display text-section-heading text-ink">{meta.title || 'Untitled'}</h2>
-                {meta.excerpt && <p className="text-body text-body">{meta.excerpt}</p>}
-                <PostRenderer blocks={blocks} />
-              </div>
-            </div>
-          )}
         </div>
       </div>
+
+      <div className="max-w-[900px] mx-auto px-4 md:px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
+          {/* Editor */}
+          <div>
+<TipTapEditor
+                content={blocks}
+                onChange={setBlocks}
+                title={meta.title}
+                subtitle={meta.subtitle}
+                onTitleChange={(val) => setMeta((m) => ({ ...m, title: val }))}
+                onSubtitleChange={(val) => setMeta((m) => ({ ...m, subtitle: val }))}
+                placeholder="Write your story here…"
+                onPublish={handlePublishClick}
+                onBack={() => navigate('/admin/posts')}
+              />
+          </div>
+
+          {/* Settings panel */}
+          <div className={`lg:block ${showSettings ? 'block' : 'hidden'}`}>
+            <div className="lg:sticky lg:top-24 space-y-6">
+              <div className="border border-divider-soft rounded-xl bg-canvas p-5 space-y-4">
+                <h3 className="font-sans text-[15px] font-semibold text-ink">Post Settings</h3>
+
+                <div>
+                  <label className="block font-sans text-[13px] font-medium text-ink-muted mb-1.5">
+                    Slug
+                  </label>
+                  <input
+                    value={meta.slug}
+                    onChange={set('slug')}
+                    className="input w-full text-[13px]"
+                    placeholder="post-url-slug"
+                    onBlur={() => {
+                      setMeta((m) => ({
+                        ...m,
+                        slug: (m.slug || m.title || '')
+                          .toLowerCase()
+                          .replace(/[^a-z0-9]+/g, '-')
+                          .replace(/^-+|-+$/g, ''),
+                      }))
+                    }}
+                  />
+                  <p className="font-sans text-[11px] text-ink-muted mt-1">
+                    /blog/{meta.slug || 'your-slug'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block font-sans text-[13px] font-medium text-ink-muted mb-1.5">
+                    Excerpt
+                  </label>
+                  <textarea
+                    value={meta.excerpt}
+                    onChange={set('excerpt')}
+                    className="input w-full resize-none text-[13px]"
+                    rows={3}
+                    placeholder="A short summary..."
+                    maxLength={500}
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-sans text-[13px] font-medium text-ink-muted mb-1.5">
+                    Tags
+                  </label>
+                  <input
+                    value={meta.tags}
+                    onChange={set('tags')}
+                    className="input w-full text-[13px]"
+                    placeholder="comma, separated, tags"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-sans text-[13px] font-medium text-ink-muted mb-1.5">
+                    Cover Image URL
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      value={meta.cover}
+                      onChange={set('cover')}
+                      className="input flex-1 text-[13px]"
+                      placeholder="https://..."
+                    />
+                    {meta.cover && isExternalLink(meta.cover) && (
+                      <img
+                        src={meta.cover}
+                        alt={meta.coverAlt || 'cover'}
+                        className="w-10 h-10 rounded object-cover border border-divider-soft"
+                        loading="lazy"
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Preview */}
+              {isPreview && (
+                <div className="border border-divider-soft rounded-xl bg-canvas p-5">
+                  <h3 className="font-sans text-[15px] font-semibold text-ink mb-4">Preview</h3>
+                  <div className="prose prose-sm max-w-none">
+                    {meta.cover && (
+                      <img src={meta.cover} alt={meta.coverAlt} className="w-full rounded-lg mb-4" />
+                    )}
+                    <h2 className="font-display text-section-heading text-ink">{meta.title || 'Untitled'}</h2>
+                    {meta.subtitle && (
+                      <p className="font-display text-card-heading text-ink-muted">{meta.subtitle}</p>
+                    )}
+                    {meta.excerpt && <p className="text-body text-body">{meta.excerpt}</p>}
+                    <PostRenderer blocks={blocks} />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile preview toggle */}
+        <div className="lg:hidden mt-6">
+          <button
+            onClick={() => setIsPreview(!isPreview)}
+            className="button-pill-outline w-full flex items-center justify-center gap-2"
+          >
+            <FileText size={16} />
+            {isPreview ? 'Hide Preview' : 'Preview'}
+          </button>
+        </div>
+      </div>
+
+      <PublishModal
+        isOpen={showPublish}
+        onClose={() => setShowPublish(false)}
+        onPublish={handlePublishConfirm}
+        post={{ title: meta.title, subtitle: meta.subtitle, excerpt: meta.excerpt, tags: meta.tags.split(',').map((t) => t.trim()).filter(Boolean), cover: meta.cover, topic: meta.topic, allowResponses: true }}
+        loading={createMut.isPending || updateMut.isPending || publishMut.isPending}
+      />
     </div>
   )
 }

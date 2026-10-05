@@ -31,9 +31,28 @@ router.put('/:id', protect, isAdmin, writeLimiter, ctrl.update)
 // PATCH /api/posts/:id/publish & /unpublish
 router.patch('/:id/publish', protect, isAdmin, writeLimiter, ctrl.publish)
 router.patch('/:id/unpublish', protect, isAdmin, writeLimiter, ctrl.unpublish)
+router.patch('/:id/archive', protect, isAdmin, writeLimiter, ctrl.archive)
 
 // DELETE /api/posts/:id
 router.delete('/:id', protect, isAdmin, writeLimiter, ctrl.remove)
+
+// POST /api/posts/:id/clap
+router.post('/:id/clap', protect, writeLimiter, ctrl.clap)
+
+// POST /api/posts/:id/bookmark
+router.post('/:id/bookmark', protect, writeLimiter, ctrl.bookmark)
+
+// POST /api/posts/:id/view
+router.post('/:id/view', ctrl.recordView)
+
+// GET /api/posts/:id/stats
+router.get('/:id/stats', ctrl.getStats)
+
+// GET /api/posts/me
+router.get('/me', protect, isAdmin, ctrl.getMyStories)
+
+// GET /api/posts/feed
+router.get('/feed', ctrl.listPublished)
 
 // POST /api/uploads/image — Cloudinary image upload (admin)
 router.post('/uploads/image', protect, isAdmin, uploadLimiter, uploadSingle('image'), ctrl.uploadImage)
