@@ -62,11 +62,52 @@ const onAuthPage = () => {
   return AUTH_PATHS.some((p) => path === p || path.startsWith(`${p}/`))
 }
 
+// ─── Was anyone actually signed in? ──────────────────────────────────
+// A 401 only means "your session died" if there was a session to lose.
+// AuthProvider probes GET /auth/me on every cold start and that call is
+// behind `protect`, so it 401s for every logged-out visitor. Treating that as
+// an expired session hard-redirected guests off the landing page to /login.
+// The cached user is the only client-side evidence of a prior session, so read
+// it *before* the cache is cleared below.
+function hadSession() {
+  try {
+    return !!localStorage.getItem('ei_user')
+  } catch {
+    return false
+  }
+}
+
+// `config.url` is relative to baseURL ('/auth/me', not '/api/auth/me').
+const pathOf = (url) => String(url || '').split('?')[0]
+const isSessionProbe = (url) => pathOf(url) === '/auth/me'
+
+// ─── Silent session refresh ────────────────────────────────────────
+// The access token lives 15 minutes in an httpOnly cookie; the refresh
+// token (7 days, also httpOnly) mints a new one. On a 401 we refresh
+// once and retry the original request, so users stay logged in for
+// days instead of being bounced every 15 minutes. A shared promise
+// deduplicates concurrent 401s into a single refresh round-trip.
+let refreshInFlight = null
+
+function refreshSession() {
+  if (!refreshInFlight) {
+    refreshInFlight = api
+      .post('/auth/refresh')
+      .then((res) => res.data)
+      .catch(() => null)
+      .finally(() => {
+        refreshInFlight = null
+      })
+  }
+  return refreshInFlight
+}
+
 // ─── Response interceptor ──────────────────────────────────────────
-// If the server returns 401 (session expired / invalid), log the user out.
+// If the server returns 401 (session expired / invalid), refresh the
+// session once and retry; if the refresh also fails, log the user out.
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     // Network-level failures (no response at all) are retried once for GET
     // requests only — reads are safe to repeat, mutations are not.
     // Excluded: the OTP "check" endpoints are GETs that actually send mail and
@@ -83,11 +124,30 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 401) {
+      const signedIn = hadSession()
+      // Never refresh the refresh endpoint itself, and never retry
+      // a request that was already retried once. The session probe is skipped
+      // only for a guest: a signed-in user with an expired access token still
+      // needs the refresh round-trip, or they would be logged out every 15
+      // minutes when the access cookie expires.
+      const isRefreshCall = url.includes('/auth/refresh')
+      if (!isRefreshCall && !config.__retried && (signedIn || !isSessionProbe(url))) {
+        config.__retried = true
+        const refreshed = await refreshSession()
+        if (refreshed) {
+          // New cookies are set — replay the original request.
+          return api.request(config)
+        }
+      }
+
       // Session is gone server-side — drop the cached user.
       // (The httpOnly cookies are cleared by the server on logout;
       // a stale access cookie simply fails verification here.)
       localStorage.removeItem('ei_user')
-      if (!onAuthPage()) {
+      // Only bounce the user if there was a session to lose. A 401 to the boot
+      // probe is the answer "you are signed out", not a failure, so it must not
+      // redirect — that is what locked logged-out visitors out of public pages.
+      if (signedIn && !isSessionProbe(url) && !onAuthPage()) {
         // replace(), not href: a replacing navigation does not add a history
         // entry, so pressing Back can never re-enter a page that will 401 again
         // and bounce forward once more.

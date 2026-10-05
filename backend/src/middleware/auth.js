@@ -31,7 +31,11 @@ const protect = async (req, res, next) => {
     if (!user || user.isActive === false) {
       return res.status(401).json({ success: false, error: 'Authentication required' })
     }
-    if (decoded.tv !== undefined && user.tokenVersion !== decoded.tv) {
+    // Existing documents predate the tokenVersion field and read
+    // as undefined — treat that the same as 0 so those sessions
+    // keep working (signing already normalises with `|| 0`).
+    const userTv = user.tokenVersion || 0
+    if (decoded.tv !== undefined && userTv !== decoded.tv) {
       return res.status(401).json({ success: false, error: 'Session expired — please log in again' })
     }
 

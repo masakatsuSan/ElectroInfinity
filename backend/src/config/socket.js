@@ -40,7 +40,9 @@ function initSocket(server) {
       const user = await User.findById(decoded.id)
       if (!user) return next(new Error('User not found'))
       if (user.isActive === false) return next(new Error('Account deactivated'))
-      if (decoded.tv !== undefined && user.tokenVersion !== decoded.tv) {
+      // Existing documents predate the tokenVersion field
+      // and read as undefined — treat that as 0.
+      if (decoded.tv !== undefined && (user.tokenVersion || 0) !== decoded.tv) {
         return next(new Error('Token invalidated'))
       }
 
