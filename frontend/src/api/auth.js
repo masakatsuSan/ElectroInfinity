@@ -58,3 +58,6 @@ export const changePassword = (data) =>
 
 export const getMe    = ()     => api.get('/auth/me')
 export const updateMe = (data) => api.patch('/auth/me', data)
+
+// Revoke the current session server-side (clears the cookies)
+export const logout = () => api.post('/auth/logout')

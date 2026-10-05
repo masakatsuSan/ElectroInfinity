@@ -9,14 +9,32 @@ const api = axios.create({
   // 30s is long enough to survive a cold start on the API host (measured at
   // ~23s) while still failing instead of hanging forever.
   timeout: 30000,
+  // Sessions live in httpOnly cookies (access_token / refresh_token),
+  // so every request must be allowed to carry them — including
+  // cross-origin calls in production (Vercel -> Render).
+  withCredentials: true,
 })
 
-// ─── Request interceptor ───────────────────────────────────────────────────
-// Runs before every request — automatically attaches the JWT token if present
+// ─── CSRF token helper ─────────────────────────────────────────────
+// The server sets a readable `csrf_token` cookie and requires the
+// same value in the X-CSRF-Token header on every mutating request
+// (double-submit cookie pattern). Bearer-token clients are exempt
+// server-side, but the browser always uses cookies.
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()\[\]\\\/+^])/g, '\\$1') + '=([^;]*)'))
+  return match ? decodeURIComponent(match[1]) : null
+}
+
+// ─── Request interceptor ───────────────────────────────────────────
+// Runs before every request — attaches the CSRF header on
+// mutating methods. The access token itself rides in the
+// httpOnly cookie; it is never touched from JS.
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('ei_token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  if (['post', 'put', 'patch', 'delete'].includes((config.method || 'get').toLowerCase())) {
+    const csrf = getCookie('csrf_token')
+    if (csrf) {
+      config.headers['X-CSRF-Token'] = csrf
+    }
   }
   // Prevent axios from sending default Content-Type: application/json with FormData.
   // Without this, the browser can't set multipart/form-data with the boundary.
@@ -26,7 +44,7 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// ─── 401 handling ──────────────────────────────────────────────────────────
+// ─── 401 handling ──────────────────────────────────────────────────
 // Pages where a 401 is an expected, user-visible outcome (wrong password, bad
 // OTP, expired reset link). Reloading them would throw away the message the
 // user is reading, and can turn into a redirect loop.
@@ -44,8 +62,8 @@ const onAuthPage = () => {
   return AUTH_PATHS.some((p) => path === p || path.startsWith(`${p}/`))
 }
 
-// ─── Response interceptor ──────────────────────────────────────────────────
-// If the server returns 401 (token expired / invalid), log the user out.
+// ─── Response interceptor ──────────────────────────────────────────
+// If the server returns 401 (session expired / invalid), log the user out.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -65,7 +83,9 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 401) {
-      localStorage.removeItem('ei_token')
+      // Session is gone server-side — drop the cached user.
+      // (The httpOnly cookies are cleared by the server on logout;
+      // a stale access cookie simply fails verification here.)
       localStorage.removeItem('ei_user')
       if (!onAuthPage()) {
         // replace(), not href: a replacing navigation does not add a history

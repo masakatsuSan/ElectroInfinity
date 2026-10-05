@@ -209,12 +209,12 @@ export default function Activate() {
     setLoading(true)
     try {
       const res = await activateAccount({ rollNumber: rollNo.trim(), password, activationToken })
-      const { token, user } = res.data
-      localStorage.setItem('ei_token', token)
+      const user = res.data?.user || res.data?.data?.user
       localStorage.setItem('ei_user', JSON.stringify(user))
       // AuthContext only reads localStorage on mount, so without this the
       // protected /students route still saw a null user and immediately showed
       // "Please Login" — activation looked broken even when it succeeded.
+      // (The session itself is an httpOnly cookie set by the server.)
       setUser(user)
       navigate('/students', { replace: true })
     } catch (err) {

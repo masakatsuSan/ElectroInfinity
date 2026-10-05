@@ -110,12 +110,12 @@ export default function FacultyActivate() {
         password,
         activationToken,
       })
-      const { token, user: userData } = res.data
-      localStorage.setItem('ei_token', token)
+      const userData = res.data?.user || res.data?.data?.user
       localStorage.setItem('ei_user', JSON.stringify(userData))
       // AuthContext only hydrates from localStorage on mount. Without this the
       // redirect into the protected dashboard saw a null user, rendered
       // "Please Login", and activation looked like it had failed.
+      // (The session itself is an httpOnly cookie set by the server.)
       setUser(userData)
       navigate('/faculty/dashboard', { replace: true })
     } catch (err) {

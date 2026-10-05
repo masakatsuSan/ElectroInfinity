@@ -105,10 +105,10 @@ export function NotificationProvider({ children }) {
       return
     }
 
-    const token = localStorage.getItem('ei_token')
-    if (!token) return
-
-    const socket = io(getSocketUrl(), { auth: { token } })
+    // The session rides in the httpOnly access_token cookie,
+    // which the browser attaches automatically (withCredentials).
+    // The server authenticates the socket from that cookie.
+    const socket = io(getSocketUrl(), { withCredentials: true })
     socketRef.current = socket
 
     const onConnect = () => {
