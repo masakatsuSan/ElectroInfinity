@@ -93,6 +93,27 @@ function isCourseStaff(user) {
   return user && ['admin', 'super_admin', 'cr', 'faculty'].includes(user.role)
 }
 
+// Length/type caps for write payloads — keeps a single
+// request from stuffing megabytes of modules/books into the DB.
+const STRING_LIMITS = { name: 120, code: 20, batch: 20, section: 10, syllabus: 10000 }
+const ARRAY_LIMITS = { modules: 100, referenceBooks: 50, objectives: 50 }
+
+function cleanString(value, limit) {
+  if (value === undefined || value === null) return undefined
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  return trimmed.length > limit ? trimmed.slice(0, limit) : trimmed
+}
+
+function cleanArray(value, limit) {
+  if (value === undefined || value === null) return undefined
+  if (!Array.isArray(value)) return undefined
+  return value
+    .filter((item) => typeof item === 'string' && item.trim())
+    .map((item) => item.trim().slice(0, 500))
+    .slice(0, limit)
+}
+
 router.get('/', optionalAuth, async (req, res) => {
   try {
     const { batch, section, semester, status } = req.query
@@ -133,28 +154,32 @@ router.get('/:id', optionalAuth, async (req, res) => {
 router.post('/', protect, guard('admin', 'super_admin'), async (req, res) => {
   try {
     const { name, code, batch, section, semester, credits, modules, syllabus, referenceBooks, objectives, l, t, p } = req.body
-    if (!name || !code) {
+    const cleanName = cleanString(name, STRING_LIMITS.name)
+    const cleanCode = cleanString(code, STRING_LIMITS.code)
+    if (!cleanName || !cleanCode) {
       return res.status(400).json({ success: false, error: 'Name and code are required' })
     }
+    const cleanBatch = cleanString(batch, STRING_LIMITS.batch) || ''
+    const cleanSection = cleanString(section, STRING_LIMITS.section) || ''
     const existing = await Subject.findOne({
-      code: code.trim().toUpperCase(),
-      batch: (batch || '').trim(),
-      section: (section || '').trim(),
+      code: cleanCode.toUpperCase(),
+      batch: cleanBatch,
+      section: cleanSection,
     })
     if (existing) {
       return res.status(400).json({ success: false, error: 'Subject with this code already exists for this batch/section' })
     }
     const subject = await Subject.create({
-      name: name.trim(),
-      code: code.trim().toUpperCase(),
-      batch: (batch || '').trim(),
-      section: (section || '').trim(),
+      name: cleanName,
+      code: cleanCode.toUpperCase(),
+      batch: cleanBatch,
+      section: cleanSection,
       semester: semester ? Number(semester) : 1,
       credits: credits ? Number(credits) : 0,
-      modules: modules || [],
-      syllabus: syllabus || '',
-      referenceBooks: referenceBooks || [],
-      objectives: objectives || [],
+      modules: cleanArray(modules, ARRAY_LIMITS.modules) || [],
+      syllabus: cleanString(syllabus, STRING_LIMITS.syllabus) || '',
+      referenceBooks: cleanArray(referenceBooks, ARRAY_LIMITS.referenceBooks) || [],
+      objectives: cleanArray(objectives, ARRAY_LIMITS.objectives) || [],
       l: Number(l) || 0,
       t: Number(t) || 0,
       p: Number(p) || 0,
@@ -185,19 +210,28 @@ router.patch('/:id', protect, guard('admin', 'super_admin', 'faculty'), async (r
     const { name, code, batch, section, semester, credits, modules, syllabus, referenceBooks, objectives, l, t, p } = req.body
     const subject = await Subject.findById(req.params.id)
     if (!subject) return res.status(404).json({ success: false, error: 'Subject not found' })
-    if (name) subject.name = name.trim()
-    if (code) subject.code = code.trim().toUpperCase()
-    if (batch) subject.batch = batch.trim()
-    if (section) subject.section = section.trim()
-    if (semester) subject.semester = Number(semester)
-    if (credits) subject.credits = Number(credits)
-    if (modules) subject.modules = modules
-    if (syllabus) subject.syllabus = syllabus
-    if (referenceBooks) subject.referenceBooks = referenceBooks
-    if (objectives) subject.objectives = objectives
-    if (l) subject.l = Number(l)
-    if (t) subject.t = Number(t)
-    if (p) subject.p = Number(p)
+
+    const patchName = cleanString(name, STRING_LIMITS.name)
+    const patchCode = cleanString(code, STRING_LIMITS.code)
+    if (patchName) subject.name = patchName
+    if (patchCode) subject.code = patchCode.toUpperCase()
+    const patchBatch = cleanString(batch, STRING_LIMITS.batch)
+    if (patchBatch !== undefined) subject.batch = patchBatch
+    const patchSection = cleanString(section, STRING_LIMITS.section)
+    if (patchSection !== undefined) subject.section = patchSection
+    if (semester !== undefined) subject.semester = Number(semester)
+    if (credits !== undefined) subject.credits = Number(credits)
+    const patchModules = cleanArray(modules, ARRAY_LIMITS.modules)
+    if (patchModules !== undefined) subject.modules = patchModules
+    const patchSyllabus = cleanString(syllabus, STRING_LIMITS.syllabus)
+    if (patchSyllabus !== undefined) subject.syllabus = patchSyllabus
+    const patchBooks = cleanArray(referenceBooks, ARRAY_LIMITS.referenceBooks)
+    if (patchBooks !== undefined) subject.referenceBooks = patchBooks
+    const patchObjectives = cleanArray(objectives, ARRAY_LIMITS.objectives)
+    if (patchObjectives !== undefined) subject.objectives = patchObjectives
+    if (l !== undefined) subject.l = Number(l)
+    if (t !== undefined) subject.t = Number(t)
+    if (p !== undefined) subject.p = Number(p)
     subject.updatedBy = req.user._id
     if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
       subject.status = 'pending'

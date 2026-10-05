@@ -4,6 +4,13 @@ const User = require('../models/User')
 const { protect, guard, optionalAuth } = require('../middleware/auth')
 const { upload, uploadSingle, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
 const { createNotification, createNotificationBulk } = require('../utils/notification')
+const logger = require('../utils/logger')
+
+// Escape user input before it is embedded in a RegExp —
+// an unescaped value is a ReDoS / regex-injection vector.
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
 
 const router = express.Router()
 
@@ -89,8 +96,8 @@ router.post('/', protect, uploadSingle('image'), async (req, res) => {
       const io = req.app.get('io')
       const nameQueries = achievement.students.map(s => ({
         $or: [
-          { name: { $regex: s, $options: 'i' } },
-          { rollNumber: { $regex: s, $options: 'i' } },
+          { name: { $regex: escapeRegex(s), $options: 'i' } },
+          { rollNumber: { $regex: escapeRegex(s), $options: 'i' } },
         ]
       }))
       const mentionedUsers = await User.find({ $or: nameQueries, isActive: true }).select('_id')

@@ -17,6 +17,8 @@ const {
 } = require('../utils/resourceLinks')
 const { buildPublicPdfId } = require('../utils/cloudinaryUrl')
 const axios = require('axios')
+const { downloadLimiter } = require('../middleware/rateLimit')
+const logger = require('../utils/logger')
 
 const router = express.Router()
 
@@ -230,7 +232,7 @@ router.get('/:id/download', async (req, res) => {
       { new: true }
     )
   } catch (err) {
-    console.error('[RESOURCES DOWNLOAD] DB lookup failed:', err?.message)
+    logger.error({ event: 'resources_download_failed', err: err?.message })
     return res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 

@@ -41,6 +41,12 @@ async function generateUniqueSlug(base, batchId) {
   }
 }
 
+// Escape user input before it is embedded in a RegExp —
+// an unescaped value is a ReDoS / regex-injection vector.
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 function applyBatchScope(filter, user) {
   if (!user) {
     filter.visibility = 'GLOBAL'
@@ -130,7 +136,7 @@ router.get('/', optionalAuth, async (req, res) => {
     if (semester) filter.semester = Number(semester)
     if (subject) filter.subject = subject
     if (batchId && req.user && ['admin', 'super_admin'].includes(req.user.role)) filter.batchId = batchId
-    if (search) filter.title = new RegExp(search, 'i')
+    if (search) filter.title = new RegExp(escapeRegex(search), 'i')
 
     const folders = await Folder.find(filter)
       .populate('createdBy', 'name photo')

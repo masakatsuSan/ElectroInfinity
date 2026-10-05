@@ -4,6 +4,12 @@ const User = require('../models/User')
 const FriendRequest = require('../models/FriendRequest')
 const { protect, optionalAuth } = require('../middleware/auth')
 
+// Escape user input before it is embedded in a RegExp —
+// an unescaped value is a ReDoS / regex-injection vector.
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 // @route   GET /api/network/college
 // @desc    Get all active college mates with friend status
 // @access  Private (authenticated users only)
@@ -19,12 +25,13 @@ router.get('/college', protect, async (req, res) => {
     }
 
     if (q && q.trim().length >= 2) {
+      const term = escapeRegex(q.trim())
       query.$or = [
-        { name: { $regex: q.trim(), $options: 'i' } },
-        { rollNumber: { $regex: q.trim(), $options: 'i' } },
-        { 'profile.department': { $regex: q.trim(), $options: 'i' } },
-        { 'profile.skills': { $in: [new RegExp(q.trim(), 'i')] } },
-        { 'profile.interests': { $in: [new RegExp(q.trim(), 'i')] } },
+        { name: { $regex: term, $options: 'i' } },
+        { rollNumber: { $regex: term, $options: 'i' } },
+        { 'profile.department': { $regex: term, $options: 'i' } },
+        { 'profile.skills': { $in: [new RegExp(term, 'i')] } },
+        { 'profile.interests': { $in: [new RegExp(term, 'i')] } },
       ]
     }
 

@@ -49,21 +49,31 @@ router.post('/', protect, guard('cr', 'super_admin', 'admin'), async (req, res) 
       return res.status(400).json({ success: false, error: 'Invalid YouTube URL or video ID' })
     }
 
-    if (!title || !lectureNumber) {
+    if (!title || typeof title !== 'string' || !title.trim()) {
       return res.status(400).json({ success: false, error: 'Title and lecture number are required' })
+    }
+    if (title.length > 300) {
+      return res.status(400).json({ success: false, error: 'Title must be 300 characters or fewer' })
+    }
+    const lectureNum = Number(lectureNumber)
+    if (!Number.isFinite(lectureNum) || lectureNum < 1) {
+      return res.status(400).json({ success: false, error: 'Title and lecture number are required' })
+    }
+    if (subject !== undefined && (typeof subject !== 'string' || subject.length > 100)) {
+      return res.status(400).json({ success: false, error: 'Subject must be 100 characters or fewer' })
     }
 
     const thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
 
     const lecture = await YTLecture.create({
-      title,
-      lectureNumber: Number(lectureNumber),
+      title: title.trim(),
+      lectureNumber: lectureNum,
       youtubeVideoId: videoId,
       thumbnail,
       semester: semester ? Number(semester) : null,
       subject: subject || '',
       uploadedBy: req.user._id,
-      batchId: req.user.role === 'cr' ? req.user.batch : (req.body.batchId || ''),
+      batchId: req.user.role === 'cr' ? req.user.batch : (typeof req.body.batchId === 'string' ? req.body.batchId.trim().slice(0, 20) : ''),
       visibility: 'GLOBAL',
     })
 
@@ -116,11 +126,26 @@ router.put('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, res
     }
 
     const { title, lectureNumber, youtubeVideoId, semester, subject } = req.body
-    const updates = {
-      title: title || lecture.title,
-      lectureNumber: lectureNumber ? Number(lectureNumber) : lecture.lectureNumber,
-      semester: semester !== undefined ? Number(semester) : lecture.semester,
-      subject: subject !== undefined ? subject : lecture.subject,
+    const updates = {}
+    if (title !== undefined) {
+      if (typeof title !== 'string' || !title.trim() || title.length > 300) {
+        return res.status(400).json({ success: false, error: 'Title must be 1-300 characters' })
+      }
+      updates.title = title.trim()
+    }
+    if (lectureNumber !== undefined) {
+      const lectureNum = Number(lectureNumber)
+      if (!Number.isFinite(lectureNum) || lectureNum < 1) {
+        return res.status(400).json({ success: false, error: 'Invalid lecture number' })
+      }
+      updates.lectureNumber = lectureNum
+    }
+    if (semester !== undefined) updates.semester = semester ? Number(semester) : null
+    if (subject !== undefined) {
+      if (typeof subject !== 'string' || subject.length > 100) {
+        return res.status(400).json({ success: false, error: 'Subject must be 100 characters or fewer' })
+      }
+      updates.subject = subject
     }
 
     if (youtubeVideoId) {
