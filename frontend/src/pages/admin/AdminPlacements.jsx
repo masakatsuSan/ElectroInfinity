@@ -485,7 +485,6 @@ const handleSave = () => {
               </div>
             </div>
           )}
-          )}
 
           {tab === 'openings' && (
             <div className="grid sm:grid-cols-2 gap-5">

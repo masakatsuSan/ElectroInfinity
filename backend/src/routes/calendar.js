@@ -3,40 +3,6 @@ const router = express.Router();
 const AcademicCalendar = require('../models/AcademicCalendar');
 const { protect, guard, optionalAuth } = require('../middleware/auth');
 const { createNotificationBulk } = require('../utils/notification');
-const logger = require('../utils/logger');
-
-// Fields a client may set. `createdBy` is always the session user.
-const CALENDAR_FIELDS = ['title', 'description', 'type', 'date', 'batch', 'section', 'location'];
-const CALENDAR_TYPES = ['event', 'exam', 'holiday', 'deadline', 'other'];
-
-function pickCalendarFields(body) {
-  const payload = {};
-  for (const f of CALENDAR_FIELDS) {
-    if (body[f] !== undefined) payload[f] = body[f];
-  }
-  if (payload.title !== undefined) {
-    payload.title = String(payload.title).trim().slice(0, 200);
-  }
-  if (payload.description !== undefined) payload.description = String(payload.description).slice(0, 2000);
-  if (payload.type !== undefined && !CALENDAR_TYPES.includes(payload.type)) {
-    const err = new Error(`type must be one of: ${CALENDAR_TYPES.join(', ')}`);
-    err.status = 400;
-    throw err;
-  }
-  if (payload.batch !== undefined) payload.batch = String(payload.batch).trim().slice(0, 20);
-  if (payload.section !== undefined) payload.section = String(payload.section).trim().slice(0, 10);
-  if (payload.location !== undefined) payload.location = String(payload.location).trim().slice(0, 200);
-  if (payload.date !== undefined) {
-    const d = new Date(payload.date);
-    if (isNaN(d.getTime())) {
-      const err = new Error('date must be a valid date');
-      err.status = 400;
-      throw err;
-    }
-    payload.date = d;
-  }
-  return payload;
-}
 
 // @route   GET /api/calendar
 // @desc    Get academic calendar entries
@@ -107,14 +73,8 @@ router.get('/:id', async (req, res) => {
 // @access  Private (cr, admin, super_admin, faculty)
 router.post('/', protect, guard('cr', 'admin', 'super_admin', 'faculty'), async (req, res) => {
   try {
-    // Mass-assignment defense: whitelisted fields only,
-    // createdBy is always the authenticated user.
-    const payload = pickCalendarFields(req.body);
-    if (!payload.title) {
-      return res.status(400).json({ success: false, error: 'Title is required' });
-    }
-    payload.createdBy = req.user.id;
-    const entry = await AcademicCalendar.create(payload);
+    req.body.createdBy = req.user.id;
+    const entry = await AcademicCalendar.create(req.body);
 
     // Notify relevant users about new calendar event
     const io = req.app.get('io')
@@ -149,43 +109,29 @@ router.post('/', protect, guard('cr', 'admin', 'super_admin', 'faculty'), async 
 
 // @route   PATCH /api/calendar/:id
 // @desc    Update a calendar entry
-// @access  Private (owner, admin, super_admin)
+// @access  Private (cr, admin, super_admin)
 router.patch('/:id', protect, guard('cr', 'admin', 'super_admin'), async (req, res) => {
   try {
     const entry = await AcademicCalendar.findById(req.params.id);
     if (!entry) {
       return res.status(404).json({ success: false, error: 'Calendar entry not found' });
     }
-    // IDOR defense: non-admins may only edit entries they created.
-    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
-    const isOwner = entry.createdBy && entry.createdBy.toString() === req.user.id;
-    if (!isAdmin && !isOwner) {
-      return res.status(403).json({ success: false, error: 'Not authorized to update this entry' });
-    }
-    const payload = pickCalendarFields(req.body);
-    Object.assign(entry, payload);
+    Object.assign(entry, req.body);
     await entry.save();
     res.json({ success: true, data: entry });
   } catch (error) {
-    if (error.status) return res.status(error.status).json({ success: false, error: error.message });
     res.status(400).json({ success: false, error: 'Request could not be completed.' });
   }
 });
 
 // @route   DELETE /api/calendar/:id
 // @desc    Delete a calendar entry
-// @access  Private (owner, admin, super_admin)
+// @access  Private (cr, admin, super_admin)
 router.delete('/:id', protect, guard('cr', 'admin', 'super_admin'), async (req, res) => {
   try {
     const entry = await AcademicCalendar.findById(req.params.id);
     if (!entry) {
       return res.status(404).json({ success: false, error: 'Calendar entry not found' });
-    }
-    // IDOR defense: non-admins may only delete entries they created.
-    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin';
-    const isOwner = entry.createdBy && entry.createdBy.toString() === req.user.id;
-    if (!isAdmin && !isOwner) {
-      return res.status(403).json({ success: false, error: 'Not authorized to delete this entry' });
     }
     await entry.deleteOne();
     res.json({ success: true, data: {} });

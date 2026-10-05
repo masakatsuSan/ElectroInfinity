@@ -4,37 +4,6 @@ const Deadline = require('../models/Deadline')
 const { protect, guard } = require('../middleware/auth')
 const { createNotificationBulk } = require('../utils/notification')
 
-// Fields a client may set. `postedBy` is always the session
-// user; CRs are always forced onto their own batch/section.
-const DEADLINE_FIELDS = ['title', 'description', 'subject', 'type', 'driveLink', 'deadline']
-const DEADLINE_TYPES = ['CA', 'PCA', 'LA']
-
-function pickDeadlineFields(body) {
-  const payload = {}
-  for (const f of DEADLINE_FIELDS) {
-    if (body[f] !== undefined) payload[f] = body[f]
-  }
-  if (payload.title !== undefined) payload.title = String(payload.title).trim().slice(0, 200)
-  if (payload.description !== undefined) payload.description = String(payload.description).slice(0, 2000)
-  if (payload.subject !== undefined) payload.subject = String(payload.subject).trim().slice(0, 100)
-  if (payload.type !== undefined && !DEADLINE_TYPES.includes(payload.type)) {
-    const err = new Error(`type must be one of: ${DEADLINE_TYPES.join(', ')}`)
-    err.status = 400
-    throw err
-  }
-  if (payload.driveLink !== undefined) payload.driveLink = String(payload.driveLink).trim().slice(0, 500)
-  if (payload.deadline !== undefined) {
-    const d = new Date(payload.deadline)
-    if (isNaN(d.getTime())) {
-      const err = new Error('deadline must be a valid date')
-      err.status = 400
-      throw err
-    }
-    payload.deadline = d
-  }
-  return payload
-}
-
 // @route   GET /api/deadlines
 // @desc    Get all deadlines (filtered by batch/section)
 // @access  Private (Student+)
@@ -64,26 +33,15 @@ router.get('/', protect, async (req, res) => {
 // @access  Private (CR, Admin)
 router.post('/', protect, guard('cr', 'super_admin', 'admin'), async (req, res) => {
   try {
-    // Mass-assignment defense: whitelisted fields only.
-    const payload = pickDeadlineFields(req.body)
-    if (!payload.title || !payload.subject || !payload.type || !payload.driveLink || !payload.deadline) {
-      return res.status(400).json({ success: false, error: 'Title, subject, type, driveLink, and deadline are required' })
-    }
-    payload.postedBy = req.user.id
-
-    // If CR, they can only post for their own batch/section.
+    req.body.postedBy = req.user.id
+    
+    // If CR, they should only be able to post for their own batch/section.
     if (req.user.role === 'cr') {
-      payload.batch = req.user.batch
-      if (req.user.section) payload.section = req.user.section
-    } else {
-      payload.batch = String(req.body.batch || req.user.batch || '').trim().slice(0, 20)
-      payload.section = String(req.body.section || '').trim().slice(0, 10)
-    }
-    if (!payload.batch) {
-      return res.status(400).json({ success: false, error: 'batch is required' })
+      req.body.batch = req.user.batch
+      if (req.user.section) req.body.section = req.user.section
     }
 
-    const deadline = await Deadline.create(payload)
+    const deadline = await Deadline.create(req.body)
 
     // Notify students in the same batch about new deadline
     const io = req.app.get('io')
@@ -131,14 +89,7 @@ router.patch('/:id', protect, guard('cr', 'super_admin', 'admin'), async (req, r
       return res.status(403).json({ success: false, error: 'Not authorized to update this deadline' })
     }
 
-    // Mass-assignment defense: whitelisted fields only,
-    // and postedBy/batch/section can never be reassigned.
-    const payload = pickDeadlineFields(req.body)
-    if (req.user.role === 'cr') {
-      payload.batch = deadline.batch
-      payload.section = deadline.section
-    }
-    deadline = await Deadline.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true })
+    deadline = await Deadline.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
     res.json({ success: true, data: deadline })
   } catch (error) {
     res.status(400).json({ success: false, error: 'Request could not be completed.' })

@@ -34,21 +34,6 @@ export const MODAL_TRANSITION = {
   mass: 0.9,
 }
 
-// Bottom-sheet presentation for small screens: the modal
-// slides up from the bottom edge instead of scaling in.
-export const MODAL_BOTTOM_VARIANTS = {
-  hidden: { opacity: 0, y: '100%' },
-  visible: { opacity: 1, y: 0 },
-  exiting: { opacity: 0, y: '100%' },
-}
-
-export const MODAL_BOTTOM_TRANSITION = {
-  type: 'spring',
-  stiffness: 400,
-  damping: 36,
-  mass: 0.9,
-}
-
 export const DROPDOWN_VARIANTS = {
   hidden: { opacity: 0, y: -4, scale: 0.98 },
   visible: { opacity: 1, y: 0, scale: 1 },

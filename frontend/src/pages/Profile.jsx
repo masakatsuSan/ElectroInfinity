@@ -10,9 +10,7 @@ import { getGallery, createGalleryPhoto, updateGalleryPhoto, deleteGalleryPhoto 
 import { getAllStudents } from '../api/students'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
-import { useConfirm } from '../context/ConfirmContext'
 import SEO from '../components/SEO'
-import { safeUrl } from '../utils/safeUrl'
 import { BRAND_NAME } from '../config/brand'
 import ProfileHeader from '../components/ProfileHeader'
 import SocialLinkCard from '../components/SocialLinkCard'
@@ -43,7 +41,6 @@ export default function Profile() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { user: currentUser } = useAuth()
   const { showToast } = useToast()
-  const confirm = useConfirm()
   const qc = useQueryClient()
   const [activeTab, setActiveTab] = useState(() => {
     const t = searchParams.get('tab')
@@ -280,7 +277,7 @@ export default function Profile() {
       } catch {}
     } else {
       await navigator.clipboard.writeText(url)
-      showToast('Profile link copied to clipboard!', 'success')
+      alert('Profile link copied to clipboard!')
     }
   }
 
@@ -332,9 +329,6 @@ export default function Profile() {
     mutationFn: (photoId) => deleteGalleryPhoto(photoId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['myGallery', id] })
-      qc.invalidateQueries({ queryKey: ['profile', id] })
-      qc.invalidateQueries({ queryKey: ['myUploads'] })
-      showToast('Photo removed')
     },
   })
 
@@ -983,18 +977,10 @@ function MainContent({
                           Edit
                         </button>
                         <button
-                          onClick={async () => {
-                            const ok = await confirm({
-                              title: 'Remove this photo?',
-                              message: 'The photo will be removed permanently.',
-                              itemName: img.title,
-                              variant: 'danger',
-                              icon: 'trash',
-                            })
-                            if (ok) deleteGalleryMut.mutate(img._id)
+                          onClick={() => {
+                            if (window.confirm('Remove this photo?')) deleteGalleryMut.mutate(img._id)
                           }}
                           className="px-3 py-1.5 bg-red-500 text-white text-[12px] font-medium rounded-md hover:bg-red-600 transition-colors"
-                        >
                         >
                           Delete
                         </button>
@@ -1105,7 +1091,7 @@ function ProjectCard({ project }) {
             <div className="flex items-center gap-3">
               {project.githubLink && (
                 <a
-                  href={safeUrl(project.githubLink)}
+                  href={project.githubLink}
                   target="_blank"
                   rel="noreferrer"
                   className="text-gray-500 hover:text-[#181d26] transition-colors"
@@ -1115,7 +1101,7 @@ function ProjectCard({ project }) {
               )}
               {project.demoLink && (
                 <a
-                  href={safeUrl(project.demoLink)}
+                  href={project.demoLink}
                   target="_blank"
                   rel="noreferrer"
                   className="text-gray-500 hover:text-[#181d26] transition-colors"
@@ -1177,7 +1163,7 @@ function AchievementsList({ achievements, isOwn, onEdit, onDelete }) {
               </p>
               {achievement.certificatePdf && (
                 <a
-                  href={safeUrl(achievement.certificatePdf)}
+                  href={achievement.certificatePdf}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-1 text-[12px] font-medium text-[#181d26] hover:no-underline"
@@ -1619,7 +1605,7 @@ function ProjectSubmitModal({ onClose, onSubmit }) {
       })
     } catch (err) {
       console.error(err)
-      showToast('Failed to submit project', 'error')
+      alert('Failed to submit project')
     } finally {
       setSubmitting(false)
     }
@@ -1728,7 +1714,7 @@ function AchievementSubmitModal({ onClose, onSubmit, loading }) {
       await onSubmit(data)
     } catch (err) {
       console.error(err)
-      showToast('Failed to post achievement', 'error')
+      alert('Failed to post achievement')
     } finally {
       setSubmitting(false)
     }
@@ -1848,7 +1834,7 @@ function AchievementEditModal({ achievement, onClose, onSubmit, loading }) {
       await onSubmit(data)
     } catch (err) {
       console.error(err)
-      showToast('Failed to update achievement', 'error')
+      alert('Failed to update achievement')
     } finally {
       setSubmitting(false)
     }
@@ -1963,7 +1949,7 @@ function GallerySubmitModal({ onClose, onSubmit, loading, initialData }) {
       await onSubmit(data)
     } catch (err) {
       console.error(err)
-      showToast('Failed to upload photo', 'error')
+      alert('Failed to upload photo')
     } finally {
       setSubmitting(false)
     }

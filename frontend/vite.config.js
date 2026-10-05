@@ -3,11 +3,6 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  // Never ship source maps to production — they expose
-  // the full application source to anyone who asks.
-  build: {
-    sourcemap: false,
-  },
   test: {
     globals: true,
     environment: 'happy-dom',

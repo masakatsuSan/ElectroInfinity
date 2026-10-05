@@ -1,12 +1,8 @@
 const multer = require('multer')
-const { fileTypeFromBuffer } = require('file-type')
 const cloudinary = require('../config/cloudinary')
 const { Readable } = require('stream')
 
-// Only these MIME types may ever reach Cloudinary.
-const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp']
-
-// ── Multer: store file in memory (not on disk) ─────────────────────
+// ── Multer: store file in memory (not on disk) ─────────────────────────────
 // We store in memory because we immediately stream it to Cloudinary
 // No temp files left on the server
 const upload = multer({
@@ -15,31 +11,15 @@ const upload = multer({
     fileSize: 20 * 1024 * 1024, // 20MB max
   },
   fileFilter: (req, file, cb) => {
-    // First gate: the declared MIME type. The real check happens
-    // after multer, on the file's magic bytes (see
-    // validateFileBuffer) — the Content-Type header is client
-    // controlled and proves nothing.
-    if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+    // Only allow PDFs and images
+    const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp']
+    if (allowed.includes(file.mimetype)) {
       cb(null, true)
     } else {
       cb(new Error('Only PDFs and images (JPG, PNG, WebP) are allowed'))
     }
   },
 })
-
-// ── Magic-byte validation ──────────────────────────────────────────
-// Reads the file's actual signature bytes and rejects anything whose
-// real type is not on the allowlist — a PDF renamed to .jpg, an HTML
-// file with a forged Content-Type, a polyglot, etc.
-async function validateFileBuffer(buffer) {
-  const detected = await fileTypeFromBuffer(buffer)
-  if (!detected || !ALLOWED_MIME_TYPES.includes(detected.mime)) {
-    const err = new Error('File type not allowed. Only PDFs and images (JPG, PNG, WebP) are allowed.')
-    err.code = 'INVALID_FILE_TYPE'
-    throw err
-  }
-  return detected
-}
 
 // ── Sanitize a filename into a Cloudinary-safe public_id ────────────────────
 // Cloudinary rejects public_ids with spaces, slashes or special chars.
@@ -92,18 +72,9 @@ function uploadSingle(field) {
     }
 
     try {
-      upload.single(field)(req, res, async (err) => {
+      upload.single(field)(req, res, (err) => {
         if (err) return fail(err)
         if (settled) return
-        // Second gate: verify the file's real type from its magic
-        // bytes before anything else touches the buffer.
-        try {
-          if (req.file && req.file.buffer) {
-            await validateFileBuffer(req.file.buffer)
-          }
-        } catch (verifyErr) {
-          return fail(verifyErr)
-        }
         settled = true
         next()
       })
@@ -168,4 +139,4 @@ async function deleteFromCloudinary(publicId, resourceType = 'image') {
   }
 }
 
-module.exports = { upload, uploadSingle, uploadToCloudinary, deleteFromCloudinary, toSafePublicId, validateFileBuffer, ALLOWED_MIME_TYPES }
+module.exports = { upload, uploadSingle, uploadToCloudinary, deleteFromCloudinary, toSafePublicId }

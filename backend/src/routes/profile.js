@@ -13,15 +13,8 @@ const { protect, guard, optionalAuth } = require('../middleware/auth')
 const { upload, uploadSingle, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
 const { createActivity } = require('../utils/activity')
 const { createNotification } = require('../utils/notification')
-const logger = require('../utils/logger')
 
 // ── Helpers ───────────────────────────────────────────────────────────────
-
-// Escape user input before it is embedded in a RegExp —
-// an unescaped value is a ReDoS / regex-injection vector.
-function escapeRegex(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
 
 function computeCompleteness(user) {
   const p = user.profile || {}
@@ -75,7 +68,7 @@ router.get('/search', optionalAuth, async (req, res) => {
     }
 
     if (department) {
-      query['profile.department'] = new RegExp(escapeRegex(department), 'i')
+      query['profile.department'] = new RegExp(department, 'i')
     }
 
     if (semester) {
@@ -83,7 +76,7 @@ router.get('/search', optionalAuth, async (req, res) => {
     }
 
     if (batch) {
-      query.batch = new RegExp(escapeRegex(batch), 'i')
+      query.batch = new RegExp(batch, 'i')
     }
 
     if (role && ['student', 'cr', 'faculty'].includes(role)) {
@@ -92,17 +85,13 @@ router.get('/search', optionalAuth, async (req, res) => {
       query.role = { $in: ['student', 'cr', 'faculty'] }
     }
 
-    const pageNum = Math.max(1, Number(page) || 1)
-    // Cap the page size so a single request cannot load the
-    // entire user collection.
-    const limitNum = Math.min(100, Math.max(1, Number(limit) || 20))
-    const skip = (pageNum - 1) * limitNum
+    const skip = (Number(page) - 1) * Number(limit)
     const [users, total] = await Promise.all([
       User.find(query)
-        .select('name rollNumber batch semester role photo profile.department profile.skills profile.socialLinks profile.interests friends')
+        .select('name rollNumber batch semester role photo email profile.department profile.skills profile.socialLinks profile.interests friends')
         .sort({ name: 1 })
         .skip(skip)
-        .limit(limitNum),
+        .limit(Number(limit)),
       User.countDocuments(query),
     ])
 
@@ -111,6 +100,7 @@ router.get('/search', optionalAuth, async (req, res) => {
       _id: u._id,
       name: u.name,
       rollNumber: u.rollNumber,
+      email: u.email,
       batch: u.batch,
       semester: u.semester,
       role: u.role,
@@ -131,10 +121,10 @@ router.get('/search', optionalAuth, async (req, res) => {
       success: true,
       data: formatted,
       pagination: {
-        page: pageNum,
-        limit: limitNum,
+        page: Number(page),
+        limit: Number(limit),
         total,
-        totalPages: Math.ceil(total / limitNum),
+        totalPages: Math.ceil(total / Number(limit)),
       },
     })
   } catch (err) {
@@ -300,19 +290,7 @@ router.get('/badges', async (req, res) => {
 // ── POST /api/profile/badges (admin) ──────────────────────────────────────
 router.post('/badges', protect, guard('super_admin', 'admin'), async (req, res) => {
   try {
-    // Mass-assignment defense: only these fields are accepted.
-    const { title, description, icon, color, criteria } = req.body
-    if (!title || typeof title !== 'string' || title.length > 60) {
-      return res.status(400).json({ success: false, error: 'A badge title (max 60 chars) is required' })
-    }
-    const badge = await Badge.create({
-      title: title.trim(),
-      description: typeof description === 'string' ? description.slice(0, 300) : '',
-      icon: typeof icon === 'string' ? icon.slice(0, 10) : '',
-      color: typeof color === 'string' ? color.slice(0, 20) : '#1863dc',
-      criteria: typeof criteria === 'string' ? criteria.slice(0, 300) : '',
-    })
-    logger.info({ event: 'badge_created', badgeId: badge._id.toString(), adminId: req.user._id.toString() })
+    const badge = await Badge.create(req.body)
     res.status(201).json({ success: true, data: badge })
   } catch (err) {
     res.status(400).json({ success: false, error: 'Request could not be completed.' })
@@ -503,9 +481,7 @@ department: user.profile?.department || '',
 })
 
 // ── POST /api/profile/:userId/badges ──────────────────────────────────────
-// Awarding badges is admin-only. (The old `isSelf` branch let
-// any user award themselves any badge.)
-router.post('/:userId/badges', protect, guard('super_admin', 'admin'), async (req, res) => {
+router.post('/:userId/badges', protect, async (req, res) => {
   try {
     const { badgeId } = req.body
     if (!badgeId) return res.status(400).json({ success: false, error: 'badgeId required' })
@@ -516,16 +492,20 @@ router.post('/:userId/badges', protect, guard('super_admin', 'admin'), async (re
     const targetUser = await User.findById(req.params.userId)
     if (!targetUser) return res.status(404).json({ success: false, error: 'User not found' })
 
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'super_admin'
+    const isSelf = req.user._id.toString() === req.params.userId.toString()
+
+    if (!isAdmin && !isSelf) {
+      return res.status(403).json({ success: false, error: 'Not authorized to award this badge' })
+    }
+
     if (!targetUser.badges) targetUser.badges = []
     if (!targetUser.badges.includes(badgeId)) {
       targetUser.badges.push(badgeId)
       await targetUser.save()
     }
 
-    logger.info({ event: 'badge_awarded', badgeId, userId: targetUser._id.toString(), adminId: req.user._id.toString() })
-    res.json({ success: true, data: {
-      _id: targetUser._id, name: targetUser.name, badges: targetUser.badges,
-    } })
+    res.json({ success: true, data: targetUser })
   } catch (err) {
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }

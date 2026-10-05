@@ -2,49 +2,31 @@ const express = require('express')
 const axios = require('axios')
 const Contact = require('../models/Contact')
 const { protect, guard } = require('../middleware/auth')
-const { contactLimiter } = require('../middleware/rateLimit')
-const logger = require('../utils/logger')
 
 const router = express.Router()
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
-
 // -- POST /api/contact -----------------------------------------------
 // Public contact form — stores the message AND emails the department.
-// Rate limited (5/hour/IP) and length-capped so it cannot be used
-// as a spam relay or to stuff oversized payloads into the DB.
-router.post('/', contactLimiter, async (req, res) => {
+router.post('/', async (req, res) => {
   const { name, email, subject, message } = req.body
 
   if (!name || !email || !message) {
     return res.status(400).json({ success: false, error: 'Name, email, and message are required' })
   }
-  if (typeof name !== 'string' || name.trim().length > 100) {
-    return res.status(400).json({ success: false, error: 'Name must be 100 characters or fewer' })
-  }
-  if (typeof email !== 'string' || email.length > 200 || !EMAIL_RE.test(email)) {
-    return res.status(400).json({ success: false, error: 'A valid email address is required' })
-  }
-  if (subject !== undefined && (typeof subject !== 'string' || subject.length > 200)) {
-    return res.status(400).json({ success: false, error: 'Subject must be 200 characters or fewer' })
-  }
-  if (typeof message !== 'string' || message.trim().length === 0 || message.length > 5000) {
-    return res.status(400).json({ success: false, error: 'Message must be between 1 and 5000 characters' })
-  }
 
   // Persist the submission so admins can manage it from the inbox
   let stored
   try {
-    stored = await Contact.create({ name: name.trim(), email: email.trim(), subject: (subject || '').trim(), message })
+    stored = await Contact.create({ name, email, subject, message })
   } catch (dbErr) {
-    logger.error({ event: 'contact_store_failed', err: dbErr.message })
+    console.error('? Contact: DB store failed:', dbErr.message)
     // If the DB is unavailable we still try to send the email so the
     // user's message is not lost.
   }
 
   // -- Email the department via Brevo --------------------------------
   if (!process.env.BREVO_API_KEY) {
-    logger.warn('BREVO_API_KEY missing — contact stored but email not sent')
+    console.warn('??  BREVO_API_KEY missing — contact stored but email not sent')
     return res.json({ success: true, message: 'Message received. (Email delivery not configured on server.)', data: stored })
   }
 
@@ -70,17 +52,15 @@ router.post('/', contactLimiter, async (req, res) => {
     const apiKey = process.env.BREVO_API_KEY.trim()
     const response = await axios.post('https://api.brevo.com/v3/smtp/email', payload, {
       headers: { 'api-key': apiKey, 'Content-Type': 'application/json' },
-      timeout: 15000,
     })
-    logger.info({ event: 'contact_email_sent', messageId: response.data?.messageId })
+    console.log('? Contact email sent. ID:', response.data?.messageId)
     res.json({ success: true, message: 'Message sent successfully', data: stored })
   } catch (error) {
-    logger.error({
-      event: 'contact_email_failed',
-      status: error.response?.status,
-      message: error.response?.data?.message,
-      code: error.response?.data?.code,
-    })
+    console.error('? Brevo API Error (Contact):')
+    console.error('   Status:', error.response?.status)
+    console.error('   Message:', error.response?.data?.message)
+    console.error('   Code:', error.response?.data?.code)
+    console.error('   Error Details:', error.response?.data)
     // Message was still stored, so report a softer failure
     res.status(502).json({ success: false, error: 'Message was recorded but email delivery failed. We will get back to you.' })
   }

@@ -6,8 +6,8 @@ const { protect, guard } = require('../middleware/auth');
 
 // @route   GET /api/admin/stats
 // @desc    Get admin dashboard statistics
-// @access  Private (admin, super_admin) — CRs are students
-router.get('/stats', protect, guard('admin', 'super_admin'), async (req, res) => {
+// @access  Private (cr, admin, super_admin)
+router.get('/stats', protect, guard('cr', 'admin', 'super_admin'), async (req, res) => {
   try {
     const [
       totalUsers,

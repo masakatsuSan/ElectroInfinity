@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react'
 import { X, Image, FileText, Loader2 } from 'lucide-react'
-import { safeUrl } from '../utils/safeUrl'
 
 const ALLOWED_TYPES = {
   image: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
@@ -173,7 +172,7 @@ export function FileUpload({
             <img src={value} alt="Current" className="h-20 w-auto rounded-lg border border-divider-soft object-cover" />
           )}
           {!isImage && value && (
-            <a href={safeUrl(value)} target="_blank" rel="noopener noreferrer" className="font-[Inter,system-ui,sans-serif] text-[13px] text-primary hover:underline flex items-center gap-1">
+            <a href={value} target="_blank" rel="noopener noreferrer" className="font-[Inter,system-ui,sans-serif] text-[13px] text-primary hover:underline flex items-center gap-1">
               <FileText size={14} /> View current file
             </a>
           )}

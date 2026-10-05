@@ -1,77 +1,65 @@
-const { verifyAccessToken } = require('../utils/tokens')
+const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 
-// ─── token extraction ──────────────────────────────────────────────
-// Accepts either an Authorization: Bearer header (API clients, tests)
-// or the httpOnly access_token cookie (browser).
-function extractToken(req) {
-  if (req.headers.authorization?.startsWith('Bearer')) {
-    return req.headers.authorization.split(' ')[1]
-  }
-  return req.cookies?.access_token || null
-}
-
-// ─── protect ───────────────────────────────────────────────────────
-// Use on any route that requires login.
+// ─── protect ───────────────────────────────────────────────────────────────
+// Use this on any route that requires login
+// e.g. router.get('/profile', protect, getProfile)
 const protect = async (req, res, next) => {
-  const token = extractToken(req)
+  let token
+
+  // Tokens come in the Authorization header as "Bearer <token>"
+  if (req.headers.authorization?.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1]
+  }
 
   if (!token) {
     return res.status(401).json({ success: false, error: 'Authentication required' })
   }
 
   try {
-    // Explicit algorithm + issuer; "none" and other algorithms are rejected.
-    const decoded = verifyAccessToken(token)
+    // Decode the token — this also checks if it has expired
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
-    const user = await User.findById(decoded.id)
+    // Attach the full user to req so any route can access req.user
+    req.user = await User.findById(decoded.id)
 
-    // Reject unknown users, deactivated accounts, and tokens minted
-    // before the last password change (tokenVersion mismatch).
-    if (!user || user.isActive === false) {
+    if (!req.user) {
       return res.status(401).json({ success: false, error: 'Authentication required' })
     }
-    // Existing documents predate the tokenVersion field and read
-    // as undefined — treat that the same as 0 so those sessions
-    // keep working (signing already normalises with `|| 0`).
-    const userTv = user.tokenVersion || 0
-    if (decoded.tv !== undefined && userTv !== decoded.tv) {
-      return res.status(401).json({ success: false, error: 'Session expired — please log in again' })
-    }
 
-    req.user = user
     next()
   } catch (err) {
     return res.status(401).json({ success: false, error: 'Authentication required' })
   }
 }
 
-// ─── guard ─────────────────────────────────────────────────────────
-// Restrict a route to certain roles. The role always comes from the
-// database-loaded user (req.user), never from the client.
+// ─── guard ─────────────────────────────────────────────────────────────────
+// Use this to restrict a route to certain roles
+// e.g. router.post('/announcements', protect, guard('admin','faculty'), createAnnouncement)
 const guard = (...roles) => {
   return (req, res, next) => {
-    if (!req.user) {
-      return res.status(401).json({ success: false, error: 'Authentication required' })
-    }
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ success: false, error: 'Access denied' })
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied',
+      })
     }
     next()
   }
 }
 
-// ─── optionalAuth ──────────────────────────────────────────────────
-// Attempts to load the user if a token exists, but doesn't throw.
+// ─── optionalAuth ────────────────────────────────────────────────────────────
+// Attempts to get the user if a token exists, but doesn't throw if not
 const optionalAuth = async (req, res, next) => {
-  const token = extractToken(req)
+  let token
+  if (req.headers.authorization?.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1]
+  }
+
   if (token) {
     try {
-      const decoded = verifyAccessToken(token)
-      const user = await User.findById(decoded.id)
-      if (user && user.isActive !== false) {
-        req.user = user
-      }
+      const decoded = jwt.verify(token, process.env.JWT_SECRET)
+      req.user = await User.findById(decoded.id)
     } catch (err) {
       // Ignored for optional auth
     }
@@ -79,4 +67,4 @@ const optionalAuth = async (req, res, next) => {
   next()
 }
 
-module.exports = { protect, guard, optionalAuth, extractToken }
+module.exports = { protect, guard, optionalAuth }

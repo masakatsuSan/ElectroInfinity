@@ -7,8 +7,6 @@ const AttendanceRecord = require('../models/AttendanceRecord')
 const { protect, guard } = require('../middleware/auth')
 const { distanceMeters } = require('../utils/geofence')
 const { createNotificationBulk } = require('../utils/notification')
-const { scanLimiter } = require('../middleware/rateLimit')
-const logger = require('../utils/logger')
 const {
   endSession,
   triggerCheckpoint,
@@ -39,7 +37,46 @@ router.get('/admin/faculty', protect, guard('admin', 'super_admin'), async (req,
 
 // @route   POST /api/attendance/admin/faculty
 // @desc    Create faculty account with teaching assignments
-router.post('/admin/faculty', protect, guard('admin', 'super_admin'), createFacultyAccount)
+router.post('/admin/faculty', protect, guard('admin', 'super_admin'), async (req, res) => {
+  try {
+    const { name, email, password, teachingAssignments, assignedBatches, assignedCourses } = req.body
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, error: 'Name, email, and password are required' })
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' })
+    }
+
+    const existing = await User.findOne({ email: email.toLowerCase().trim() })
+    if (existing) {
+      return res.status(400).json({ success: false, error: 'Email already in use' })
+    }
+
+    const formattedAssignments = Array.isArray(teachingAssignments)
+      ? teachingAssignments.map(a => ({
+          batch: (a.batch || '').trim(),
+          subject: (a.subject || '').trim(),
+        })).filter(a => a.batch && a.subject)
+      : []
+
+    const faculty = await User.create({
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      password,
+      role: 'faculty',
+      teachingAssignments: formattedAssignments,
+      assignedBatches: assignedBatches || formattedAssignments.map(a => a.batch),
+      assignedCourses: assignedCourses || formattedAssignments.map(a => a.subject),
+      isVerified: true,
+      isActive: true,
+    })
+
+    faculty.password = undefined
+    res.status(201).json({ success: true, data: faculty })
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'An internal server error occurred' })
+  }
+})
 
 // @route   PUT /api/attendance/admin/faculty/:id
 // @desc    Update faculty account and teaching assignments
@@ -128,62 +165,16 @@ router.get('/faculty', protect, guard('admin', 'super_admin'), async (req, res) 
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
-// Legacy POST /api/attendance/faculty — same handler as
-// POST /api/attendance/admin/faculty. (Re-dispatching through
-// router.handle() matched this route again and recursed until
-// the stack overflowed.)
-router.post('/faculty', protect, guard('admin', 'super_admin'), createFacultyAccount)
-
-// Shared faculty-creation handler (admin + legacy route).
-async function createFacultyAccount(req, res) {
-  try {
-    const { name, email, password, teachingAssignments, assignedBatches, assignedCourses } = req.body
-    if (!name || !email || !password) {
-      return res.status(400).json({ success: false, error: 'Name, email, and password are required' })
-    }
-    if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
-      return res.status(400).json({ success: false, error: 'Password must be 8–128 characters' })
-    }
-
-    const existing = await User.findOne({ email: String(email).toLowerCase().trim() })
-    if (existing) {
-      return res.status(400).json({ success: false, error: 'Email already in use' })
-    }
-
-    const formattedAssignments = Array.isArray(teachingAssignments)
-      ? teachingAssignments.map(a => ({
-          batch: (a.batch || '').trim(),
-          subject: (a.subject || '').trim(),
-        })).filter(a => a.batch && a.subject)
-      : []
-
-    const faculty = await User.create({
-      name: String(name).trim().slice(0, 100),
-      email: String(email).toLowerCase().trim(),
-      password,
-      role: 'faculty',
-      teachingAssignments: formattedAssignments,
-      assignedBatches: assignedBatches || formattedAssignments.map(a => a.batch),
-      assignedCourses: assignedCourses || formattedAssignments.map(a => a.subject),
-      isVerified: true,
-      isActive: true,
-    })
-
-    logger.info({ event: 'faculty_created', adminId: req.user._id.toString(), facultyId: faculty._id.toString() })
-    res.status(201).json({ success: true, data: {
-      _id: faculty._id, name: faculty.name, email: faculty.email, role: faculty.role,
-      teachingAssignments: faculty.teachingAssignments, isActive: faculty.isActive,
-    } })
-  } catch (err) {
-    res.status(500).json({ success: false, error: 'An internal server error occurred' })
-  }
-}
+router.post('/faculty', protect, guard('admin', 'super_admin'), async (req, res) => {
+  const { name, email, password, teachingAssignments, assignedBatches, assignedCourses } = req.body
+  const assignments = teachingAssignments || (assignedBatches || []).map(b => ({ batch: b, section: '', subject: assignedCourses?.[0] || 'ECT' }))
+  req.body.teachingAssignments = assignments
+  return router.handle(req, res)
+})
 
 // ── Rooms (Admin/Legacy) ──────────────────────────────────────────────────
 
-// Geofence anchors are sensitive (they are what attendance
-// location checks are measured against) — staff only.
-router.get('/rooms', protect, guard('admin', 'super_admin', 'faculty'), async (req, res) => {
+router.get('/rooms', protect, async (req, res) => {
   try {
     const rooms = await Room.find().sort({ name: 1 })
     res.json({ success: true, data: rooms })
@@ -243,22 +234,21 @@ router.post('/sessions/start', protect, guard('faculty'), async (req, res) => {
       })
     }
 
-    // Verify teaching assignment. Default-deny: a faculty member
-    // with no configured assignments may not start sessions for
-    // arbitrary batches (an empty list used to bypass this check).
-    const assignments = Array.isArray(req.user.teachingAssignments) ? req.user.teachingAssignments : []
-    const allowed = assignments.some(a => {
-      const batchMatch = a.batch.toLowerCase() === targetBatch.toLowerCase()
-      const subjectMatch = a.subject.toLowerCase() === targetSubject.toLowerCase()
-      const sectionMatch = !a.section || !targetSection || a.section.toLowerCase() === targetSection.toLowerCase()
-      return batchMatch && subjectMatch && sectionMatch
-    })
-
-    if (!allowed) {
-      return res.status(403).json({
-        success: false,
-        error: `You are not assigned to teach ${targetSubject} for batch ${targetBatch}${targetSection ? ` (Sec ${targetSection})` : ''}. Contact your HOD to configure your teaching assignments.`,
+    // Verify teaching assignment if faculty has configured assignments
+    if (req.user.teachingAssignments && req.user.teachingAssignments.length > 0) {
+      const allowed = req.user.teachingAssignments.some(a => {
+        const batchMatch = a.batch.toLowerCase() === targetBatch.toLowerCase()
+        const subjectMatch = a.subject.toLowerCase() === targetSubject.toLowerCase()
+        const sectionMatch = !a.section || !targetSection || a.section.toLowerCase() === targetSection.toLowerCase()
+        return batchMatch && subjectMatch && sectionMatch
       })
+
+      if (!allowed) {
+        return res.status(403).json({
+          success: false,
+          error: `You are not assigned to teach ${targetSubject} for batch ${targetBatch}${targetSection ? ` (Sec ${targetSection})` : ''}`,
+        })
+      }
     }
 
     // End any existing active session of this faculty
@@ -461,10 +451,8 @@ router.get('/sessions/:id/feed', protect, async (req, res) => {
     if (!session) return res.status(404).json({ success: false, error: 'Session not found' })
 
     const isFaculty = req.user.role === 'faculty' && session.faculty.toString() === req.user._id.toString()
-    const isAdmin = ['admin', 'super_admin'].includes(req.user.role)
-    // CRs may only see their own batch's sessions.
-    const isSameBatchCr = req.user.role === 'cr' && String(session.batch).trim().toLowerCase() === String(req.user.batch || '').trim().toLowerCase()
-    if (!isFaculty && !isAdmin && !isSameBatchCr) {
+    const isAdmin = ['admin', 'super_admin', 'cr'].includes(req.user.role)
+    if (!isFaculty && !isAdmin) {
       return res.status(403).json({ success: false, error: 'Access denied' })
     }
 
@@ -526,20 +514,10 @@ router.get('/faculty/my-classes', protect, guard('faculty'), async (req, res) =>
 
 // @route   GET /api/attendance/sessions/:id/roster
 // @desc    Get complete attendance roster of a specific session
-// Authorization: session faculty owner, admin/super_admin, or CR
-// of the same batch (same rules as /feed — this used to be open
-// to any authenticated user).
 router.get('/sessions/:id/roster', protect, async (req, res) => {
   try {
-    const session = await Session.findById(req.params.id)
+    const session = await Session.findById(req.params.id).populate('faculty', 'name email')
     if (!session) return res.status(404).json({ success: false, error: 'Session not found' })
-
-    const isFaculty = req.user.role === 'faculty' && session.faculty.toString() === req.user._id.toString()
-    const isAdmin = ['admin', 'super_admin'].includes(req.user.role)
-    const isSameBatchCr = req.user.role === 'cr' && String(session.batch).trim().toLowerCase() === String(req.user.batch || '').trim().toLowerCase()
-    if (!isFaculty && !isAdmin && !isSameBatchCr) {
-      return res.status(403).json({ success: false, error: 'Access denied' })
-    }
 
     const feed = await buildSessionFeed(session._id)
     res.json({ success: true, data: feed })
@@ -586,17 +564,13 @@ router.delete('/records/:recordId', protect, guard('faculty'), async (req, res) 
 
 // @route   GET /api/attendance/sessions/active/batch
 // @desc    Get active session for student's batch and section
-// The response is a strict projection: the live QR token and the
-// faculty GPS anchor NEVER leave the server (a student used to be
-// able to read both off this endpoint and scan without the screen).
 router.get('/sessions/active/batch', protect, guard('student', 'cr'), async (req, res) => {
   try {
     const userBatch = (req.user.batch || '').trim().toLowerCase()
     const userSection = (req.user.section || '').trim().toLowerCase()
 
     const sessions = await Session.find({ batch: req.user.batch, status: 'active' })
-      .select('_id subject batch section course startTime status active durationMinutes faculty room')
-      .populate('faculty', 'name')
+      .populate('faculty', 'name email')
       .populate('room', 'name')
       .sort({ startTime: -1 })
 
@@ -621,14 +595,11 @@ router.get('/sessions/active/batch', protect, guard('student', 'cr'), async (req
 
 // @route   POST /api/attendance/scan
 // @desc    Student scans rotating QR code
-router.post('/scan', protect, guard('student', 'cr'), scanLimiter, async (req, res) => {
+router.post('/scan', protect, guard('student', 'cr'), async (req, res) => {
   try {
     const { sessionId, token, latitude, longitude, accuracy, checkpointNumber } = req.body
     const cpNum = checkpointNumber != null ? Number(checkpointNumber) : 0
-    // Device-reported accuracy is an untrusted hint: cap it so a
-    // client cannot inflate the geofence tolerance by reporting a
-    // huge accuracy value.
-    const studentAccuracy = accuracy != null ? Math.min(Number(accuracy) || 0, 100) : null
+    const studentAccuracy = accuracy != null ? Number(accuracy) : null
 
     if (!sessionId || !token) {
       return res.status(400).json({ success: false, error: 'Session ID and QR token are required' })
@@ -663,16 +634,14 @@ router.post('/scan', protect, guard('student', 'cr'), scanLimiter, async (req, r
       }
     }
 
-    // Step c: Verify QR token. Fail CLOSED: a session with no
-    // current token (e.g. after a server restart wiped the
-    // in-memory rotation timers) accepts nothing.
-    if (!session.currentQrToken || session.currentQrToken !== token) {
+    // Step c: Verify QR token
+    if (session.currentQrToken && session.currentQrToken !== token) {
       return res.status(400).json({
         success: false,
         error: 'QR code expired. Please scan the current code on the faculty screen.',
       })
     }
-    if (session.qrExpiresAt && new Date() > new Date(session.qrExpiresAt.getTime() + 5000)) {
+    if (session.qrExpiresAt && new Date() > new Date(session.qrExpiresAt.getTime() + 10000)) {
       return res.status(400).json({
         success: false,
         error: 'QR code expired. Please scan the latest code on the faculty screen.',
@@ -736,9 +705,7 @@ router.post('/scan', protect, guard('student', 'cr'), scanLimiter, async (req, r
       Number.isFinite(studentAccuracy) ? studentAccuracy : 0,
       Number.isFinite(facultyAccuracy) ? facultyAccuracy : 0,
     )
-    // Tolerance is capped at 100m so no combination of reported
-    // accuracy values can widen the classroom radius arbitrarily.
-    const slack = Math.min(100, Math.round(1.5 * combinedUncertainty))
+    const slack = Math.min(200, Math.round(1.5 * combinedUncertainty))
     const effectiveRadius = BASE_RADIUS_METERS + slack
 
     // 1) Geofence signal (max 40): inside the effective radius (with tolerance)

@@ -4,30 +4,6 @@ const Assignment = require('../models/Assignment');
 const { protect, guard } = require('../middleware/auth');
 const { createNotificationBulk } = require('../utils/notification');
 
-// Fields a client may set. `createdBy` is always the session
-// user; CRs are always forced onto their own batch.
-const ASSIGNMENT_FIELDS = ['title', 'description', 'link', 'deadline'];
-
-function pickAssignmentFields(body) {
-  const payload = {};
-  for (const f of ASSIGNMENT_FIELDS) {
-    if (body[f] !== undefined) payload[f] = body[f];
-  }
-  if (payload.title !== undefined) payload.title = String(payload.title).trim().slice(0, 100);
-  if (payload.description !== undefined) payload.description = String(payload.description).slice(0, 5000);
-  if (payload.link !== undefined) payload.link = String(payload.link).trim().slice(0, 500);
-  if (payload.deadline !== undefined) {
-    const d = new Date(payload.deadline);
-    if (isNaN(d.getTime())) {
-      const err = new Error('deadline must be a valid date');
-      err.status = 400;
-      throw err;
-    }
-    payload.deadline = d;
-  }
-  return payload;
-}
-
 // @route   GET /api/assignments
 // @desc    Get all assignments for the user's batch
 // @access  Private
@@ -61,23 +37,16 @@ router.get('/', protect, async (req, res) => {
 // @access  Private (CR)
 router.post('/', protect, guard('cr', 'admin', 'super_admin'), async (req, res) => {
   try {
-    // Mass-assignment defense: whitelisted fields only.
-    const payload = pickAssignmentFields(req.body);
-    if (!payload.title || !payload.description || !payload.deadline) {
-      return res.status(400).json({ success: false, error: 'Title, description, and deadline are required' });
-    }
-    payload.createdBy = req.user.id;
-    // Auto-set batchId and visibility for CRs — a CR can
-    // never post to another batch or globally.
+    req.body.createdBy = req.user.id;
+    // Auto-set batchId and visibility for CRs
     if (req.user.role === 'cr') {
-      payload.batchId = req.user.batch;
-      payload.visibility = 'BATCH';
-    } else {
-      payload.batchId = typeof req.body.batchId === 'string' ? req.body.batchId.trim().slice(0, 20) : req.user.batch || '';
-      payload.visibility = req.body.visibility === 'GLOBAL' && !payload.batchId ? 'GLOBAL' : 'BATCH';
+      req.body.batchId = req.user.batch;
+      req.body.visibility = 'BATCH';
+    } else if (req.user.role === 'admin' || req.user.role === 'super_admin') {
+      req.body.visibility = req.body.visibility || 'BATCH';
     }
-
-    const assignment = await Assignment.create(payload);
+    
+    const assignment = await Assignment.create(req.body);
 
     // Notify students in the same batch about new assignment
     const io = req.app.get('io')

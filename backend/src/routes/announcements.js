@@ -115,11 +115,6 @@ router.get('/', optionalAuth, async (req, res) => {
   try {
     const { category, page = 1, limit = 20, includeExpired } = req.query;
 
-    // Cap pagination so a single request cannot load the
-    // entire collection.
-    const pageNum = Math.max(1, parseInt(page, 10) || 1);
-    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
-
     const clauses = visibilityClauses(req.user);
     if (category) clauses.push({ category });
     const expiry = expiryClause(includeExpired, req.user);
@@ -127,11 +122,11 @@ router.get('/', optionalAuth, async (req, res) => {
 
     const query = clauses.length > 0 ? { $and: clauses } : {};
 
-    const skip = (pageNum - 1) * limitNum;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
     const announcements = await Announcement.find(query)
       .sort({ isPinned: -1, createdAt: -1 })
       .skip(skip)
-      .limit(limitNum)
+      .limit(parseInt(limit))
       .populate('postedBy', 'name role');
 
     const total = await Announcement.countDocuments(query);
@@ -140,8 +135,8 @@ router.get('/', optionalAuth, async (req, res) => {
       success: true,
       count: announcements.length,
       total,
-      page: pageNum,
-      totalPages: Math.ceil(total / limitNum),
+      page: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit)),
       data: announcements
     });
   } catch (error) {

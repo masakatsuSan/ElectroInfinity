@@ -2,7 +2,6 @@ const crypto = require('crypto')
 const Session = require('../models/Session')
 const AttendanceRecord = require('../models/AttendanceRecord')
 const User = require('../models/User')
-const logger = require('../utils/logger')
 
 const activeTimers = new Map()
 
@@ -174,38 +173,8 @@ async function startSessionTimers(session, io) {
   activeTimers.set(sessionId, { qrInterval, checkpointTimeouts, endTimeout })
 }
 
-// Server restarts kill the in-memory timers, which used to leave
-// sessions "active" forever. On startup (and periodically) any
-// session that has been active longer than its duration plus a
-// grace window is force-ended so QR tokens stop rotating and
-// students stop being marked absent.
-const STALE_GRACE_MS = 30 * 60 * 1000
-
-async function sweepStaleSessions(io) {
-  // Sessions whose startTime is older than duration + grace are
-  // definitely over; anything without a startTime is corrupt.
-  const candidates = await Session.find({
-    status: 'active',
-    active: true,
-  })
-  const toEnd = []
-  for (const session of candidates) {
-    const durationMs = (session.durationMinutes || 60) * 60 * 1000
-    const startedAt = session.startTime ? new Date(session.startTime).getTime() : 0
-    if (!session.startTime || Date.now() - startedAt > durationMs + STALE_GRACE_MS) {
-      toEnd.push(session._id)
-    }
-  }
-  for (const id of toEnd) {
-    await endSession(id, io)
-  }
-  if (toEnd.length) {
-    logger.info({ event: 'stale_sessions_swept', count: toEnd.length })
-  }
-  return toEnd.length
-}
-
-async function buildSessionFeed(sessionId) {  const session = await Session.findById(sessionId)
+async function buildSessionFeed(sessionId) {
+  const session = await Session.findById(sessionId)
     .populate('faculty', 'name email')
     .populate('room', 'name')
   if (!session) return null
@@ -280,5 +249,4 @@ module.exports = {
   triggerCheckpoint,
   startSessionTimers,
   buildSessionFeed,
-  sweepStaleSessions,
 }
