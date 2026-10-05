@@ -3,11 +3,24 @@ const Gallery = require('../models/Gallery')
 const User = require('../models/User')
 const { protect, guard } = require('../middleware/auth')
 const { upload, uploadSingle, uploadToCloudinary, deleteFromCloudinary } = require('../utils/upload')
+const { isCloudinaryUrl } = require('../utils/cloudinaryUrl')
+const logger = require('../utils/logger')
 const axios = require('axios')
 
 const router = express.Router()
 
 const TEASER_LIMIT = 6
+
+// Only Cloudinary delivery URLs may be stored as an image source.
+// The server fetches stored URLs (GET /:id/image), so anything
+// else would be a server-side request forgery vector.
+function assertSafeImageUrl(url) {
+  if (!isCloudinaryUrl(url)) {
+    const err = new Error('imageUrl must be a Cloudinary delivery URL (https://…cloudinary.com/…). Upload a file instead.')
+    err.status = 400
+    throw err
+  }
+}
 
 function buildGalleryTeaser(photo) {
   return {
@@ -106,7 +119,10 @@ router.get('/:id/image', async (req, res) => {
 })
 
 // -- POST /api/gallery -----------------------------------------------
-router.post('/', protect, uploadSingle('image'), async (req, res) => {
+// Publishing to the public gallery is staff-only (admin,
+// super_admin, faculty). It used to be open to any registered
+// user, with isApproved hardcoded true.
+router.post('/', protect, guard('admin', 'super_admin', 'faculty'), uploadSingle('image'), async (req, res) => {
   try {
     const { title, category, date, imageUrl } = req.body
 
@@ -126,18 +142,23 @@ router.post('/', protect, uploadSingle('image'), async (req, res) => {
       return res.status(400).json({ success: false, error: 'An image file or imageUrl is required' })
     }
 
+    // SSRF defense: only Cloudinary URLs may be stored.
+    assertSafeImageUrl(finalUrl)
+
     const photo = await Gallery.create({
-      title: title || '',
+      title: String(title || '').slice(0, 200),
       imageUrl: finalUrl,
       imagePublicId: finalPubId,
-      category: category || 'campus',
+      category: String(category || 'campus').slice(0, 50),
       date: date ? new Date(date) : Date.now(),
       uploadedBy: req.user._id,
       isApproved: true,
     })
 
+    logger.info({ event: 'gallery_upload', photoId: photo._id.toString(), adminId: req.user._id.toString() })
     res.status(201).json({ success: true, data: photo })
   } catch (err) {
+    if (err.status) return res.status(err.status).json({ success: false, error: err.message })
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
@@ -172,12 +193,16 @@ router.patch('/:id', protect, uploadSingle('image'), async (req, res) => {
       photo.imageUrl = result.url
       photo.imagePublicId = result.publicId
     } else if (imageUrl) {
+      // SSRF defense: only Cloudinary URLs may be stored.
+      assertSafeImageUrl(imageUrl)
       photo.imageUrl = imageUrl
     }
 
     await photo.save()
+    logger.info({ event: 'gallery_update', photoId: photo._id.toString(), adminId: req.user._id.toString() })
     res.json({ success: true, data: photo })
   } catch (err) {
+    if (err.status) return res.status(err.status).json({ success: false, error: err.message })
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
   }
 })
@@ -200,6 +225,7 @@ router.delete('/:id', protect, async (req, res) => {
     }
 
     await photo.deleteOne()
+    logger.info({ event: 'gallery_delete', photoId: photo._id.toString(), adminId: req.user._id.toString() })
     res.json({ success: true, message: 'Photo removed from gallery' })
   } catch (err) {
     res.status(500).json({ success: false, error: 'An internal server error occurred' })
