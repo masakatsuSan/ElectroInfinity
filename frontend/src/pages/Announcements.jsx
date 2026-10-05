@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../context/AuthContext'
 import { getAnnouncements, getAnnouncement } from '../api/announcements'
 import { Bell, Pin, Paperclip, User } from 'lucide-react'
+import { safeUrl } from '../utils/safeUrl'
 import SEO from '../components/SEO'
 import ScrollReveal from '../components/ScrollReveal'
 
@@ -153,7 +154,7 @@ function AnnouncementCard({ ann, onClick }) {
         </div>
         {ann.attachmentUrl && (
           <a
-            href={ann.attachmentUrl}
+            href={safeUrl(ann.attachmentUrl)}
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
@@ -256,11 +257,11 @@ function AnnouncementDetail({ detail, loading, error, user, onClose }) {
 
               {detail.attachmentUrl && (
                 <div className="pt-2">
-                  <a
-                    href={detail.attachmentUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-[14px] font-medium text-link hover:no-underline"
+                    <a
+                      href={safeUrl(detail.attachmentUrl)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-[14px] font-medium text-link hover:no-underline"
                   >
                     <Paperclip size={14} />
                     View Attachment

@@ -1,4 +1,5 @@
 import { FileText, Upload, Award, Trophy, User } from 'lucide-react'
+import { safeUrl } from '../utils/safeUrl'
 
 const typeConfig = {
   project_shared:       { icon: FileText,  color: 'text-link', bg: 'bg-surface-soft', label: 'Shared Project' },
@@ -44,7 +45,7 @@ export default function ActivityTimeline({ activities }) {
                 </span>
               </div>
               {activity.link && (
-                <a href={activity.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-sans text-[13px] text-link mt-2">
+                <a href={safeUrl(activity.link)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-sans text-[13px] text-link mt-2">
                   View Details
                 </a>
               )}

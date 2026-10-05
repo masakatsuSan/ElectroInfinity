@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getProject } from '../api/projects'
 import { useAuth } from '../context/AuthContext'
 import { Heart, GitBranch, ExternalLink, ArrowLeft } from 'lucide-react'
+import { safeUrl } from '../utils/safeUrl'
 import SEO from '../components/SEO'
 import { BRAND_NAME } from '../config/brand'
 import UploaderInfo from '../components/UploaderInfo'
@@ -130,7 +131,7 @@ export default function ProjectDetails() {
 
             {project.githubLink && (
               <a
-                href={project.githubLink}
+                href={safeUrl(project.githubLink)}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 text-muted hover:text-ink transition-colors"
@@ -142,7 +143,7 @@ export default function ProjectDetails() {
 
             {project.demoLink && (
               <a
-                href={project.demoLink}
+                href={safeUrl(project.demoLink)}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 text-muted hover:text-ink transition-colors"

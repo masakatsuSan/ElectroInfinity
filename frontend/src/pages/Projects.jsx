@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { GitBranch, ExternalLink, Heart, Code2, Plus, Search, X } from 'lucide-react'
+import { safeUrl } from '../utils/safeUrl'
 import { getProjects, likeProject, createProject } from '../api/projects'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -187,7 +188,7 @@ function ProjectCard({ project, liked, onLike, liking }) {
 
             {project.githubLink && (
               <a
-                href={project.githubLink}
+                href={safeUrl(project.githubLink)}
                 target="_blank"
                 rel="noreferrer"
                 onClick={(e) => e.preventDefault()}
@@ -200,7 +201,7 @@ function ProjectCard({ project, liked, onLike, liking }) {
 
             {project.demoLink && (
               <a
-                href={project.demoLink}
+                href={safeUrl(project.demoLink)}
                 target="_blank"
                 rel="noreferrer"
                 onClick={(e) => e.preventDefault()}

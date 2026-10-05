@@ -1,5 +1,6 @@
 import { ExternalLink } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { safeUrl } from '../utils/safeUrl'
 
 const platformConfig = {
   github:    { label: 'GitHub',    icon: 'github',    color: '#333' },
@@ -53,7 +54,7 @@ export default function SocialLinkCard({ platform, username, url }) {
 
   return (
     <motion.a
-      href={href}
+      href={safeUrl(href)}
       target="_blank"
       rel="noreferrer"
       className="flex items-center justify-between p-4 border border-hairline bg-white rounded-xl group"
